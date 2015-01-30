@@ -123,16 +123,28 @@
 
 ;; Google
 (let ((path "/usr/local/google/home/svein/.emacs-google"))
-  (and (file-exists-p path) (load path)))
+  (and (file-exists-p path)
+    (progn
+      (load path)
+      (setq *running-in-google* t))))
 
 ;; ELPA
 (require 'package)
 (setq package-archives
       '(("gnu" . "http://elpa.gnu.org/packages/")
         ("marmalade" . "http://marmalade-repo.org/packages/")
-        ("melpa" . "http://melpa.milkbox.net/packages/")
-        ("GELPA" . "http://internal-elpa.appspot.com/packages/")))
+        ("melpa" . "http://melpa.milkbox.net/packages/")))
+(when (boundp '*running-in-google*)
+  (push package-archives
+        '("GELPA" . "http://internal-elpa.appspot.com/packages/")))
 (package-initialize)
+
+;; Install any missing packages
+(unless package-archive-contents
+  (package-refresh-contents))
+(dolist (package '(indent-guide column-marker nyan-mode smex pov-mode))
+  (unless (package-installed-p package)
+    (package-install package)))
 
 ;; Misc. setup
 (server-start)
@@ -260,7 +272,6 @@
 
 
 ;; Nyanmacs!
-(push "/usr/local/google/home/svein/.emacsd/nyan-mode" load-path)
 (require 'nyan-mode)
 (nyan-mode 1)
 
