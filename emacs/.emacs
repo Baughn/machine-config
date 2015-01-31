@@ -142,7 +142,8 @@
 ;; Install any missing packages
 (unless package-archive-contents
   (package-refresh-contents))
-(dolist (package '(indent-guide column-marker nyan-mode smex pov-mode))
+(dolist (package (list indent-guide column-marker nyan-mode smex pov-mode ipython
+                       ein))
   (unless (package-installed-p package)
     (package-install package)))
 
