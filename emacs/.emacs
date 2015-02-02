@@ -135,15 +135,15 @@
         ("marmalade" . "http://marmalade-repo.org/packages/")
         ("melpa" . "http://melpa.milkbox.net/packages/")))
 (when (boundp '*running-in-google*)
-  (push package-archives
-        '("GELPA" . "http://internal-elpa.appspot.com/packages/")))
+  (push '("GELPA" . "http://internal-elpa.appspot.com/packages/")
+        package-archives))
 (package-initialize)
 
 ;; Install any missing packages
 (unless package-archive-contents
   (package-refresh-contents))
-(dolist (package (list indent-guide column-marker nyan-mode smex pov-mode ipython
-                       ein))
+(dolist (package '(indent-guide column-marker nyan-mode smex pov-mode ipython
+                                ein))
   (unless (package-installed-p package)
     (package-install package)))
 
