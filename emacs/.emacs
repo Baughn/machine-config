@@ -121,22 +121,21 @@
  '(highlight-changes ((((min-colors 88) (class color)) (:weight thin))))
  '(highlight-changes-delete ((((min-colors 88) (class color)) (:strike-through t)))))
 
-;; Google
-(let ((path "/usr/local/google/home/svein/.emacs-google"))
-  (and (file-exists-p path)
-    (progn
-      (load path)
-      (setq *running-in-google* t))))
-
 ;; ELPA
 (require 'package)
 (setq package-archives
       '(("gnu" . "http://elpa.gnu.org/packages/")
         ("marmalade" . "http://marmalade-repo.org/packages/")
         ("melpa" . "http://melpa.milkbox.net/packages/")))
-(when (boundp '*running-in-google*)
-  (push '("GELPA" . "http://internal-elpa.appspot.com/packages/")
-        package-archives))
+
+;; Google
+(let ((path "/usr/local/google/home/svein/.emacs-google"))
+  (and (file-exists-p path)
+    (progn
+      (load path)
+      (push '("GELPA" . "http://internal-elpa.appspot.com/packages/")
+            package-archives))))
+
 (package-initialize)
 
 ;; Install any missing packages
