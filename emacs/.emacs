@@ -127,22 +127,27 @@
       '(("gnu" . "http://elpa.gnu.org/packages/")
         ("marmalade" . "http://marmalade-repo.org/packages/")
         ("melpa" . "http://melpa.milkbox.net/packages/")))
+(defvar desired-packages
+  '(indent-guide column-marker nyan-mode smex pov-mode ipython ein))
 
 ;; Google
 (let ((path "/usr/local/google/home/svein/.emacs-google"))
   (and (file-exists-p path)
-    (progn
-      (load path)
-      (push '("GELPA" . "http://internal-elpa.appspot.com/packages/")
-            package-archives))))
+       (load path)
+       (push '("GELPA" . "http://internal-elpa.appspot.com/packages/")
+             package-archives)
+       (push 'borgsearch desired-packages)
+       (push 'citc desired-packages)
+       (push 'ditrack-procfs desired-packages)
+       (push 'fast-file-attributes desired-packages)
+       (push 'squery desired-packages)))
 
 (package-initialize)
 
 ;; Install any missing packages
 (unless package-archive-contents
   (package-refresh-contents))
-(dolist (package '(indent-guide column-marker nyan-mode smex pov-mode ipython
-                                ein))
+(dolist (package desired-packages)
   (unless (package-installed-p package)
     (package-install package)))
 
