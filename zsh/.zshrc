@@ -66,6 +66,7 @@ fi
 HISTSIZE=1073741824
 SAVEHIST=1073741824
 HISTFILE=~/.zsh_history
+alias history='history -D'
 
 if [[ -x ~/.zshrc_google ]]; then
   source ~/.zshrc_google
