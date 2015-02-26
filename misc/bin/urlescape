@@ -1,0 +1,3 @@
+#!/bin/bash
+
+perl -MURI::Escape -e 'print uri_escape(join " ", @ARGV);' "$@"
