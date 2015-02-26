@@ -4,15 +4,19 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(browse-url-browser-function (quote browse-url-chromium))
- '(browse-url-chromium-program "chrome")
+ '(browse-url-chromium-program "google-chrome-stable")
  '(column-number-mode t)
  '(elisp-cache-byte-compile-files t)
  '(elisp-cache-freshness-delay 1440)
  '(font-lock-maximum-size 256000)
  '(global-undo-tree-mode t)
  '(haskell-font-lock-symbols (quote unicode))
- '(haskell-mode-hook (quote (imenu-add-menubar-index turn-on-eldoc-mode turn-on-haskell-decl-scan turn-on-haskell-doc turn-on-haskell-indentation)))
- '(highlight-changes-face-list (quote (highlight-changes-1 highlight-changes-2 highlight-changes-3 highlight-changes-4 highlight-changes-5 highlight-changes-6 highlight-changes-7)))
+ '(haskell-mode-hook
+   (quote
+    (imenu-add-menubar-index turn-on-eldoc-mode turn-on-haskell-decl-scan turn-on-haskell-doc turn-on-haskell-indentation)))
+ '(highlight-changes-face-list
+   (quote
+    (highlight-changes-1 highlight-changes-2 highlight-changes-3 highlight-changes-4 highlight-changes-5 highlight-changes-6 highlight-changes-7)))
  '(highlight-changes-global-changes-existing-buffers t)
  '(highlight-changes-invisible-string " -Chg")
  '(highlight-changes-visible-string " +Chg")
@@ -70,7 +74,9 @@
  '(py-ipython-history "~/.ipython/history")
  '(py-lhs-inbound-indent 1)
  '(py-master-file nil)
- '(py-outline-mode-keywords (quote ("class" "def" "elif" "else" "except" "for" "if" "while" "finally" "try" "with")))
+ '(py-outline-mode-keywords
+   (quote
+    ("class" "def" "elif" "else" "except" "for" "if" "while" "finally" "try" "with")))
  '(py-pdbtrack-minor-mode-string " PDB")
  '(py-pep8-command "pep8")
  '(py-pychecker-command "pychecker")
