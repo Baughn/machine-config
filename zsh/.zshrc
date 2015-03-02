@@ -54,8 +54,8 @@ plugins=(git autojump cabal debian emacs history)
 source $ZSH/oh-my-zsh.sh
 
 ### User configuration ###
-export PATH=$HOME/bin:/usr/local/bin:$PATH
-export MANPATH="/usr/local/man:$MANPATH"
+export PATH=$HOME/bin:$HOME/local/bin:/usr/local/bin:$PATH
+export MANPATH=$HOME/local/share/man:"/usr/local/man:$MANPATH"
 export LANG=en_US.UTF-8
 setopt INTERACTIVE_COMMENTS
 

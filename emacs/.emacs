@@ -134,7 +134,8 @@
         ("marmalade" . "http://marmalade-repo.org/packages/")
         ("melpa" . "http://melpa.milkbox.net/packages/")))
 (defvar desired-packages
-  '(indent-guide column-marker nyan-mode smex pov-mode ipython ein))
+  '(indent-guide column-marker nyan-mode smex pov-mode ipython ein js2-mode js3-mode
+                 multiple-cursors flyspell-lazy))
 
 ;; Google
 (let ((path "/usr/local/google/home/svein/.emacs-google"))
@@ -162,6 +163,13 @@
 (require 'uniquify)
 (blink-cursor-mode (- (*) (*) (*)))
 (global-set-key "\M- " 'hippie-expand)
+
+;; Spellchecking
+;(flyspell-lazy-mode)
+(dolist (hook '(python-mode-hook c-mode-hook c++-mode-hook borg-mode-hook hook
+                                 javascript-mode-hook js-mode-hook js2-mode-hook
+                                 lisp-mode-hook emacs-lisp-mode-hook))
+  (add-hook hook (lambda () (flyspell-prog-mode))))
 
 ;; Put backup files in /tmp
 (setq backup-directory-alist
@@ -252,7 +260,7 @@
 (add-hook 'c++-mode-hook 'setup-column-marker)
 (add-hook 'borg-mode-hook 'setup-column-marker)
 (add-hook 'java-mode-hook 'setup-column-marker)
-(add-hook 'go-mode-hook 'setup-column-marker)
+;; (add-hook 'go-mode-hook 'setup-column-marker)
 (add-hook 'javascript-mode-hook 'setup-column-marker)
 (add-hook 'js-mode-hook 'setup-column-marker)
 (add-hook 'js2-mode-hook 'setup-column-marker)
@@ -260,6 +268,10 @@
 (color-theme-initialize)
 (color-theme-subtle-hacker)
 (setq inhibit-startup-message t)
+
+;; Multiple cursors!
+(global-set-key (kbd "C-c <") 'mc/mark-all-dwim)
+
 
 ;; Buffer switching
 (defun switch-to-previous-buffer ()
