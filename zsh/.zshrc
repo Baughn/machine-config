@@ -89,3 +89,5 @@ alias -s proto=ec
 
 # Finalize
 compinit -u
+
+fortune
