@@ -79,13 +79,6 @@ fi
 ## Aliases
 # Pipes and stuff
 alias -g gp='| grep -i'
-# Open with..
-alias -s c=ec
-alias -s cc=ec
-alias -s py=ec
-alias -s go=ec
-alias -s szl=ec
-alias -s proto=ec
 
 # Finalize
 compinit -u
