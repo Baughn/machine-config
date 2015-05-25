@@ -2,5 +2,5 @@
 
 cache-min=3
 cache=1000000
-hwdec=auto
 no-audio-display
+vo=xv

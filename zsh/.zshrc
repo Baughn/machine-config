@@ -78,7 +78,7 @@ fi
 
 ## Aliases
 # Pipes and stuff
-alias -g gp='| grep -i'
+alias -g gp='| grep -ei'
 
 # Finalize
 compinit -u

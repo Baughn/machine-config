@@ -6,7 +6,7 @@
         ("melpa" . "http://melpa.milkbox.net/packages/")))
 (defvar desired-packages
   '(indent-guide column-marker nyan-mode smex pov-mode ipython ein js2-mode js3-mode
-                 multiple-cursors flyspell-lazy yasnippet buffer-move helm))
+                 multiple-cursors flyspell-lazy yasnippet buffer-move helm undo-tree))
 
 ;; Google
 (let ((path "/usr/local/google/home/svein/.emacs-google"))
@@ -32,6 +32,7 @@
  '(column-number-mode t)
  '(elisp-cache-byte-compile-files t)
  '(elisp-cache-freshness-delay 1440)
+ '(flycheck-disabled-checkers (quote (go-build)))
  '(font-lock-maximum-size 256000)
  '(global-undo-tree-mode t)
  '(haskell-font-lock-symbols (quote unicode))
@@ -287,7 +288,7 @@
 (define-key global-map "\C-cl" 'org-store-link)
 (define-key global-map "\C-ca" 'org-agenda)
 (setq org-log-done t)
-(setq org-agenda-files (list "~/org/tasks.org"))
+(setq org-agenda-files '("~/org/"))
 
 ;; Js3-mode
 ;; (push "/usr/local/google/home/svein/.emacsd/js2-mode" load-path)
