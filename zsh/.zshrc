@@ -24,7 +24,7 @@ export UPDATE_ZSH_DAYS=30
 # DISABLE_LS_COLORS="true"
 
 # Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
+DISABLE_AUTO_TITLE="true"
 
 # Uncomment the following line to enable command auto-correction.
 # ENABLE_CORRECTION="true"
@@ -58,12 +58,23 @@ export PATH=$HOME/bin:$HOME/local/bin:/usr/local/bin:$PATH
 export MANPATH=$HOME/local/share/man:"/usr/local/man:$MANPATH"
 export LANG=en_US.UTF-8
 setopt INTERACTIVE_COMMENTS
+export GOPATH=$HOME/src/gocode/
+export PATH=$PATH:$GOPATH/bin
 
 # Preferred editor for local and remote sessions
 if [[ -n $SSH_CONNECTION ]]; then
   export EDITOR='nano'
 else
   export EDITOR='emacsclient'
+fi
+
+# Any extra bindirs?
+if [[ -d $HOME/opt ]]; then
+  for d in $HOME/opt/*; do
+    if [[ -d $d/bin ]]; then
+      PATH=$d/bin:$PATH
+    fi
+  done
 fi
 
 # Keep ALL THE HISTORY

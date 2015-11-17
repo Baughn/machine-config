@@ -6,8 +6,8 @@
         ("melpa" . "http://melpa.milkbox.net/packages/")))
 (defvar desired-packages
   '(indent-guide column-marker nyan-mode smex pov-mode ipython ein js2-mode js3-mode
-                 multiple-cursors flyspell-lazy yasnippet buffer-move helm undo-tree))
-
+                 multiple-cursors flyspell-lazy yasnippet buffer-move helm undo-tree
+                 pabbrev expand-region))
 ;; Google
 (let ((path "/usr/local/google/home/svein/.emacs-google"))
   (and (file-exists-p path)
@@ -21,6 +21,9 @@
 (dolist (package desired-packages)
   (unless (package-installed-p package)
     (package-install package)))
+
+;; Pabbrev must be turned on before yasnippet.
+;; (global-pabbrev-mode)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -206,6 +209,7 @@
 (global-set-key (kbd "<C-S-right>")  'buf-move-right)
 (global-set-key (kbd "M-b") 'helm-mini)
 (global-unset-key (kbd "C-z"))
+(global-set-key (kbd "C-=") 'er/expand-region)
 ;; (global-highlight-changes-mode 1)
 (show-paren-mode 1)
 
@@ -273,6 +277,7 @@
   (interactive)
   (switch-to-buffer (other-buffer)))
 (global-set-key [f1] 'switch-to-previous-buffer)
+(global-set-key (kbd "<C-tab>") 'bury-buffer)
 
 ;; Recursive edit
 (global-set-key (kbd "s-[") (lambda () (interactive) (save-window-excursion (save-excursion (recursive-edit)))))
@@ -332,6 +337,7 @@
       helm-imenu-fuzzy-match                t ; And so on.
       )
 (semantic-mode 1)
+
 
 (defun shk-yas/helm-prompt (prompt choices &optional display-fn)
   "Use helm to select a snippet. Put this into `yas-prompt-functions.'"
