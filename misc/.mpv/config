@@ -1,6 +1,5 @@
 # Write your default config options here!
 
-cache-min=3
-cache=1000000
+cache=100000
 no-audio-display
 vo=xv

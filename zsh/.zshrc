@@ -76,6 +76,9 @@ if [[ -d $HOME/opt ]]; then
     fi
   done
 fi
+if [[ -d $HOME/.gem/ruby/ ]]; then
+  PATH=$HOME/.gem/ruby/1.9.1/bin:$PATH
+fi
 
 # Keep ALL THE HISTORY
 HISTSIZE=1073741824
@@ -91,7 +94,11 @@ fi
 # Pipes and stuff
 alias -g gp='| grep -ei'
 
+# Start MPD
+pidof mpd > /dev/null || mpd ~/Music/mpd.conf
+
 # Finalize
+zstyle ':completion:*' use-cache on
 compinit -u
 
 fortune
