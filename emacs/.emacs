@@ -209,7 +209,7 @@
 (global-set-key (kbd "M-i") 'indent-rigidly)
 (global-set-key (kbd "C-x M-s") 'sort-lines)
 (global-set-key (kbd "s-s") 'save-buffer)
-(global-set-key (kbd "C-c C-g") 'autogen)
+(global-set-key (kbd "C-c C-g") 'magit-status)
 (global-set-key (kbd "<C-S-up>")     'buf-move-up)
 (global-set-key (kbd "<C-S-down>")   'buf-move-down)
 (global-set-key (kbd "<C-S-left>")   'buf-move-left)
