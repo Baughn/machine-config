@@ -1,6 +1,7 @@
 # Write your default config options here!
 
-cache-min=3
 cache=1000000
 hwdec=auto
 no-audio-display
+ontop
+

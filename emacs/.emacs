@@ -1,12 +1,18 @@
-;; ELPA
+;; Package setup
 (require 'package)
+
+; Nix installed packages
+(add-to-list 'package-directory-list "/run/current-system/sw/share/emacs/site-lisp/elpa")
+(add-to-list 'package-directory-list "~/.nix-profile/share/emacs/site-lisp/elpa")
+
+; ELPA etc.
 (setq package-archives
       '(("gnu" . "http://elpa.gnu.org/packages/")
         ("marmalade" . "http://marmalade-repo.org/packages/")
         ("melpa" . "http://melpa.milkbox.net/packages/")))
 (defvar desired-packages
   '(indent-guide column-marker nyan-mode smex pov-mode ipython ein js2-mode js3-mode
-                 multiple-cursors flyspell-lazy yasnippet buffer-move helm))
+                 multiple-cursors flyspell-lazy yasnippet buffer-move helm color-theme))
 
 ;; Google
 (let ((path "/usr/local/google/home/svein/.emacs-google"))
@@ -353,3 +359,30 @@
     nil))
 
 (helm-mode 1)
+
+;; JSX stuff
+(add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
+(defadvice web-mode-highlight-part (around tweak-jsx activate)
+  (if (equal web-mode-content-type "jsx")
+      (let ((web-mode-enable-part-face nil))
+        ad-do-it)
+    ad-do-it))
+
+(require 'flycheck)
+(flycheck-define-checker jsxhint-checker
+  "A JSX syntax and style checker based on JSXHint."
+
+  :command ("jsxhint" source)
+  :error-patterns
+  ((error line-start (1+ nonl) ": line " line ", col " column ", " (message) line-end))
+  :modes (web-mode))
+(add-hook 'web-mode-hook
+          (lambda ()
+            (when (equal web-mode-content-type "jsx")
+              ;; enable flycheck
+              (flycheck-select-checker 'jsxhint-checker)
+              (flycheck-mode))))
+
+
+;; Work around what.. might be a NixOS bug?
+(setq default-frame-alist nil)

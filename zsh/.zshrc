@@ -49,12 +49,12 @@ COMPLETION_WAITING_DOTS="true"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git autojump cabal debian emacs history)
+plugins=(git autojump cabal debian history)
 
 source $ZSH/oh-my-zsh.sh
 
 ### User configuration ###
-export PATH=$HOME/bin:$HOME/local/bin:/usr/local/bin:$PATH
+export PATH=$HOME/bin:$HOME/local/bin:/usr/local/bin:$HOME/bin/idea/bin:$PATH
 export MANPATH=$HOME/local/share/man:"/usr/local/man:$MANPATH"
 export LANG=en_US.UTF-8
 setopt INTERACTIVE_COMMENTS
@@ -84,3 +84,8 @@ alias -g gp='| grep -i'
 compinit -u
 
 fortune
+
+
+export PATH=/home/svein/torch/install/bin:$PATH  # Added automatically by torch-dist
+export LD_LIBRARY_PATH=/home/svein/torch/install/lib:$LD_LIBRARY_PATH  # Added automatically by torch-dist
+export DYLD_LIBRARY_PATH=/home/svein/torch/install/lib:$DYLD_LIBRARY_PATH  # Added automatically by torch-dist

@@ -1,2 +1,2 @@
-#!/bin/bash
-emacsclient -n "$@"
+#!/usr/bin/env bash
+emacsclient -n "$@" --alternate-editor vim
