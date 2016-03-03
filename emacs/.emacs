@@ -12,8 +12,8 @@
         ("melpa" . "http://melpa.milkbox.net/packages/")))
 (defvar desired-packages
   '(indent-guide column-marker nyan-mode smex pov-mode ipython ein js2-mode js3-mode
-                 multiple-cursors flyspell-lazy yasnippet buffer-move helm color-theme))
-
+                 multiple-cursors flyspell-lazy yasnippet buffer-move helm
+                 color-theme undo-tree pabbrev expand-region))
 ;; Google
 (let ((path "/usr/local/google/home/svein/.emacs-google"))
   (and (file-exists-p path)
@@ -28,6 +28,9 @@
   (unless (package-installed-p package)
     (package-install package)))
 
+;; Pabbrev must be turned on before yasnippet.
+;; (global-pabbrev-mode)
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -38,6 +41,8 @@
  '(column-number-mode t)
  '(elisp-cache-byte-compile-files t)
  '(elisp-cache-freshness-delay 1440)
+ '(fill-column 80)
+ '(flycheck-disabled-checkers (quote (go-build)))
  '(font-lock-maximum-size 256000)
  '(global-undo-tree-mode t)
  '(haskell-font-lock-symbols (quote unicode))
@@ -119,7 +124,7 @@
  '(python-mode-modeline-display "Py")
  '(save-place t nil (saveplace))
  '(show-paren-mode t)
- '(sort-fold-case t t)
+ '(sort-fold-case t)
  '(standard-indent 4)
  '(tab-width 2)
  '(tool-bar-mode nil)
@@ -211,6 +216,7 @@
 (global-set-key (kbd "<C-S-right>")  'buf-move-right)
 (global-set-key (kbd "M-b") 'helm-mini)
 (global-unset-key (kbd "C-z"))
+(global-set-key (kbd "C-=") 'er/expand-region)
 ;; (global-highlight-changes-mode 1)
 (show-paren-mode 1)
 
@@ -278,6 +284,7 @@
   (interactive)
   (switch-to-buffer (other-buffer)))
 (global-set-key [f1] 'switch-to-previous-buffer)
+(global-set-key (kbd "<C-tab>") 'bury-buffer)
 
 ;; Recursive edit
 (global-set-key (kbd "s-[") (lambda () (interactive) (save-window-excursion (save-excursion (recursive-edit)))))
@@ -293,7 +300,7 @@
 (define-key global-map "\C-cl" 'org-store-link)
 (define-key global-map "\C-ca" 'org-agenda)
 (setq org-log-done t)
-(setq org-agenda-files (list "~/org/tasks.org"))
+(setq org-agenda-files '("~/org/"))
 
 ;; Js3-mode
 ;; (push "/usr/local/google/home/svein/.emacsd/js2-mode" load-path)
@@ -337,6 +344,7 @@
       helm-imenu-fuzzy-match                t ; And so on.
       )
 (semantic-mode 1)
+
 
 (defun shk-yas/helm-prompt (prompt choices &optional display-fn)
   "Use helm to select a snippet. Put this into `yas-prompt-functions.'"
