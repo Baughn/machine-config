@@ -58,14 +58,13 @@ export PATH=$HOME/bin:$HOME/local/bin:/usr/local/bin:$HOME/bin/idea/bin:$PATH
 export MANPATH=$HOME/local/share/man:"/usr/local/man:$MANPATH"
 export LANG=en_US.UTF-8
 setopt INTERACTIVE_COMMENTS
-export GOPATH=$HOME/src/gocode/
-export PATH=$PATH:$GOPATH/bin
 
 # Preferred editor for local and remote sessions
 if [[ -n $SSH_CONNECTION ]]; then
   export EDITOR='nano'
 else
-  export EDITOR='emacsclient'
+  export EDITOR='$HOME/bin/ec-blocking'
+  export ALTERNATE_EDITOR='nano'
 fi
 
 # Any extra bindirs?
@@ -102,8 +101,3 @@ zstyle ':completion:*' use-cache on
 compinit -u
 
 fortune
-
-
-export PATH=/home/svein/torch/install/bin:$PATH  # Added automatically by torch-dist
-export LD_LIBRARY_PATH=/home/svein/torch/install/lib:$LD_LIBRARY_PATH  # Added automatically by torch-dist
-export DYLD_LIBRARY_PATH=/home/svein/torch/install/lib:$DYLD_LIBRARY_PATH  # Added automatically by torch-dist
