@@ -91,19 +91,16 @@ in
 
     rimworld = (import "/home/svein/My Games/Rimworld").rimworld;
 
-    idea = with pkgs; with xlibs; stdenv.mkDerivation {
-      name = "idea-2";
-
-      buildInputs = [ makeWrapper ];
-
-      phases = "installPhase";
-
-      libraries = mcupdater.libraries;
-
-      installPhase = ''
-        mkdir $out/bin -p
-        makeWrapper ${pkgs.idea.idea-ultimate}/bin/idea-ultimate $out/bin/idea \
-          --suffix LD_LIBRARY_PATH : $libraries
+    idea-fhs = pkgs.buildFHSUserEnv {
+      name = "idea";
+      targetPkgs = pkgs: with pkgs; with xlibs; [
+        stdenv.cc.cc libX11 libXext libXcursor libXrandr libXxf86vm mesa openal libpulseaudio
+        idea.idea-ultimate jdk go gradle
+      ];
+      runScript = "idea-ultimate";
+      profile = ''
+        export JAVA_HOME=/usr/lib64/openjdk
+        export GOROOT=/usr/share/go
       '';
     };
 
