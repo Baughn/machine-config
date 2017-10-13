@@ -93,6 +93,8 @@ fi
 ## Aliases
 # Pipes and stuff
 alias -g gp='| grep -ei'
+# Fuck.
+eval $(thefuck --alias)
 
 # Start MPD
 pidof mpd > /dev/null || mpd ~/Music/mpd.conf

@@ -1,9 +1,9 @@
 ;; ELPA
 (require 'package)
 (setq package-archives
-      '(("gnu" . "http://elpa.gnu.org/packages/")
-        ("marmalade" . "http://marmalade-repo.org/packages/")
-        ("melpa" . "http://melpa.milkbox.net/packages/")))
+      '(("gnu" . "https://elpa.gnu.org/packages/")
+        ("marmalade" . "https://marmalade-repo.org/packages/")
+        ("melpa" . "https://melpa.org/packages/")))
 (defvar desired-packages
   '(indent-guide column-marker nyan-mode smex pov-mode ipython ein js2-mode js3-mode
                  multiple-cursors flyspell-lazy yasnippet buffer-move helm undo-tree
@@ -40,11 +40,15 @@
  '(font-lock-maximum-size 256000)
  '(global-undo-tree-mode t)
  '(haskell-font-lock-symbols (quote unicode))
- '(haskell-mode-hook (quote (imenu-add-menubar-index turn-on-eldoc-mode turn-on-haskell-decl-scan turn-on-haskell-doc turn-on-haskell-indentation)))
+ '(haskell-mode-hook
+   (quote
+    (imenu-add-menubar-index turn-on-eldoc-mode turn-on-haskell-decl-scan turn-on-haskell-doc turn-on-haskell-indentation)))
  '(helm-M-x-fuzzy-match t)
  '(helm-adaptive-mode t nil (helm-adaptive))
  '(helm-google-suggest-use-curl-p t)
- '(highlight-changes-face-list (quote (highlight-changes-1 highlight-changes-2 highlight-changes-3 highlight-changes-4 highlight-changes-5 highlight-changes-6 highlight-changes-7)))
+ '(highlight-changes-face-list
+   (quote
+    (highlight-changes-1 highlight-changes-2 highlight-changes-3 highlight-changes-4 highlight-changes-5 highlight-changes-6 highlight-changes-7)))
  '(highlight-changes-global-changes-existing-buffers t)
  '(highlight-changes-invisible-string " -Chg")
  '(highlight-changes-visible-string " +Chg")
@@ -90,6 +94,9 @@
  '(pabbrev-marker-distance-before-scavenge 2000)
  '(pabbrev-scavenge-some-chunk-size 80)
  '(pabbrev-thing-at-point-constituent (quote symbol))
+ '(package-selected-packages
+   (quote
+    (haskell-mode ob-kotlin yasnippet undo-tree squery smex pov-mode pabbrev nyan-mode nix-mode multiple-cursors js3-mode js2-mode ipython indent-guide helm flyspell-lazy fast-file-attributes expand-region ein ditrack-procfs column-marker citc buffer-move borgsearch)))
  '(pdb-path (quote /usr/lib/python2\.7/pdb\.py))
  '(py-backspace-function (quote backward-delete-char-untabify))
  '(py-continuation-offset 4)
@@ -102,7 +109,9 @@
  '(py-ipython-history "~/.ipython/history")
  '(py-lhs-inbound-indent 1)
  '(py-master-file nil)
- '(py-outline-mode-keywords (quote ("class" "def" "elif" "else" "except" "for" "if" "while" "finally" "try" "with")))
+ '(py-outline-mode-keywords
+   (quote
+    ("class" "def" "elif" "else" "except" "for" "if" "while" "finally" "try" "with")))
  '(py-pdbtrack-minor-mode-string " PDB")
  '(py-pep8-command "pep8")
  '(py-pychecker-command "pychecker")
@@ -118,11 +127,14 @@
  '(python-mode-modeline-display "Py")
  '(save-place t nil (saveplace))
  '(show-paren-mode t)
- '(sort-fold-case t)
+ '(sort-fold-case t t)
  '(standard-indent 4)
  '(tab-width 2)
  '(tool-bar-mode nil)
  '(tramp-default-method "ssh")
+ '(tramp-shell-prompt-pattern
+   "\\(?:^\\|\\)[^]#$%>
+]*#?[]#$%>].* *\\(\\[[0-9;]*[a-zA-Z] *\\)*")
  '(undo-tree-visualizer-diff t)
  '(uniquify-buffer-name-style (quote post-forward) nil (uniquify))
  '(whitespace-empty (quote whitespace-empty))
@@ -146,7 +158,10 @@
  '(whitespace-tab-regexp "\\(   +\\)")
  '(whitespace-trailing (quote whitespace-trailing))
  '(yas-global-mode t nil (yasnippet))
- '(yas-prompt-functions (quote (shk-yas/helm-prompt yas-x-prompt yas-dropdown-prompt yas-completing-prompt yas-ido-prompt yas-no-prompt))))
+ '(yas-prompt-functions
+   (quote
+    (shk-yas/helm-prompt yas-x-prompt yas-dropdown-prompt yas-completing-prompt yas-ido-prompt yas-no-prompt)))
+ '(yas-snippet-dirs (quote ("~/.emacs.d/snippets"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

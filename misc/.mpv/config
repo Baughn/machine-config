@@ -2,4 +2,3 @@
 
 cache=100000
 no-audio-display
-vo=xv
