@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Cedric31"
+		]
+	},
+	"usermerge": "Fusionar utilizaire e destruire",
+	"usermerge-desc": "[[Special:UserMerge|Fusiona las referéncias d'un utilizaire cap a un autre]] dins la basa de donadas wiki - suprimirà tanben las fusions d'utilizaires ancianas seguentas.",
+	"usermerge-badolduser": "Nom d'utilizaire ancian invalid",
+	"usermerge-badnewuser": "Nom d'utilizaire novèl invalid",
+	"usermerge-nonewuser": "Nom d'utilizaire novèl void. Supausam que volètz fusionar dins  \"{{GENDER:$1|$1}}\".<br />\nClicatz sus « {{int:usermerge-submit}} » per acceptar.",
+	"usermerge-noolduser": "Nom d'utilizaire ancian void",
+	"usermerge-fieldset": "Noms d’utilizaires de fusionar",
+	"usermerge-olduser": "Utilizaire ancian (fusionar dempuèi) :",
+	"usermerge-newuser": "Utilizaire novèl (fusionar amb) :",
+	"usermerge-deleteolduser": "Suprimir l'utilizaire ancian",
+	"usermerge-submit": "Fusionar utilizaire",
+	"usermerge-badtoken": "Geton d'edicion invalid",
+	"usermerge-userdeleted": "$1 ($2) es estat suprimi{{GENDER:$1|t|da}}.",
+	"usermerge-userdeleted-log": "Contributor escafat : $2($3)",
+	"usermerge-success": "La fusion de {{GENDER:$1|$1}} ($2) amb {{GENDER:$3|$3}} ($4) es acabada.",
+	"usermerge-success-log": "{{GENDER:$2|Utilizator|Utilizatritz}} $2 ($3) fusiona{{GENDER:$2|t|da}} amb {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Jornal de las fusions de contributors",
+	"usermerge-logpagetext": "Aquò es un jornal de las accions de fusions de contributors.",
+	"usermerge-noselfdelete": "Podètz pas, vos-meteis, vos suprimir ni vos fusionar !",
+	"usermerge-protectedgroup": "Impossible de fusionar a partir d'un utilizaire - l'utilizaire se tròba dins un grop protegit.",
+	"right-usermerge": "Fusionar d'utilizaires"
+}

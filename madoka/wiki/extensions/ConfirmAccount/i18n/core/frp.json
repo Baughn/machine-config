@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"ChrisPtDe"
+		]
+	},
+	"confirmaccount-newrequests": "Ora, y at '''$1''' [[Special:ConfirmAccounts|demand{{PLURAL:$1|a|es}} de compto usanciér]] en cors. '''Voutra atencion est nècèssèra !'''",
+	"requestaccount-loginnotice": "Por avêr un compto usanciér, vos en dête fâre la '''[[Special:RequestAccount|demanda]]'''."
+}

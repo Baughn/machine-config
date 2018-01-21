@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": []
+	},
+	"usercredentials": "User credentials",
+	"usercredentials-leg": "Lookup confirmed credentials for a user",
+	"usercredentials-user": "Username:",
+	"usercredentials-text": "Below are the validated credentials of the selected user account.",
+	"usercredentials-leg-user": "User account",
+	"usercredentials-leg-areas": "Main areas of interest",
+	"usercredentials-leg-person": "Personal information",
+	"usercredentials-leg-other": "Other information",
+	"usercredentials-leg-ip": "IP address data",
+	"usercredentials-email": "Email address:",
+	"usercredentials-real": "Real name:",
+	"usercredentials-bio": "Biography:",
+	"usercredentials-attach": "Resume/CV:",
+	"usercredentials-notes": "Additional notes:",
+	"usercredentials-urls": "List of websites:",
+	"usercredentials-ip": "Original IP address:",
+	"usercredentials-xff": "Original X-Forwarded-For:",
+	"usercredentials-agent": "Original User-Agent:",
+	"usercredentials-member": "Rights:",
+	"usercredentials-badid": "No credentials found for this user.\nCheck that the name is spelled correctly."
+}

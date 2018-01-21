@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"Boukman",
+			"Masterches"
+		]
+	},
+	"usermerge": "Mete ansanm ak efase kont itilizatè yo",
+	"usermerge-desc": "[[Special:UserMerge|Mèt ansanm referans yo depi yon itilizatè nan referans yon lòt itilizatè]] nan baz done wiki a - l ap efase tou vye non itilizatè yo apre fizyon fin fèt. Ou bezwen genyen dwa ''usermerge'' pou fè fizyon sa.",
+	"usermerge-badolduser": "Ansyen non itilizatè a pa bon.",
+	"usermerge-badnewuser": "Nouvo non itilizatè a pa bon.",
+	"usermerge-nonewuser": "Nouvo non itilizatè ki vid - nou kwè ou vle mete l ansanm ak $1.<br />\nKlike \"{{int:usermerge-submit}}\" pou aksepte operasyon an.",
+	"usermerge-noolduser": "Ansyen non itilizatè a vid",
+	"usermerge-olduser": "Ansyen non itilizatè (mete ansanm depi)",
+	"usermerge-newuser": "Nouvo non itilizatè (mete ansanm ak)",
+	"usermerge-deleteolduser": "Efase ansyen non itilizatè a",
+	"usermerge-submit": "Mèt ansanm kont itilizatè yo",
+	"usermerge-badtoken": "Tikè pou modifikasyon pa bon",
+	"usermerge-userdeleted": "$1 ($2) efase.",
+	"usermerge-userdeleted-log": "Non itilizatè ki efase a: $2 ($3)",
+	"usermerge-success": "Nou rive mèt ansanm $1 ($2) ak $3 ($4), depi premye kont an.",
+	"usermerge-success-log": "Itilizatè $2 ($3) fizyone ak $4 ($5)",
+	"usermerge-logpage": "Jounal pou fizyon kont itilizatè",
+	"usermerge-logpagetext": "Men jounal ki dekri tout aksyon ki te fèt pou fizyon kont itilizatè yo.",
+	"usermerge-noselfdelete": "Ou pa kapab efase tèt ou oubyen fizyone tèt ou.",
+	"usermerge-protectedgroup": "Nou pa kapab mèt ansanm kont itilizatè yo - itilizatè sa a nan yon gwoup ki pwoteje."
+}

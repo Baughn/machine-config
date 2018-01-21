@@ -1,0 +1,144 @@
+{
+	"name": "GoogleLogin",
+	"version": "0.4.0",
+	"author": "Florian Schmidt",
+	"url": "https://www.mediawiki.org/wiki/Extension:GoogleLogin",
+	"descriptionmsg": "googlelogin-desc-authmanager",
+	"license-name": "MIT",
+	"type": "auth",
+	"GroupPermissions": {
+		"sysop": {
+			"managegooglelogin": true
+		}
+	},
+	"requires": {
+		"MediaWiki": ">= 1.27.0"
+	},
+	"AvailableRights": [
+		"managegooglelogin"
+	],
+	"ConfigRegistry": {
+		"googlelogin": "GlobalVarConfig::newInstance"
+	},
+	"SpecialPages": {
+		"GoogleLogin": "GoogleLogin\\Specials\\SpecialGoogleLogin",
+		"GoogleLoginReturn": "GoogleLogin\\Specials\\SpecialGoogleLoginReturn",
+		"ManageGoogleLogin": "GoogleLogin\\Specials\\SpecialManageGoogleLogin"
+	},
+	"APIModules": {
+		"googleplusprofileinfo": "ApiGoogleLoginInfo"
+	},
+	"MessagesDirs": {
+		"GoogleLogin": [
+			"i18n"
+		]
+	},
+	"ExtensionMessagesFiles": {
+		"GoogleLoginAlias": "GoogleLogin.alias.php"
+	},
+	"AutoloadClasses": {
+		"GoogleLogin\\GoogleLogin": "includes/GoogleLogin.body.php",
+		"GoogleLogin\\HTMLGoogleLoginButtonField": "includes/htmlform/HTMLGoogleLoginButtonField.php",
+		"GoogleLogin\\Specials\\SpecialGoogleLogin": "includes/specials/SpecialGoogleLogin.php",
+		"GoogleLogin\\Specials\\SpecialGoogleLoginReturn": "includes/specials/SpecialGoogleLoginReturn.php",
+		"GoogleLogin\\Specials\\SpecialManageGoogleLogin": "includes/specials/SpecialManageGoogleLogin.php",
+		"GoogleLogin\\GoogleLoginHooks": "includes/GoogleLogin.hooks.php",
+		"GoogleLogin\\GoogleUser": "includes/GoogleUser.php",
+		"GoogleLogin\\Auth\\GooglePrimaryAuthenticationProvider": "includes/auth/GooglePrimaryAuthenticationProvider.php",
+		"GoogleLogin\\Auth\\GoogleServerAuthenticationRequest": "includes/auth/GoogleServerAuthenticationRequest.php",
+		"GoogleLogin\\Auth\\GoogleAuthenticationRequest": "includes/auth/GoogleAuthenticationRequest.php",
+		"GoogleLogin\\Auth\\GoogleRemoveAuthenticationRequest": "includes/auth/GoogleRemoveAuthenticationRequest.php",
+		"GoogleLogin\\Auth\\GoogleUserInfoAuthenticationRequest": "includes/auth/GoogleUserInfoAuthenticationRequest.php",
+		"ApiGoogleLoginInfo": "includes/api/ApiGoogleLoginInfo.php"
+	},
+	"AuthManagerAutoConfig": {
+		"primaryauth": {
+			"GoogleLogin\\Auth\\GooglePrimaryAuthenticationProvider": {
+				"class": "GoogleLogin\\Auth\\GooglePrimaryAuthenticationProvider",
+				"sort": 101
+			}
+		}
+	},
+	"ResourceModules": {
+		"ext.GoogleLogin.style": {
+			"styles": "style/ext.GoogleLogin.css",
+			"position": "top",
+			"targets": [
+				"desktop",
+				"mobile"
+			]
+		},
+		"ext.GoogleLogin.userlogincreate.style": {
+			"styles": "style/ext.GoogleLogin.userlogincreate.less",
+			"position": "top",
+			"targets": [
+				"desktop",
+				"mobile"
+			]
+		},
+		"ext.GoogleLogin.userlogincreate.ooui.style": {
+			"styles": "style/ext.GoogleLogin.userlogincreate.ooui.less",
+			"position": "top",
+			"targets": [
+				"desktop",
+				"mobile"
+			]
+		},
+		"ext.GoogleLogin.specialManage.scripts": {
+			"dependencies": [
+				"mediawiki.api",
+				"oojs-ui"
+			],
+			"scripts": [
+				"javascripts/specialpages/ext.GoogleLogin.specialManage.js"
+			],
+			"styles": [
+				"style/ext.GoogleLogin.specialManage.css"
+			],
+			"messages": [
+				"googlelogin-googleuser",
+				"googlelogin-manage-isplusser",
+				"googlelogin-manage-orgname",
+				"googlelogin-manage-orgtitle",
+				"googlelogin-manage-orgsince",
+				"googlelogin-manage-yes",
+				"googlelogin-manage-no",
+				"googlelogin-manage-errorloading",
+				"googlelogin-manage-dismiss",
+				"googlelogin-manage-openpluslink",
+				"googlelogin-manage-unknownerror",
+				"googlelogin-manage-plusinfo-title"
+			]
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "",
+		"remoteExtPath": "GoogleLogin"
+	},
+	"Hooks": {
+		"AuthChangeFormFields": [
+			"GoogleLogin\\GoogleLoginHooks::onAuthChangeFormFields"
+		],
+		"UserLogoutComplete": [
+			"GoogleLogin\\GoogleLoginHooks::onUserLogoutComplete"
+		],
+		"LoadExtensionSchemaUpdates": [
+			"GoogleLogin\\GoogleLoginHooks::onLoadExtensionSchemaUpdates"
+		],
+		"MergeAccountFromTo": [
+			"GoogleLogin\\GoogleLoginHooks::onMergeAccountFromTo"
+		],
+		"UserMergeAccountDeleteTables": [
+			"GoogleLogin\\GoogleLoginHooks::onUserMergeAccountDeleteTables"
+		]
+	},
+	"config": {
+		"GLSecret": "",
+		"GLAppId": "",
+		"GLAllowedDomains": "",
+		"GLAllowedDomainsStrict": false,
+		"GLAPIKey": ""
+	},
+	"load_composer_autoloader": true,
+	"manifest_version": 1
+}

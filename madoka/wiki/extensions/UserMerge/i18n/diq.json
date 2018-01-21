@@ -1,0 +1,17 @@
+{
+	"@metadata": {
+		"authors": [
+			"Erdemaslancan",
+			"Marmase",
+			"Mirzali",
+			"Kumkumuk",
+			"Asmen"
+		]
+	},
+	"usermerge-submit": "Karbera zewkerden",
+	"usermerge-userdeleted": "$1 ($2) besterna.",
+	"usermerge-userdeleted-log": "Karbero ke besteriya: $2 ($3)",
+	"usermerge-logpage": "Qeydê bestnayışê karberi",
+	"right-usermerge": "Karberan zewkerden",
+	"action-usermerge": "Karberan zewkerden"
+}

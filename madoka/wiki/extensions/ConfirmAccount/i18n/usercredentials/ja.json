@@ -1,0 +1,32 @@
+{
+	"@metadata": {
+		"authors": [
+			"Aotake",
+			"Fryed-peach",
+			"JtFuruhata",
+			"Schu",
+			"Shirayuki",
+			"青子守歌"
+		]
+	},
+	"usercredentials": "利用者信頼情報",
+	"usercredentials-leg": "利用者信頼情報の閲覧",
+	"usercredentials-user": "利用者名:",
+	"usercredentials-text": "指定された利用者アカウントの信頼情報は以下の通りです。",
+	"usercredentials-leg-user": "利用者アカウント",
+	"usercredentials-leg-areas": "関心のある分野",
+	"usercredentials-leg-person": "個人情報",
+	"usercredentials-leg-other": "その他の情報",
+	"usercredentials-leg-ip": "IPアドレスデータ",
+	"usercredentials-email": "メールアドレス:",
+	"usercredentials-real": "本名:",
+	"usercredentials-bio": "経歴:",
+	"usercredentials-attach": "履歴書/CV:",
+	"usercredentials-notes": "特記事項:",
+	"usercredentials-urls": "ウェブサイト一覧:",
+	"usercredentials-ip": "申請時 IP アドレス:",
+	"usercredentials-xff": "元の X-Forwarded-For:",
+	"usercredentials-agent": "元の User-Agent:",
+	"usercredentials-member": "権限:",
+	"usercredentials-badid": "利用者信頼情報が見つかりません。\n利用者名が正しく指定されているか確認してください。"
+}

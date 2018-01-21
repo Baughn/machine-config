@@ -1,0 +1,35 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ferrer",
+			"Kaganer",
+			"Kv75",
+			"Lockal",
+			"MaxSem",
+			"Ole Yves",
+			"Rubin",
+			"Sasha Blashenkov",
+			"Александр Сигачёв"
+		]
+	},
+	"usercredentials": "Удостоверяющая информация об участнике",
+	"usercredentials-leg": "Поиск подтверждённой удостоверяющей информации об участнике",
+	"usercredentials-user": "Имя участника:",
+	"usercredentials-text": "Ниже показана проверенная удостоверяющая информация о выбранной учётной записи участника.",
+	"usercredentials-leg-user": "Учётная запись",
+	"usercredentials-leg-areas": "Основные области интересов",
+	"usercredentials-leg-person": "Личные сведения",
+	"usercredentials-leg-other": "Прочая информация",
+	"usercredentials-leg-ip": "Данные IP-адреса",
+	"usercredentials-email": "Эл. почта:",
+	"usercredentials-real": "Настоящее имя:",
+	"usercredentials-bio": "Биография:",
+	"usercredentials-attach": "Резюме:",
+	"usercredentials-notes": "Дополнительные замечания:",
+	"usercredentials-urls": "Список веб-сайтов:",
+	"usercredentials-ip": "IP-адрес:",
+	"usercredentials-xff": "Оригинал X-Forwarded-For:",
+	"usercredentials-agent": "Оригинальный User-Agent:",
+	"usercredentials-member": "Права:",
+	"usercredentials-badid": "Не найдена удостоверяющая информация об участнике. Проверьте правильность написания имени."
+}

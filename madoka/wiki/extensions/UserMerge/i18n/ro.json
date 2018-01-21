@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"KlaudiuMihaila",
+			"Mihai",
+			"XXN"
+		]
+	},
+	"usermerge": "Contopire și ștergere utilizatori",
+	"usermerge-desc": "[[Special:UserMerge|Contopește două conturi diferite de utilizatori]] totodată șterge din baza de date wiki contul de utilizator vechi ca urmare a contopirii. Necesită drepturi speciale (''usermerge'')",
+	"usermerge-badolduser": "Nume de utilizator vechi incorect",
+	"usermerge-badnewuser": "Nume de utilizator nou incorect",
+	"usermerge-nonewuser": "Noul nume de utilizator nu este introdus - Este presupusă fuzionarea în \"$1\".<br />\nApasă \"{{int:usermerge-submit}}\" pentru a accepta.",
+	"usermerge-noolduser": "Nume de utilizator vechi gol",
+	"usermerge-fieldset": "Nume de utilizator de contopit",
+	"usermerge-olduser": "Utilizator vechi (redenumește din):",
+	"usermerge-newuser": "Utilizator nou (contopește în):",
+	"usermerge-deleteolduser": "Șterge contul de utilizator vechi",
+	"usermerge-submit": "Contopește utilizatorul",
+	"usermerge-badtoken": "Jetonul de modificare este invalid",
+	"usermerge-userdeleted": "$1 ($2) a fost șters.",
+	"usermerge-userdeleted-log": "Șters utilizator: $2 ($3)",
+	"usermerge-success": "Contopirea din $1 ($2) în $3 ($4) este completă.",
+	"usermerge-success-log": "Utilizatorul $2 ($3) a fost contopit în $4 ($5)",
+	"usermerge-logpage": "Jurnal contopire utilizatori",
+	"usermerge-logpagetext": "Acesta este jurnalul acțiunilor de contopire a conturilor de utilizator.",
+	"usermerge-noselfdelete": "Nu poate fi șters sau contopit contul propriu!",
+	"usermerge-protectedgroup": "Nu poate fi contopit utilizatorul - utilizatorul face parte dintr-un grup protejat.",
+	"right-usermerge": "Contopire conturi de utilizator"
+}

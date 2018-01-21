@@ -1,0 +1,35 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bennylin",
+			"EugeneZelenko",
+			"Jon Harald Søby",
+			"Lejonel",
+			"McDutchie",
+			"Purodha",
+			"Shirayuki",
+			"Siebrand",
+			"The Evil IP address"
+		]
+	},
+	"usercredentials": "{{doc-special|UserCredentials}}",
+	"usercredentials-leg": "Used as fieldset label of the form.\n\nSee also:\n* {{msg-mw|Usercredentials-leg-ip}}",
+	"usercredentials-user": "{{Identical|Username}}",
+	"usercredentials-text": "This message is followed by a list of validated credentials.",
+	"usercredentials-leg-user": "{{Identical|User account}}",
+	"usercredentials-leg-areas": "{{Identical|Main areas of interest}}",
+	"usercredentials-leg-person": "{{Identical|Personal information}}",
+	"usercredentials-leg-other": "{{Identical|Other information}}",
+	"usercredentials-leg-ip": "Used as fieldset label of the form.\n\nSee also:\n* {{msg-mw|Usercredentials-leg}}",
+	"usercredentials-email": "{{Identical|E-mail address}}",
+	"usercredentials-real": "{{Identical|Real name}}",
+	"usercredentials-bio": "{{Identical|Biography}}",
+	"usercredentials-attach": "{{Identical|Resume/CV}}",
+	"usercredentials-notes": "{{Identical|Additional notes}}",
+	"usercredentials-urls": "{{Identical|List of websites}}",
+	"usercredentials-ip": "Used as label in the form.\n\nThe fieldset label is {{msg-mw|Usercredentials-leg-ip}}.\n\nSee also:\n* {{msg-mw|Usercredentials-xff}}\n* {{msg-mw|Usercredentials-agent}}",
+	"usercredentials-xff": "Used as label in the form.\n\nThe fieldset label is {{msg-mw|Usercredentials-leg-ip}}.\n\nSee also:\n* {{msg-mw|Usercredentials-ip}}\n* {{msg-mw|Usercredentials-agent}}",
+	"usercredentials-agent": "Used as label in the form.\n\nThe fieldset label is {{msg-mw|Usercredentials-leg-ip}}.\n\nSee also:\n* {{msg-mw|Usercredentials-ip}}\n* {{msg-mw|Usercredentials-xff}}",
+	"usercredentials-member": "Used as label for a list of the user groups.",
+	"usercredentials-badid": "Used as error message."
+}

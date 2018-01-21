@@ -1,0 +1,33 @@
+{
+	"@metadata": {
+		"authors": [
+			"Aelske",
+			"Pahles"
+		]
+	},
+	"requestaccount": "Gebroekersaccount aanvraoge",
+	"requestaccount-text": "'''Vul 't ongerstaand formeleer in en sjik 't op om 'n gebroekersaccount aan te vraoge'''.  \n\nZörg deveur dats doe iers de [[{{MediaWiki:Requestaccount-page}}|veurwaarde]] laes ierdets doe 'n gebroekersaccount aanvraogs.\n\nEs diene aanvraog is goodgekäörd, kriegs doe 'ne e-mail en daonao kans doe diech [[Special:UserLogin|aanmelje]].",
+	"requestaccount-page": "{{ns:project}}:Veurwaerde",
+	"requestaccount-dup": "'''Lèt op: doe bis al aangemeld mit 'ne geregistreerde gebroekersnaam.'''",
+	"requestaccount-leg-user": "Gebroeker",
+	"requestaccount-leg-areas": "Interessegebede",
+	"requestaccount-leg-person": "Persuunlike infermasie",
+	"requestaccount-leg-other": "Euverige infermasie",
+	"requestaccount-leg-tos": "Gebroeksveurwaerde",
+	"requestaccount-acc-text": "Doe kriegs 'n e-mailbevestiging es dien verzeuk is óntvange.\nReageer dao-op door te klikke op de verwiezing die in de e-mail sjteit.\nDoe kriegs 'n wachwoord es dien gebroekersaccount is aangemaak.",
+	"requestaccount-areas-text": "Selecteer hiejonger de óngerwerpe woemits doe ervaring höbs of woevans doe 't mieste wirk wils verrichte.",
+	"requestaccount-ext-text": "De volgende infermasie weurt vertroewelik behanjeld en weurt allein gebroek veur dit verzeuk.  \nDoe kans kontakgegaevens zoewie 'n tillefoonnómmer opgaeve om te helpe bie 't vastsjtèlle van dien identiteit.",
+	"requestaccount-bio-text": "Dien biografie weurt opgenóme in dien gebroekerspagina.\nPerbeer dien belangriekste gegaeves op te numme.\nZörg deveur dats doe achter 't publicere van dergelike infermatse sjteis.\nDoe kans diene naam aanpasse via dien [[Special:Preferences|veurkaöre]].",
+	"requestaccount-real": "Diene echte naam:",
+	"requestaccount-same": "(geliek aan diene echte naam)",
+	"requestaccount-email": "E-mailadres:",
+	"requestaccount-reqtype": "Positie",
+	"requestaccount-level-0": "auteur",
+	"requestaccount-level-1": "redacteur",
+	"requestaccount-bio": "Persuunlike biografie:",
+	"requestaccount-attach": "CV (optioneel):",
+	"requestaccount-notes": "Opmerkinge:",
+	"requestaccount-urls": "Lies van websites, es van toepassing (jeder site op 'ne aafzunjerlike regel):",
+	"requestaccount-submit": "Gebroekersnaam aanvraoge",
+	"requestaccount-email-subj-admin": "{{SITENAME}} gebroekersaanvraoge"
+}

@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Homonihilis",
+			"Karduelis",
+			"Mach",
+			"Suelnur",
+			"Vito Genovese"
+		]
+	},
+	"usercredentials": "Kullanıcı referansları",
+	"usercredentials-leg": "Bir kullanıcının onaylanmış referanslarını incele",
+	"usercredentials-user": "Kullanıcı adı:",
+	"usercredentials-text": "Aşağıda seçilen kullanıcı hesabı için doğrulanmış referanslar yer almaktadır.",
+	"usercredentials-leg-user": "Kullanıcı hesabı",
+	"usercredentials-leg-areas": "Ana ilgi alanları",
+	"usercredentials-leg-person": "Kişisel bilgiler",
+	"usercredentials-leg-other": "Diğer bilgiler",
+	"usercredentials-email": "E-posta:",
+	"usercredentials-real": "Gerçek isminiz:",
+	"usercredentials-bio": "Biyografi:",
+	"usercredentials-attach": "Özgeçmiş/CV:",
+	"usercredentials-notes": "Ek notlar:",
+	"usercredentials-urls": "Web sitelerin listesi",
+	"usercredentials-ip": "Orijinal IP adresi:",
+	"usercredentials-member": "Haklar:",
+	"usercredentials-badid": "Bu kullanıcı için referans bulunamadı.\nİsmin doğru yazıldığından emin olun."
+}

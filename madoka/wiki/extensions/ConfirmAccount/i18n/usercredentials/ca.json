@@ -1,0 +1,26 @@
+{
+	"@metadata": {
+		"authors": [
+			"Arnaugir",
+			"Loupeter",
+			"Paucabot",
+			"SMP",
+			"Solde"
+		]
+	},
+	"usercredentials-user": "Nom d'usuari:",
+	"usercredentials-leg-user": "Compte d'usuari",
+	"usercredentials-leg-areas": "Àrees d'interès principals",
+	"usercredentials-leg-person": "Informació personal",
+	"usercredentials-leg-other": "Altres informacions",
+	"usercredentials-leg-ip": "Dades d'adreça IP",
+	"usercredentials-email": "Correu electrònic:",
+	"usercredentials-real": "Nom real:",
+	"usercredentials-bio": "Biografia:",
+	"usercredentials-attach": "Currículum/CV:",
+	"usercredentials-notes": "Notes addicionals:",
+	"usercredentials-urls": "Llista de llocs web:",
+	"usercredentials-ip": "Adreça IP original:",
+	"usercredentials-xff": "X-Forwarded-For original:",
+	"usercredentials-agent": "User-Agent original:"
+}

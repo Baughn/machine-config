@@ -1,0 +1,34 @@
+{
+	"@metadata": {
+		"authors": [
+			"Matěj Grabovský",
+			"Mormegil"
+		]
+	},
+	"usermerge": "Slučování a mazání uživatelů",
+	"usermerge-desc": "[[Special:UserMerge|Slučuje odkazy na jednoho uživatele na odkazy na druhého]] v databázi wiki; také následně smaže starého uživatele. Vyžaduje oprávnění ''usermerge''.",
+	"usermerge-badolduser": "Původní uživatelské jméno je neplatné",
+	"usermerge-badnewuser": "Neplatné nové uživatelské jmnéo",
+	"usermerge-nonewuser": "Nové uživatelské jméno je prázdné – předpokládá se sloučení do „$1“.<br />\nPotvrdit můžete kliknutím na „{{int:usermerge-submit}}“.",
+	"usermerge-noolduser": "Původní uživatelské jméno je prázdné",
+	"usermerge-same-old-and-new-user": "Staré a nové uživatelské jméno se musí lišit.",
+	"usermerge-fieldset": "Slučovaná uživatelská jména",
+	"usermerge-olduser": "Původní uživatel (odkud se slučuje):",
+	"usermerge-newuser": "Nový uživatel (kam se slučuje):",
+	"usermerge-deleteolduser": "Smazat původního uživatele",
+	"usermerge-submit": "Sloučit uživatele",
+	"usermerge-badtoken": "Neplatný editační token",
+	"usermerge-userdeleted": "$1 ($2) {{GENDER:$1|byl smazán|byla smazána}}.",
+	"usermerge-userdeleted-log": "Smazaný uživatel: $2 ($3)",
+	"usermerge-success": "Sloučení z {{GENDER:$1|$1}} ($2) do {{GENDER:$3|$3}} ($4) je dokončeno.",
+	"usermerge-success-log": "{{GENDER:$2|Uživatel|Uživatelka}} $2 ($3) {{GENDER:$2|byl sloučen|byla sloučena}} do {{GENDER:$4|uživatele|uživatelky}} $4 ($5)",
+	"usermerge-logpage": "Kniha slučování uživatelů",
+	"usermerge-logpagetext": "Toto je záznam slučování uživatelů.",
+	"usermerge-noselfdelete": "{{GENDER:$1|Nemůžete}} smazat nebo sloučit svůj vlastní účet!",
+	"usermerge-protectedgroup": "Nebylo možné sloučit {{GENDER:$1|uvedeného uživatele|uvedenou uživatelku}} – uživatel je v chráněné skupině.",
+	"right-usermerge": "Slučování uživatelů",
+	"action-usermerge": "slučovat uživatele",
+	"usermerge-autopagedelete": "Automaticky smazáno při sloučení uživatelů",
+	"usermerge-page-unmoved": "Stránku $1 nebylo možno přesunout na $2.",
+	"usermerge-move-log": "Automaticky přesunuto při sloučení {{GENDER:$1|uživatele|uživatelky}} „[[User:$1|$1]]“ do [[User:$2|$2]]“"
+}

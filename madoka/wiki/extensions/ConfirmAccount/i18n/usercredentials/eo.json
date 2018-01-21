@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Amikeco",
+			"Michawiki",
+			"Yekrats",
+			"Robin van der Vliet"
+		]
+	},
+	"usercredentials-user": "Uzantnomo:",
+	"usercredentials-leg-user": "Konto de uzanto",
+	"usercredentials-leg-areas": "Ĉefaj fakoj de intereso",
+	"usercredentials-leg-person": "Persona informo",
+	"usercredentials-leg-other": "Alia informo",
+	"usercredentials-email": "Retadreso:",
+	"usercredentials-real": "Reala nomo:",
+	"usercredentials-bio": "Biografio:",
+	"usercredentials-attach": "Karierresumo:",
+	"usercredentials-notes": "Plua informo:",
+	"usercredentials-urls": "Listo de retejoj:",
+	"usercredentials-ip": "Originala IP-adreso:",
+	"usercredentials-member": "Rajtoj:"
+}

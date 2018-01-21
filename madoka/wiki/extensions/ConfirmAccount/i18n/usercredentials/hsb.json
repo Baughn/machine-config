@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michawiki"
+		]
+	},
+	"usercredentials": "Wužiwarske daty",
+	"usercredentials-leg": "Pytanje potwjerdźi daty za wužiwarja",
+	"usercredentials-user": "Wužiwarske mjeno",
+	"usercredentials-text": "Deleka su přepruwowane daty wubraneho wužiwarskeho konta.",
+	"usercredentials-leg-user": "Wužiwarske konto",
+	"usercredentials-leg-areas": "Hłowne zajimowe wobwody",
+	"usercredentials-leg-person": "Wosobinske informacije",
+	"usercredentials-leg-other": "Druhe informacije",
+	"usercredentials-leg-ip": "Daty IP-adresy",
+	"usercredentials-email": "E-mejl:",
+	"usercredentials-real": "Woprawdźite mjeno:",
+	"usercredentials-bio": "Biografija:",
+	"usercredentials-attach": "Žiwjenjoběh:",
+	"usercredentials-notes": "Přidatne přispomnjenki:",
+	"usercredentials-urls": "Lisćina websydłow:",
+	"usercredentials-ip": "Originalna IP-adresa:",
+	"usercredentials-xff": "Prěnjotny X-Forwarded-For:",
+	"usercredentials-agent": "Prěnjotny přistupny program:",
+	"usercredentials-member": "Prawa:",
+	"usercredentials-badid": "Žane daty za tutoho wužiwarja namakane. Kontroluj, hač mjeno je prawje napisane."
+}

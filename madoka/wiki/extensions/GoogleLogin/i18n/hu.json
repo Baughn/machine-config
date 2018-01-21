@@ -1,0 +1,35 @@
+{
+	"@metadata": {
+		"authors": [
+			"Csega",
+			"ViDam",
+			"Macofe"
+		]
+	},
+	"googlelogin": "Bejelentkezés Google-lel",
+	"googlelogin-manage-yes": "igen",
+	"googlelogin-manage-no": "nem",
+	"googlelogin-username": "Felhasználónév",
+	"googlelogin-parerror": "A kért oldal nem létezik. Kérjük, lépj vissza, és próbáld újra a műveletet.",
+	"googlelogin-generic-error": "Hoppá, valami hiba történt. Kérjük, lépj vissza, és próbáld újra. Üzenet: $1",
+	"googlelogin-form-choosename-title": "Felhasználónév kiválasztása",
+	"googlelogin-form-choosename-finish-title": "Wiki fiók létrehozása",
+	"googlelogin-form-choosename-finish-body": "Gratulálunk! Létrehoztad a $1 nevű wikis fiókot, és összekapcsoltad a Google fiókoddal.",
+	"googlelogin-form-choosename-error": "Választanod kell egy felhasználónevet, vagy válassz egyet a javaslatok közül.",
+	"googlelogin-form-choosename-existerror": "Ezt a felhasználói nevet (\"$1\") már használják, kérlek, válassz másikat!",
+	"googlelogin-form-chooseown": "Saját választása",
+	"googlelogin-form-merge-title": "Felhasználói fiókok összekapcsolása",
+	"googlelogin-form-logout": "Bejelentkezés egy másik Google fiókkal",
+	"googlelogin-form-backlink": "Vissza a Google bejelentkezéshez",
+	"googlelogin-form-merge": "A Google fiók összekapcsolása a wikissel",
+	"googlelogin-form-unlink": "Google fiók leválasztása a wikisről",
+	"googlelogin-email": "Email cím",
+	"googlelogin-googleuser": "Google felhasználó",
+	"googlelogin-information-title": "Fiókinformációk",
+	"googlelogin-linkstatus": "Hivatkozás állapota",
+	"googlelogin-linked": "összekapcsolva",
+	"googlelogin-unlinked": "nincs összekapcsolva",
+	"googlelogin-link-other": "A Google fiókod már egy másik felhasználóhoz van hozzákapcsolva. Egy Google fiók csak egy wikis fiókhoz lehet hozzákapcsolva. Kérlek, válaszd szét az összeköttetést a másik wikis fiókoddal, vagy ha nincs másik wikis fiókod, akkor lépj kapcsolatba egy rendszergazdával.",
+	"googlelogin-success-merge": "A wikis fiókod összekötöttük a Google fiókoddal.",
+	"googlelogin-success-unlink": "Gratulálunk! A wikis fiókodat szétválasztottuk a Google fiókodtól."
+}

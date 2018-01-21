@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"פוילישער"
+		]
+	},
+	"confirmaccount-real-q": "נאמען",
+	"confirmaccount-email-q": "ע-פאסט",
+	"confirmaccount-review": "רעצענזירן",
+	"confirmaccount-leg-user": "באַניצער קאנטע",
+	"confirmaccount-name": "באַניצער נאָמען",
+	"confirmaccount-real": "נאָמען:",
+	"confirmaccount-email": "ע-פאסט:",
+	"confirmaccount-pos-1": "רעדאַקטאָר",
+	"confirmaccount-bio": "ביאגראַפֿיע",
+	"confirmaccount-econf": "(באשטעטיקט)",
+	"confirmaccount-create": "באשטעטיקן (שאפֿן קאנטע)",
+	"confirmaccount-hold": "האַלטן",
+	"confirmaccount-submit": "באַשטעטיקן",
+	"confirmaccount-wsum": "ברוך הבא!",
+	"confirmaccount-email-body": "אײַער בקשה פֿאַר אַ קאנטע אויף {{SITENAME}} איז געווארן באַשטעטיקט. \n\n באַניצער־נאָמען: $1 \n\n פאַסוואָרט: $2 \n\n צוליב זיכערהייַט סיבות וועט איר דאַרפֿן טוישן אייער פאַסוואָרט בײַם ערשטן ארײַנלאָגירן. \n כדי ארײַנלאָגירן, ביטע גייט צו {{fullurl:Special:UserLogin}}."
+}

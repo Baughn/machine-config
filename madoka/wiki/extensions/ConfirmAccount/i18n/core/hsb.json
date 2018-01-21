@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michawiki"
+		]
+	},
+	"confirmaccount-newrequests": "{{PLURAL:$1|Čaka|Čakatej|Čakaja|Čaka}} tuchwilu '''$1''' přez e-mejlu [[Special:ConfirmAccounts|{{PLURAL:$1|wobkrućene kontowe požadanje|wobkrućenej kontowej požadani|wobkrućene kontowe požadanja|wobkrućenych kontowych požadanjow}}]]. '''Prošu staraj so wo to!'''",
+	"requestaccount-loginnotice": "Zo by wužiwarske konto dóstał, dyrbiš wo nje '''[[Special:RequestAccount|prosyć]]'''.",
+	"right-confirmaccount": "[[Special:ConfirmAccounts|Čakanski rynk z požadanymi kontami]] sej wobhladać",
+	"right-requestips": "IP-adresy požadarja sej wobhladać, mjeztym zo so požadane konta předźěłuja",
+	"right-lookupcredentials": "[[Special:UserCredentials|Wužiwarske woprawnjenki]] sej wobhladać"
+}

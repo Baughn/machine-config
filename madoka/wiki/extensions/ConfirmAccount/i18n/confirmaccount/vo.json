@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"Malafaya",
+			"Smeira"
+		]
+	},
+	"confirmaccounts": "Fümedön kalibegis",
+	"confirmaccount-real-q": "Nem",
+	"confirmaccount-email-q": "Ladet leäktronik",
+	"confirmaccount-bio-q": "Lifajenäd",
+	"confirmaccount-leg-user": "Gebanakal",
+	"confirmaccount-leg-person": "Nüns pösodik",
+	"confirmaccount-leg-other": "Nüns votik",
+	"confirmaccount-name": "Gebananem",
+	"confirmaccount-real": "Nem:",
+	"confirmaccount-email": "Ladet leäktronik:",
+	"confirmaccount-reqtype": "Staned:",
+	"confirmaccount-pos-0": "lautan",
+	"confirmaccount-bio": "Lifajenäd:",
+	"confirmaccount-notes": "Noets pluik:",
+	"confirmaccount-econf": "(pefümedon)",
+	"confirmaccount-noreason": "(nonik)",
+	"confirmaccount-reason": "Küpet (obinon in pened leäktronik):",
+	"confirmaccount-ip": "Ladet-IP:",
+	"confirmaccount-submit": "Fümedön",
+	"confirmaccount-wsum": "Benokömö!",
+	"confirmaccount-email-subj": "Beg kala ela {{SITENAME}}"
+}

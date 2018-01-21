@@ -1,0 +1,15 @@
+{
+	"@metadata": {
+		"authors": [
+			"An13sa"
+		]
+	},
+	"requestaccount-leg-user": "Erabiltzaile kontua",
+	"requestaccount-leg-person": "Norberaren informazioa",
+	"requestaccount-leg-other": "Bestelako informazioa",
+	"requestaccount-real": "Benetako izena:",
+	"requestaccount-email": "E-posta helbidea:",
+	"requestaccount-level-0": "egilea",
+	"requestaccount-bio": "Norberaren biografia (testu laua bakarrik):",
+	"requestaccount-attach": "Curriculuma (hautazkoa):"
+}

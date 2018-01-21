@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"AZISS",
+			"Cekli829",
+			"Vago"
+		]
+	},
+	"confirmaccount-real-q": "Ad",
+	"confirmaccount-email-q": "E-poçt",
+	"confirmaccount-bio-q": "Bioqrafiya",
+	"confirmaccount-leg-other": "Digər məlumatlar",
+	"confirmaccount-name": "İstifadəçi adı",
+	"confirmaccount-real": "Ad:",
+	"confirmaccount-email": "E-poçt:",
+	"confirmaccount-reqtype": "mövqe:",
+	"confirmaccount-pos-0": "müəllif",
+	"confirmaccount-pos-1": "redaktor",
+	"confirmaccount-bio": "Bioqrafiya:",
+	"confirmaccount-urls": "Vebsaytların siyahısı",
+	"confirmaccount-noreason": "(yoxdur)",
+	"confirmaccount-hold": "Təxirə salmaq",
+	"confirmaccount-ip": "IP ünvanı:",
+	"confirmaccount-submit": "Təsdiq et"
+}

@@ -1,0 +1,15 @@
+{
+	"@metadata": {
+		"authors": [
+			"Nguyen Quynh Chau",
+			"Nguyên Lê",
+			"Minh Nguyen"
+		]
+	},
+	"googlelogin-manage-noplus": "<strong>Chú ý:</strong> Người sử dụng với ID Google bạn nhập dường như không có hồ sơ Google+. Có phải lỗi đánh máy?",
+	"googlelogin-manage-givenid": "ID Google bạn nhập đã nối với người dùng khác trên wiki.",
+	"googlelogin-manage-unknownerror": "Xảy ra lỗi bất ngờ khi tải dữ liệu của bạn. Có lẽ không có người dùng này trong Google+ hay hồ sơ ID bị sai?",
+	"googlelogin-desc": "Cho phép người dùng được [[Special:GoogleLogin|đăng nhập với tài khoản Google]]",
+	"googlelogin-success-merge": "Tài khoản wiki của bạn đã liên kết thành công với tài khoản Google.",
+	"googlelogin-success-unlink": "Tài khoản wiki của bạn đã không còn liên kết với tài khoản Google nữa."
+}

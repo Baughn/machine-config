@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ans",
+			"Harley Hartwell",
+			"Octahedron80",
+			"Passawuth"
+		]
+	},
+	"usercredentials": "การรับรองของผู้ใช้",
+	"usercredentials-leg": "ดูการรับรองที่ถูกยืนยันของผู้ใช้",
+	"usercredentials-user": "ชื่อผู้ใช้:",
+	"usercredentials-leg-user": "บัญชีผู้ใช้",
+	"usercredentials-leg-areas": "หัวข้อที่สนใจ",
+	"usercredentials-leg-person": "ข้อมูลส่วนตัว",
+	"usercredentials-leg-other": "ข้อมูลอื่น ๆ",
+	"usercredentials-email": "อีเมล:",
+	"usercredentials-real": "ชื่อจริง",
+	"usercredentials-bio": "ชีวประวัติ:",
+	"usercredentials-attach": "เรซูเม/ประวัติการงาน:",
+	"usercredentials-notes": "รายละเอียดเพิ่มเติม:",
+	"usercredentials-urls": "รายชื่อเว็บไซต์:",
+	"usercredentials-ip": "ไอพีแอดเดรสดั้งเิดิม:",
+	"usercredentials-member": "สิทธิ:"
+}

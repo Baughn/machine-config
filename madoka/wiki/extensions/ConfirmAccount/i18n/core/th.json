@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ans",
+			"Harley Hartwell",
+			"Octahedron80",
+			"Passawuth"
+		]
+	},
+	"requestaccount-loginnotice": "เพื่อที่จะได้มาซึ่งบัญชีผู้ใช้ใหม่ คุณต้อง'''[[Special:RequestAccount|ทำการขอบัญชีผู้ใช้]]'''"
+}

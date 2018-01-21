@@ -1,0 +1,11 @@
+.googlelogin-summary td {
+	border: 1px solid grey;
+	padding: 5px;
+}
+.googlelogin-summary {
+	border-collapse:collapse;
+	width: 100%;
+}
+.hidden {
+	display: none;
+}

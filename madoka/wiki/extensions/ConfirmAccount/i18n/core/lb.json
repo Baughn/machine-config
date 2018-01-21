@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Les Meloures",
+			"Robby"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1''' open, per E-Mail confirméiert, [[Special:ConfirmAccounts|account {{PLURAL:$1|Ufro|Ufroen}}]] déi drop {{PLURAL:$1|waart|waarden}} beäntwert ze ginn. '''Är Mataarbecht gëtt gebraucht!'''",
+	"requestaccount-loginnotice": "Fir e Benotzerkont ze kréien, musst Dir '''[[Special:RequestAccount|een ufroen]]'''.",
+	"right-confirmaccount": "D'[[Special:ConfirmAccounts|Queue mat den ugefrote Benotzerkonte]] kucken",
+	"right-requestips": "D'IP-Adress vun där d'Ufro koum uweise wann d'Ufro fir e Benotzerkont verschafft gëtt",
+	"right-lookupcredentials": "[[Special:UserCredentials|Referenze vun de Benotzer]] kucken"
+}

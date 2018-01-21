@@ -1,0 +1,24 @@
+{
+	"@metadata": {
+		"authors": [
+			"Chaduvari",
+			"Kiranmayee",
+			"Veeven",
+			"వైజాసత్య"
+		]
+	},
+	"usercredentials": "వాడుకరి తాఖీదులు",
+	"usercredentials-user": "వాడుకరి పేరు:",
+	"usercredentials-leg-user": "వాడుకరి ఖాతా",
+	"usercredentials-leg-areas": "ప్రధాన ఆసక్తులు",
+	"usercredentials-leg-person": "వ్యక్తిగత సమాచారం",
+	"usercredentials-leg-other": "ఇతర సమాచారం",
+	"usercredentials-email": "ఈ-మెయిల్:",
+	"usercredentials-real": "నిజమైన పేరు:",
+	"usercredentials-bio": "బయోగ్రఫీ:",
+	"usercredentials-attach": "రెస్యూమె/సీవీ:",
+	"usercredentials-notes": "అదనపు గమనికలు:",
+	"usercredentials-urls": "వెబ్&zwnj;సైట్ల జాబితా:",
+	"usercredentials-ip": "అసలు IP చిరునామా:",
+	"usercredentials-member": "హక్కులు:"
+}

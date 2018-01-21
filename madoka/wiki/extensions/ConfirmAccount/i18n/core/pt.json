@@ -1,0 +1,18 @@
+{
+	"@metadata": {
+		"authors": [
+			"Giro720",
+			"Hamilton Abreu",
+			"Lijealso",
+			"Malafaya",
+			"Waldir",
+			"Vitorvicentevalente"
+		]
+	},
+	"confirmaccount-newrequests": "Há {{PLURAL:$1|'''um''' [[Special:ConfirmAccounts|pedido de conta]]|'''$1''' [[Special:ConfirmAccounts|pedidos de conta]]}} em aberto com correio electrónico confirmado. '''É necessária a sua atenção!'''",
+	"requestaccount-loginnotice": "Para obter uma conta de utilizador, deverá '''[[Special:RequestAccount|solicitar uma]]'''.",
+	"right-confirmaccount": "Ver a [[Special:ConfirmAccounts|fila de contas pedidas]]",
+	"right-requestips": "Ver os endereços IP do requerente ao processar contas pedidas",
+	"right-lookupcredentials": "Ver [[Special:UserCredentials|credenciais de utilizador]]",
+	"action-confirmaccount": "rever e aceitar contas"
+}

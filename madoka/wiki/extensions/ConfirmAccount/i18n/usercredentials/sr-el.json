@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michaello",
+			"Rancher",
+			"Михајло Анђелковић",
+			"Сербијана"
+		]
+	},
+	"usercredentials-user": "Korisničko ime:",
+	"usercredentials-leg-user": "Korisnički nalog",
+	"usercredentials-leg-areas": "Glavne sfere interesovanja",
+	"usercredentials-leg-person": "Lični podaci",
+	"usercredentials-leg-other": "Druge informacije",
+	"usercredentials-email": "Imejl adresa:",
+	"usercredentials-real": "Pravo ime:",
+	"usercredentials-bio": "Životopis:",
+	"usercredentials-attach": "Rezime/CV:",
+	"usercredentials-notes": "Dodatne napomene:",
+	"usercredentials-urls": "Spisak vebsajtova:",
+	"usercredentials-ip": "Originalna IP adresa:",
+	"usercredentials-member": "Prava:"
+}

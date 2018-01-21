@@ -1,0 +1,40 @@
+{
+	"@metadata": {
+		"authors": [
+			"S.Örvarr.S",
+			"Snævar",
+			"Ævar Arnfjörð Bjarmason",
+			"පසිඳු කාවින්ද"
+		]
+	},
+	"confirmaccounts": "Staðfesta notandabeðnir",
+	"confirmaccount-real-q": "Nafn",
+	"confirmaccount-email-q": "Netfang",
+	"confirmaccount-bio-q": "Sjálfsævisaga",
+	"confirmaccount-review": "Yfirfara",
+	"confirmaccount-leg-user": "Aðgangur notanda",
+	"confirmaccount-leg-areas": "Aðal áhugamál",
+	"confirmaccount-leg-person": "Persónulegar upplýsingar",
+	"confirmaccount-leg-other": "Aðrar upplýsingar",
+	"confirmaccount-name": "Notandanafn",
+	"confirmaccount-real": "Nafn:",
+	"confirmaccount-email": "Netfang:",
+	"confirmaccount-reqtype": "Staða:",
+	"confirmaccount-pos-0": "höfundur",
+	"confirmaccount-pos-1": "ritstjóri",
+	"confirmaccount-bio": "Sjálfsævisaga:",
+	"confirmaccount-attach": "Ferilskrá:",
+	"confirmaccount-notes": "Viðbótarskýring:",
+	"confirmaccount-urls": "Listi yfir vefsíður:",
+	"confirmaccount-none-p": "(ekki fáanlegt)",
+	"confirmaccount-confirm": "Notaðu valmöguleikana hér að neðan til að samþykkja, neita eða setja beiðni í bið:",
+	"confirmaccount-econf": "(staðfest)",
+	"confirmaccount-noreason": "(engin)",
+	"confirmaccount-create": "Samþykkja (búa til aðgang)",
+	"confirmaccount-hold": "Bíða",
+	"confirmaccount-ip": "Vistfang:",
+	"confirmaccount-submit": "Staðfesta",
+	"confirmaccount-rej": "Notandabeiðninni var hafnað.",
+	"confirmaccount-wsum": "Velkomin!",
+	"confirmaccount-email-body4": "Beðni þín um aðgang að {{SITENAME}} undir nafninu „$1“ á „$2“ hefur verið hafnað.\n\n$2\n\nÞað kann að vera netfang á síðunni sem þú getur haft samband við til að fá frekari upplýsingar."
+}

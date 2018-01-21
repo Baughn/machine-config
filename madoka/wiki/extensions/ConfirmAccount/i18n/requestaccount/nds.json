@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Joachim Mos",
+			"Slomox"
+		]
+	},
+	"requestaccount-leg-user": "Brukerkonto",
+	"requestaccount-real": "Echten Naam:",
+	"requestaccount-email": "E-Mail-Adress:",
+	"requestaccount-level-0": "Schriever",
+	"requestaccount-bio": "Biografie:"
+}

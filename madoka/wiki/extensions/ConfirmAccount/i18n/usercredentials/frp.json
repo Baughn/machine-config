@@ -1,0 +1,24 @@
+{
+	"@metadata": {
+		"authors": [
+			"ChrisPtDe"
+		]
+	},
+	"usercredentials": "Refèrences a l’usanciér",
+	"usercredentials-user": "Nom d’utilisator :",
+	"usercredentials-leg-user": "Compto usanciér",
+	"usercredentials-leg-areas": "Centros d’entèrèts principâls",
+	"usercredentials-leg-person": "Enformacions a sè",
+	"usercredentials-leg-other": "Ôtres enformacions",
+	"usercredentials-leg-ip": "Donâs d’adrèce IP",
+	"usercredentials-email": "Adrèce èlèctronica :",
+	"usercredentials-real": "Veré nom :",
+	"usercredentials-bio": "Biografia :",
+	"usercredentials-attach": "CV :",
+	"usercredentials-notes": "Notes de ples :",
+	"usercredentials-urls": "Lista des setos vouèbe :",
+	"usercredentials-ip": "Adrèce IP originâla :",
+	"usercredentials-xff": "X-Forwarded-For d’origina :",
+	"usercredentials-agent": "User-Agent d’origina :",
+	"usercredentials-member": "Drêts :"
+}

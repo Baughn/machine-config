@@ -1,0 +1,31 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michaello",
+			"Milicevic01",
+			"Rancher"
+		]
+	},
+	"usermerge": "Spaja i briše korisnike",
+	"usermerge-badolduser": "Neispravno staro korisničko ime",
+	"usermerge-badnewuser": "Neispravno novo korisničko ime",
+	"usermerge-noolduser": "Isprazni staro korisničko ime",
+	"usermerge-same-old-and-new-user": "Staro i novo korisničko ime se moraju razlikovati.",
+	"usermerge-fieldset": "Korisnička imena za spajanje",
+	"usermerge-olduser": "Stari korisnik (spajanje od):",
+	"usermerge-newuser": "Novi korisnik (spajanje sa):",
+	"usermerge-deleteolduser": "Obriši starog korisnika",
+	"usermerge-submit": "Spoji korisnika",
+	"usermerge-userdeleted": "$1 ($2) je {{GENDER:$1|obrisan|obrisana}}.",
+	"usermerge-userdeleted-log": "Obrisan korisnik: $2 ($3)",
+	"usermerge-success": "Spajanje {{GENDER:$1|$1}} ($2) sa {{GENDER:$3|$3}} ($4) je završeno.",
+	"usermerge-success-log": "{{GENDER:$2|Korisnik|Korisnica}} $2 ($3) je {{GENDER:$2|spojen|spojena}} sa {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Dnevnik spajanja korisnika",
+	"usermerge-logpagetext": "Ovo je dnevnik spajanja korisnika.",
+	"usermerge-noselfdelete": "Ne možete da se obrišete ili spojite sa {{GENDER:$1|samim sobom}}!",
+	"usermerge-protectedgroup": "Nije moguđe spojiti ovog korisnika sa drugim — nalazi se u zaštićenoj grupi.",
+	"right-usermerge": "spajanje korisnika",
+	"action-usermerge": "spajanje korisnika",
+	"usermerge-autopagedelete": "Automatski obrisano zbog spajanja korisnika",
+	"usermerge-move-log": "Automatsko premeštanje stranice zbog spajanja korisnika „[[User:$1|$1]]“ u „[[User:$2|{{GENDER:$2|$2}}]]“"
+}

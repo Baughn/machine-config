@@ -1,0 +1,31 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bellayet",
+			"Zaheen",
+			"Aftab1995",
+			"Aftabuzzaman"
+		]
+	},
+	"usermerge": "ব্যবহারকারী একত্রীকরণ এবং মুছে ফেলা",
+	"usermerge-desc": "উইকি ডাটাবেজে [[Special:UserMerge|একজন ব্যবহারকারী থেকে অপর ব্যবহারকারীর প্রতি নির্দেশনাগুলি একত্রিত করে]] - এছাড়া একত্রীকরণের পরে পুরনো ব্যবহারকারীদের মুছে দেবে। বিশেষ ''usermerge'' অধিকার আবশ্যক",
+	"usermerge-badolduser": "অবৈধ পুরনো ব্যবহারকারী নাম",
+	"usermerge-badnewuser": "অবৈধ নতুন ব্যবহারকারী নাম",
+	"usermerge-nonewuser": "নতুন ব্যবহারকারী নাম খালি। \"{{GENDER:$1|$1}}\"এর সাথে একত্রীকরণ করা হচ্ছে ধরা হল। <br />সম্মতি দিতে \"{{int:usermerge-submit}}\" ক্লিক করুন।",
+	"usermerge-noolduser": "খালি পুরনো ব্যবহারকারী নাম",
+	"usermerge-fieldset": "একত্রিক করার জন্য ব্যবহারকারীনাম",
+	"usermerge-olduser": "পুরনো ব্যবহারকারী (যার থেকে একত্রীকরণ):",
+	"usermerge-newuser": "নতুন ব্যবহারকারী (যার সাথে একত্রীকরণ)ঃ",
+	"usermerge-deleteolduser": "পুরনো ব্যবহারকারী অপসারণ",
+	"usermerge-submit": "ব্যবহারকারী একত্রিত করা হোক",
+	"usermerge-badtoken": "সম্পাদনা টোকেন অবৈধ",
+	"usermerge-userdeleted": "{{GENDER:$1|$1}} ($2) মুছে ফেলা হয়েছে।",
+	"usermerge-userdeleted-log": "ব্যবহারকারী মুছে ফেলে হয়েছে: $2 ($3)",
+	"usermerge-success": "{{GENDER:$1|$1}} ($2) থেকে {{GENDER:$3|$3}} ($4)-এ একত্রীকরণ সম্পন্ন হয়েছে।",
+	"usermerge-success-log": "ব্যবহারকারী {{GENDER:$2|$2}} ($3)-কে {{GENDER:$4|$4}} ($5)-এর সাথে একত্রিত করা হয়েছে",
+	"usermerge-logpage": "ব্যবহারকারী একত্রীকরণ লগ",
+	"usermerge-logpagetext": "এটি ব্যবহারকারী একত্রীকরনের একটি লগ।",
+	"usermerge-noselfdelete": "আপনি নিজের ব্যবহারকারী নাম মুছে ফেলতে বা এটি থেকে অন্য নামে একত্রিত করতে পারবেন না!",
+	"usermerge-protectedgroup": "ব্যবহারকারী নাম থেকে একত্রিত করা যায়নি - ব্যবহারকারীটি একটি সুরক্ষিত দলে আছেন।",
+	"right-usermerge": "ব্যবহারকারী একত্রিত করা হোক"
+}

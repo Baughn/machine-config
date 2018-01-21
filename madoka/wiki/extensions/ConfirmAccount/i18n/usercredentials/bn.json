@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bellayet",
+			"Ehsanulhb",
+			"Wikitanvir",
+			"Zaheen"
+		]
+	},
+	"usercredentials-user": "ব্যবহারকারী নাম:",
+	"usercredentials-leg-user": "ব্যবহারকারী অ্যাকাউন্ট",
+	"usercredentials-leg-areas": "আগ্রহের মূল ক্ষেত্র",
+	"usercredentials-leg-person": "ব্যক্তিগত তথ্য",
+	"usercredentials-leg-other": "অন্যান্য তথ্য",
+	"usercredentials-email": "ই-মেইল:",
+	"usercredentials-real": "প্রকৃত নাম:",
+	"usercredentials-bio": "জীবনী:",
+	"usercredentials-attach": "রেজুমে/সিভি:",
+	"usercredentials-notes": "অতিরিক্ত মন্তব্য:",
+	"usercredentials-urls": "ওয়েবসাইটের তালিকা:",
+	"usercredentials-ip": "মূল আইপি ঠিকানা:",
+	"usercredentials-member": "অধিকারসমূহ:"
+}

@@ -1,0 +1,24 @@
+{
+	"@metadata": {
+		"authors": [
+			"Helix84"
+		]
+	},
+	"usercredentials": "Osobné údaje používateľa",
+	"usercredentials-leg": "Vyhľadať potvrdené osobné údaje používateľa",
+	"usercredentials-user": "Používateľské meno:",
+	"usercredentials-text": "Dolu sú overené osobné údaje zvoleného používateľského účtu.",
+	"usercredentials-leg-user": "Používateľský účet",
+	"usercredentials-leg-areas": "Hlavné oblasti záujmu",
+	"usercredentials-leg-person": "Osobné informácie",
+	"usercredentials-leg-other": "Ďalšie informácie",
+	"usercredentials-email": "Email:",
+	"usercredentials-real": "Skutočné meno:",
+	"usercredentials-bio": "Biografia:",
+	"usercredentials-attach": "Resumé/CV:",
+	"usercredentials-notes": "Ďalšie poznámky:",
+	"usercredentials-urls": "Zoznam webstránok:",
+	"usercredentials-ip": "Pôvodná IP adresa:",
+	"usercredentials-member": "Práva:",
+	"usercredentials-badid": "Žiadne osobné informácie tohto používateľa neboli nájdené. Skontrolujte, či ste správne napísali meno."
+}

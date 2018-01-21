@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"Fohanno",
+			"Fulup"
+		]
+	},
+	"usermerge": "Kendeuziñ an implijer ha diverkañ",
+	"usermerge-desc": "[[Special:UserMerge|Kendeuziñ a ra daveennoù un implijer gant re unan bennak all]] e diaz titouroù ar wiki - diverkañ a raio ivez ar c'hendeuzadennoù implijer kozh da zont. Rekis eo kaout aotreoù ''kendeuziñ''",
+	"usermerge-badolduser": "Anv implijer kozh direizh",
+	"usermerge-badnewuser": "Anv implijer nevez direizh",
+	"usermerge-nonewuser": "Anv implijer nevez goullo - soñjal a ra deomp e fell deoc'h kendeuziñ davet \"$1\".<br />\nKlikañ war \"{{int:usermerge-submit}}\" evit asantiñ.",
+	"usermerge-noolduser": "Anv implijer kozh goullo",
+	"usermerge-fieldset": "Anvioù implijer da gendeuziñ",
+	"usermerge-olduser": "Implijer kozh (kendeuziñ adal) :",
+	"usermerge-newuser": "Implijer nevez (kendeuziñ gant) :",
+	"usermerge-deleteolduser": "Diverkañ an implijer kozh",
+	"usermerge-submit": "Kendeuziñ implijer",
+	"usermerge-badtoken": "Jedouer aozañ direizh",
+	"usermerge-userdeleted": "Diverket eo bet $1 ($2).",
+	"usermerge-userdeleted-log": "Implijer diverket : $2($3)",
+	"usermerge-success": "Kendeuzadenn adal $1 ($2) davet $3 ($4) kaset da benn vat.",
+	"usermerge-success-log": "Implijer $2 ($3) kendeuzet davet $4 ($5)",
+	"usermerge-logpage": "Marilh kendeuzadennoù an implijerien",
+	"usermerge-logpagetext": "Setu aze marilh kendeuzadennoù an implijerien.",
+	"usermerge-noselfdelete": "N'hallit ket diverkañ pe kendeuziñ adal pe davedoc'h hoc'h-unan",
+	"usermerge-protectedgroup": "Dibosupl kendeuziñ an implijer - emañ-eñ en ur strollad gwarezet",
+	"right-usermerge": "Kendeuziñ implijerien",
+	"action-usermerge": "kendeuziñ implijerien"
+}

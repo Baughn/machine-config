@@ -1,0 +1,43 @@
+{
+	"@metadata": {
+		"authors": [
+			"Pyt"
+		]
+	},
+	"requestaccount": "Benutserkonto fräigje",
+	"requestaccount-text": "'''Fäl dät foulgjende Formular uut un ferseend dät, uum n Benutserkonto tou fräigjen'''.\n\n\tLäs eerste do [[{{MediaWiki:Requestaccount-page}}|Nutsengsbedingengen]] eer du n Benutserkonto fräigest.\n\n\tSobolde dät Konto bestäätiged wuude, krichst du per E-Mail Beskeed un du koast die [[{{ns:special}}:Userlogin|anmäldje]].",
+	"requestaccount-page": "{{ns:project}}:Nutsengsbedingengen",
+	"requestaccount-dup": "'''Oachtenge: Du bäst al mäd n registrierd Benutserkonto ienlogged.'''",
+	"requestaccount-leg-user": "Benutserkonto",
+	"requestaccount-leg-areas": "Haudinteressensgebiete",
+	"requestaccount-leg-person": "Persöönelke Informatione",
+	"requestaccount-leg-other": "Uur Informatione",
+	"requestaccount-acc-text": "An dien E-Mail-Adresse wäd ätter dät Ouseenden fon dit Formular ne Bestäätigengsmail soand.\nReagier deerap, wan du ap ju in ju Mail äntheeldene Bestäätigengsferbiendenge klikst.\nSobolde n dien Konto anlaid wuude,\nwäd die dien Paaswoud per E-Mail tousoand.",
+	"requestaccount-areas-text": "Wääl do Themengebiete uut, in do du dät maaste Fäkwieten hääst of wier du ap maaste involvierd weese skääst.",
+	"requestaccount-ext-text": "Do foulgjende Informatione wäide fertjouelk behanneld un bloot foar dissen Andraach\nferwoand. Dd koast Kontakt-Angoawen as ne Telefonnummer moakje, uum ju Beoarbaidenge fon din Andraach eenfacher tou moakjen.",
+	"requestaccount-bio-text": "Dien Biographie wäd as initioale Inhoold fon dien Benutsersiede spiekerd. Fersäik aal do nöödige Referenzen tou ärwäänen, man staal sicher, dät du do Informatione wuddelk eepentelk bekoand moakje moatest. Du koast din Noome unner „[[{{ns:special}}:preferences|Ienstaalengen]]“ annerje.",
+	"requestaccount-real": "Realname:",
+	"requestaccount-same": "(as die Realname)",
+	"requestaccount-email": "E-Mail-Adresse:",
+	"requestaccount-reqtype": "Position:",
+	"requestaccount-level-0": "Autor",
+	"requestaccount-level-1": "Beoarbaider",
+	"requestaccount-bio": "Persöönelke Biographie:",
+	"requestaccount-attach": "Lieuwensloop (optional):",
+	"requestaccount-notes": "Bietoukuumende Angoawen:",
+	"requestaccount-urls": "Lieste fon Websieden (truch Riegenuumbreeke tränd):",
+	"requestaccount-agree": "Du moast bestäätigje, dät din Realname so gjucht is un du do Benutserbedingengen akzeptierst.",
+	"requestaccount-inuse": "Die Benutsernoome is al in n uur Benutserandraach in Ferweendenge.",
+	"requestaccount-tooshort": "Dien Biographie skuul mindestens $1 Woude loang weese.",
+	"requestaccount-emaildup": "N wiederen noch nit ouhonnelden Andraach benutset ju glieke E-Mail-Adresse.",
+	"requestaccount-exts": "Die Doatäityp fon dän Anhong is nit ferlööwed.",
+	"requestaccount-resub": "Ju Doatäi mäd din Lieuwensloop mout uut Sicherhaidsgruunden näi uutwääld wäide.\nLäit dät Fäild loos, wan du naan Lieuwensloop moor anföigje moatest.",
+	"requestaccount-tos": "Iek hääbe do [[{{MediaWiki:Requestaccount-page}}|Benutsengsbedingengen]] fon {{SITENAME}} leesen un akzeptierje do.\nIek bestäätigje, dät die Noome, dän iek unner „Realname“ ounroat hääbe, min wuddelke Noome is.",
+	"requestaccount-submit": "Fräigje uum n Benutserkonto",
+	"requestaccount-sent": "Dien Andraach wuude mäd Ärfoulch fersoand un mout nu noch wröiged wäide.",
+	"request-account-econf": "Dien E-Mail-Adresse wuude bestäätiged un wäd nu as sodoane in dien  Account-Froage fierd.",
+	"requestaccount-email-subj": "{{SITENAME}} E-Mail-Adressen Wröich",
+	"requestaccount-email-body": "Wäl mäd ju IP-Adresse $1, muugelkerwiese du, häd bie {{SITENAME}} uum dät Benutserkonto \"$2\" mäd dien E-Mail Adresse fräiged.\n\nUum tou bestäätigjen, dät wuddelk du uum dit Konto bie {{SITENAME}} fräiged hääst, eepenje foulgjende Ferbiendenge in din Browser:\n\n$3\n\nWan dät Benutserkonto moaked wuude, krichst du ne E-Mail mäd dät Paaswoud.\n\nWan du *nit* uum dät Benutserkonto fräiged hääst, eepenje ju Ferbiendenge nit!\n\nDisse Bestäätigengscode wäd uum $4 uungultich.",
+	"requestaccount-email-subj-admin": "{{SITENAME}} Benutserkontenandraach",
+	"acct_request_throttle_hit": "Du hääst al {{PLURAL:$1|1 Benutzerkonto|$1 Benutzerkonten}} fräiged, du koast apstuuns neen wiedere fräigje."
+}

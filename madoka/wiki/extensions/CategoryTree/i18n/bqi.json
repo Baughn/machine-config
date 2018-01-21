@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bonevarluri",
+			"Mogoeilor"
+		]
+	},
+	"categorytree-mode-all": "همه بلگه آ",
+	"categorytree-collapse": "جم كردن",
+	"categorytree-expand": "وا كردن",
+	"categorytree-num-categories": "$1 س",
+	"categorytree-num-pages": " $1 پ",
+	"categorytree-num-files": " $1 ف"
+}

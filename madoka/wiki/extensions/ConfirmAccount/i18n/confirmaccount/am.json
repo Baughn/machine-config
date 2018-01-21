@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Codex Sinaiticus"
+		]
+	},
+	"confirmaccount-real-q": "ስም",
+	"confirmaccount-email-q": "ኢ-ሜል",
+	"confirmaccount-real": "ስም:",
+	"confirmaccount-email": "ኢ-ሜል:"
+}

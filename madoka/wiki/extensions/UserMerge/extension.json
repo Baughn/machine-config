@@ -1,0 +1,53 @@
+{
+	"name": "UserMerge",
+	"version": "1.10.0",
+	"author": [
+		"Tim Laqua",
+		"Thomas Gries",
+		"Matthew April"
+	],
+	"url": "https://www.mediawiki.org/wiki/Extension:UserMerge",
+	"descriptionmsg": "usermerge-desc",
+	"license-name": "GPL-2.0+",
+	"type": "specialpage",
+	"AvailableRights": [
+		"usermerge"
+	],
+	"SpecialPages": {
+		"UserMerge": "SpecialUserMerge"
+	},
+	"LogTypes": [
+		"usermerge"
+	],
+	"LogNames": {
+		"usermerge": "usermerge-logpage"
+	},
+	"LogHeaders": {
+		"usermerge": "usermerge-logpagetext"
+	},
+	"LogActions": {
+		"usermerge/mergeuser": "usermerge-success-log",
+		"usermerge/deleteuser": "usermerge-userdeleted-log"
+	},
+	"MessagesDirs": {
+		"UserMerge": [
+			"i18n"
+		]
+	},
+	"ExtensionMessagesFiles": {
+		"UserMergeAlias": "UserMerge.alias.php"
+	},
+	"AutoloadClasses": {
+		"SpecialUserMerge": "SpecialUserMerge.php",
+		"MergeUser": "MergeUser.php",
+		"IUserMergeLogger": "IUserMergeLogger.php",
+		"UserMergeLogger": "UserMergeLogger.php"
+	},
+	"config": {
+		"UserMergeEnableDelete": true,
+		"UserMergeProtectedGroups": [
+			"sysop"
+		]
+	},
+	"manifest_version": 1
+}

@@ -1,0 +1,37 @@
+{
+	"@metadata": {
+		"authors": [
+			"Cimon Avaro",
+			"Crt",
+			"Nike",
+			"Silvonen",
+			"Str4nd",
+			"Stryn",
+			"VezonThunder",
+			"Vililikku"
+		]
+	},
+	"usermerge": "Käyttäjätunnusten yhdistys ja poisto",
+	"usermerge-badolduser": "Vanha käyttäjätunnus ei kelpaa",
+	"usermerge-badnewuser": "Uusi käyttäjätunnus ei kelpaa",
+	"usermerge-nonewuser": "Uusi käyttäjätunnus -kenttä on tyhjä - oletetaan yhdistäminen tunnukseen \"$1\". <br /> \nNapsauta \"{{int:usermerge-submit}}\" hyväksyäksesi.",
+	"usermerge-noolduser": "Vanha käyttäjätunnus ei voi olla tyhjä.",
+	"usermerge-fieldset": "Yhdistettävät käyttäjänimet",
+	"usermerge-olduser": "Vanha käyttäjä (mikä yhdistetään)",
+	"usermerge-newuser": "Uusi käyttäjä (mihin yhdistetään)",
+	"usermerge-deleteolduser": "Poista vanha käyttäjä",
+	"usermerge-submit": "Yhdistä käyttäjä",
+	"usermerge-badtoken": "Virheellinen muokkauslipuke",
+	"usermerge-userdeleted": "$1 ($2) on poistettu.",
+	"usermerge-userdeleted-log": "Poistettiin käyttäjä: $2 ($3)",
+	"usermerge-success": "Yhdistäminen tunnuksesta $1 ($2) tunnukseen {{GENDER:$3|$3}} ($4) on suoritettu.",
+	"usermerge-success-log": "Käyttäjä $2 ($3) yhdistettiin käyttäjään {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Käyttäjien yhdistämisloki",
+	"usermerge-logpagetext": "Tämä on loki käyttäjätunnuksien yhdistämistoimista.",
+	"usermerge-noselfdelete": "Et voi poistaa tai yhdistää itseltäsi.",
+	"usermerge-protectedgroup": "Ei voi yhdistää käyttäjänimestä - käyttäjänimi kuuluu suojattuun ryhmään.",
+	"right-usermerge": "Yhdistää käyttäjiä",
+	"usermerge-autopagedelete": "Poistettiin automaattisesti käyttäjien yhdistämisessä",
+	"usermerge-page-unmoved": "Sivua $1 ei voitu siirtää nimelle $2.",
+	"usermerge-move-log": "Sivu siirretty automaattisesti yhdistettäessä käyttäjä \"[[User:$1|$1]]\" käyttäjään \"[[User:$2|{{GENDER:$2|$2}}]]\""
+}

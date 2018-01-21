@@ -1,0 +1,43 @@
+{
+	"@metadata": {
+		"authors": [
+			"Crazymadlover",
+			"Hamilton Abreu",
+			"Jorge Morais",
+			"Lijealso",
+			"Luckas",
+			"Malafaya",
+			"Sir Lestaty de Lioncourt",
+			"Waldir",
+			"Vitorvicentevalente",
+			"Helder.wiki",
+			"He7d3r"
+		]
+	},
+	"usermerge": "Fusão e eliminação de utilizadores",
+	"usermerge-desc": "[[Special:UserMerge|Faz a fusão das referências a um utilizador com as de outro utilizador]] na base de dados da wiki - também apaga o utilizador antigo após a fusão. Requer o privilégio ''usermerge''",
+	"usermerge-badolduser": "Nome antigo inválido",
+	"usermerge-badnewuser": "Nome novo inválido",
+	"usermerge-nonewuser": "O nome de utilizador novo está vazio. Será assumida a fusão com {{GENDER:$1|$1}}.<br />\nClique \"{{int:usermerge-submit}}\" para aceitar.",
+	"usermerge-noolduser": "O nome de utilizador antigo está vazio.",
+	"usermerge-same-old-and-new-user": "O nome de utilizador(a) antigo e novo têm de ser distintos.",
+	"usermerge-fieldset": "Nomes de utilizador a fundir",
+	"usermerge-olduser": "Utilizador antigo (fundir de):",
+	"usermerge-newuser": "Utilizador novo (fundir para):",
+	"usermerge-deleteolduser": "Apagar utilizador antigo",
+	"usermerge-submit": "Fundir utilizador",
+	"usermerge-badtoken": "Chave de edição inválida",
+	"usermerge-userdeleted": "$1 ($2) foi {{GENDER:$1|eliminado|eliminada|eliminado(a)}}.",
+	"usermerge-userdeleted-log": "Utilizador apagado: $2 ($3)",
+	"usermerge-success": "A fusão de {{GENDER:$1|$1}} ($2) com {{GENDER:$3|$3}} ($4) está completa.",
+	"usermerge-success-log": "Conta de {{GENDER:$2|utilizador $2|utilizadora $2}} ($3) fundida com {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Registo de fusão de utilizadores",
+	"usermerge-logpagetext": "Este é um registo de ações de fusão de utilizadores.",
+	"usermerge-noselfdelete": "Não pode apagar ou fundir a sua {{GENDER:$1|própria}} conta!",
+	"usermerge-protectedgroup": "Não é possível fundir a conta {{GENDER:$1|deste utilizador|desta utilizadora}}: {{GENDER:$1|o utilizador|a utilizadora}} está num grupo protegido.",
+	"right-usermerge": "Fundir utilizadores",
+	"action-usermerge": "fundir utilizadores",
+	"usermerge-autopagedelete": "Eliminada automaticamente ao fundir utilizadores",
+	"usermerge-page-unmoved": "Não foi possível mover a página $1 para $2.",
+	"usermerge-move-log": "Página movida automaticamente ao fundir {{GENDER:$1|o utilizador|a utilizadora|o(a) utilizador(a)}} \"[[User:$1|$1]]\" com \"[[User:$2|$2]]\""
+}

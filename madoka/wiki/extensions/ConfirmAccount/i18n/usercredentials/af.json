@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Arnobarnard",
+			"Naudefj",
+			"SPQRobin"
+		]
+	},
+	"usercredentials-user": "Gebruikersnaam:",
+	"usercredentials-leg-areas": "Gebiede van belangstelling",
+	"usercredentials-leg-person": "Persoonlike inligting",
+	"usercredentials-leg-other": "Ander inligting",
+	"usercredentials-email": "E-pos:",
+	"usercredentials-real": "Regte naam:",
+	"usercredentials-bio": "Biografie:",
+	"usercredentials-attach": "Resumé/CV:",
+	"usercredentials-notes": "Addisionele notas:",
+	"usercredentials-urls": "Lys van webruimtes:",
+	"usercredentials-ip": "Oorspronklike IP adres:",
+	"usercredentials-member": "Regte:"
+}

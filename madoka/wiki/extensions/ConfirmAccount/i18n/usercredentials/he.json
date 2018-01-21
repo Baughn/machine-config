@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"Amire80",
+			"Rotemliss",
+			"StuB",
+			"YaronSh"
+		]
+	},
+	"usercredentials": "פרטי זיהוי המשתמש",
+	"usercredentials-leg": "פרטי זיהוי המשתמש שאושרו בתהליך האיתור",
+	"usercredentials-user": "שם המשתמש:",
+	"usercredentials-text": "להלן פרטי הזיהוי המאומתים של חשבון המשתמש הנבחר.",
+	"usercredentials-leg-user": "חשבון משתמש",
+	"usercredentials-leg-areas": "תחומי עניין עיקריים",
+	"usercredentials-leg-person": "נתונים אישיים",
+	"usercredentials-leg-other": "נתונים שונים",
+	"usercredentials-leg-ip": "נתוני כתובת IP",
+	"usercredentials-email": "דוא\"ל:",
+	"usercredentials-real": "שם אמיתי:",
+	"usercredentials-bio": "ביוגרפיה:",
+	"usercredentials-attach": "קורות חיים:",
+	"usercredentials-notes": "הערות נוספות:",
+	"usercredentials-urls": "רשימת אתרים:",
+	"usercredentials-ip": "כתובת ה־IP המקורית:",
+	"usercredentials-xff": "X-Forwarded-For במקור:",
+	"usercredentials-agent": "User-Agent במקור:",
+	"usercredentials-member": "הרשאות:",
+	"usercredentials-badid": "לא נמצאו פרטי זיהוי עבור משתמש זה.\nאנא ודאו שהשם מאוית כראוי."
+}

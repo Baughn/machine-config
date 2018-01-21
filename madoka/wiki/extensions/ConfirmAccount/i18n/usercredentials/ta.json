@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Karthi.dr",
+			"TRYPPN",
+			"Trengarasu",
+			"மதனாஹரன்"
+		]
+	},
+	"usercredentials-user": "பயனர் பெயர்:",
+	"usercredentials-leg-user": "பயனர் கணக்கு",
+	"usercredentials-leg-person": "தனிப்பட்ட விவரம்",
+	"usercredentials-leg-other": "மற்ற தகவல்",
+	"usercredentials-email": "மின்னஞ்சல்:",
+	"usercredentials-real": "உண்மைப் பெயர்:",
+	"usercredentials-bio": "வாழ்க்கை வரலாறு:",
+	"usercredentials-attach": "தற்குறிப்பு/சுயவிவரம்:",
+	"usercredentials-notes": "கூடுதல் குறிப்புகள்:",
+	"usercredentials-urls": "வலைத்தளப் பட்டியல்:",
+	"usercredentials-member": "உரிமைகள்:"
+}

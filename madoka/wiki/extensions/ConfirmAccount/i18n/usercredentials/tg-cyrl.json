@@ -1,0 +1,18 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ibrahim"
+		]
+	},
+	"usercredentials": "Ихтиёроти корбар",
+	"usercredentials-user": "Номи корбарӣ:",
+	"usercredentials-leg-user": "Ҳисоби корбарӣ",
+	"usercredentials-leg-person": "Иттилооти шахсӣ",
+	"usercredentials-leg-other": "Иттилооти дигар",
+	"usercredentials-email": "Почтаи электронӣ:",
+	"usercredentials-real": "Номи аслӣ:",
+	"usercredentials-bio": "Зиндагинома:",
+	"usercredentials-notes": "Эзоҳоти иловагӣ:",
+	"usercredentials-urls": "Феҳристи сомонаҳо:",
+	"usercredentials-ip": "Нишонаи IP-и аслӣ:"
+}

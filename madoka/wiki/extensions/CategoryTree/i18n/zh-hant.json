@@ -1,0 +1,43 @@
+{
+	"@metadata": {
+		"authors": [
+			"Alexsh",
+			"Liangent",
+			"Mark85296341",
+			"Oapbtommy",
+			"Shinjiman",
+			"Simon Shek",
+			"Liuxinyu970226",
+			"Cwlin0416",
+			"Duolaimi"
+		]
+	},
+	"categorytree": "分類樹",
+	"categorytree-portlet": "分類",
+	"categorytree-legend": "顯示分類樹",
+	"categorytree-desc": "可用動態更新的方式導覽 [[Special:CategoryTree|分類結構]]",
+	"categorytree-header": "請輸入分類名稱以使用樹狀結構檢視分類內容。\n注意：本頁使用 JavaScript 的進階功能，即 AJAX 技術，\n若您使用較舊的瀏覽器或關閉了 JavaScript 功能，將會無法正常檢視。",
+	"categorytree-category": "分類：",
+	"categorytree-go": "顯示樹狀結構",
+	"categorytree-parents": "上層分類",
+	"categorytree-mode-label": "模式：",
+	"categorytree-mode-categories": "只顯示分類",
+	"categorytree-mode-pages": "頁面不包含檔案",
+	"categorytree-mode-all": "所有頁面",
+	"categorytree-collapse": "摺疊",
+	"categorytree-expand": "展開",
+	"categorytree-member-counts": "包含 $1 個子分類、$2 個頁面和 $3 個檔案",
+	"categorytree-num-categories": "$1 分類",
+	"categorytree-num-pages": "$1 頁面",
+	"categorytree-num-files": "$1 檔案",
+	"categorytree-num-empty": "空的",
+	"categorytree-load": "讀取",
+	"categorytree-loading": "讀取中…",
+	"categorytree-nothing-found": "查無任何項目",
+	"categorytree-no-subcategories": "無子分類",
+	"categorytree-no-parent-categories": "無上層分類",
+	"categorytree-no-pages": "無頁面或子分類",
+	"categorytree-not-found": "查無分類 <i>$1</i>",
+	"categorytree-error": "讀取資料時發生錯誤。",
+	"categorytree-retry": "請稍候再試一次。"
+}

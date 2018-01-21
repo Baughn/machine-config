@@ -1,0 +1,15 @@
+{
+	"@metadata": [],
+	"usermerge": "用戶合併同刪除",
+	"usermerge-badolduser": "無效嘅舊用戶名",
+	"usermerge-badnewuser": "無效嘅新用戶名",
+	"usermerge-nonewuser": "清除新用戶名 - 假設合併到$1。<br />撳<em>{{int:usermerge-submit}}</em>去接受。",
+	"usermerge-noolduser": "清除舊用戶名",
+	"usermerge-olduser": "舊用戶 (合併自)",
+	"usermerge-newuser": "新用戶 (合併到)",
+	"usermerge-deleteolduser": "刪舊用戶？",
+	"usermerge-submit": "合併用戶",
+	"usermerge-badtoken": "無效嘅編輯幣",
+	"usermerge-userdeleted": "$1($2) 已經刪除咗。",
+	"usermerge-success": "由 $1($2) 到 $3($4) 嘅合併已經完成。"
+}

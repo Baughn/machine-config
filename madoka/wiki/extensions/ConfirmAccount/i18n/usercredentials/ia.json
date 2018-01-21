@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"McDutchie"
+		]
+	},
+	"usercredentials": "Referentias del usator",
+	"usercredentials-leg": "Cercar referentias confirmate pro un usator",
+	"usercredentials-user": "Nomine de usator:",
+	"usercredentials-text": "Infra es le referentias validate del conto de usator seligite.",
+	"usercredentials-leg-user": "Conto de usator",
+	"usercredentials-leg-areas": "Areas de interesse principal",
+	"usercredentials-leg-person": "Informationes personal",
+	"usercredentials-leg-other": "Altere informationes",
+	"usercredentials-leg-ip": "Datos de adresses IP",
+	"usercredentials-email": "E-mail:",
+	"usercredentials-real": "Nomine real:",
+	"usercredentials-bio": "Biographia:",
+	"usercredentials-attach": "Résumé/CV:",
+	"usercredentials-notes": "Notas additional:",
+	"usercredentials-urls": "Lista de sitos web:",
+	"usercredentials-ip": "Adresse IP original:",
+	"usercredentials-xff": "X-Reinviate-Pro original:",
+	"usercredentials-agent": "Agente-Usator original:",
+	"usercredentials-member": "Derectos:",
+	"usercredentials-badid": "Nulle referentias trovate pro iste usator.\nVerifica que le nomine sia orthographiate correctemente."
+}

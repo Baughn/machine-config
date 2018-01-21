@@ -1,0 +1,32 @@
+{
+	"@metadata": {
+		"authors": [
+			"An13sa",
+			"පසිඳු කාවින්ද",
+			"Subi"
+		]
+	},
+	"confirmaccount-real-q": "Izena",
+	"confirmaccount-email-q": "Emaila",
+	"confirmaccount-bio-q": "Biografia",
+	"confirmaccount-showopen": "irekitako eskariak",
+	"confirmaccount-showrej": "gaitzestutako eskariak",
+	"confirmaccount-showexp": "iraungitako eskariak",
+	"confirmaccount-all": "(erakutsi ilara guztiak)",
+	"confirmaccount-type": "Ilara:",
+	"confirmaccount-leg-user": "Erabiltzaile kontua",
+	"confirmaccount-leg-person": "Norberaren informazioa",
+	"confirmaccount-leg-other": "Bestelako informazioa",
+	"confirmaccount-name": "Erabiltzaile izena",
+	"confirmaccount-real": "Izena:",
+	"confirmaccount-email": "Emaila:",
+	"confirmaccount-pos-0": "egilea",
+	"confirmaccount-pos-1": "Editorea",
+	"confirmaccount-bio": "Biografia:",
+	"confirmaccount-attach": "Curriculuma:",
+	"confirmaccount-urls": "Webgune zerrenda:",
+	"confirmaccount-create": "Onartu (kontua sortu)",
+	"confirmaccount-ip": "IP helbidea:",
+	"confirmaccount-submit": "Baieztatu",
+	"confirmaccount-wsum": "Ongi etorri!"
+}

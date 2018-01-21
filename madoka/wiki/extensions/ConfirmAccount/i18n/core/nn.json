@@ -1,0 +1,15 @@
+{
+	"@metadata": {
+		"authors": [
+			"Gunnernett",
+			"Harald Khan",
+			"Jon Harald Søby",
+			"Njardarlogar"
+		]
+	},
+	"confirmaccount-newrequests": "Det finst for tida {{PLURAL:$1|'''éin''' open [[Special:ConfirmAccounts|kontoførespurnad]]|'''$1''' opne [[Special:ConfirmAccounts|kontoførespurnader]]}}.",
+	"requestaccount-loginnotice": "For å få ein brukarkonto må du '''[[Special:RequestAccount|be om ein]]'''.",
+	"right-confirmaccount": "Vis [[Special:ConfirmAccounts|køen av kontosøknader]]",
+	"right-requestips": "Vis søkjaren sine IP-adresser medan kontosøknadene er til handsaming",
+	"right-lookupcredentials": "Vis [[Special:UserCredentials|brukarattestar]]"
+}

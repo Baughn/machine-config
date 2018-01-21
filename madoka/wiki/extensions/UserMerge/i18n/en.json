@@ -1,0 +1,31 @@
+{
+	"@metadata": {
+		"authors": []
+	},
+	"usermerge": "Merge and delete users",
+	"usermerge-desc": "[[Special:UserMerge|Merges references from one user to another user]] in the wiki database - will also delete old users following merge. Requires ''usermerge'' privileges",
+	"usermerge-badolduser": "Invalid old username.",
+	"usermerge-badnewuser": "Invalid new username.",
+	"usermerge-nonewuser": "Empty new username. Assuming merge to \"{{GENDER:$1|$1}}\".<br />\nClick \"{{int:usermerge-submit}}\" to accept.",
+	"usermerge-noolduser": "Empty old username.",
+	"usermerge-same-old-and-new-user": "The old and new usernames need to be distinct.",
+	"usermerge-fieldset": "Usernames to merge",
+	"usermerge-olduser": "Old user (merge from):",
+	"usermerge-newuser": "New user (merge to):",
+	"usermerge-deleteolduser": "Delete old user",
+	"usermerge-submit": "Merge user",
+	"usermerge-badtoken": "Invalid edit token.",
+	"usermerge-userdeleted": "{{GENDER:$1|$1}} ($2) has been deleted.",
+	"usermerge-userdeleted-log": "Deleted user: $2 ($3)",
+	"usermerge-success": "Merge from {{GENDER:$1|$1}} ($2) to {{GENDER:$3|$3}} ($4) is complete.",
+	"usermerge-success-log": "User {{GENDER:$2|$2}} ($3) merged to {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "User merge log",
+	"usermerge-logpagetext": "This is a log of user merge actions.",
+	"usermerge-noselfdelete": "You cannot delete or merge from {{GENDER:$1|yourself}}!",
+	"usermerge-protectedgroup": "Unable to merge from {{GENDER:$1|user}}: User is in a protected group.",
+	"right-usermerge": "Merge users",
+	"action-usermerge": "merge users",
+	"usermerge-autopagedelete": "Automatically deleted when merging users",
+	"usermerge-page-unmoved": "The page $1 could not be moved to $2.",
+	"usermerge-move-log": "Automatically moved page while merging the user \"[[User:$1|$1]]\" to \"[[User:$2|{{GENDER:$2|$2}}]]\""
+}

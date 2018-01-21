@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"Omnipaedista",
+			"SPQRobin",
+			"UV"
+		]
+	},
+	"confirmaccount-real-q": "Nomen",
+	"confirmaccount-email-q": "Litterae electronicae",
+	"confirmaccount-bio-q": "Biographia",
+	"confirmaccount-review": "Praevidere",
+	"confirmaccount-leg-user": "Ratio usoris:",
+	"confirmaccount-name": "Nomen usoris",
+	"confirmaccount-real": "Nomen",
+	"confirmaccount-email": "Litterae electronicae:",
+	"confirmaccount-reqtype": "Positio:",
+	"confirmaccount-pos-0": "auctor",
+	"confirmaccount-pos-1": "recensor",
+	"confirmaccount-bio": "Biographia:",
+	"confirmaccount-attach": "Curriculum vitae:",
+	"confirmaccount-noreason": "(nulla)",
+	"confirmaccount-ip": "Locus IP:",
+	"confirmaccount-wsum": "Salve!"
+}

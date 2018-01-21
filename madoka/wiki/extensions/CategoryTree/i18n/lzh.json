@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"StephDC",
+			"Davidzdh",
+			"SolidBlock"
+		]
+	},
+	"categorytree-expand": "展",
+	"categorytree-member-counts": "存$1子類，$2頁，$3文",
+	"categorytree-num-categories": "$1 類",
+	"categorytree-num-pages": "$1 頁",
+	"categorytree-num-files": "$1 檔"
+}

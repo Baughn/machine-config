@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Pyt"
+		]
+	},
+	"usercredentials": "Benutser-Begjuchtigengsätterwies",
+	"usercredentials-leg": "Bestäätigede Benutser-Begjuchtigengsätterwiese ätterkiekje",
+	"usercredentials-user": "Benutsernoome:",
+	"usercredentials-text": "Hier foulgje do bestäätigede Benutser-Begjuchtigengsätterwiese foar dät wäälde Benutserkonto.",
+	"usercredentials-leg-user": "Benutserkonto",
+	"usercredentials-leg-areas": "Haud-Interessensgebiete",
+	"usercredentials-leg-person": "Persöönelke Informatione",
+	"usercredentials-leg-other": "Uur Informatione",
+	"usercredentials-email": "E-Mail:",
+	"usercredentials-real": "Ächten Noome",
+	"usercredentials-bio": "Biographie:",
+	"usercredentials-notes": "Bemäärkengen bietou:",
+	"usercredentials-urls": "Lieste fon do Websieden:",
+	"usercredentials-ip": "Originoale IP-Adresse:",
+	"usercredentials-member": "Gjuchte:",
+	"usercredentials-badid": "Der wuuden neen Begjuchtigengsätterwiese foar dissen Benutser fuunen. Wröich ju Skrieuwwiese."
+}

@@ -1,0 +1,16 @@
+{
+	"@metadata": {
+		"authors": [
+			"Minh Nguyen",
+			"Vinhtantran",
+			"පසිඳු කාවින්ද"
+		]
+	},
+	"usercredentials-user": "Tên người dùng:",
+	"usercredentials-leg-user": "Tài khoản",
+	"usercredentials-leg-person": "Thông tin cá nhân",
+	"usercredentials-leg-other": "Thông tin khác",
+	"usercredentials-email": "Thư điện tử:",
+	"usercredentials-bio": "Tiểu sử:",
+	"usercredentials-notes": "Chi tiết:"
+}

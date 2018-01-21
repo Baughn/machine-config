@@ -1,0 +1,16 @@
+{
+	"@metadata": {
+		"authors": [
+			"Filzstift",
+			"Geitost",
+			"Macofe"
+		]
+	},
+	"requestaccount-acc-text": "Wenn du diese Anfrage ausführst, wird dir einmal eine Bestätigungsnachricht an deine E-Mail-Adresse gesandt. Die Adresse wird nicht veröffentlicht.\nBitte reagiere darauf, indem du auf den in diesem Mail enthaltenen Bestätigungslink klickst.\nZum Schluss wird dir dein Passwort per E-Mail zugeschickt, sobald dein Konto angelegt wurde.",
+	"requestaccount-real": "Richtiger Name:",
+	"requestaccount-same": "(wie mein richtiger Name)",
+	"requestaccount-agree": "Du musst bestätigen, dass dein richtiger Name korrekt ist und du die Nutzungsbedingungen akzeptierst.",
+	"requestaccount-sent": "Dein Antrag wurde erfolgreich verschickt und muss nun noch überprüft werden.\nEin Bestätigungs-E-Mail wurde an deine E-Mail-Adresse gesendet.",
+	"requestaccount-email-body": "Jemand, möglicherweise du mit der IP-Adresse $1, hat bei {{SITENAME}} das Benutzerkonto «$2» mit deiner E-Mail-Adresse beantragt.\n\nUm zu bestätigen, dass wirklich du dieses Konto bei {{SITENAME}} beantragt hast, öffne bitte folgenden Link in deinem Browser:\n\n$3\n\nWenn das Benutzerkonto erstellt wurde, bekommst du ein weiteres E-Mail mit dem Passwort.\n\nWenn du das Benutzerkonto *nicht* beantragt hast, öffne den Link bitte nicht!\n\nZeitpunkt des Auslaufs des Bestätigungscodes: $4.",
+	"requestaccount-email-body-admin": "$1 hat ein Benutzerkonto beantragt und wartet auf Bestätigung.\nDie E-Mail-Adresse wurde bestätigt. Du kannst den Antrag hier bestätigen:\n\n$2"
+}

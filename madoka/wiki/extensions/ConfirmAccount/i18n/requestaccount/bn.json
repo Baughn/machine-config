@@ -1,0 +1,34 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bellayet",
+			"Ehsanulhb",
+			"Wikitanvir",
+			"Zaheen",
+			"Aftab1995",
+			"Aftabuzzaman"
+		]
+	},
+	"requestaccount": "অ্যাকাউন্ট অনুরোধ",
+	"requestaccount-leg-user": "ব্যবহারকারী অ্যাকাউন্ট",
+	"requestaccount-leg-areas": "আগ্রহের মূল ক্ষেত্র",
+	"requestaccount-leg-person": "ব্যক্তিগত তথ্য",
+	"requestaccount-leg-other": "অন্যান্য তথ্য",
+	"requestaccount-real": "প্রকৃত নাম:",
+	"requestaccount-same": "(প্রকৃত নামের মত)",
+	"requestaccount-email": "ইমেইল ঠিকানা:",
+	"requestaccount-reqtype": "পদ:",
+	"requestaccount-level-0": "লেখক",
+	"requestaccount-level-1": "সম্পাদক",
+	"requestaccount-bio": "ব্যক্তিগত জীবনী (শুধুমাত্র সাধারণ পাঠ্য):",
+	"requestaccount-attach": "রেজুমে বা সিভি (আবশ্যকীয় নয়):",
+	"requestaccount-notes": "অতিরিক্ত মন্তব্য:",
+	"requestaccount-urls": "ওয়েবসাইটের তালিকা, যদি থাকে (নতুন লাইন দিয়ে পৃথক করুন):",
+	"requestaccount-agree": "আপনি যে প্রকৃত নাম ব্যবহার করেছেন এবং আমাদের সেবার শর্তের সাথে একমত হয়েছেন, তা নিশ্চিত করতে হবে।",
+	"requestaccount-inuse": "এই ব্যবহারকারী নামটি ইতিমধ্যেই একটি অপেক্ষারত অ্যাকাউন্ট অনুরোধে ব্যবহৃত হচ্ছে।",
+	"requestaccount-tooshort": "আপনার জীবনী কমপক্ষে $1 {{PLURAL:$1|শব্দ|শব্দ}} দীর্ঘ হতে হবে।",
+	"requestaccount-emaildup": "আরেকটি অপেক্ষারত অ্যাকাউন্ট অনুরোধে একই ইমেইল ঠিকানা ব্যবহার করা হয়েছে।",
+	"requestaccount-exts": "সংযুক্ত ফাইলের ধরন অনুমোদিত নয়।",
+	"requestaccount-submit": "অ্যাকাউন্ট অনুরোধ করুন",
+	"requestaccount-email-subj-admin": "{{SITENAME}}-এ অ্যাকাউন্ট অনুরোধ"
+}

@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Yocahuna"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1''' opn e-miel-kanfoerm [[Special:ConfirmAccounts|akount {{PLURAL:$1|rikwes|rikwes}}]] pendin",
+	"requestaccount-loginnotice": "Fi abtien a yuuza akount, yu fi '''[[Special:RequestAccount|rikwes wan]]'''."
+}

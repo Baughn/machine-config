@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Mdupont"
+		]
+	},
+	"requestaccount": "Kërkesë llogari",
+	"requestaccount-text": "'''E plota dhe të dorëzojë formularin e mëposhtëm për të kërkuar një llogari përdoruesi'''.\n\nSigurohuni që e keni parë lexuar [[{{MediaWiki:Requestaccount-page}}|Kushtet e Shërbimit]] para se të kërkojnë një llogari.\n\nPasi llogari është aprovuar, ju do të jetë e-mail një mesazh njoftim dhe llogari do të jetë i përdorshëm në [[Special:UserLogin|login]].",
+	"requestaccount-page": "{{ns:project}}: Terms of Service",
+	"requestaccount-dup": "'''Shënim: Ju tashmë jeni i regjistruar me një llogari të regjistruar.'''",
+	"requestaccount-leg-user": "Profili i përdoruesit",
+	"requestaccount-leg-areas": "fushat kryesore të interesit",
+	"requestaccount-leg-person": "Të dhënat personale"
+}

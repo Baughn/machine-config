@@ -1,0 +1,33 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michawiki"
+		]
+	},
+	"usermerge": "Wužywarjow zjadnośiś a wulašowaś",
+	"usermerge-desc": "[[Special:UserMerge|Zjadnośujo reference wót jadnogo wužywarja k drugemu wužywarjeju]] we wikijowej datowej bance - buźo teke wšych starych wužywarjow pó zjadnosénju lašowaś. Pomina se pšawa ''usermerge''",
+	"usermerge-badolduser": "Njepłaśiwe stare wužywarske mě",
+	"usermerge-badnewuser": "Njepłaśiwe nowe wužywarske mě",
+	"usermerge-nonewuser": "Prozne nowe wužywarske mě - góda se zjadnośenje k \"{{GENDER:$1|$1}}\".<br />\nKlikni na \"{{int:usermerge-submit}}\", aby akceptěrował.",
+	"usermerge-noolduser": "Prozne stare wužywarske mě",
+	"usermerge-same-old-and-new-user": "Stare a nowe wužywarske mjenja muse rozdźělne byś.",
+	"usermerge-fieldset": "Wužywarskej mjeni, kótarejž maju se zjadnośiś",
+	"usermerge-olduser": "Stary wužywaŕ (zjadnośiś wót):",
+	"usermerge-newuser": "Nowy wužywaŕ (zjadnośiś do):",
+	"usermerge-deleteolduser": "Starego wužywarja lašowaś",
+	"usermerge-submit": "Wužywarja zjadnośiś",
+	"usermerge-badtoken": "Njepłaśiwy wobźěłowański token",
+	"usermerge-userdeleted": "$1 ($2) jo se wulašował.",
+	"usermerge-userdeleted-log": "Wulašowany wužywaŕ: $2 ($3)",
+	"usermerge-success": "Zjadnosénje wot $1 ($2) z {{GENDER:$3|$3}} ($4) jo skóńcone.",
+	"usermerge-success-log": "Wužywaŕ $2 ($3) jo se z {{GENDER:$4|$4}} ($5) zjadnośił",
+	"usermerge-logpage": "Protokol wužywarskich zjadnośenjow",
+	"usermerge-logpagetext": "To jo protokol akcijow wužywarskich zjadnośenjow.",
+	"usermerge-noselfdelete": "Njamóžoš se ze sobu zjadnośiś!",
+	"usermerge-protectedgroup": "Zjadnośenje wót wužywarja njemóžno - wužywaŕ jo w šćitanej kupce.",
+	"right-usermerge": "Wužywarjow zjadnośiś",
+	"action-usermerge": "wužywarjow zjadnośiś",
+	"usermerge-autopagedelete": "Pśi zjadnośenju wužywarjow awtomatiski wulašowany",
+	"usermerge-page-unmoved": "Bok $1 njejo se do $2 pśesunuś dał.",
+	"usermerge-move-log": "Bok za zjadnośenje wužywarja \"[[User:$1|$1]]\" z \"[[User:$2|{{GENDER:$2|$2}}]]\" awtomatiski pśesunjony"
+}

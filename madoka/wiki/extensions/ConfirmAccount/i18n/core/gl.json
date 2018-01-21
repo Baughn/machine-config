@@ -1,0 +1,17 @@
+{
+	"@metadata": {
+		"authors": [
+			"Alma",
+			"Elisardojm",
+			"Toliño",
+			"Xosé",
+			"Banjo"
+		]
+	},
+	"confirmaccount-newrequests": "Actualmente hai '''$1''' [[Special:ConfirmAccounts|{{PLURAL:$1|solicitude de conta pendente|solicitudes de contas pendentes}}]]. '''Cómpre a súa atención!'''",
+	"requestaccount-loginnotice": "Para obter unha conta de usuario ten que '''[[Special:RequestAccount|solicitar unha]]'''.",
+	"right-confirmaccount": "Ver a [[Special:ConfirmAccounts|cola coas solicitudes de contas]]",
+	"right-requestips": "Ver os enderezos IP que solicitan contas",
+	"right-lookupcredentials": "Ver as [[Special:UserCredentials|credenciais de usuario]]",
+	"action-confirmaccount": "revisar e aceptar contas"
+}

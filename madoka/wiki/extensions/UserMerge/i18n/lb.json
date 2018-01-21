@@ -1,0 +1,35 @@
+{
+	"@metadata": {
+		"authors": [
+			"Les Meloures",
+			"Robby",
+			"Soued031"
+		]
+	},
+	"usermerge": "Benotzerkonten zesummeféieren a läschen",
+	"usermerge-desc": "[[Special:UserMerge|Féiert Benotzerkonte vun engem Benotzer mat engem anere Benotzer]] an der Wiki-Datebank zesummen - déi al Benotzerkonte ginn no der Zesummeféierung och geläscht. Erfuedert ''usermerge''-Rechter.",
+	"usermerge-badolduser": "Ongëltegen ale Benotzernumm",
+	"usermerge-badnewuser": "Ongëltegen neie Benotzernumm",
+	"usermerge-nonewuser": "Eidelen neie Benotzernumm - wahrscheinlech eng Zesummeféierung mat \"{{GENDER:$1|$1}}.<br />\nKlickt op \"{{int:usermerge-submit}}\" wann Dir d'accord sidd.",
+	"usermerge-noolduser": "Eidelen ale Benotzernumm",
+	"usermerge-same-old-and-new-user": "Den alen an den neie Benotzernumm musse verschidde sinn.",
+	"usermerge-fieldset": "Benotzernimm fir zesummenzeféieren",
+	"usermerge-olduser": "Ale Benotzer (zesummeféiere vun):",
+	"usermerge-newuser": "Neie Benotzer (zusammenféiere mat):",
+	"usermerge-deleteolduser": "Ale Benotzer läschen",
+	"usermerge-submit": "Benotzerkonten zesummeféieren",
+	"usermerge-badtoken": "Ännerungs-Jeton net valabel",
+	"usermerge-userdeleted": "{{GENDER:$1|$1}} ($2) gouf geläscht.",
+	"usermerge-userdeleted-log": "Geläschte Benotzer: $2($3)",
+	"usermerge-success": "D'Zesummeféierung vum {{GENDER:$1|$1}} ($2) op {{GENDER:$3|$3}} ($4) ass net komplett.",
+	"usermerge-success-log": "Benotzer {{GENDER:$2|$2}} ($3) gouf zesummegeféiert mat {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Lëscht vun de Benotzerkonten déi zesummegeféiert goufen",
+	"usermerge-logpagetext": "Dëst ass eng Lëscht vun de Benotzerkonten, déi zesummegeféiert goufen.",
+	"usermerge-noselfdelete": "Dir kënnt {{GENDER:$1|Iech net selwer}} läschen oder mat {{GENDER:$1|Iech selwer}} zesummeféieren!",
+	"usermerge-protectedgroup": "D'Zesammenféierung vum {{GENDER:$1|Benotzer}} ass net méiglech: De Benotzer ass an engem geschützte Grupp.",
+	"right-usermerge": "Benotzer zesummeféieren",
+	"action-usermerge": "Benotzer zesummeféieren",
+	"usermerge-autopagedelete": "Automatesch geläscht wéi d'Benotzer zesummegeluecht goufen",
+	"usermerge-page-unmoved": "D'Säit $1 konnt net op $2 geréckelt ginn.",
+	"usermerge-move-log": "D'Säit gouf automatesch geréckelt wéi de Benotzer \"[[User:$1|$1]]\" mam \"[[User:$2|$2{{GENDER:$2|$2}}]]\" zesummegeluecht gouf"
+}

@@ -1,0 +1,36 @@
+{
+	"@metadata": {
+		"authors": [
+			"Amire80",
+			"Rotemliss",
+			"YaronSh",
+			"Guycn2"
+		]
+	},
+	"usermerge": "מיזוג ומחיקת משתמשים",
+	"usermerge-desc": "[[Special:UserMerge|מיזוג התייחסויות ממשתמש אחד לאחר]] בבסיס הנתונים של הוויקי, כולל מחיקת המשתמשים הישנים לאחר המיזוג. נדרשת הרשאת ''usermerge''",
+	"usermerge-badolduser": "שם המשתמש הישן אינו תקין",
+	"usermerge-badnewuser": "שם המשתמש החדש אינו תקין",
+	"usermerge-nonewuser": "שם המשתמש החדש ריק. כנראה שהמיזוג הוא אל \"$1\".<br />\nנא ללחוץ על \"{{int:usermerge-submit}}\" לאישור.",
+	"usermerge-noolduser": "שם המשתמש הישן ריק",
+	"usermerge-same-old-and-new-user": "השם הישן צריך להיות שונה מהשם החדש.",
+	"usermerge-fieldset": "שמות משתמש למיזוג",
+	"usermerge-olduser": "משתמש ישן (מיזוג מ):",
+	"usermerge-newuser": "משתמש חדש (מיזוג ל):",
+	"usermerge-deleteolduser": "מחיקת משתמש ישן",
+	"usermerge-submit": "מיזוג משתמש",
+	"usermerge-badtoken": "אסימון עריכה שגוי.",
+	"usermerge-userdeleted": "$1 ($2) {{GENDER:$1|נמחק|נמחקה}}.",
+	"usermerge-userdeleted-log": "המשתמש נמחק: $2&rlm; ($3)",
+	"usermerge-success": "המיזוג מ־$1‏ ($2) ל־$3‏ ($4) בוצע בהצלחה.",
+	"usermerge-success-log": "ה{{GENDER:$2|משתמש|משתמשת}} $2&rlm; ($3) {{GENDER:$2|מוזג|מוזגה}} אל $4&rlm; ($5)",
+	"usermerge-logpage": "יומן מיזוג משתמשים",
+	"usermerge-logpagetext": "זהו יומן של פעולות מיזוג המשתמשים.",
+	"usermerge-noselfdelete": "לא ניתן למחוק או למזג מ{{GENDER:$1|עצמך}}!",
+	"usermerge-protectedgroup": "לא ניתן למזג מה{{GENDER:$1|משתמש|משתמשת}}: ה{{GENDER:$1|משתמש נמצא|משתמשת נמצאת}} בקבוצה מוגנת.",
+	"right-usermerge": "מיזוג משתמשים",
+	"action-usermerge": "למזג משתמשים",
+	"usermerge-autopagedelete": "נמחק אוטומטית בזמן מיזוג חשבונות",
+	"usermerge-page-unmoved": "לא ניתן להעביר את הדף $1 לשם $2.",
+	"usermerge-move-log": "הדף הועבר אוטומטית בזמן מיזוג חשבון \"[[User:$1|$1]]\" אל \"[[User:$2|$2]]\""
+}

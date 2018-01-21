@@ -1,0 +1,17 @@
+{
+	"@metadata": {
+		"authors": [
+			"MacTire02"
+		]
+	},
+	"usercredentials-user": "Dt'ennym ymmydeyr:",
+	"usercredentials-leg-user": "Coontys ymmydeyr",
+	"usercredentials-leg-person": "Oayllys persoonagh",
+	"usercredentials-leg-other": "Oayllys elley",
+	"usercredentials-email": "Post-L:",
+	"usercredentials-real": "Feer-ennym:",
+	"usercredentials-bio": "Beashnys:",
+	"usercredentials-urls": "Rolley ynnydyn-eggey:",
+	"usercredentials-ip": "Enmys IP bunneydagh:",
+	"usercredentials-member": "Kiartyn:"
+}

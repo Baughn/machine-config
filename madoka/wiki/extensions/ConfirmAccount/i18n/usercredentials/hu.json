@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"Dani",
+			"Dj",
+			"Dorgan",
+			"Glanthor Reviol",
+			"Tgr"
+		]
+	},
+	"usercredentials": "Személyi adatok",
+	"usercredentials-leg": "Megerősített felhasználói adatok kikeresése",
+	"usercredentials-user": "Felhasználói név:",
+	"usercredentials-text": "Itt találhatóak a felhasználói fiókhoz tartozó, megerősített adatok.",
+	"usercredentials-leg-user": "Felhasználói fiók",
+	"usercredentials-leg-areas": "Érdeklődési területek",
+	"usercredentials-leg-person": "Személyes információ",
+	"usercredentials-leg-other": "További információ:",
+	"usercredentials-leg-ip": "IP-cím adat",
+	"usercredentials-email": "E-mail cím:",
+	"usercredentials-real": "Valódi név:",
+	"usercredentials-bio": "Életrajz:",
+	"usercredentials-attach": "CV:",
+	"usercredentials-notes": "További megjegyzések:",
+	"usercredentials-urls": "Weboldalak listája:",
+	"usercredentials-ip": "Valódi IP-cím:",
+	"usercredentials-member": "Jogok:",
+	"usercredentials-badid": "A felhasználó nem rendelkezik személyes adatokkal. Ellenőrizd, hogy helyesen adtad-e meg a nevét."
+}

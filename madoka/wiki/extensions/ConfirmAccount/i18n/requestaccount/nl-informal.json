@@ -1,0 +1,24 @@
+{
+	"@metadata": {
+		"authors": [
+			"HanV",
+			"Siebrand",
+			"Nemo bis"
+		]
+	},
+	"requestaccount-text": "'''Vul het onderstaande formulier in en sla het op om een gebruiker aan te vragen'''. \n\nZorg ervoor dat je eerst de [[{{MediaWiki:Requestaccount-page}}|voorwaarden]] leest voordat je een gebruiker aanvraagt.\n\nAls je aanvraag is goedgekeurd, krijg je een e-mail en daarna kan je je [[Special:UserLogin|aanmelden]].",
+	"requestaccount-dup": "'''Let op: je bent al aangemeld met een geregistreerde gebruikersnaam.'''",
+	"requestaccount-acc-text": "Je ontvangt een e-mailbevestiging als uw aanvraag is ontvangen.\nReageer daar op door te klikken op de koppeling die in de e-mail staat.\nJe krijgt een wachtwoord als je gebruiker is aangemaakt.",
+	"requestaccount-areas-text": "Selecteer hieronder de onderwerpen waarmee je ervaring hebt of waar je denkt het meeste aan te gaan bijdragen.",
+	"requestaccount-ext-text": "De volgende informatie wordt vertrouwelijk behandeld en wordt alleen gebruikt voor deze aanvraag.\nJe kunt contactgegevens zoals een telefoonnummer opgeven om te helpen bij het vaststellen van je identiteit.",
+	"requestaccount-bio-text": "Probeer je belangrijkste gegevens op te nemen.",
+	"requestaccount-bio-text-i": "'''Deze tekst wordt gebruikt voor je gebruikerspagina.'''\nZorg ervoor dat je hier gegevens noteert die gepubliceerd mogen worden.",
+	"requestaccount-agree": "Je moet bevestigen dat je naam juist is en dat je akkoord gaat met de Gebruiksvoorwaarden.",
+	"requestaccount-tooshort": "Je biografie moet ten minste {{PLURAL:$1|één woord|$1 woorden}} bevatten.",
+	"requestaccount-resub": "Je CV-bestand moet opnieuw geselecteerd worden om veiligheidsredenen.\nLaat het veld leeg als je geen bestand meer wilt bijvoegen.",
+	"requestaccount-sent": "Je gebruikersaanvraag is verstuurd en wacht om nagekeken te worden.\nEr is ter bevestiging een e-mail naar je e-mailadres gezonden.",
+	"request-account-econf": "Je e-mailadres is bevestigd en wordt in je gebruikersaanvraag opgenomen.",
+	"requestaccount-email-body": "Iemand, waarschijnlijk jij, heeft vanaf IP-adres $1 op {{SITENAME}} een aanvraag gedaan\nvoor het aanmaken van gebruiker \"$2\" met dit e-mailadres.\n\nKlik op de onderstaande koppeling om te bevestigen dat deze gebruiker op {{SITENAME}} daadwerkelijk bij jou hoort:\n\n$3\n\nAls de gebruiker is aangemaakt krijg je een e-mail met het wachtwoord. Als de aanvraag niet van jou afkomstig is, gebruik de koppeling dan *niet*. \nDoe de bevestiging voor $4.",
+	"requestaccount-email-body-admin": "\"$1\" heeft een gebruiker aangevraagd en wacht op bevestiging.\nHet e-mailadres is bevestigd.\nJe kunt de aanvraag hier \"$2\" bevestigen.",
+	"acct_request_throttle_hit": "Je hebt al $1 {{PLURAL:$1|gebruikersaanvraag|gebruikersaanvragen}} gedaan.\nJe kunt geen nieuwe aanvragen meer uitbrengen."
+}

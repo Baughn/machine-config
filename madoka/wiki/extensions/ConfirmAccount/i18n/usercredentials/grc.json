@@ -1,0 +1,16 @@
+{
+	"@metadata": {
+		"authors": [
+			"Crazymadlover",
+			"Omnipaedista"
+		]
+	},
+	"usercredentials": "Διαπιστευτήρια χρωμένου",
+	"usercredentials-user": "Ὄνομα χρωμένου:",
+	"usercredentials-email": "Ἠλεκτρονικαὶ ἐπιστολαί:",
+	"usercredentials-real": "ἀληθὲς ὄνομα:",
+	"usercredentials-bio": "Βιογραφία:",
+	"usercredentials-attach": "Βιογραφικὸν σημείωμα:",
+	"usercredentials-urls": "Καταλογὴ ἱστοτόπων:",
+	"usercredentials-member": "Δικαιώματα:"
+}

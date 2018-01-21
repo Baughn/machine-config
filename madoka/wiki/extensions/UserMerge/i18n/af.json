@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Naudefj"
+		]
+	},
+	"usermerge": "Versmelt en verwyder gebruikers",
+	"usermerge-desc": "Maak 'n [[Special:UserMerge|spesiale bladsy]] beskikbaar om gebruikers te versmelt en die ou gebruiker(s) te verwyder (hiervoor is die ''usermerge''-reg nodig)",
+	"usermerge-badolduser": "Ongeldige ou gebruiker",
+	"usermerge-badnewuser": "Ongeldige nuwe gebruiker",
+	"usermerge-nonewuser": "Die nuwe gebruikersnaam is nie ingevoer nie - daar word aangeneem dat dit met $1 versmelt moet word.<br />\nKliek \"{{int:usermerge-submit}}\" om die handeling uit te voer.",
+	"usermerge-noolduser": "Ou gebruikersnaam is leeg",
+	"usermerge-fieldset": "Gebruikers om saam te smelt",
+	"usermerge-olduser": "Ou gebruiker (versmelt van):",
+	"usermerge-newuser": "Nuwe gebruiker (versmelt na):",
+	"usermerge-deleteolduser": "Verwyder ou gebruiker",
+	"usermerge-submit": "Versmelt gebruiker",
+	"usermerge-badtoken": "Ongeldige wysigingsteken (\"edit token\")",
+	"usermerge-userdeleted": "$1 ($2) is verwyder.",
+	"usermerge-userdeleted-log": "Verwyderde gebruiker: $2 ($3)",
+	"usermerge-success": "Versmelting van $1 ($2) na $3 ($4) is voltooi.",
+	"usermerge-success-log": "Gebruiker $2 ($3) is versmelt na $4 ($5)",
+	"usermerge-logpage": "Logboek van gebruikersversmeltings",
+	"usermerge-logpagetext": "Die is 'n logboek van gebruikersversmeltings.",
+	"usermerge-noselfdelete": "U kan nie uself verwyder of versmelt nie!",
+	"usermerge-protectedgroup": "Dit is nie moontlik om die gebruikers saam te voeg nie. Die gebruiker is in 'n beskermde groep.",
+	"right-usermerge": "Versmelt gebruikers"
+}

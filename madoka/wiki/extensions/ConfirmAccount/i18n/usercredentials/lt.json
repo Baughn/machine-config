@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"Eitvys200",
+			"Homo",
+			"Tomasdd"
+		]
+	},
+	"usercredentials-user": "Naudotojo vardas:",
+	"usercredentials-leg-user": "Naudotojo paskyra",
+	"usercredentials-leg-person": "Asmeninė informacija",
+	"usercredentials-leg-other": "Kita informacija",
+	"usercredentials-leg-ip": "IP adreso duomenis",
+	"usercredentials-email": "El. paštas:",
+	"usercredentials-real": "Tikras vardas:",
+	"usercredentials-bio": "Biografija:",
+	"usercredentials-attach": "CV:",
+	"usercredentials-notes": "Papildomos pastabos:",
+	"usercredentials-urls": "Tinklapių sąrašas:",
+	"usercredentials-ip": "Originalus IP adresas:",
+	"usercredentials-member": "Teisės:"
+}

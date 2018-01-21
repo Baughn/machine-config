@@ -1,0 +1,34 @@
+{
+	"@metadata": {
+		"authors": [
+			"Centerlink",
+			"Cimon Avaro",
+			"Crt",
+			"Jaakonam",
+			"Mobe",
+			"Nedergard",
+			"Nike",
+			"Str4nd",
+			"Taleman",
+			"Varusmies"
+		]
+	},
+	"usercredentials": "Käyttäjän valtuudet",
+	"usercredentials-leg": "Etsi käyttäjän vahvistetut valtuudet",
+	"usercredentials-user": "Käyttäjätunnus:",
+	"usercredentials-text": "Valitun käyttäjätunnuksen vahvistetut valtuudet ovat alla.",
+	"usercredentials-leg-user": "Käyttäjätunnus",
+	"usercredentials-leg-areas": "Tärkeimmät kiinnostuksen kohteet",
+	"usercredentials-leg-person": "Henkilötiedot",
+	"usercredentials-leg-other": "Muut tiedot",
+	"usercredentials-leg-ip": "IP-osoitteen tiedot",
+	"usercredentials-email": "Sähköposti:",
+	"usercredentials-real": "Oikea nimi:",
+	"usercredentials-bio": "Omat tiedot",
+	"usercredentials-attach": "Ansioluettelo/CV:",
+	"usercredentials-notes": "Lisähuomautukset:",
+	"usercredentials-urls": "Webbisivujen luettelo:",
+	"usercredentials-ip": "Käyttäjän IP-osoite:",
+	"usercredentials-member": "Oikeudet:",
+	"usercredentials-badid": "Tämän käyttäjän valtuutuksia ei löytynyt. Tarkista nimen oikeinkirjoitus."
+}

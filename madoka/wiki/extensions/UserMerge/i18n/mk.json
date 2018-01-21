@@ -1,0 +1,34 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bjankuloski06",
+			"Brest"
+		]
+	},
+	"usermerge": "Спојување и бришење корисници",
+	"usermerge-desc": "[[Special:UserMerge|Спојува наводи од еден корисник во друг]] во вики базата на податици - ги брише и старите корисници по спојувањето. Бара ''usermerge'' привилегии",
+	"usermerge-badolduser": "Погрешно старо корисничко име",
+	"usermerge-badnewuser": "Погрешно ново корисничко име",
+	"usermerge-nonewuser": "Празно ново корисничко име. Се подразбира спојување со „{{GENDER:$1|$1}}“.<br />\nСтиснете на „{{int:usermerge-submit}}“ за да прифатите.",
+	"usermerge-noolduser": "Празно старо корисничко име",
+	"usermerge-same-old-and-new-user": "Старото и новото корисничко име треба да се разликуваат.",
+	"usermerge-fieldset": "Кориснички имиња за спојување",
+	"usermerge-olduser": "Стар корисник (за спојување од):",
+	"usermerge-newuser": "Нов корисник (за спојување со):",
+	"usermerge-deleteolduser": "Избриши стар корисник",
+	"usermerge-submit": "Спој го корисникот",
+	"usermerge-badtoken": "Погрешна шифра за уредување",
+	"usermerge-userdeleted": "$1 ($2) е {{GENDER:$1|избришан|избришана}}",
+	"usermerge-userdeleted-log": "Избришан корисник: $2 ($3)",
+	"usermerge-success": "Спојувањето на {{GENDER:$1|$1}} ($2) со {{GENDER:$3|$3}} ($4) е готово.",
+	"usermerge-success-log": "Корисникот {{GENDER:$2|$2}} ($3) е споен со {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Дневник на спојувања на кориснички сметки",
+	"usermerge-logpagetext": "Ова е дневник на спојувања на кориснички имиња.",
+	"usermerge-noselfdelete": "Не можете да се избришете или споите {{GENDER:$1|самите себеси}}!",
+	"usermerge-protectedgroup": "Не можам да ги спојам {{GENDER:$1|корисниците}}: корисникот е во заштитена група.",
+	"right-usermerge": "Спојување на корисници",
+	"action-usermerge": "спојување на корисници",
+	"usermerge-autopagedelete": "Се брише автоматски, при спојување на корисници",
+	"usermerge-page-unmoved": "Не моежев да ја преместам страницата $1 на $2.",
+	"usermerge-move-log": "Автоматско преместување на страница при припојувањето на корисникот „[[User:$1|$1]]“ кон „[[User:$2|{{GENDER:$2|$2}}]]“"
+}

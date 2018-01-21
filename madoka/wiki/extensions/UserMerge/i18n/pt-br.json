@@ -1,0 +1,40 @@
+{
+	"@metadata": {
+		"authors": [
+			"Crazymadlover",
+			"Eduardo.mps",
+			"Jorge Morais",
+			"Luckas",
+			"Helder.wiki",
+			"He7d3r",
+			"Nemo bis",
+			"Araceletorres",
+			"Opraco"
+		]
+	},
+	"usermerge": "Fusão e eliminação de utilizadores",
+	"usermerge-desc": "[[Special:UserMerge|Unifica as referências de um usuário em outro usuário]] no banco de dados da wiki - também apagará o antigo usuário após a fusão. Requer privilégio ''usermerge''",
+	"usermerge-badolduser": "Nome antigo inválido",
+	"usermerge-badnewuser": "Nome novo inválido",
+	"usermerge-nonewuser": "Novo nome de usuário vazio. Assumida fusão com \"{{GENDER:$1|$1}}\".<br />\nClique \"{{int:usermerge-submit}}\" para aceitar.",
+	"usermerge-noolduser": "Limpar nome antigo",
+	"usermerge-fieldset": "Nomes de usuário a unificar",
+	"usermerge-olduser": "Usuário antigo (fundir de):",
+	"usermerge-newuser": "Usuário novo (fundir para):",
+	"usermerge-deleteolduser": "Apagar usuário antigo",
+	"usermerge-submit": "Fundir usuário",
+	"usermerge-badtoken": "Token de edição inválida",
+	"usermerge-userdeleted": "$1 ($2) foi eliminado.",
+	"usermerge-userdeleted-log": "Usuário apagado: $2 ($3)",
+	"usermerge-success": "Fusão de $1 ($2) para $3 ($4) está completa.",
+	"usermerge-success-log": "Usuário $2 ($3) fundido com {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Registro de fusão de usuários",
+	"usermerge-logpagetext": "Este é um registro de ações de fusão de utilizadores.",
+	"usermerge-noselfdelete": "Você não pode apagar ou fundir a partir de si próprio!",
+	"usermerge-protectedgroup": "Não é possível fundir este usuário: Usuário está em um grupo protegido.",
+	"right-usermerge": "Fundir usuários",
+	"action-usermerge": "fundir usuários",
+	"usermerge-autopagedelete": "Excluída automaticamente ao fundir usuários",
+	"usermerge-page-unmoved": "Não foi possível mover a página $1 para $2.",
+	"usermerge-move-log": "Página movida automaticamente ao fundir {{GENDER:$1|o usuário|os usuários}} \"[[User:$1|$1]]\" com \"[[User:$2|$2]]\""
+}

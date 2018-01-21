@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"පසිඳු කාවින්ද"
+		]
+	},
+	"requestaccount": "ගිණුමක් අයදින්න",
+	"requestaccount-page": "{{ns:project}}:සේවාවේ කොන්දේසි",
+	"requestaccount-dup": "'''සටහන: ඔබ දැනටමත් ලියාපදිංචි කරන ලද ගිණුමකින් ප්‍රවිෂ්ට වී ඇත.'''",
+	"requestaccount-leg-user": "පරිශීලක ගිණුම",
+	"requestaccount-leg-areas": "ඇල්මේ ප්‍රධාන පැති",
+	"requestaccount-leg-person": "පුද්ගලික තොරතුරු",
+	"requestaccount-leg-other": "පරිශීලකගේ තොරතුරු",
+	"requestaccount-leg-tos": "සේවාවේ කොන්දේසි",
+	"requestaccount-real": "සැබෑ නාමය:",
+	"requestaccount-same": "(පහත දැක්වෙන සැබෑ නාමය වගේම)",
+	"requestaccount-email": "විද්‍යුත්-තැපැල් ලිපිනය:",
+	"requestaccount-reqtype": "තරාතිරම:",
+	"requestaccount-level-0": "කතෘ",
+	"requestaccount-level-1": "සංස්කාරක",
+	"requestaccount-bio": "පුද්ගලික චරිතාපදානය (සාමාන්‍ය පෙළ පමණි):",
+	"requestaccount-attach": "සංක්ෂේපය හෝ CV (වෛකල්පික):",
+	"requestaccount-notes": "අමතර සටහන්:",
+	"requestaccount-urls": "වෙබ් අඩවි ලැයිස්තුව, තිබේ නම් (වෙන්වූ පේළියක එක එකක්):",
+	"requestaccount-exts": "ඇමුණුම් ගොනු වර්ගයට ඉඩ ලබා නොදේ.",
+	"requestaccount-submit": "අයදුම් ගිණුම",
+	"requestaccount-email-subj": "{{SITENAME}} විද්‍යුත්-තැපැල් ලිපිනය තහවුරුකිරීම",
+	"requestaccount-email-subj-admin": "{{SITENAME}} ගිණුම් අයදුම"
+}

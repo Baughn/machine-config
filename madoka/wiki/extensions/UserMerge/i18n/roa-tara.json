@@ -1,0 +1,33 @@
+{
+	"@metadata": {
+		"authors": [
+			"Joetaras"
+		]
+	},
+	"usermerge": "Scuagghie e scangille le utinde",
+	"usermerge-desc": "[[Special:UserMerge|Scuagghie le refereminde da 'n'utende a 'n'otre utende]] jndr'à 'u database de uicchi - avènene scangellate pure le vicchie utinde apprisse 'u scuagghiamende. A tenè le deritte de ''usermerge''",
+	"usermerge-badolduser": "Nome utende vecchije invalide",
+	"usermerge-badnewuser": "Nome utende nuève invalide",
+	"usermerge-nonewuser": "Nome utende nuève vacande. Se decide de scuagghiarle jndr'à \"{{GENDER:$1|$1}}\".<br />\nCazze \"{{int:usermerge-submit}}\" pe accettà.",
+	"usermerge-noolduser": "Vacande 'u nome utende vecchie.",
+	"usermerge-same-old-and-new-user": "'U nome de l'utende vecchie e nuève onna essere diverse.",
+	"usermerge-fieldset": "Nome utinde da scuagghià.",
+	"usermerge-olduser": "Utende vecchie (da scuagghià):",
+	"usermerge-newuser": "Utende nuève (da pigghià):",
+	"usermerge-deleteolduser": "Scangellate vecchie utende",
+	"usermerge-submit": "Scuagghie l'utende",
+	"usermerge-badtoken": "Gettone de cangiamende invalide.",
+	"usermerge-userdeleted": "{{GENDER:$1|$1}} ($2) ha state scangellate.",
+	"usermerge-userdeleted-log": "Utende scangellate: $2 ($3)",
+	"usermerge-success": "'U scuagghiamende da {{GENDER:$1|$1}} ($2) a {{GENDER:$3|$3}} ($4) ha state combletate.",
+	"usermerge-success-log": "Utende {{GENDER:$2|$2}} ($3) scuagghiate jndr'à {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Archivije de le scuagghiaminde de le utinde",
+	"usermerge-logpagetext": "Quiste jè 'n'archivie de le aziune de scuagghiamende de l'utende.",
+	"usermerge-noselfdelete": "Non ge puà scangellarte o scuagghiarte {{GENDER:$1|da sule}}!",
+	"usermerge-protectedgroup": "Non ge pozze scuagghia cu {{GENDER:$1|l'utende}}: L'utende ste jndr'à 'nu gruppe prutette.",
+	"right-usermerge": "Scuagghie le utinde",
+	"action-usermerge": "scuagghie le utinde",
+	"usermerge-autopagedelete": "Automaticamende scangellate quanne onne state scuagghiate le utinde",
+	"usermerge-page-unmoved": "'A pàgene $1 non ge pò essere spustate sus a $2.",
+	"usermerge-move-log": "Automaticamende spustate 'a pàgene quanne ha state scuagghiate l'utende \"[[User:$1|$1]]\" jndr'à \"[[User:$2|{{GENDER:$2|$2}}]]\""
+}

@@ -1,0 +1,24 @@
+{
+	"@metadata": {
+		"authors": [
+			"Armando-Martin",
+			"BicScope",
+			"Crazymadlover",
+			"Fitoschido",
+			"Imre",
+			"Lin linao",
+			"Locos epraix",
+			"Pertile",
+			"Sanbec",
+			"Translationista",
+			"Kroji",
+			"Macofe"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1''' [[Special:ConfirmAccounts|{{PLURAL:$1|solicitud de cuenta pendiente|solicitudes de cuenta pendientes}}]] confirmada{{PLURAL:$1||s}} por correo electrónico.",
+	"requestaccount-loginnotice": "Para obtener una cuenta de usuario, debes '''[[Special:RequestAccount|solicitar una]]'''.",
+	"right-confirmaccount": "Ver la [[Special:ConfirmAccounts|cola de solicitudes de cuenta]]",
+	"right-requestips": "Ver la dirección IP del solicitante mientras se procesan las solicitudes de cuenta",
+	"right-lookupcredentials": "Ver las [[Special:UserCredentials|credenciales del usuario]]",
+	"action-confirmaccount": "revisar y confirmar cuentas de usuario"
+}

@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"DCLXVI",
+			"Spiritia"
+		]
+	},
+	"requestaccount-loginnotice": "За да получите потребителска сметка, необходимо е да '''[[Special:RequestAccount|изпратите заявка]]'''."
+}

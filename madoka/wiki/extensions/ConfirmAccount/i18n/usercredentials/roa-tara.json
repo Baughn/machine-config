@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"Joetaras"
+		]
+	},
+	"usercredentials": "Credenziale de l'utende",
+	"usercredentials-leg": "Mappature confermate de le credenziale pe 'n'utende",
+	"usercredentials-user": "Nome de l'utende:",
+	"usercredentials-text": "Aqquà sotte stonne le credenziale validate de 'nu cunde utende scacchiate.",
+	"usercredentials-leg-user": "Cunde de l'utende",
+	"usercredentials-leg-areas": "Arèe prengepàle de inderesse",
+	"usercredentials-leg-person": "'Mbormaziune personale",
+	"usercredentials-leg-other": "Otre 'mbormaziune",
+	"usercredentials-leg-ip": "Indirizze IP",
+	"usercredentials-email": "E-mail:",
+	"usercredentials-real": "Nome vere:",
+	"usercredentials-bio": "Biografije:",
+	"usercredentials-attach": "Riepiloghe/CV:",
+	"usercredentials-notes": "Note aggiundive:",
+	"usercredentials-urls": "Elenghe de le site web:",
+	"usercredentials-ip": "Inderizze IP origgenarie:",
+	"usercredentials-xff": "X-Forwarded_For origgenale:",
+	"usercredentials-agent": "User-Agent Origgenale:",
+	"usercredentials-member": "Deritte:",
+	"usercredentials-badid": "Nisciune credenziale acchiate pe stu utende.\nVerifiche ca 'u nome ste scritte giuste."
+}

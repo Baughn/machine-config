@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"McDutchie"
+		]
+	},
+	"confirmaccount-newrequests": "Es pendente '''$1''' [[Special:ConfirmAccounts|{{PLURAL:$1|requesta|requestas}} de conto]] aperte e confirmate via e-mail. '''Tu attention es necessari!'''",
+	"requestaccount-loginnotice": "Pro obtener un conto de usator, tu debe '''[[Special:RequestAccount|requestar un]]'''.",
+	"right-confirmaccount": "Vider le [[Special:ConfirmAccounts|cauda con requestas de conto]]",
+	"right-requestips": "Vider le adresses IP del requestatores durante le tractamento de requestas de conto",
+	"right-lookupcredentials": "Vider le [[Special:UserCredentials|credentiales de usatores]]"
+}

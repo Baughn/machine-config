@@ -1,0 +1,24 @@
+{
+	"@metadata": {
+		"authors": [
+			"පසිඳු කාවින්ද"
+		]
+	},
+	"usercredentials": "පරිශීලක සාක්ෂි පත්‍ර",
+	"usercredentials-user": "පරිශීලක නාමය:",
+	"usercredentials-leg-user": "පරිශීලක ගිණුම",
+	"usercredentials-leg-areas": "ඇල්මේ ප්‍රධාන පැති",
+	"usercredentials-leg-person": "පුද්ගලික තොරතුරු",
+	"usercredentials-leg-other": "වෙනත් තොරතුරු",
+	"usercredentials-leg-ip": "IP ලිපින දත්ත",
+	"usercredentials-email": "විද්‍යුත් තැපෑල:",
+	"usercredentials-real": "සැබෑ නාමය:",
+	"usercredentials-bio": "චරිතාපදානය:",
+	"usercredentials-attach": "සංක්ෂේපය/CV:",
+	"usercredentials-notes": "අමතර සටහන්:",
+	"usercredentials-urls": "වෙබ් අඩවි ලැයිස්තුව:",
+	"usercredentials-ip": "නියම IP ලිපිනය:",
+	"usercredentials-xff": "නියම X-ඉදිරියට-සඳහා:",
+	"usercredentials-agent": "නියම පරිශීලක-ඒජන්ත:",
+	"usercredentials-member": "හිමිකම්:"
+}

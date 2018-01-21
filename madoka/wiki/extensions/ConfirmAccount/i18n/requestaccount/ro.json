@@ -1,0 +1,40 @@
+{
+	"@metadata": {
+		"authors": [
+			"KlaudiuMihaila",
+			"Mihai",
+			"Minisarm",
+			"Stelistcristi",
+			"Macofe"
+		]
+	},
+	"requestaccount": "Solicitare deschidere cont",
+	"requestaccount-login": "Cereți un cont",
+	"requestaccount-text": "'''Completează și aplică următorul formular pentru a cere deschiderea unui cont de utilizator'''.\n\nAsigură-te că ai citit [[{{MediaWiki:Requestaccount-page}}|Termenii]] înainte de a cere deschiderea unui cont.\n\nDupă ce contul va fi aprobat, vei fi anunțat printr-un mesaj trimis prin e-mail, iar contul va putea fi accesat apelând [[Special:UserLogin|autentificare]].",
+	"requestaccount-page": "{{ns:project}}:Termeni",
+	"requestaccount-dup": "'''Notă: Sunteţi deja autentificat cu un cont înregistrat.'''",
+	"requestaccount-leg-user": "Cont de utilizator",
+	"requestaccount-leg-areas": "Arii principale de interes",
+	"requestaccount-leg-person": "Informații personale",
+	"requestaccount-leg-other": "Alte informații",
+	"requestaccount-leg-tos": "Termenii serviciului",
+	"requestaccount-bio-text": "Încercați să includeți orice acreditări relevante în biografia dumneavoastră, mai jos.",
+	"requestaccount-real": "Nume real:",
+	"requestaccount-same": "(același cu numele real)",
+	"requestaccount-email": "Adresă e-mail:",
+	"requestaccount-reqtype": "Poziție:",
+	"requestaccount-level-0": "autor",
+	"requestaccount-level-1": "editor",
+	"requestaccount-bio": "Biografie personală (numai text simplu):",
+	"requestaccount-attach": "CV (opțional):",
+	"requestaccount-notes": "Note adiționale:",
+	"requestaccount-agree": "Trebuie să certifici că numele tău real este corect introdus și că accepți Termenii Serviciului.",
+	"requestaccount-inuse": "Numele de utilizator este deja folosit într-o cerere de deschidere de cont în așteptare.",
+	"requestaccount-tooshort": "Biografia ta trebuie să conțină cel puțin $1 {{PLURAL:$1|cuvânt|cuvinte}}.",
+	"requestaccount-tos": "Am citit și accept să respect [[{{MediaWiki:Requestaccount-page}}|Termenii]] sitului {{SITENAME}}.\nNumele pe care l-am introdus în câmpul \"Nume real\" este numele meu real.",
+	"requestaccount-submit": "Solicitare deschidere cont",
+	"requestaccount-econf": "Adresa dumneavoastră de e-mail a fost confirmată și va fi listată în cererea de deschidere de cont.",
+	"requestaccount-email-subj": "{{SITENAME}} confirmare adresă e-mail",
+	"requestaccount-email-body": "Cineva, probabil tu de la adresa IP $1, a cerut deschiderea unui cont \"$2\" cu această adresă de e-mail în {{SITENAME}}.\n\nPentru a confirma că într-adevăr adresa întrodusă în {{SITENAME}} îți aparține, deschide legătura următoare în programul tău de navigare pe internet:\n\n$3\n\nDacă acest cont a fost creat, doar ție îți va fi trimisă parola.\nDacă acest mesaj nu-ți este destinat, nu deschide legătura.\nCodul de confirmare expiră în $4.",
+	"requestaccount-email-body-admin": "$1 a cerut deschiderea unui cont și așteaptă confirmarea.\nAdresa de e-mail a fost confirmată. Puteți confirma cererea aici:\n\n$2"
+}

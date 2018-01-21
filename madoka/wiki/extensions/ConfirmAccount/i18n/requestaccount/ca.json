@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Alvaro Vidal-Abarca",
+			"Arnaugir",
+			"Loupeter",
+			"Paucabot",
+			"SMP",
+			"Solde",
+			"Fitoschido"
+		]
+	},
+	"requestaccount": "Sol·licita un compte",
+	"requestaccount-login": "Sol·licita un compte",
+	"requestaccount-leg-user": "Compte de l'usuari",
+	"requestaccount-leg-person": "Informació personal",
+	"requestaccount-leg-other": "Altres informacions",
+	"requestaccount-leg-tos": "Condicions d'ús",
+	"requestaccount-real": "Nom real:",
+	"requestaccount-same": "(el mateix que el nom real)",
+	"requestaccount-email": "Adreça electrònica:",
+	"requestaccount-reqtype": "Posició:",
+	"requestaccount-level-0": "autor",
+	"requestaccount-level-1": "editor",
+	"requestaccount-bio": "Biografia personal (només text sense format):",
+	"requestaccount-notes": "Notes addicionals:",
+	"requestaccount-submit": "Sol·licitud de compte"
+}

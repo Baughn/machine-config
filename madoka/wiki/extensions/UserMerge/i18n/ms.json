@@ -1,0 +1,33 @@
+{
+	"@metadata": {
+		"authors": [
+			"Anakmalaysia"
+		]
+	},
+	"usermerge": "Gabungkan dan gugurkan pengguna",
+	"usermerge-desc": "[[Special:UserMerge|Menggabungkan rujukan daripada seorang pengguna kepada seorang pengguna yang lain]] di dalam pangkalan data wiki - juga akan menggugurkan pengguna-pengguna lama ekoran penggabungan. Memerlukan keistimewaan ''usermerge''",
+	"usermerge-badolduser": "Nama pengguna lama tidak sah",
+	"usermerge-badnewuser": "Nama pengguna baru tidak sah",
+	"usermerge-nonewuser": "Nama pengguna baru kosong, dianggap hendak digabungkan dengan \"{{GENDER:$1|$1}}\".<br />\n\nKlik \"{{int:usermerge-submit}}\" untuk menerima.",
+	"usermerge-noolduser": "Nama pengguna lama kosong",
+	"usermerge-same-old-and-new-user": "Nama pengguna baru haruslah berbeza dengan nama pengguna lama.",
+	"usermerge-fieldset": "Nama-nama pengguna yang hendak digabungkan",
+	"usermerge-olduser": "Pengguna lama (digabungkan dari):",
+	"usermerge-newuser": "Pengguna baru (digabungkan ke):",
+	"usermerge-deleteolduser": "Buang pengguna lama",
+	"usermerge-submit": "Gabungkan pengguna",
+	"usermerge-badtoken": "Token penyuntingan tidak sah",
+	"usermerge-userdeleted": "$1 ($2) telah dihapuskan.",
+	"usermerge-userdeleted-log": "Pengguna terhapus: $2 ($3)",
+	"usermerge-success": "Penggabungan dari $1 ($2) kepada {{GENDER:$3|$3}} ($4) selesai.",
+	"usermerge-success-log": "Pengguna $2 ($3) digabungkan kepada {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Log penggabungan pengguna",
+	"usermerge-logpagetext": "Ini merupakan log tindakan menggabungkan pengguna.",
+	"usermerge-noselfdelete": "Anda tidak boleh menghapuskan atau menggabungkan diri anda sendiri!",
+	"usermerge-protectedgroup": "Tidak dapat menggabungkan pengguna - pengguna menganggotai kumpulan yang terlindung.",
+	"right-usermerge": "Menggabungkan pengguna",
+	"action-usermerge": "menggabungkan pengguna",
+	"usermerge-autopagedelete": "Dihapuskan secara automatik apabila menggabungkan pengguna",
+	"usermerge-page-unmoved": "Halaman $1 tidak dapat dipindahkan ke $2.",
+	"usermerge-move-log": "Halaman dipindahkan secara automatik ketika menukar nama \"[[User:$1|$1]]\" menjadi \"[[User:$2|{{GENDER:$2|$2}}]]\""
+}

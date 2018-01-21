@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"Cedric31"
+		]
+	},
+	"usercredentials": "Referéncias de l'utilizaire",
+	"usercredentials-leg": "Verificacion confirmada de las referéncias d'un utilizaire.",
+	"usercredentials-user": "Nom d'utilizaire :",
+	"usercredentials-text": "Çaijós figuran los justificatius validats pel compte d'utilizaire seleccionat.",
+	"usercredentials-leg-user": "Compte d'utilizaire",
+	"usercredentials-leg-areas": "Centres d'interès principals",
+	"usercredentials-leg-person": "Entresenhas personalas",
+	"usercredentials-leg-other": "Autras entresenhas",
+	"usercredentials-leg-ip": "donadas d'adreça IP",
+	"usercredentials-email": "Corrièr electronic :",
+	"usercredentials-real": "Nom vertadièr :",
+	"usercredentials-bio": "Biografia :",
+	"usercredentials-attach": "CV/Resumit :",
+	"usercredentials-notes": "Nòtas suplementàrias :",
+	"usercredentials-urls": "Lista dels sites internet :",
+	"usercredentials-ip": "Adreça IP iniciala :",
+	"usercredentials-xff": "X-Forwarded-For d'origina :",
+	"usercredentials-agent": "User-Agent d'origina :",
+	"usercredentials-member": "Dreits :",
+	"usercredentials-badid": "Cap de referéncia pas trobada per aqueste utilizaire. Verificatz que lo nom siá ben redigit."
+}

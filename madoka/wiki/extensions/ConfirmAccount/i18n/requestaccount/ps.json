@@ -1,0 +1,19 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ahmed-Najib-Biabani-Ibrahimkhel"
+		]
+	},
+	"requestaccount": "د گڼون غوښتنه",
+	"requestaccount-leg-user": "گڼون",
+	"requestaccount-leg-person": "ځاني مالومات",
+	"requestaccount-leg-other": "نور مالومات",
+	"requestaccount-real": "اصلي نوم:",
+	"requestaccount-email": "برېښليک پته:",
+	"requestaccount-level-0": "ليکوال",
+	"requestaccount-level-1": "سمونگر",
+	"requestaccount-bio": "شخصي ژوندليک (يوازې ساده متن):",
+	"requestaccount-tooshort": "ستاسې ژوندليک بايد لږ تر لږه $1 {{PLURAL:$1|ويی|وييونه}} اوږد وي.",
+	"requestaccount-submit": "د گڼون غوښتنه",
+	"requestaccount-email-subj-admin": "د {{SITENAME}} د گڼون غوښتنه"
+}

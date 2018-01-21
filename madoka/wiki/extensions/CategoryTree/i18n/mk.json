@@ -1,0 +1,42 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bjankuloski06",
+			"Brest",
+			"Brest2008"
+		]
+	},
+	"categorytree": "Дрво на категории",
+	"categorytree-portlet": "Категории",
+	"categorytree-legend": "Прикажи дрво на категории",
+	"categorytree-desc": "Динамичка навигација низ [[Special:CategoryTree|структурата на категориите]]",
+	"categorytree-header": "Внесете назив на категорија за да ја видите нејзината содржина во облик на дрво.\nДа напоменеме дека оваа функција побарува JavaScript т.е. AJAX.\nОва нема да работи ако имате многу стар прелистувач, или ако имате оневозможено JavaScript.",
+	"categorytree-category": "Категорија:",
+	"categorytree-go": "Прикажи дрво",
+	"categorytree-parents": "Родители",
+	"categorytree-mode-label": "Режим:",
+	"categorytree-mode-categories": "само категории",
+	"categorytree-mode-pages": "страници без податотеки",
+	"categorytree-mode-all": "сите страници",
+	"categorytree-collapse": "собери",
+	"categorytree-expand": "отвори",
+	"categorytree-expand-bullet": "[<b>+</b>]",
+	"categorytree-empty-bullet": "[<b>×</b>]",
+	"categorytree-member-counts": "содржи {{PLURAL:$1|една поткатегорија|$1 поткатегории}}, {{PLURAL:$2|една страница|$2 страници}} и {{PLURAL:$3|една податотека|$3 податотеки}}",
+	"categorytree-num-categories": "$1 К",
+	"categorytree-num-pages": "$1 С",
+	"categorytree-num-files": "$1 П",
+	"categorytree-num-empty": "празна",
+	"categorytree-load": "вчитај",
+	"categorytree-loading": "вчитувам...",
+	"categorytree-nothing-found": "не е најдено ништо",
+	"categorytree-no-subcategories": "нема поткатегории",
+	"categorytree-no-parent-categories": "нема родителски категории",
+	"categorytree-no-pages": "нема страници или поткатегории",
+	"categorytree-not-found": "Не е пронајдена категорија <i>$1</i>",
+	"categorytree-error": "Проблеми со вчитување на податоците.",
+	"categorytree-retry": "Почекајте малку, па обидете се пак.",
+	"apihelp-categorytree-description": "Внатрешен модул на додатокот „Дрво на категории“.",
+	"apihelp-categorytree-param-category": "Наслов во категорискиот именски простор. Ако се внесе претставка, истата ќе биде занемарена.",
+	"apihelp-categorytree-param-options": "Можности за конструкторот на „Дрво на категории“ како JSON-објект.\nПоставката за длабочина е подразбрана на <kbd>1</kbd>."
+}

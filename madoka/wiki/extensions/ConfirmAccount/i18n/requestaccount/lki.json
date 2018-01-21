@@ -1,0 +1,8 @@
+{
+	"@metadata": {
+		"authors": [
+			"Lakzon"
+		]
+	},
+	"requestaccount-text": "'''فرم زیر را برای درخواست یک حساب کامل و ارائه کنید.'''\nمطمئن شوید که پیش از درخواست یک حساب،اول [[{{MediaWiki:Requestaccount-page}}|Terms of Service]] را می‌خوانید.\nهنگامی که حساب تأیید شد، به شما یک پیغام اعلان ایمیل خواهد شد و حساب در [[Special:UserLogin|login]] قابل استفاده خواهد بود."
+}

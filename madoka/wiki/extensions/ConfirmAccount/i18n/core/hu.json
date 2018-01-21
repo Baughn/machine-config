@@ -1,0 +1,19 @@
+{
+	"@metadata": {
+		"authors": [
+			"Dani",
+			"Dj",
+			"Dorgan",
+			"Glanthor Reviol",
+			"Tgr",
+			"Tacsipacsi",
+			"Máté"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1''' megerősített e-mail-címmel rendelkező [[Special:ConfirmAccounts|fiókkérés van függőben]]. '''Figyelmet igényel!'''",
+	"requestaccount-loginnotice": "Ha felhasználói fiókot szeretnél, akkor '''[[Special:RequestAccount|kérned kell egyet]]'''.",
+	"right-confirmaccount": "[[Special:ConfirmAccounts|fiókkérések várakozási sorának]] megtekintése",
+	"right-requestips": "az igénylők IP-címeinek megtekintése a kért fiókok feldolgozása közben",
+	"right-lookupcredentials": "[[Special:UserCredentials|felhasználói azonosítóinformációk]] megjelenítése",
+	"action-confirmaccount": "fiókok átnézése és elfogadása"
+}

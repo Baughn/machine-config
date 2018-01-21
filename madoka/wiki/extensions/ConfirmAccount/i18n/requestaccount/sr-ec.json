@@ -1,0 +1,33 @@
+{
+	"@metadata": {
+		"authors": [
+			"Milicevic01",
+			"Rancher",
+			"Sasa Stefanovic",
+			"Михајло Анђелковић",
+			"Сербијана"
+		]
+	},
+	"requestaccount-leg-user": "Кориснички налог",
+	"requestaccount-leg-areas": "Главне сфере интересовања",
+	"requestaccount-leg-person": "Лични подаци",
+	"requestaccount-leg-other": "Други подаци",
+	"requestaccount-leg-tos": "Услови коришћења",
+	"requestaccount-real": "Право име:",
+	"requestaccount-same": "(истоветно правом имену)",
+	"requestaccount-email": "Имејл адреса:",
+	"requestaccount-reqtype": "Положај:",
+	"requestaccount-level-0": "аутор",
+	"requestaccount-level-1": "уређивач",
+	"requestaccount-info": "(?)",
+	"requestaccount-bio": "Лична биографија (само прост текст):",
+	"requestaccount-attach": "Резиме или радна биографија (необавезно):",
+	"requestaccount-notes": "Додатне напомене:",
+	"requestaccount-urls": "Списак вебсајтова, ако их има (одвојени новим линијама):",
+	"requestaccount-agree": "Морате да потврдите да сте добро унели своје право име и да се сложите са условима коришћења.",
+	"requestaccount-inuse": "Корисничко име је већ у употреби и чека на одобрење.",
+	"requestaccount-tooshort": "Ваша биографија мора да садржи најмање $1 {{PLURAL:$1|реч|речи}}.",
+	"requestaccount-emaildup": "Исту адресу користи други захтев за налог који је на чекању.",
+	"requestaccount-sent": "Ваш захтев за налогом је успешно послат и чека на преглед.\nИмејл за потврду је послата на Вашу имејл адресу.",
+	"request-account-econf": "Ваша имејл адреса је потврђена и биће наведена као таква у вашем захтеву за налог."
+}

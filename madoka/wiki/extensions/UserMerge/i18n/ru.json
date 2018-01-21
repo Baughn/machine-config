@@ -1,0 +1,40 @@
+{
+	"@metadata": {
+		"authors": [
+			"Askarmuk",
+			"Ferrer",
+			"Illusion",
+			"Innv",
+			"Kaganer",
+			"Okras",
+			"Ole Yves",
+			"Александр Сигачёв"
+		]
+	},
+	"usermerge": "Объединение и удаление учётных записей",
+	"usermerge-desc": "[[Special:UserMerge|Переводит связи с одного участника на другого]] в базе данных вики, старые пользователи будут удаляться. Требует прав ''usermerge''",
+	"usermerge-badolduser": "Неправильное старое имя участника",
+	"usermerge-badnewuser": "Неправильное новое имя участника",
+	"usermerge-nonewuser": "Пустое новое имя участника — при слиянии с «{{GENDER:$1|$1}}».<br />\nНажмите «{{int:usermerge-submit}}», чтобы подтвердить действие.",
+	"usermerge-noolduser": "Пустое старое имя участника",
+	"usermerge-same-old-and-new-user": "Старое и новое имена учётных записей должны различаться.",
+	"usermerge-fieldset": "Учётные записи для объединения",
+	"usermerge-olduser": "Старая учётная запись (объединить с):",
+	"usermerge-newuser": "Новая учётная запись (объединить в):",
+	"usermerge-deleteolduser": "Удалить старую учётную запись",
+	"usermerge-submit": "Объединить участников",
+	"usermerge-badtoken": "Недействительный маркер правки",
+	"usermerge-userdeleted": "$1 ($2) {{GENDER:$1|был удалён|была удалена}}.",
+	"usermerge-userdeleted-log": "Удалён участник $2 ($3)",
+	"usermerge-success": "Объединение {{GENDER:$1|$1}} ($2) с {{GENDER:$3|$3}} ($4) завершено.",
+	"usermerge-success-log": "Учётная запись {{GENDER:$2|участника|участницы}} $2 ($3) {{GENDER:$2|присоединён|присоединена}} к {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Журнал объединения участников",
+	"usermerge-logpagetext": "Это журнал объединения учётных записей.",
+	"usermerge-noselfdelete": "Вы не можете удалять или объединять  {{GENDER:$1|себя самого}}!",
+	"usermerge-protectedgroup": "Невозможно объединить {{GENDER:$1|участников}} — участник относится к защищённой группе.",
+	"right-usermerge": "объединение участников",
+	"action-usermerge": "объединение участников",
+	"usermerge-autopagedelete": "Автоматически удаляются при объединении пользователей",
+	"usermerge-page-unmoved": "Страница $1 не может быть переименована в $2.",
+	"usermerge-move-log": "Автоматически переименовано во время объединения учетной записи «[[User:$1|$1]]» с «[[User:$2|{{GENDER:$2|$2}}]]»"
+}

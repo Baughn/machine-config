@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Yejianfei",
+			"Chase me ladies, I'm the Cavalry"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1''' open email confirmed [[Special:ConfirmAccounts|account {{PLURAL:$1|request is pending|requests are pending}}]]. '''Your attention is needed!'''",
+	"requestaccount-loginnotice": "To obtain a user account, you must '''[[Special:RequestAccount|request one]]'''.",
+	"right-confirmaccount": "View the [[Special:ConfirmAccounts|queue with requested accounts]]",
+	"right-requestips": "View requester's IP addresses while processing requested accounts",
+	"right-lookupcredentials": "View [[Special:UserCredentials|user credentials]]",
+	"action-confirmaccount": "review and accept accounts"
+}

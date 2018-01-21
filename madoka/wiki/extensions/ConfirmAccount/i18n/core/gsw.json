@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Als-Chlämens",
+			"Als-Holder"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1''' {{PLURAL:$1|[[Special:ConfirmAccounts|ufige, E-Mail bstätigte Benutzerkontenaatrag wartet]]|[[Special:ConfirmAccounts|ufigi, E-Mail bstätigti Benutzerkontenaaträg warten]]}} uf Bearbeitig. '''Bitte due dich drum chümmre.'''",
+	"requestaccount-loginnotice": "Go ne nej Benutzerkonto iberchu muesch e '''[[Special:RequestAccount|Aatrag stelle]]'''.",
+	"right-confirmaccount": "[[Special:ConfirmAccounts|Lischt mit beaatraite Benutzerkonte]] aaluege",
+	"right-requestips": "D IP-Adräss vum Aatragsteller aaluege, derwylscht dr Aatrag bearbeitet wird",
+	"right-lookupcredentials": "[[Special:UserCredentials|Zyygnis vum Benutzer]] aaluege"
+}

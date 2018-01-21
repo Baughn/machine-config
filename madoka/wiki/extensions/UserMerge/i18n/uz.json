@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"CoderSI",
+			"Sociologist"
+		]
+	},
+	"usermerge-userdeleted-log": "Foydalanuvchi $2 ($3) chetlatilgan",
+	"usermerge-success-log": "Foydalanuvchi $2 ($3) {{GENDER:$4|$4}} ($5) bilan birlashtirilgan",
+	"usermerge-logpage": "Foydalanuvchilarni birlashtirish qaydlari"
+}

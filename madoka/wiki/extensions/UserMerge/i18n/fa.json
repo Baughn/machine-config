@@ -1,0 +1,41 @@
+{
+	"@metadata": {
+		"authors": [
+			"Armin1392",
+			"BlueDevil",
+			"Ebraminio",
+			"Huji",
+			"Meisam",
+			"Mjbmr",
+			"Reza1615",
+			"ZxxZxxZ",
+			"Alirezaaa"
+		]
+	},
+	"usermerge": "ادغام و حذف‌کردن کاربران",
+	"usermerge-desc": "[[Special:UserMerge|ادغام منابع از یک کاربر به کاربر دیگر]] در پایگاه اطلاعاتی ویکی - همچنین کاربران قدیمی ادغام زیر حذف خواهند شد. نیازمند امتیازات ''ادغام کاربر''",
+	"usermerge-badolduser": "نام کاربری قدیمی نامعتبر",
+	"usermerge-badnewuser": "نام کاربری تازه نامعتبر",
+	"usermerge-nonewuser": "نام کاربری جدید خالی. فرض بر ادغام به \"{{GENDER:$1|$1}}\".<br /> برای قبول کردن \"{{int:usermerge-submit}}\" را کلیک کنید.",
+	"usermerge-noolduser": "نام کاربری قدیمی خالی",
+	"usermerge-same-old-and-new-user": "نیاز است نام‌های کاربری تازه و قدیمی از هم مجزا شوند.",
+	"usermerge-fieldset": "نام‌های کاربری برای ادغام",
+	"usermerge-olduser": "کاربر قدیمی (ادغام از):",
+	"usermerge-newuser": "کاربر تازه (ادغام با):",
+	"usermerge-deleteolduser": "پاک‌کردن کاربر قدیمی",
+	"usermerge-submit": "یکی کردن کاربر",
+	"usermerge-badtoken": "نشانهٔ ویرایش نامعتبر.",
+	"usermerge-userdeleted": "{{GENDER:$1|$1}} ($2) پاک شد.",
+	"usermerge-userdeleted-log": "کاربر حذف شده: $2 ($3)",
+	"usermerge-success": "یکی‌کردن از {{GENDER:$1|$1}} ($2) به {{GENDER:$3|$3}} ($4) کامل شد.",
+	"usermerge-success-log": "کاربر {{GENDER:$2|$2}} ($3) با {{GENDER:$4|$4}} ($5) یکی شد",
+	"usermerge-logpage": "سیاههٔ ادغام کاربر",
+	"usermerge-logpagetext": "این سیاهه‌ی ادغام فعالیت‌های کاربر است.",
+	"usermerge-noselfdelete": "شما نمی‌توانید {{GENDER:$1|خودتان}} را یکی یا حذف کنید!",
+	"usermerge-protectedgroup": "ناتوان در یکی‌کردن از {{GENDER:$1|کاربر}}: کاربر در یک گروه حفاظت‌شده است.",
+	"right-usermerge": "ادغام حساب‌های کاربری",
+	"action-usermerge": "ادغام کاربران",
+	"usermerge-autopagedelete": "حذف به طور خودکار هنگام ادغام کاربران",
+	"usermerge-page-unmoved": "امکان انتقال صفحهٔ $1 به $2 وجود ندارد.",
+	"usermerge-move-log": "انتقال خودکار صفحه هنگام ادغام کاربر «[[User:$1|$1]]» به «[[User:$2|{{GENDER:$2|$2}}]]»"
+}

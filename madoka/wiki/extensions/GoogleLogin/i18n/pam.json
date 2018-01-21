@@ -1,0 +1,18 @@
+{
+	"@metadata": {
+		"authors": [
+			"Leeheonjin",
+			"Macofe"
+		]
+	},
+	"googlelogin-manage-terminatesuccess": "E ne makasuglung king Google akawnt ing talagamit",
+	"googlelogin-manage-terminatebutton": "Iyalis koneksyun",
+	"googlelogin-manage-isplusser": "Maka-reyistru king Google+",
+	"googlelogin-manage-orgname": "Lagyu ning organisasyun",
+	"googlelogin-manage-yes": "Wa",
+	"googlelogin-manage-no": "ali",
+	"googlelogin-manage-openpluslink": "Buklat Google+ propayl",
+	"googlelogin-manage-errorloading": "Ating mali king pamaglulan",
+	"googlelogin-username": "Lagyung talagamit",
+	"tag-googlelogin": "[[Espesyal:GoogleLogin|GoogleLogin]]"
+}

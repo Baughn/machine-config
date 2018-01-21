@@ -1,0 +1,33 @@
+{
+	"@metadata": {
+		"authors": [
+			"Умар"
+		]
+	},
+	"usermerge": "Декъашхойн дӀаяздарш вовшахтохар а, дӀадаха а",
+	"usermerge-desc": "[[Special:UserMerge|Декъашхочун тӀера кхечун тӀе]] викин базан чохь, шира декъашхой дӀабохар бу. Оьшу бакъо ''usermerge''",
+	"usermerge-badolduser": "Нийса йоцу декъашхочун шира цӀе",
+	"usermerge-badnewuser": "Нийса йоцу декъашхочун керла цӀе",
+	"usermerge-nonewuser": "Декъашхочун керла цӀе еса ю — вовшахтухучу хенахь «{{GENDER:$1|$1}}».<br />\nТӀетаӀае «{{int:usermerge-submit}}», дешдерг кхочушдан.",
+	"usermerge-noolduser": "Декъашхочун шира цӀе еса ю",
+	"usermerge-same-old-and-new-user": "Шира а керла цӀе башха хела еза.",
+	"usermerge-fieldset": "Вовшахтухуш долу декъашхойн дӀяздарш",
+	"usermerge-olduser": "Шира декъашхочун дӀаяздар (вовшахтоха):",
+	"usermerge-newuser": "Керла декъашхочун дӀаяздар (вовшахтоха):",
+	"usermerge-deleteolduser": "ДӀадаккха декъашхочун шира дӀаяздар",
+	"usermerge-submit": "декъашхой вовшахтохар",
+	"usermerge-badtoken": "Нисдаран билгало нийса яц",
+	"usermerge-userdeleted": "$1 ($2) {{GENDER:$1|дӀаяьккхина хилла}}.",
+	"usermerge-userdeleted-log": "Декъашхочун дӀаяздар $2 ($3) дӀадаьккхина",
+	"usermerge-success": "Вовшахтохар {{GENDER:$1|$1}} ($2) {{GENDER:$3|$3}} ($4) чекхдели.",
+	"usermerge-success-log": "{{GENDER:$2|Декъашхочун дӀаяздар}} $2 ($3) {{GENDER:$2|тоьхна}} {{GENDER:$4|$4}} ($5) тӀе",
+	"usermerge-logpage": "Декъашхой вовшахтохаран тептар",
+	"usermerge-logpagetext": "ХӀара декъашхой вовшахтохаран тептар ду.",
+	"usermerge-noselfdelete": "{{GENDER:$1|Хьайн декъашхочун дӀаяздар}} дӀадаккха я вовшахтоха хьа таро яц!",
+	"usermerge-protectedgroup": "{{GENDER:$1|Декъашхой}} вовшахтоха цало — декъашхо Ӏалашйина тобан юкъахь хилар бахьнехь.",
+	"right-usermerge": "декъашхой вовшахтохар",
+	"action-usermerge": "декъашхой цхьаьнатохар",
+	"usermerge-autopagedelete": "Декъашхой вовшахтоьхча авто. дӀайохуш ю",
+	"usermerge-page-unmoved": "АгӀона $1 цӀе → $2 хуьйцийла яц.",
+	"usermerge-move-log": "Автоматически цӀе хийцина декъашхочун дӀаяздар вовшахтоьхна дела «[[User:$1|$1]]» → «[[User:$2|$2]]»"
+}

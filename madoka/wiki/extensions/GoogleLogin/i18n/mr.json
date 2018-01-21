@@ -1,0 +1,15 @@
+{
+	"@metadata": {
+		"authors": [
+			"V.narsikar",
+			"अभय नातू"
+		]
+	},
+	"googlelogin": "गूगलवर सनोंद प्रवेश करा",
+	"managegooglelogin": "गूगललॉगइन अनुबंधाचे व्यवस्थापन करा",
+	"googlelogin-managelegend": "व्यवस्थापन करावयाचा सदस्य शोधा",
+	"googlelogin-manage-usersubmit": "सदस्य व्यवस्थापन करा",
+	"googlelogin-manage-notexist": "<strong>$1</strong> नावाचा कोणीच सदस्य नाही.",
+	"googlelogin-manage-user": "आपण सदस्य <strong>$1</strong> चे व्यवस्थापन करा.",
+	"googlelogin-manage-givenid": "आपण टाकलेली गूगलची ओळखण दुसऱ्या विकिसदस्याशी निगडीत आहे."
+}

@@ -1,0 +1,35 @@
+{
+	"@metadata": {
+		"authors": [
+			"Alma",
+			"Toliño",
+			"Elisardojm"
+		]
+	},
+	"usermerge": "Fusionar e eliminar usuario",
+	"usermerge-desc": "[[Special:UserMerge|Fusiona as referencias dun usuario noutro usuario]] na base de datos do wiki (tamén borrará as fusións vellas dos usuarios seguintes. Require privilexios ''usermerge'')",
+	"usermerge-badolduser": "Antigo nome de usuario non válido",
+	"usermerge-badnewuser": "Novo nome de usuario non válido",
+	"usermerge-nonewuser": "Nome de usuario baleiro. Asúmese que quere fusionalo con \"{{GENDER:$1|$1}}\".<br />\nPrema en \"{{int:usermerge-submit}}\" para aceptar.",
+	"usermerge-noolduser": "Antigo nome de usuario baleiro",
+	"usermerge-same-old-and-new-user": "O nome de usuario vello ten que ser distinto do novo.",
+	"usermerge-fieldset": "Nomes de usuario a fusionar",
+	"usermerge-olduser": "Usuario antigo (fusionar desde):",
+	"usermerge-newuser": "Usuario novo (fusionar con):",
+	"usermerge-deleteolduser": "Borrar o usuario antigo",
+	"usermerge-submit": "Fusionar o usuario",
+	"usermerge-badtoken": "Sinal de edición non válido",
+	"usermerge-userdeleted": "Borrouse {{GENDER:$1|o usuario|a usuaria}} $1 ($2).",
+	"usermerge-userdeleted-log": "Usuario eliminado: $2 ($3)",
+	"usermerge-success": "A fusión desde {{GENDER:$1|$1}} ($2) a {{GENDER:$3|$3}} ($4) foi completada.",
+	"usermerge-success-log": "Usuario {{GENDER:$2|$2}} ($3) fusionado con {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Rexistro de fusión de usuarios",
+	"usermerge-logpagetext": "Este é un rexistro das accións de fusión de usuarios.",
+	"usermerge-noselfdelete": "Non se pode eliminar ou fusionar a si {{GENDER:$1|mesmo|mesma}}!",
+	"usermerge-protectedgroup": "Non se pode fusionar {{GENDER:$1|o usuario|a usuaria}}: Está nun grupo protexido.",
+	"right-usermerge": "Fusionar usuarios",
+	"action-usermerge": "fusionar usuarios",
+	"usermerge-autopagedelete": "Borrada automaticamente ao fusionar os usuarios",
+	"usermerge-page-unmoved": "A páxina \"$1\" non pode ser movida a \"$2\".",
+	"usermerge-move-log": "A páxina moveuse automaticamente cando se fusionou o usuario \"[[User:$1|$1]]\" con \"[[User:$2|{{GENDER:$2|$2}}]]\""
+}

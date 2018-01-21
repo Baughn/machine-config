@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Siebrand"
+		]
+	},
+	"confirmaccount-newrequests": "Er staa{{PLURAL:$1|t|n}} '''$1''' gebruikersaanvraag[[Special:ConfirmAccounts|gebruikersaanvra{{PLURAL:$1|ag|gen}}]] open. '''Je aandacht is nodig!'''",
+	"requestaccount-loginnotice": "Om een gebruiker te krijgen, moet je '''[[Special:RequestAccount|een aanvraag doen]]'''."
+}

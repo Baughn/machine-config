@@ -1,0 +1,40 @@
+{
+	"@metadata": {
+		"authors": [
+			"Crochet.david",
+			"Dereckson",
+			"Gomoko",
+			"Grondin",
+			"IAlex",
+			"Louperivois",
+			"McDutchie",
+			"Meithal",
+			"Peter17",
+			"PieRRoMaN",
+			"Sherbrooke",
+			"Urhixidur",
+			"Verdy p",
+			"Zetud"
+		]
+	},
+	"usercredentials": "Références de l'utilisateur",
+	"usercredentials-leg": "Vérification confirmée des références d'un utilisateur.",
+	"usercredentials-user": "Nom d’utilisateur :",
+	"usercredentials-text": "Ci-dessous figurent les justificatifs validés pour le compte utilisateur sélectionné.",
+	"usercredentials-leg-user": "Compte utilisateur",
+	"usercredentials-leg-areas": "Centres d'intérêts principaux",
+	"usercredentials-leg-person": "Informations personnelles",
+	"usercredentials-leg-other": "Autres informations",
+	"usercredentials-leg-ip": "données d'adresse IP",
+	"usercredentials-email": "Adresse de courriel :",
+	"usercredentials-real": "Nom réel :",
+	"usercredentials-bio": "Biographie :",
+	"usercredentials-attach": "CV :",
+	"usercredentials-notes": "Notes supplémentaires :",
+	"usercredentials-urls": "Liste des sites internet :",
+	"usercredentials-ip": "Adresse IP initiale :",
+	"usercredentials-xff": "X-Forwarded-For d'origine:",
+	"usercredentials-agent": "User-Agent d'origine:",
+	"usercredentials-member": "Droits :",
+	"usercredentials-badid": "Aucune référence trouvée pour cet utilisateur. Véfifiez que le nom soit bien rédigé."
+}

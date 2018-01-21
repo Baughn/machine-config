@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"Geitost",
+			"Imre",
+			"Kghbln",
+			"The Evil IP address",
+			"Umherirrender",
+			"Macofe"
+		]
+	},
+	"requestaccount-text": "'''Füllen Sie das folgende Formular aus und schicken Sie es ab, um für dieses Wiki ein Benutzerkonto zu beantragen.'''\n\nBitte lesen Sie zunächst die [[{{MediaWiki:Requestaccount-page}}|Nutzungsbedingungen]], bevor Sie ein Benutzerkonto beantragen.\n\nSobald das Konto bestätigt wurde, werden Sie per E-Mail benachrichtigt. Danach können Sie sich [[Special:UserLogin|anmelden]].",
+	"requestaccount-dup": "'''Achtung: Sie sind bereits mit einem registrierten Benutzerkonto angemeldet.'''",
+	"requestaccount-acc-text": "An Ihre E-Mail-Adresse wird nach dem Absenden dieses Formulars eine Bestätigungsmail geschickt.\nBitte reagieren Sie darauf, indem Sie auf den in dieser Mail enthaltenen Bestätigungslink klicken.\nSobald Ihr Konto angelegt wurde, wird Ihnen Ihr Passwort per E-Mail zugeschickt.",
+	"requestaccount-areas-text": "Wählen Sie die Themengebiete aus, in denen Sie das meiste Fachwissen haben oder wo Sie am meisten involviert sein werden.",
+	"requestaccount-ext-text": "Die folgenden Informationen werden vertraulich behandelt und ausschließlich für diesen Antrag verwendet.\nSie können Kontaktangaben wie eine Telefonnummer machen, um die Bearbeitung Ihres Antrags zu vereinfachen.",
+	"requestaccount-bio-text": "Versuchen Sie alle relevanten Informationen in Ihre untenstehende Biografie aufzunehmen.",
+	"requestaccount-bio-text-i": "'''Ihre Biografie wird als die erste Version Ihrer Benutzerseite veröffentlicht.'''\nSie müssen daher auch tatsächlich mit der Veröffentlichung dieser Daten einverstanden sein.",
+	"requestaccount-agree": "Sie müssen bestätigen, dass Ihr bürgerlicher Name korrekt ist und Sie die Nutzungsbedingungen akzeptieren.",
+	"requestaccount-tooshort": "Ihre Biographie muss mindestens {{PLURAL:$1|1 Wort|$1 Wörter}} lang sein.",
+	"requestaccount-resub": "Die Datei mit Ihrem Lebenslauf muss aus Sicherheitsgründen neu ausgewählt werden.\nLassen Sie das Feld leer, wenn Sie keinen Lebenslauf mehr anfügen möchten.",
+	"requestaccount-sent": "Ihr Antrag wurde erfolgreich verschickt und muss nun noch überprüft werden.\nEine Bestätigungs-E-Mail wurde an Ihre E-Mail-Adresse gesendet.",
+	"request-account-econf": "Ihre E-Mail-Adresse wurde bestätigt und wird nun als solche in Ihrem Antrag auf ein Benutzerkonto geführt.",
+	"requestaccount-email-body": "Jemand, möglicherweise Sie mit der IP-Adresse $1, hat bei {{SITENAME}} das Benutzerkonto „$2“ mit Ihrer E-Mail-Adresse beantragt.\n\nUm zu bestätigen, dass wirklich Sie dieses Konto bei {{SITENAME}} beantragt haben, öffnen Sie bitte folgenden Link in Ihrem Browser:\n\n$3\n\nWenn das Benutzerkonto erstellt wurde, bekommen Sie eine weitere E-Mail mit dem Passwort.\n\nWenn Sie das Benutzerkonto *nicht* beantragt haben, öffnen Sie den Link bitte nicht!\n\nDieser Bestätigungscode wird am $5 um $6 Uhr ungültig.",
+	"requestaccount-email-body-admin": "$1 hat ein Benutzerkonto beantragt und wartet auf Bestätigung.\nDie E-Mail-Adresse wurde bestätigt. Sie können den Antrag hier bestätigen:\n\n$2",
+	"acct_request_throttle_hit": "Sie haben bereits {{PLURAL:$1|1 Benutzerkonto|$1 Benutzerkonten}} beantragt, Sie können momentan keine weiteren beantragen."
+}

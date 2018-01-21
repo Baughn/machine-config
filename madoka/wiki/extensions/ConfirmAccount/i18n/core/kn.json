@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Omshivaprakash",
+			"Yogesh"
+		]
+	},
+	"right-confirmaccount": "[[Special:ConfirmAccounts|queue with requested accounts]]ವೀಕ್ಷಿಸಿ",
+	"right-lookupcredentials": "[[Special:UserCredentials|user credentials]]ವೀಕ್ಷಿಸಿ",
+	"action-confirmaccount": "ವಿಮರ್ಶೆ ಮತ್ತು ಖಾತೆಗಳನ್ನು ಸ್ವೀಕರಿಸುಲು"
+}

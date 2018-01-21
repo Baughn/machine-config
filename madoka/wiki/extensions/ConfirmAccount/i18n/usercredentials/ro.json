@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Firilacroco",
+			"KlaudiuMihaila",
+			"Mihai",
+			"Minisarm",
+			"Stelistcristi"
+		]
+	},
+	"usercredentials": "Acreditările utilizatorului",
+	"usercredentials-user": "Nume de utilizator:",
+	"usercredentials-leg-user": "Cont de utilizator",
+	"usercredentials-leg-areas": "Arii principale de interes",
+	"usercredentials-leg-person": "Informații personale",
+	"usercredentials-leg-other": "Alte informații",
+	"usercredentials-leg-ip": "date adresă IP",
+	"usercredentials-email": "E-mail:",
+	"usercredentials-real": "Nume real:",
+	"usercredentials-bio": "Biografie:",
+	"usercredentials-attach": "CV:",
+	"usercredentials-notes": "Note adiționale:",
+	"usercredentials-urls": "Listă de situri web:",
+	"usercredentials-ip": "Adresă IP originală:",
+	"usercredentials-agent": "User-Agent original:",
+	"usercredentials-member": "Drepturi:",
+	"usercredentials-badid": "Nicio acreditare găsită pentru acest utilizator.\nVerificați ca numele să fie scris corect."
+}

@@ -1,0 +1,20 @@
+{
+	"@metadata": {
+		"authors": [
+			"Minh Nguyen",
+			"Vinhtantran",
+			"පසිඳු කාවින්ද"
+		]
+	},
+	"requestaccount": "Xin tài khoản",
+	"requestaccount-page": "{{ns:project}}:Điều kiện dịch vụ",
+	"requestaccount-leg-user": "Tài khoản",
+	"requestaccount-leg-person": "Thông tin cá nhân",
+	"requestaccount-leg-other": "Thông tin khác",
+	"requestaccount-email": "Địa chỉ thư điện tử:",
+	"requestaccount-reqtype": "Vị trí:",
+	"requestaccount-level-0": "tác giả",
+	"requestaccount-level-1": "người sửa đổi",
+	"requestaccount-notes": "Chi tiết:",
+	"requestaccount-submit": "Xin tài khoản"
+}

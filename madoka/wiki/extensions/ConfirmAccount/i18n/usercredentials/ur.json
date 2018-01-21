@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"පසිඳු කාවින්ද"
+		]
+	},
+	"usercredentials": "صارف کی تصدیق",
+	"usercredentials-user": "صارف کا نام:",
+	"usercredentials-leg-user": "صارف اکاؤنٹ",
+	"usercredentials-leg-other": "دیگر معلومات",
+	"usercredentials-email": "ای میل:",
+	"usercredentials-real": "اصل نام:",
+	"usercredentials-bio": "سوانح حیات:"
+}

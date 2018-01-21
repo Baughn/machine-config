@@ -1,0 +1,33 @@
+{
+	"@metadata": {
+		"authors": [
+			"Xuacu"
+		]
+	},
+	"usermerge": "Fusionar y desaniciar usuarios",
+	"usermerge-desc": "[[Special:UserMerge|Fusiona les referencies d'un usuariu n'otru usuariu]] na base de datos de la wiki (tamién desaniciará l'usuariu antiguu darréu de la fusión). Requier permisos d'''usermerge''",
+	"usermerge-badolduser": "Nome d'usuariu antiguu inválidu.",
+	"usermerge-badnewuser": "Nome d'usuariu nuevu inválidu",
+	"usermerge-nonewuser": "Nome d'usuariu nuevu baleru. Asumese la fusión en \"{{GENDER:$1|$1}}\".<br />\nCalque \"{{int:usermerge-submit}}\" p'aceutar.",
+	"usermerge-noolduser": "Nome d'usuariu antiguu baleru",
+	"usermerge-same-old-and-new-user": "Los nomes d'usuariu antiguu y nuevu tienen de ser distintos.",
+	"usermerge-fieldset": "Nomes d'usuariu a fusionar",
+	"usermerge-olduser": "Usuariu antiguu (fusionar dende):",
+	"usermerge-newuser": "Usuariu nuevu (fusionar en):",
+	"usermerge-deleteolduser": "Desaniciar l'usuariu antiguu",
+	"usermerge-submit": "Fusionar usuariu",
+	"usermerge-badtoken": "Pase d'edición inválidu",
+	"usermerge-userdeleted": "Desanicióse {{GENDER:$1|l'usuariu|la usuaria}} $1 ($2).",
+	"usermerge-userdeleted-log": "Usuariu desaniciáu: $2 ($3)",
+	"usermerge-success": "La fusión dende {{GENDER:$1|$1}} ($2) a {{GENDER:$3|$3}} ($4) ta completa.",
+	"usermerge-success-log": "{{GENDER:$2|L'usuariu|La usuaria}} $2 ($3) fusionóse con {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Rexistru de fusión d'usuarios",
+	"usermerge-logpagetext": "Esti ye un rexistru d'aiciones de fusión d'usuarios.",
+	"usermerge-noselfdelete": "¡Nun pues desaniciate o fusionate dende {{GENDER:$1|tu mesmu}}!",
+	"usermerge-protectedgroup": "Nun puede fusionase dende {{GENDER:$1|l'usuariu|la usuaria}}: Ta nun grupu protexíu.",
+	"right-usermerge": "Fusionar usuarios",
+	"action-usermerge": "fusionar usuarios",
+	"usermerge-autopagedelete": "Desaniciao automáticamente al fusionar usuarios",
+	"usermerge-page-unmoved": "La páxina $1 nun pudo treslladase a $2.",
+	"usermerge-move-log": "Treslladóse la páxina automáticamente al fusionar al usuariu \"[[User:$1|$1]]\" en \"[[User:$2|{{GENDER:$2|$2}}]]\""
+}

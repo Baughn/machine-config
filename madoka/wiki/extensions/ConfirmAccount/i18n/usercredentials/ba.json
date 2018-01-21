@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ләйсән",
+			"Sagan"
+		]
+	},
+	"usercredentials": "Ҡатнашыуҙы раҫлаусы мәғлүмәт",
+	"usercredentials-leg": "Ҡатнашыусы тураһында раҫланған мәғлүмәтте эҙләү",
+	"usercredentials-user": "Ҡатнашыусы исеме:",
+	"usercredentials-text": "Түбәндә ҡатнашыусының иҫәп яҙмаһы тураһында тикшерелгән мәғлүмәт бирелгән.",
+	"usercredentials-leg-user": "Иҫәп яҙмаһы",
+	"usercredentials-leg-areas": "Ҡыҙыҡһындырған төп өлкәләр",
+	"usercredentials-leg-person": "Шәхси мәғлүмәттәр",
+	"usercredentials-leg-other": "Башҡа мәғлүмәт",
+	"usercredentials-leg-ip": "IP-адрес мәғлүмәтә",
+	"usercredentials-email": "Электрон почта адресы",
+	"usercredentials-real": "Ысын исем:",
+	"usercredentials-bio": "Биография",
+	"usercredentials-attach": "Резюме:",
+	"usercredentials-notes": "Өҫтәлмә иҫкәртеү",
+	"usercredentials-urls": "Веб-сайттар исемлеге:",
+	"usercredentials-ip": "IP-адрес:",
+	"usercredentials-xff": "Төп нөсхә X-Forwarded-For:",
+	"usercredentials-agent": "Оригиналь User-Agent:",
+	"usercredentials-member": "Хоҡуҡтар:",
+	"usercredentials-badid": "Ҡатнашыусы тураһында тикшерелгән мәғлүмәт табылманы. Исемдең дөрөҫ яҙылышын тикшерегеҙ."
+}

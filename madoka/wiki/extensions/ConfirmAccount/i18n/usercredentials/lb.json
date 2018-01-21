@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Les Meloures",
+			"Robby"
+		]
+	},
+	"usercredentials": "Referenzen déi de Benotzer uginn huet:",
+	"usercredentials-leg": "Confirméiert Referenze vun engem Benotzer nokucken",
+	"usercredentials-user": "Benotzernumm:",
+	"usercredentials-text": "Hei ënnendrënner stinn déi confirméiert Benotzer-Berechtigungsnoweiser fir de gewielte Benotzerkont.",
+	"usercredentials-leg-user": "Benotzerkont",
+	"usercredentials-leg-areas": "Haaptinteressen",
+	"usercredentials-leg-person": "Perséinlech Informatiounen",
+	"usercredentials-leg-other": "Aner Informatiounen",
+	"usercredentials-leg-ip": "Donnéeë vun der IP-Adress",
+	"usercredentials-email": "E-mail:",
+	"usercredentials-real": "Richtegen Numm:",
+	"usercredentials-bio": "Biographie:",
+	"usercredentials-attach": "Liewenslaf:",
+	"usercredentials-notes": "Zousätzlech Bemierkungen:",
+	"usercredentials-urls": "Lëscht vun Internetsiten:",
+	"usercredentials-ip": "Original IP-Adress:",
+	"usercredentials-xff": "Original X-Forwarded-For:",
+	"usercredentials-agent": "Original User-Agent:",
+	"usercredentials-member": "Rechter:",
+	"usercredentials-badid": "Et goufe keng Rechter fir dëse Benotzer fonnt.\nKuckt w.e.g. no op den Numm richteg geschriwwen ass."
+}

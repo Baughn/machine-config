@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"Boivie",
+			"Diupwijk",
+			"Fluff",
+			"Jon Harald Søby",
+			"Lejonel",
+			"M.M.S.",
+			"Najami",
+			"Per",
+			"WikiPhoenix",
+			"Lokal Profil"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1''' öppnade e-post bekräftade att [[Special:ConfirmAccounts|{{PLURAL:$1|kontoansökning väntar på att behandlas|kontoansökningar väntar på att behandlas}}]]. '''Din uppmärksamhet krävs!'''",
+	"requestaccount-loginnotice": "För att få ett användarkonto måste du '''[[Special:RequestAccount|ansöka om det]]'''.",
+	"right-confirmaccount": "Visa [[Special:ConfirmAccounts|kön av kontoansökningar]]",
+	"right-requestips": "Visa sökandens IP-adress vid behandling av kontoansökningar",
+	"right-lookupcredentials": "Visa [[Special:UserCredentials|användaruppgifter]]",
+	"action-confirmaccount": "granska och godkänna konton"
+}

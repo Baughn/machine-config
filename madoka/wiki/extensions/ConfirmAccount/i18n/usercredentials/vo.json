@@ -1,0 +1,17 @@
+{
+	"@metadata": {
+		"authors": [
+			"Malafaya",
+			"Smeira"
+		]
+	},
+	"usercredentials-user": "Gebananem:",
+	"usercredentials-leg-user": "Gebanakal",
+	"usercredentials-leg-person": "Nüns pösodik",
+	"usercredentials-leg-other": "Nüns votik",
+	"usercredentials-email": "Ladet leäktronik:",
+	"usercredentials-real": "Nem jenöfik:",
+	"usercredentials-bio": "Lifajenäd:",
+	"usercredentials-ip": "Ladet-IP rigik:",
+	"usercredentials-member": "Gitäts:"
+}

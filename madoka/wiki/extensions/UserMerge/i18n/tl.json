@@ -1,0 +1,31 @@
+{
+	"@metadata": {
+		"authors": [
+			"AnakngAraw"
+		]
+	},
+	"usermerge": "Pagsanibin at burahin ang mga tagagamit",
+	"usermerge-desc": "[[Special:UserMerge|Nagsasanib ng mga sanggunian mula sa isang tagagamit patungo sa ibang tagagamit]] sa loob ng kalipunan ng dato ng wiki - magbubura din ng lumang mga tagagamit kasunod ng pagsasanib.  Nangangailangan ng mga karapatang \"tagagamitpagsasanib\"",
+	"usermerge-badolduser": "Hindi tanggap na lumang pangalan ng tagagamit",
+	"usermerge-badnewuser": "Hindi tanggap na bagong pangalan ng tagagamit",
+	"usermerge-nonewuser": "Tanggalan ng laman ang bagong pangalan ng tagagamit - ipinapalagay na isasanib sa $1.<br />\nPindutin ang \"{{int:usermerge-submit}}\" upang tanggapin.",
+	"usermerge-noolduser": "Tanggalan ng laman ang lumang pangalan ng tagagamit",
+	"usermerge-fieldset": "Mga pangalan ng tagagamit na pagsasanibin",
+	"usermerge-olduser": "Lumang tagagamit (isanib mula sa):",
+	"usermerge-newuser": "Bagong tagagamit (isanib sa):",
+	"usermerge-deleteolduser": "Burahin ang lumang tagagamit",
+	"usermerge-submit": "Isanib ang tagagamit",
+	"usermerge-badtoken": "Hindi tanggap na pananda ng pagbabago",
+	"usermerge-userdeleted": "Nabura na ang $1 ($2).",
+	"usermerge-userdeleted-log": "Binurang tagagamit: $2 ($3)",
+	"usermerge-success": "Ganap na ang pagsanib mula sa $1 ($2) patungo sa $3 ($4).",
+	"usermerge-success-log": "Tagagamit na $2 ($3) isinanib sa $4 ($5)",
+	"usermerge-logpage": "Talaan ng pagsasanib ng tagagamit",
+	"usermerge-logpagetext": "Isa itong talaan ng mga galaw na pangpagsasanib ng tagagamit.",
+	"usermerge-noselfdelete": "Hindi ka maaaring magbura o sumanib mula sa sarili mo!",
+	"usermerge-protectedgroup": "Hindi naisanib mula sa tagagamit - nasa loob ng isang nakasanggalang na pangkat ang tagagamit.",
+	"right-usermerge": "Pagsanibin ang mga tagagamit",
+	"usermerge-autopagedelete": "Kusang nabubura kapag pinagsasanib ang mga tagagamit",
+	"usermerge-page-unmoved": "Hindi mailipat ang pahinang $1 papunta sa $2.",
+	"usermerge-move-log": "Kusang inilipat ang pahina habang pinagsasanib ang tagagamit na si \"[[User:$1|$1]]\" papunta sa \"[[User:$2|$2]]\""
+}

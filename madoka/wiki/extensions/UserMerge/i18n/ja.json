@@ -1,0 +1,38 @@
+{
+	"@metadata": {
+		"authors": [
+			"Aotake",
+			"Fievarsty",
+			"Fryed-peach",
+			"Mzm5zbC3",
+			"Shirayuki",
+			"Azeha"
+		]
+	},
+	"usermerge": "利用者の統合と削除",
+	"usermerge-desc": "ウィキデータベース上における[[Special:UserMerge|ある利用者を別の利用者へ統合し]]、また統合元の利用者を削除する (「{{int:right-usermerge}}」できる権限 ''usermerge'' が必要)",
+	"usermerge-badolduser": "旧利用者名が無効です。",
+	"usermerge-badnewuser": "新利用者名が無効です。",
+	"usermerge-nonewuser": "新しい利用者名の欄が空です。「{{GENDER:$1|$1}}」への統合と見なします。<br />\n「{{int:usermerge-submit}}」をクリックして承認してください。",
+	"usermerge-noolduser": "旧利用者名の欄が空です。",
+	"usermerge-same-old-and-new-user": "旧利用者名と新利用者名は異なるものにしてください。",
+	"usermerge-fieldset": "統合する利用者名",
+	"usermerge-olduser": "旧利用者 (統合元):",
+	"usermerge-newuser": "新利用者 (統合先):",
+	"usermerge-deleteolduser": "旧利用者を削除",
+	"usermerge-submit": "利用者の統合",
+	"usermerge-badtoken": "編集トークンが無効です。",
+	"usermerge-userdeleted": "{{GENDER:$1|$1}} ($2) は削除されました。",
+	"usermerge-userdeleted-log": "利用者: $2 ($3) を削除しました",
+	"usermerge-success": "{{GENDER:$1|$1}} ($2) の {{GENDER:$3|$3}} ($4) への統合が完了しました。",
+	"usermerge-success-log": "利用者 {{GENDER:$2|$2}} ($3) を {{GENDER:$4|$4}} ($5) へ統合しました",
+	"usermerge-logpage": "利用者統合記録",
+	"usermerge-logpagetext": "これは、利用者の統合を記録したものです。",
+	"usermerge-noselfdelete": "{{GENDER:$1|自分自身}}の削除や{{GENDER:$1|自分自身}}との統合はできません。",
+	"usermerge-protectedgroup": "{{GENDER:$1|利用者}}を統合できません: この利用者は被保護グループに属しています。",
+	"right-usermerge": "利用者を統合",
+	"action-usermerge": "利用者の統合",
+	"usermerge-autopagedelete": "利用者の統合と共に自動的に削除しました",
+	"usermerge-page-unmoved": "ページ「$1」を「$2」に移動できませんでした。",
+	"usermerge-move-log": "統合と共に「[[User:$1|$1]]」を「[[User:$2|{{GENDER:$2|$2}}]]」へ自動的に移動しました"
+}

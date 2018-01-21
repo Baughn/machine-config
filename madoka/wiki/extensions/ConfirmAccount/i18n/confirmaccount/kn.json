@@ -1,0 +1,18 @@
+{
+	"@metadata": {
+		"authors": [
+			"Nayvik"
+		]
+	},
+	"confirmaccount-real-q": "ಹೆಸರು",
+	"confirmaccount-email-q": "ಇ-ಅಂಚೆ",
+	"confirmaccount-bio-q": "ಜೀವನಚರಿತ್ರೆ",
+	"confirmaccount-leg-person": "ವೈಯುಕ್ತಿಕ ಮಾಹಿತಿ",
+	"confirmaccount-real": "ಹೆಸರು:",
+	"confirmaccount-email": "ಇ-ಅಂಚೆ:",
+	"confirmaccount-pos-0": "ಕರ್ತೃ",
+	"confirmaccount-pos-1": "ಸಂಪಾದಕ",
+	"confirmaccount-bio": "ಜೀವನಚರಿತ್ರೆ",
+	"confirmaccount-wsum": "ಸುಸ್ವಾಗತ!",
+	"confirmaccount-email-subj": "{{SITENAME}} ಖಾತೆ ಕೋರಿಕೆ"
+}

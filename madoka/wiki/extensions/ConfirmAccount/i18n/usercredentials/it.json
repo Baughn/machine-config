@@ -1,0 +1,31 @@
+{
+	"@metadata": {
+		"authors": [
+			"Beta16",
+			"Darth Kule",
+			"Melos",
+			"Pietrodn",
+			"Stefano-c"
+		]
+	},
+	"usercredentials": "Credenziali utente",
+	"usercredentials-leg": "Cerca credenziali confermate per un utente",
+	"usercredentials-user": "Nome utente:",
+	"usercredentials-text": "Qui di seguito vengono mostrate le credenziali convalidate dell'account utente selezionato.",
+	"usercredentials-leg-user": "Account utente",
+	"usercredentials-leg-areas": "Principali aree d'interesse",
+	"usercredentials-leg-person": "Informazioni personali",
+	"usercredentials-leg-other": "Altre informazioni",
+	"usercredentials-leg-ip": "Dati relativi all'indirizzo IP",
+	"usercredentials-email": "Indirizzo email:",
+	"usercredentials-real": "Nome vero:",
+	"usercredentials-bio": "Biografia:",
+	"usercredentials-attach": "Curriculum:",
+	"usercredentials-notes": "Ulteriori note:",
+	"usercredentials-urls": "Elenco dei siti web:",
+	"usercredentials-ip": "Indirizzo IP originale:",
+	"usercredentials-xff": "X-Forwarded-For originale:",
+	"usercredentials-agent": "User-Agent originale:",
+	"usercredentials-member": "Diritti:",
+	"usercredentials-badid": "Nessuna credenziale trovata per questo utente.\nControlla che il nome sia scritto correttamente."
+}

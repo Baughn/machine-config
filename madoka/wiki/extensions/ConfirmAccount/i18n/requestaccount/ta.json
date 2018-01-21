@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"Karthi.dr",
+			"TRYPPN",
+			"Trengarasu",
+			"மதனாஹரன்"
+		]
+	},
+	"requestaccount-leg-user": "பயனர் கணக்கு",
+	"requestaccount-leg-person": "தனிப்பட்ட தகவல்",
+	"requestaccount-leg-other": "மற்ற தகவல்",
+	"requestaccount-real": "உண்மைப் பெயர்:",
+	"requestaccount-email": "மின்னஞ்சல் முகவரி:",
+	"requestaccount-reqtype": "இடம்:",
+	"requestaccount-level-0": "ஆசிரியர்",
+	"requestaccount-level-1": "பதிப்பாசிரியர்",
+	"requestaccount-notes": "கூடுதல் குறிப்புகள்:",
+	"requestaccount-tooshort": "உங்கள் சுயவிவரம் குறைந்தது $1 {{PLURAL:$1|சொல்|சொற்கள்}} நீளமானதாக இருக்க வேண்டும்.",
+	"requestaccount-email-subj": "{{SITENAME}} தளத்தின் மின்னஞ்சல் உறுதிப்படுத்தல்",
+	"requestaccount-email-subj-admin": "{{SITENAME}} கணக்கு வேண்டுகோள்"
+}

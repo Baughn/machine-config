@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Silovan"
+		]
+	},
+	"googlelogin-form-next": "უკული",
+	"googlelogin-login-already-registered": "მა უკვე მიღუ {{SITENAME}} ანგარიში"
+}

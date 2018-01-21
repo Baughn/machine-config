@@ -1,0 +1,17 @@
+{
+	"@metadata": {
+		"authors": [
+			"Basharh"
+		]
+	},
+	"confirmaccount-real-q": "ܫܡܐ",
+	"confirmaccount-email-q": "ܒܝܠܕܪܐ ܐܠܩܛܪܘܢܝܐ",
+	"confirmaccount-review": "ܬܢܝ",
+	"confirmaccount-leg-user": "ܚܘܫܒܢܐ ܕܡܦܠܚܢܐ",
+	"confirmaccount-leg-person": "ܝܕ̈ܥܬܐ ܦܪ̈ܨܘܦܝܬܐ",
+	"confirmaccount-leg-other": "ܝܕ̈ܥܬܐ ܐܚܪ̈ܢܝܬܐ",
+	"confirmaccount-pos-0": "ܣܝܘܡܐ",
+	"confirmaccount-noreason": "(ܠܐ ܡܕܡ)",
+	"confirmaccount-submit": "ܫܪܪ",
+	"confirmaccount-wsum": "ܒܫܝܢܐ!"
+}

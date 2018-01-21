@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Yejianfei"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1'''開電子郵件確認[[Special:ConfirmAccounts|賬戶{{PLURAL:$1|請求敆𡅏等}}]]。'''汝需要其是耐心！'''",
+	"requestaccount-loginnotice": "卜得遘蜀萆用戶其賬戶，汝著'''[[Special:RequestAccount|申請蜀萆賬戶]]'''。",
+	"right-confirmaccount": "覷[[Special:ConfirmAccounts|請求賬戶其隊列]]",
+	"right-requestips": "處理請求賬戶其辰候，覷請求者其IP地址",
+	"right-lookupcredentials": "覷[[Special:UserCredentials|用戶憑據]]"
+}

@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Eitvys200",
+			"Homo",
+			"Tomasdd"
+		]
+	},
+	"requestaccount": "Prašyti paskyros",
+	"requestaccount-leg-user": "Naudotojo paskyra",
+	"requestaccount-leg-person": "Asmeninė informacija",
+	"requestaccount-leg-other": "Kita informacija",
+	"requestaccount-leg-tos": "Vartojimo Sąlygos",
+	"requestaccount-real": "Tikrasis vardas:",
+	"requestaccount-same": "(toks kaip tikrasis vardas žemiau)",
+	"requestaccount-email": "El. pašto adresas:",
+	"requestaccount-reqtype": "Pareigos:",
+	"requestaccount-level-0": "autorius",
+	"requestaccount-level-1": "redaktorius",
+	"requestaccount-attach": "CV (neprivaloma):",
+	"requestaccount-notes": "Papildomos pastabos:",
+	"requestaccount-submit": "Prašyti paskyros"
+}

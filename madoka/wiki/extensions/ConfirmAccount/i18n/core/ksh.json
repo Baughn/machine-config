@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Purodha"
+		]
+	},
+	"confirmaccount-newrequests": "{{PLURAL:$1|Ein|'''$1'''|Kein}} unjedonn [[Special:ConfirmAccounts|{{PLURAL:$1|Aanfrooch|Aanfroore|Aanfrohre}}]] met beschtääteschte <i lang=\"en\">e-mail</i>-Addräß {{PLURAL:$1|es|sen|sin}} am waade.",
+	"requestaccount-loginnotice": "Öm ene Zohjang ze krijje, donn '''[[Special:RequestAccount|noh einem froore]]'''.",
+	"right-confirmaccount": "De [[Special:ConfirmAccounts|Schlang met de aanjefroochte Zohjäng]] beloore",
+	"right-requestips": "De jewönschte Neu_Metmaacher ier <code lang=\"en\">IP-</code>Addräß aanloore beim Aanfroore beärbeede",
+	"right-lookupcredentials": "De [[Special:UserCredentials|Nohwiise]] för Metmaacher aanloore",
+	"action-confirmaccount": "neu Zohjäng för Metmaacher aanzenämme"
+}

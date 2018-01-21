@@ -1,0 +1,16 @@
+{
+	"@metadata": {
+		"authors": [
+			"Siebrand"
+		]
+	},
+	"confirmaccount-maintext": "'''Deze pagina wordt gebruikt om openstaande gebruikersaanvragen te bevestigen op ''{{SITENAME}}'''''.\n\nElke lijst met gebruikersaanvragen bevat drie sublijsten: één voor openstaande aanvragen, één voor aanvragen die zijn gemarkeerd als \"in behandeling\" door andere beheerders wegens ontbrekende informatie en één voor recent geweigerde aanvragen.\n\nWanneer gereageerd wordt op een aanvraag, kijk die dan grondig na en bevestig indien nodig de informatie van de aanvragen. Je handelingen worden niet publiek opgeslagen. Kijk ook de handelingen die niet van jou afkomstig zijn na.",
+	"confirmaccount-text": "Dit is een openstaand gebruikersaanvraag voor '''{{SITENAME}}'''.\n\nBeoordeel alle onderstaande informatie zorgvuldig.\nAls je een aanvraag goedkeurt, gebruik dan, als aanwezig, het dropdownmenu om de gebruikersstatus in te stellen.\nBewerkingen die je maakt aan de biografie die in de aanvraag is opgenomen hebben geen invloed op de opgeslagen identiteit.\nJe kunt de gebruiker onder een andere naam aanmaken.\nDoe dit alleen als er mogelijk verwarring kan optreden met andere gebruikersnamen.\n\nAls je deze pagina verlaat zonder het gebruikersaanvraag te bevestigen of af te wijzen, dan blijft die open staan.",
+	"confirmaccount-needreason": "Je moet een reden geven in het onderstaande veld.",
+	"confirmaccount-welc": "'''Welkom bij ''{{SITENAME}}''!'''\nWe hopen dat je veel goede bijdragen levert. \nWaarschijnlijk wil je de [{{MediaWiki:Helppage}} hulppagina's] lezen.\nNogmaals, welkom en veel plezier!",
+	"confirmaccount-email-body": "Je gebruikersaanvraag op {{SITENAME}} is goedgekeurd.\n\nGebruiker: $1\n\nWachtwoord: $2\n\nOm beveiligingsredenen dien je je wachtwoord bij de eerste keer aanmelden te wijzigen. Aanmelden kan via \n{{fullurl:Special:UserLogin}}.",
+	"confirmaccount-email-body2": "Je gebruikersaanvraag op {{SITENAME}} is goedgekeurd.\n\nGebruikersnaam: $1\n\nWachtwoord: $2\n\n$3\n\nOm beveiligingsredenen dien je je wachtwoord bij de eerste keer aanmelden te wijzigen. Aanmelden kan via \n{{fullurl:Special:Userlogin}}.",
+	"confirmaccount-email-body3": "Je gebruikersaanvraag voor \"$1\" op {{SITENAME}} is afgewezen.\n\nDit kan meerdere oorzaken hebben.\nMogelijk heb je het formulier niet volledig ingevuld, waren je antwoorden onvoldoende compleet, of heb je om een andere reden niet voldaan aan de eisen.\nOp de site staan mogelijk lijsten met contactgegevens als je meer wilt weten over het gebruikersbeleid.",
+	"confirmaccount-email-body4": "Je gebruikersaanvraag voor \"$1\" op {{SITENAME}} is afgewezen.\n\n$2\n\nOp de site staan mogelijk lijsten met contactgegevens als je meer wilt weten over het gebruikersbeleid.",
+	"confirmaccount-email-body5": "Voordat je aanvraag voor een gebruiker \"$1\" aanvaard kan worden op {{SITENAME}}, moet je eerst extra informatie geven.\n\n$2\n\nOp de site staan mogelijk lijsten met contactgegevens als je meer wilt weten over het gebruikersbeleid."
+}

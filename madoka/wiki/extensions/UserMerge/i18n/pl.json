@@ -1,0 +1,40 @@
+{
+	"@metadata": {
+		"authors": [
+			"BeginaFelicysym",
+			"Derbeth",
+			"Masti",
+			"Sp5uhe",
+			"Wpedzich",
+			"Alan ffm",
+			"Chrumps",
+			"Michał Sobkowski",
+			"Matma Rex"
+		]
+	},
+	"usermerge": "Integruj i usuń użytkowników",
+	"usermerge-desc": "[[Special:UserMerge|Integruje odwołania dla jednego użytkownika do drugiego]] w bazie danych wiki – usuwa również dotychczasowego użytkownika po integracji. Wymaga uprawnienia ''usermerge''",
+	"usermerge-badolduser": "Nieprawidłowa nazwa dotychczasowego użytkownika",
+	"usermerge-badnewuser": "Nieprawidłowa nazwa nowego użytkownika",
+	"usermerge-nonewuser": "Pusta nazwa nowego użytkownika – integracja nastąpi z $1.<br />\nKliknij „{{int:usermerge-submit}}”, aby zaakceptować.",
+	"usermerge-noolduser": "Pusta nazwa dotychczasowego użytkownika",
+	"usermerge-fieldset": "Nazwy kont użytkowników do integracji",
+	"usermerge-olduser": "Dotychczasowy użytkownik (do integracji)",
+	"usermerge-newuser": "Nowy użytkownik (integruj z)",
+	"usermerge-deleteolduser": "Usuń dotychczasowego użytkownika",
+	"usermerge-submit": "Integruj użytkowników",
+	"usermerge-badtoken": "Nieprawidłowy kod weryfikacyjny (token).",
+	"usermerge-userdeleted": "$1 ($2) {{GENDER:$1|został usunięty|została usunięta}}.",
+	"usermerge-userdeleted-log": "usunął użytkownika „$2” ($3)",
+	"usermerge-success": "Integracja $1 ($2) z $3 ($4) zakończona.",
+	"usermerge-success-log": "zintegrował użytkownika „$2” ($3) do „$4” ($5)",
+	"usermerge-logpage": "Rejestr integracji użytkowników",
+	"usermerge-logpagetext": "To jest rejestr operacji integracji użytkowników.",
+	"usermerge-noselfdelete": "Nie możesz usunąć lub zintegrować {{GENDER:$1|samego|samej}} siebie!",
+	"usermerge-protectedgroup": "Nie można zintegrować użytkownika – jest członkiem zabezpieczonej grupy.",
+	"right-usermerge": "Łączenie kont użytkowników",
+	"action-usermerge": "łączenie kont użytkowników",
+	"usermerge-autopagedelete": "Automatycznie usuwane podczas scalania użytkowników",
+	"usermerge-page-unmoved": "Strona $1 nie mogła zostać przeniesiona pod nazwę $2.",
+	"usermerge-move-log": "Automatyczne przeniesiono stronę po zmianie nazwy konta z \"[[User:$1|$1]]\" na \"[[User:$2|$2]]\""
+}

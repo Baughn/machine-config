@@ -1,0 +1,37 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ahonc",
+			"Andriykopanytsia",
+			"Steve.rusyn",
+			"SteveR",
+			"Ата"
+		]
+	},
+	"usermerge": "Об'єднання і вилучення облікових записів",
+	"usermerge-desc": "[[Special:UserMerge|Переводить зв'язки з одного користувача на іншого]] у базі даних вікі, старі користувачі будуть вилучатися. Вимагає прав ''usermerge''",
+	"usermerge-badolduser": "Неправильне старе ім'я користувача",
+	"usermerge-badnewuser": "Неправильне нове ім'я користувача",
+	"usermerge-nonewuser": "Порожнє ім'я користувача. Припускається злиття з «{{GENDER:$1|$1}}».<br />\nНатисніть «{{int:usermerge-submit}}», щоб підтвердити дію.",
+	"usermerge-noolduser": "Порожнє старе ім'я користувача",
+	"usermerge-same-old-and-new-user": "Старі і нові імена користувачів повинні відрізнятися.",
+	"usermerge-fieldset": "Облікові записи для об'єднання",
+	"usermerge-olduser": "Старий обліковий запис (об'єднати з):",
+	"usermerge-newuser": "Новий обліковий запис (об'єднати у):",
+	"usermerge-deleteolduser": "Вилучити старий обліковий запис",
+	"usermerge-submit": "Об'єднати користувачів",
+	"usermerge-badtoken": "Недійсний маркер редагування",
+	"usermerge-userdeleted": "$1 ($2) {{GENDER:$1|був вилучений|була вилучена}}.",
+	"usermerge-userdeleted-log": "Вилучений користувач: $2 ($3)",
+	"usermerge-success": "Об'єднання {{GENDER:$1|$1}} ($2) з {{GENDER:$3|$3}} ($4) завершене.",
+	"usermerge-success-log": "{{GENDER:$2|Користувач|Користувачка}} $2 ($3) {{GENDER:$2|приєднаний|приєднана}} до {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Журнал об'єднання користувачів",
+	"usermerge-logpagetext": "Це журнал об'єднання облікових записів.",
+	"usermerge-noselfdelete": "Ви не можете вилучати або приєднувати {{GENDER:$1|самого себе|саму себе}}!",
+	"usermerge-protectedgroup": "Неможливо об'єднати {{GENDER:$1|користувача|користувачку}} — користувач належить до захищеної групи.",
+	"right-usermerge": "об'єднування користувачів",
+	"action-usermerge": "об'єднування користувачів",
+	"usermerge-autopagedelete": "Автоматично видаляються при об'єднанні користувачів",
+	"usermerge-page-unmoved": "Сторінка $1 не може бути перейменована на $2.",
+	"usermerge-move-log": "Автоматичне перейменування сторінки при об'єднанні користувача «[[User:$1|$1]]» з «[[User:$2|{{GENDER:$2|$2}}]]»"
+}

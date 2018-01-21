@@ -1,0 +1,38 @@
+{
+	"@metadata": {
+		"authors": [
+			"Arnobarnard",
+			"Naudefj",
+			"SPQRobin"
+		]
+	},
+	"confirmaccount-real-q": "Naam",
+	"confirmaccount-email-q": "E-pos",
+	"confirmaccount-bio-q": "Biografie",
+	"confirmaccount-showopen": "oop versoeke",
+	"confirmaccount-showheld": "afgehandelde versoeke",
+	"confirmaccount-showexp": "vervalle versoeke",
+	"confirmaccount-review": "Kontroleer",
+	"confirmaccount-type": "Waglys:",
+	"confirmaccount-q-open": "oop versoeke",
+	"confirmaccount-q-held": "afgehandelde versoeke",
+	"confirmaccount-q-stale": "vervalle versoeke",
+	"confirmaccount-leg-areas": "Gebiede van belangstelling",
+	"confirmaccount-leg-person": "Persoonlike inligting",
+	"confirmaccount-leg-other": "Ander inligting",
+	"confirmaccount-name": "Gebruikersnaam",
+	"confirmaccount-real": "Naam:",
+	"confirmaccount-email": "E-pos:",
+	"confirmaccount-reqtype": "Posisie:",
+	"confirmaccount-pos-0": "outeur",
+	"confirmaccount-pos-1": "redakteur",
+	"confirmaccount-bio": "Biografie:",
+	"confirmaccount-attach": "Resumé/CV (inligting oor u):",
+	"confirmaccount-notes": "Addisionele notas:",
+	"confirmaccount-urls": "Lys van webruimtes:",
+	"confirmaccount-none-p": "(nie verskaf nie)",
+	"confirmaccount-noreason": "(geen)",
+	"confirmaccount-ip": "IP-adres:",
+	"confirmaccount-submit": "Bevestig",
+	"confirmaccount-email-subj": "{{SITENAME}} gebruikersversoek"
+}

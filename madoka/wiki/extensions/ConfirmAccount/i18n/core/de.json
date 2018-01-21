@@ -1,0 +1,24 @@
+{
+	"@metadata": {
+		"authors": [
+			"Als-Holder",
+			"Kghbln",
+			"Leithian",
+			"MF-Warburg",
+			"Metalhead64",
+			"Pill",
+			"Purodha",
+			"Raimond Spekking",
+			"Revolus",
+			"Rrosenfeld",
+			"The Evil IP address",
+			"Umherirrender"
+		]
+	},
+	"confirmaccount-newrequests": "[[Special:ConfirmAccounts|{{PLURAL:$1|Ein offener, per E-Mail bestätigter Benutzerkontenantrag wartet|$1 offene, per E-Mail bestätigte Benutzerkontenanträge warten}}]] auf Bearbeitung. '''Bitte kümmere dich darum. Vielen Dank.'''",
+	"requestaccount-loginnotice": "Um ein Benutzerkonto zu erhalten, musst du es '''[[Special:RequestAccount|beantragen]]'''.",
+	"right-confirmaccount": "Die [[Special:ConfirmAccounts|Liste der Benutzerkontenanträge]] einsehen",
+	"right-requestips": "Die IP-Adresse des Anfragenden beim Bearbeiten von Benutzerkontenanträgen einsehen",
+	"right-lookupcredentials": "Die [[Special:UserCredentials|Anmeldedaten]] einsehen",
+	"action-confirmaccount": "Benutzerkontenanträge zu überprüfen und zu akzeptieren"
+}

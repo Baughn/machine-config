@@ -1,0 +1,31 @@
+{
+	"@metadata": {
+		"authors": [
+			"Shirayuki",
+			"SkyDaisy9",
+			"Sujiniku",
+			"Otokoume"
+		]
+	},
+	"googlelogin": "Google を使用してログイン",
+	"managegooglelogin": "GoogleLogin 接続の管理",
+	"googlelogin-manage-usersubmit": "ユーザー管理",
+	"googlelogin-manage-notexist": "<strong>$1</strong> という名前の利用者は存在しません。",
+	"googlelogin-manage-changedsuccess": "この利用者は今、Google アカウントでリンクされています。",
+	"googlelogin-manage-isplusser": "Google+ に登録済み",
+	"googlelogin-manage-givenid": "あなたの入力した Google ID は、既に他のウィキ利用者にリンクされています。",
+	"googlelogin-create": "Google で作成",
+	"googlelogin-desc": "利用者が自身の [[Special:GoogleLogin|Google アカウントでログイン]]るのを許可する",
+	"googlelogin-form-choosename-title": "利用者名の選択",
+	"googlelogin-form-choosename-finish-title": "ウィキ アカウントの作成",
+	"googlelogin-form-choosename-existerror": "利用者名 ''$1'' は既に使用されています。他のものを指定してください。",
+	"googlelogin-form-merge-title": "利用者アカウントをリンクする",
+	"googlelogin-form-logout": "別の Google アカウントでログイン",
+	"googlelogin-form-backlink": "Google ログインに戻る",
+	"googlelogin-email": "メールアドレス",
+	"googlelogin-information-title": "アカウント情報",
+	"googlelogin-or": "または",
+	"tag-googlelogin": "[[Special:GoogleLogin|Googleログイン]]",
+	"tag-googlelogin-description": "このタグは[[Special:GoogleLogin|Googleログイン]]が登録しました",
+	"action-managegooglelogin": "GoogleLogin 接続の管理"
+}

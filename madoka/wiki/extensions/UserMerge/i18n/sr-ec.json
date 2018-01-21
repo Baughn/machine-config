@@ -1,0 +1,36 @@
+{
+	"@metadata": {
+		"authors": [
+			"Milicevic01",
+			"Rancher",
+			"Жељко Тодоровић",
+			"Михајло Анђелковић"
+		]
+	},
+	"usermerge": "Обједињавање и брисање налога",
+	"usermerge-desc": "[[Special:UserMerge|Преноси доприносе једног корисника на другог]] у бази викија; биће избрисани и стари корисници. Потребно је право ''usermerge''.",
+	"usermerge-badolduser": "Неисправно старо корисничко име.",
+	"usermerge-badnewuser": "Неисправно ново корисничко име.",
+	"usermerge-nonewuser": "Ново корисничко име је празно. Предложено је обједињавање са „{{GENDER:$1|$1}}“.<br />\nКликните на „{{int:usermerge-submit}}“ да бисте прихватили.",
+	"usermerge-noolduser": "Старо корисничко име је празно.",
+	"usermerge-same-old-and-new-user": "Ново име налога се мора разликовати од старог.",
+	"usermerge-fieldset": "Налози за обједињавање",
+	"usermerge-olduser": "Стари налог:",
+	"usermerge-newuser": "Нови налог:",
+	"usermerge-deleteolduser": "Избриши стари налог",
+	"usermerge-submit": "Обједини налоге",
+	"usermerge-badtoken": "Неисправан токен измене.",
+	"usermerge-userdeleted": "$1 ($2) је {{GENDER:$1|избрисан|избрисана}}.",
+	"usermerge-userdeleted-log": "Избрисан корисник: $2 ($3)",
+	"usermerge-success": "Обједињавање корисника {{GENDER:$1|$1}} ($2) и {{GENDER:$3|$3}} ($4) је завршено.",
+	"usermerge-success-log": "Налози корисника $2 ($3) и $4 ($5) су обједињени.",
+	"usermerge-logpage": "Дневник обједињавања налога",
+	"usermerge-logpagetext": "Ово је дневник обједињавања налога.",
+	"usermerge-noselfdelete": "Не можете избрисати или објединити {{GENDER:$1|сами себе}}!",
+	"usermerge-protectedgroup": "Не могу да објединим налоге {{GENDER:$1|корисника|кориснице}} јер је у заштићеној групи.",
+	"right-usermerge": "обједињавање налога",
+	"action-usermerge": "обједињавање налога",
+	"usermerge-autopagedelete": "Аутоматски се брише при обједињавању налога.",
+	"usermerge-page-unmoved": "Не могу да преместим страницу $1 у $2.",
+	"usermerge-move-log": "Аутоматски премештено при обједињавању налога „[[User:$1|$1]]“ и „[[User:$2|$2]]“."
+}

@@ -1,0 +1,11 @@
+@import "mediawiki.mixins";
+@import "mixins/roboto.font.less";
+@import "mixins/googleLoginButtonIcon.less";
+
+/* Login with Google button according to Googles brand guidelines:
+ https://developers.google.com/identity/branding-guidelines */
+#mw-input-googlelogin {
+    .googleLoginButtonIcon();
+    height: 40px;
+    .googleLoginRoboto();
+}

@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"David1010"
+		]
+	},
+	"usercredentials-user": "მომხმარებლის სახელი:",
+	"usercredentials-leg-user": "მომხმარებლის ანგარიში",
+	"usercredentials-leg-areas": "ინტერესების ძირითადი სფერო",
+	"usercredentials-leg-person": "პირადი ინფორმაცია",
+	"usercredentials-leg-other": "სხვა ინფორმაცია",
+	"usercredentials-leg-ip": "IP მისამართის მონაცემი",
+	"usercredentials-email": "ელ. ფოსტა:",
+	"usercredentials-real": "ნამდვილი სახელი:",
+	"usercredentials-bio": "ბიოგრაფია:",
+	"usercredentials-attach": "რეზიუმე/CV:",
+	"usercredentials-notes": "დამატებითი შენიშვნები:",
+	"usercredentials-urls": "ვებ-გვერდების სია:",
+	"usercredentials-ip": "ორიგინალი IP მისამართი:",
+	"usercredentials-member": "უფლებები:"
+}

@@ -1,0 +1,36 @@
+{
+	"@metadata": {
+		"authors": [
+			"Beta16",
+			"Darth Kule",
+			"Nemo bis",
+			"Pietrodn"
+		]
+	},
+	"usermerge": "Unione e cancellazione utenti",
+	"usermerge-desc": "[[Special:UserMerge|Unisce i riferimenti di un utente con quelli di un altro]] nel database della wiki e inoltre cancellerà il vecchio utente dopo l'unione. Richiede privilegi ''usermerge''",
+	"usermerge-badolduser": "Vecchio nome utente non valido",
+	"usermerge-badnewuser": "Nuovo nome utente non valido",
+	"usermerge-nonewuser": "Nuovo nome utente vuoto - l'unione verrà effettuata con l'utente \"{{GENDER:$1|$1}}\".<br />\nFare clic su \"{{int:usermerge-submit}}\" per accettare.",
+	"usermerge-noolduser": "Vecchio nome utente vuoto",
+	"usermerge-same-old-and-new-user": "Il vecchio ed il nuovo nome utente devono essere diversi.",
+	"usermerge-fieldset": "Nomi utente da unire",
+	"usermerge-olduser": "Vecchio utente (unisci da):",
+	"usermerge-newuser": "Nuovo utente (unisci a):",
+	"usermerge-deleteolduser": "Cancella vecchio utente",
+	"usermerge-submit": "Unisci utente",
+	"usermerge-badtoken": "Edit token non valido",
+	"usermerge-userdeleted": "$1 ($2) è {{GENDER:$1|stato cancellato|stata cancellata}}.",
+	"usermerge-userdeleted-log": "Utente cancellato: $2 ($3)",
+	"usermerge-success": "L'unione di {{GENDER:$1|$1}} ($2) a {{GENDER:$3|$3}} ($4) è completa.",
+	"usermerge-success-log": "Utente $2 ($3) {{GENDER:$2|unito|unita}} a {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Unioni delle utenze",
+	"usermerge-logpagetext": "Di seguito sono elencate le azioni di unione di utenti.",
+	"usermerge-noselfdelete": "Non puoi cancellare o unire la {{GENDER:$1|tua}} stessa utenza!",
+	"usermerge-protectedgroup": "Impossibile unire da {{GENDER:$1|questo|questa}} utente - l'utente fa parte di un gruppo protetto.",
+	"right-usermerge": "Unisce utenti",
+	"action-usermerge": "unire utenti",
+	"usermerge-autopagedelete": "Cancellata automaticamente quando si uniscono gli utenti",
+	"usermerge-page-unmoved": "La pagina $1 non può essere spostata a $2.",
+	"usermerge-move-log": "Pagina spostata automaticamente durante l'unione dell'utente \"[[User:$1|$1]]\" a \"[[User:$2|{{GENDER:$2|$2}}]]\""
+}

@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"Dani",
+			"Glanthor Reviol"
+		]
+	},
+	"usermerge": "Felhasználói fiókok összevonása és törlése",
+	"usermerge-desc": "[[Special:UserMerge|Beolvasztja egy felhasználó közreműködéseit egy másikéba]] a wiki adatbázisában, majd törli a beolvasztott felhasználói fiókot. ''Szerkesztők egyesítése'' jogosultság kell hozzá",
+	"usermerge-badolduser": "Érvénytelen régi felhasználói név",
+	"usermerge-badnewuser": "Érvénytelen új felhasználói név",
+	"usermerge-nonewuser": "Üres új felhasználónév – feltételezett cél: „$1”<br />\nKattints a „{{int:usermerge-submit}}”-ra az elfogadáshoz.",
+	"usermerge-noolduser": "A régi felhasználói név üres",
+	"usermerge-fieldset": "Összevonandó felhasználói nevek",
+	"usermerge-olduser": "Régi felhasználói név (honnan):",
+	"usermerge-newuser": "Új felhasználói név (hová):",
+	"usermerge-deleteolduser": "Régi felhasználói fiók törlése",
+	"usermerge-submit": "Felhasználói fiók összevonása",
+	"usermerge-badtoken": "Érvénytelen szerkesztési token",
+	"usermerge-userdeleted": "„$1” ($2) törölve.",
+	"usermerge-userdeleted-log": "Törölt felhasználó: $2 ($3)",
+	"usermerge-success": "„$1” ($2) fiók beolvasztása a(z) „$3” ($4) felhasználói fiókba elkészült.",
+	"usermerge-success-log": "„$2” ($3) felhasználó beolvasztva a(z) „$4” ($5) felhasználói fiókba",
+	"usermerge-logpage": "Felhasználói nevek egyesítésének naplója",
+	"usermerge-logpagetext": "Ez a felhasználó nevek összevonásának naplója.",
+	"usermerge-noselfdelete": "Nem tudsz törölni vagy összevonni a saját fiókodból!",
+	"usermerge-protectedgroup": "Nem lehetséges beolvasztani a felhasználói fiókot – a felhasználó védett csoportban van.",
+	"right-usermerge": "szerkesztők egyesítése"
+}

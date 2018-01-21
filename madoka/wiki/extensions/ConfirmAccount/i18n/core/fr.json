@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"Crochet.david",
+			"Dereckson",
+			"Grondin",
+			"IAlex",
+			"Louperivois",
+			"McDutchie",
+			"Meithal",
+			"Peter17",
+			"PieRRoMaN",
+			"Sherbrooke",
+			"Urhixidur",
+			"Zetud",
+			"Benjozork"
+		]
+	},
+	"confirmaccount-newrequests": "Il y a actuellement '''$1''' [[Special:ConfirmAccounts|demande{{PLURAL:$1||s}} de compte]] en cours. '''Votre attention est nécessaire !'''",
+	"requestaccount-loginnotice": "Pour obtenir un compte utilisateur, vous devez en faire '''[[Special:RequestAccount|la demande]]'''.",
+	"right-confirmaccount": "Voir la [[Special:ConfirmAccounts|file des demandes de compte]]",
+	"right-requestips": "Voir les adresses IP des demandeurs lors du traitement des demandes de nouveau comptes",
+	"right-lookupcredentials": "Voir les [[Special:UserCredentials|références des utilisateurs]]",
+	"action-confirmaccount": "vérifier et accepter les comptes"
+}

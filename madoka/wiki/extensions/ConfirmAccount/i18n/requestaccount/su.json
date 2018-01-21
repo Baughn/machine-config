@@ -1,0 +1,32 @@
+{
+	"@metadata": {
+		"authors": [
+			"Irwangatot",
+			"Kandar",
+			"Nemo bis"
+		]
+	},
+	"requestaccount": "Ménta rekening",
+	"requestaccount-dup": "'''CATETAN: Anjeun geus asup log migunakeun rekening nu geus kadaptar.'''",
+	"requestaccount-leg-user": "Rekening pamaké",
+	"requestaccount-leg-areas": "Widang pangaresep/minat",
+	"requestaccount-leg-person": "Émbaran pribadi",
+	"requestaccount-leg-other": "Émbaran lianna",
+	"requestaccount-real": "Ngaran asli:",
+	"requestaccount-same": "(sarua jeung ngaran asli)",
+	"requestaccount-email": "Alamat surélék (''e-mail''):",
+	"requestaccount-reqtype": "Posisi:",
+	"requestaccount-level-0": "pangarang",
+	"requestaccount-level-1": "éditor",
+	"requestaccount-bio": "Biografi pribadi (téks polos hungkul):",
+	"requestaccount-attach": "Résumeu atawa CV (teu wajib):",
+	"requestaccount-notes": "Catetan panambih:",
+	"requestaccount-urls": "Béréndélan ramatloka, mun aya (pisahkeun ku baris anyar):",
+	"requestaccount-tooshort": "Biografi anjeun sahanteuna kudu ngandung $1 {{PLURAL:$1|kecap|kecap}}.",
+	"requestaccount-exts": "Jenis lampiran nu dimuatkeun dipahing.",
+	"requestaccount-submit": "Pénta rekening",
+	"requestaccount-sent": "Paménta rekening anjeun anggeus dikirim sarta rék dipariksa heula.",
+	"request-account-econf": "Alamat surélék anjeun geus dikonfirmasi sarta bakal ditambahkeun kana paménta rekening anjeun.",
+	"requestaccount-email-subj": "Konfirmasi alamat surélék {{SITENAME}}",
+	"requestaccount-email-subj-admin": "Paménta rekening {{SITENAME}}"
+}

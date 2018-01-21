@@ -1,0 +1,20 @@
+{
+	"@metadata": {
+		"authors": [
+			"CERminator",
+			"Srdjan m"
+		]
+	},
+	"usercredentials-user": "Korisničko ime:",
+	"usercredentials-leg-user": "Korisnički račun",
+	"usercredentials-leg-person": "Lične informacije",
+	"usercredentials-leg-other": "Ostale informacije",
+	"usercredentials-email": "Adresa e-pošte:",
+	"usercredentials-real": "Pravo ime:",
+	"usercredentials-bio": "Biografija:",
+	"usercredentials-attach": "Biografija:",
+	"usercredentials-notes": "Dodatne napomene:",
+	"usercredentials-urls": "Spisak web sajtova:",
+	"usercredentials-ip": "Izvorna IP adresa:",
+	"usercredentials-member": "Prava:"
+}

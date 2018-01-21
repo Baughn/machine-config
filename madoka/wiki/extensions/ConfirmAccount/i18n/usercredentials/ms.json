@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"Anakmalaysia"
+		]
+	},
+	"usercredentials": "Bukti kelayakan pengguna",
+	"usercredentials-leg": "Cari bukti kelayakan yang disahkan untuk pengguna",
+	"usercredentials-user": "Nama pengguna:",
+	"usercredentials-text": "Berikut ialah bukti-bukti kelayakan yang disahkan bagi akaun pengguna yang terpilih.",
+	"usercredentials-leg-user": "Akaun pengguna",
+	"usercredentials-leg-areas": "Bidang-bidang yang paling diminati",
+	"usercredentials-leg-person": "Maklumat peribadi",
+	"usercredentials-leg-other": "Maklumat lain",
+	"usercredentials-leg-ip": "Data alamat IP",
+	"usercredentials-email": "E-mel:",
+	"usercredentials-real": "Nama sebenar:",
+	"usercredentials-bio": "Biografi:",
+	"usercredentials-attach": "Resume/CV:",
+	"usercredentials-notes": "Catatan tambahan:",
+	"usercredentials-urls": "Senarai tapak web:",
+	"usercredentials-ip": "Alamat IP asal:",
+	"usercredentials-xff": "X-Forwarded-For Asal:",
+	"usercredentials-agent": "Ejen Pengguna Asal:",
+	"usercredentials-member": "Hak:",
+	"usercredentials-badid": "Tiada bukti kelayakan untuk pengguna ini.\nPastikan namanya dieja dengan betul."
+}

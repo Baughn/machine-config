@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Htt",
+			"Kaustubh",
+			"Mahitgar",
+			"V.narsikar"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1'''खुला इमेल पत्ता निश्चित करण्यात आला आहे [[Special:ConfirmAccounts|खाते {{PLURAL:$1|मागणी प्रलंबित आहे|मागण्या प्रलंबित आहेत}}]].'''आपले लक्ष आवश्यक!'''",
+	"requestaccount-loginnotice": "सदस्य खाते मिळविण्यासाठी तुम्ही तुमची '''[[Special:RequestAccount|विनंती नोंदवा]]'''."
+}

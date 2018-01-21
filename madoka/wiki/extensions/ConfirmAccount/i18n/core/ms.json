@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Anakmalaysia"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1''' [[Special:ConfirmAccounts|permintaan akaun]] yang disahkan oleh pembukaan e-mel sedang menunggu. '''Perhatian anda diperlukan!'''",
+	"requestaccount-loginnotice": "Untuk memperoleh akaun pengguna, anda mesti '''[[Special:RequestAccount|membuat permohonan]]'''.",
+	"right-confirmaccount": "Melihat [[Special:ConfirmAccounts|baris gilir dengan akaun-akaun yang dimohon]]",
+	"right-requestips": "Melihat alamat-alamat IP pemohon ketika memproseskan akaun-akaun yang dimohon",
+	"right-lookupcredentials": "Melihat [[Special:UserCredentials|kelayakan pengguna]]"
+}

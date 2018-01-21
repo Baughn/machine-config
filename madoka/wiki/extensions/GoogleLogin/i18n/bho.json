@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"Nepaboy"
+		]
+	},
+	"googlelogin": "गूगल से लॉग इन करीं",
+	"googlelogin-desc": "गूगल खाता से प्रवेश के अनुमती खातिर उपलब्ध बा Provides a [[Special:GoogleLogin|विशेष पन्ना]]",
+	"googlelogin-form-choosename-title": "सदस्य नाम चुनीं",
+	"googlelogin-form-choosename-finish-title": "विकी खाता बनाईं",
+	"googlelogin-form-choosename-error": "रउआ एगो प्रयोगकर्ता नाम चुने के पड़ी या हमनी के दिहल सुझाव में से कउनो एगो चुनीं।",
+	"googlelogin-form-choosename-existerror": "सदस्य नाम \"$1\" पहिले से प्रयोग में बा, कौनो दोसर चुनीं।",
+	"googlelogin-form-chooseown": "आपन चुनीं",
+	"googlelogin-form-merge-title": "सदस्य खाता के मिलाईं (मर्ज करीं)।",
+	"googlelogin-form-logout": "कउनो दोसर गूगल खाता से प्रवेश करीं",
+	"googlelogin-form-backlink": "गूगल लॉग इन पर वापस जाईं",
+	"googlelogin-form-merge": "गूगल के विकी खाता में मर्ज करीं",
+	"googlelogin-form-unlink": "गूगल के बदला में -> विकी खाता",
+	"googlelogin-email": "ई-मेल पता",
+	"googlelogin-googleuser": "गूगल सदस्य",
+	"googlelogin-information-title": "खाता के बारे में जानकारी",
+	"googlelogin-linkstatus": "लिंक स्थिती",
+	"googlelogin-linked": "जुड़ गईल",
+	"googlelogin-unlinked": "पसंद नईखे",
+	"googlelogin-success-merge": "बधाई होखे! अब राउर विकी खाता के राउर गूगल खाता से जोड़ दिहल गइल बा।",
+	"googlelogin-success-unlink": "बधाई होखे! राउर विकी खाता अब राउर गूगल खाता से जुड़ल नईखे रह गईल।"
+}

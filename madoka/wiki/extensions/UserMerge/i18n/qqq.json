@@ -1,0 +1,41 @@
+{
+	"@metadata": {
+		"authors": [
+			"Fryed-peach",
+			"Jon Harald Søby",
+			"Meno25",
+			"Nemo bis",
+			"Purodha",
+			"Shirayuki",
+			"Siebrand",
+			"Umherirrender",
+			"Legoktm"
+		]
+	},
+	"usermerge": "{{doc-special|UserMerge}}",
+	"usermerge-desc": "{{desc|name=User Merge|url=https://www.mediawiki.org/wiki/Extension:User_Merge_and_Delete}}",
+	"usermerge-badolduser": "Used as error message.",
+	"usermerge-badnewuser": "Used as error message.",
+	"usermerge-nonewuser": "{{doc-important|Do not translate <code><nowiki>{{int:usermerge-submit}}</nowiki></code>.}}\nUsed as error message.\n\nRefers to {{msg-mw|Usermerge-submit}}.\n\nParameters:\n* $1 - username \"Anonymous\" (hard-coded)",
+	"usermerge-noolduser": "Used as warning when merging users.",
+	"usermerge-same-old-and-new-user": "Used as error message if the names of the users to be merged are equal which is not allowed, because it does not make sense.",
+	"usermerge-fieldset": "Used as fieldset label.\n\nFollowed by labels and inputboxes for the old and the new usernames.",
+	"usermerge-olduser": "Used as label for the \"Old username\" inputbox.\n\nSee also:\n* {{msg-mw|Usermerge-newuser}}",
+	"usermerge-newuser": "Used as label for the \"New username\" inputbox.\n\nSee also:\n* {{msg-mw|Usermerge-olduser}}",
+	"usermerge-deleteolduser": "Used as label for the checkbox.",
+	"usermerge-submit": "Used in {{msg-mw|Usermerge-nonewuser}}.\n{{Identical|Merge user}}",
+	"usermerge-badtoken": "Used as error message if the Edit Token is invalid.",
+	"usermerge-userdeleted": "Status message. Parameters:\n* $1 is the name of a user that was deleted (not linked).\n* $2 is the ID of a user that was deleted.",
+	"usermerge-userdeleted-log": "Parameters:\n* $2 is a user name (not linked) of the deleted user\n* $3 is a user ID of the deleted user",
+	"usermerge-success": "Status message. Parameters:\n* $1 is a user name (not linked) that is merged into another user\n* $2 is a user ID of the source user\n* $3 is a user name (not linked) that the other user is merged into; can be used for GENDER\n* $4 is a user ID of the target user",
+	"usermerge-success-log": "Parameters:\n* $1 - (Unused)\n* $2 - a user name (not linked) that is merged into another user\n* $3 - a user ID of the source user\n* $4 - a user name (not linked) that the other user is merged into; can be used for GENDER\n* $5 - a user ID of the target user",
+	"usermerge-logpage": "{{doc-logpage}}",
+	"usermerge-logpagetext": "Used as heading in [[Special:Log/usermerge]].",
+	"usermerge-noselfdelete": "Used as error message when merging users. Parameters:\n* $1 - the current user's name, for GENDER",
+	"usermerge-protectedgroup": "Used as error message when merging users. Parameters:\n* $1 - the user's name, for GENDER",
+	"right-usermerge": "{{doc-right|usermerge}}\n{{Identical|Merge user}}",
+	"action-usermerge": "{{doc-action|usermerge}}\n{{Identical|Merge user}}",
+	"usermerge-autopagedelete": "Used as reason for deleting page.",
+	"usermerge-page-unmoved": "Used as failure message when moving a page. Parameters:\n* $1 - old page title (with link)\n* $2 - new page title (with link)\nSee also:\n* {{msg-mw|Usermerge-page-moved}}",
+	"usermerge-move-log": "Parameters:\n* $1 - old username\n* $2 - new username"
+}

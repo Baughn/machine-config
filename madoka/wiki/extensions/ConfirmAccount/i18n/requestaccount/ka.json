@@ -1,0 +1,24 @@
+{
+	"@metadata": {
+		"authors": [
+			"David1010"
+		]
+	},
+	"requestaccount-page": "{{ns:project}}:პირობები და მომსახურება",
+	"requestaccount-leg-user": "მომხმარებლის ანგარიში",
+	"requestaccount-leg-areas": "ინტერესების ძირითადი სფერო",
+	"requestaccount-leg-person": "პირადი ინფორმაცია",
+	"requestaccount-leg-other": "სხვა ინფორმაცია",
+	"requestaccount-leg-tos": "გამოყენების წესები",
+	"requestaccount-real": "ნამდვილი სახელი:",
+	"requestaccount-same": "(იგივე რაც ნამდვილი სახელი ქვევით)",
+	"requestaccount-email": "ელ. ფოსტის მისამართი:",
+	"requestaccount-reqtype": "პოზიცია:",
+	"requestaccount-level-0": "ავტორი",
+	"requestaccount-level-1": "რედაქტორი",
+	"requestaccount-info": "(?)",
+	"requestaccount-bio": "პირადი ბიოგრაფია (მხოლოდ ჩვეულებრივი ტექსტი):",
+	"requestaccount-attach": "რეზიუმე ან CV (არასავალდებულო):",
+	"requestaccount-notes": "დამატებითი შენიშვნები:",
+	"requestaccount-submit": "ანგარიშის მოთხოვნა"
+}

@@ -1,0 +1,17 @@
+{
+	"@metadata": {
+		"authors": [
+			"Omnipaedista",
+			"SPQRobin",
+			"UV"
+		]
+	},
+	"requestaccount-leg-user": "Ratio usoris",
+	"requestaccount-real": "Nomen verum:",
+	"requestaccount-same": "(aequus ad nomine vero)",
+	"requestaccount-email": "Inscriptio electronica:",
+	"requestaccount-reqtype": "Positio:",
+	"requestaccount-level-0": "auctor",
+	"requestaccount-level-1": "recensor",
+	"requestaccount-notes": "Notae addititiae:"
+}

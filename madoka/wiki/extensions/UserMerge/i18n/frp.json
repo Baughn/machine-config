@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"ChrisPtDe"
+		]
+	},
+	"usermerge": "Fusionar et suprimar des usanciérs",
+	"usermerge-badolduser": "Viely nom d’usanciér envalido",
+	"usermerge-badnewuser": "Novél nom d’usanciér envalido",
+	"usermerge-noolduser": "Viely nom d’usanciér vouedo",
+	"usermerge-fieldset": "Noms d’usanciér a fusionar",
+	"usermerge-olduser": "Viely usanciér (fusionar dês) :",
+	"usermerge-newuser": "Novél usanciér (fusionar avouéc) :",
+	"usermerge-deleteolduser": "Suprimar lo viely usanciér",
+	"usermerge-submit": "Fusionar l’usanciér",
+	"usermerge-badtoken": "Jeton de changement envalido",
+	"usermerge-userdeleted": "$1 ($2) at étâ suprimâ.",
+	"usermerge-userdeleted-log": "Contributor suprimâ : $2 ($3)",
+	"usermerge-success": "La fusion de $1 ($2) a $3 ($4) est chavonâ.",
+	"usermerge-success-log": "Usanciér $2 ($3) fusionâ avouéc $4 ($5)",
+	"usermerge-logpage": "Jornal de les fusions d’usanciérs",
+	"usermerge-logpagetext": "O est un jornal de les accions de fusions d’usanciérs.",
+	"usermerge-noselfdelete": "Vos vos pouede pas suprimar ou ben fusionar vos-mémo !",
+	"usermerge-protectedgroup": "Empossiblo de fusionar l’usanciér : l’usanciér est dens una tropa protègiê.",
+	"right-usermerge": "Fusionar des usanciérs",
+	"usermerge-autopagedelete": "Suprimâ ôtomaticament pendent la fusion d’usanciérs",
+	"usermerge-page-unmoved": "La pâge $1 pôt pas étre dèplaciê vers $2.",
+	"usermerge-move-log": "Pâge dèplaciê ôtomaticament pendent la fusion de l’usanciér « [[User:$1|$1]] » en « [[User:$2|$2]] »"
+}

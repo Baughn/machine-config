@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Pyt"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1''' {{PLURAL:$1|[[Special:ConfirmAccounts|eepenen, E-Mail bestäätigden Benutserkontenandraach täift]]|[[Special:ConfirmAccounts|eepene, E-Mail bestäätigde Benutserkontenandraage täiwe]]}} ap Beoarbaidenge.",
+	"requestaccount-loginnotice": "Uum n näi Benutserkonto tou kriegen, moast du\nder uum '''[[{{ns:special}}:RequestAccount|fräigje]]'''."
+}

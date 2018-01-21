@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"EugeneZelenko",
+			"Jim-by",
+			"Wizardist",
+			"Zedlik"
+		]
+	},
+	"usercredentials": "Пасьведчаньні ўдзельніка",
+	"usercredentials-leg": "Пошук пацьверджаных пасьведчаньняў удзельніка",
+	"usercredentials-user": "Імя ўдзельніка:",
+	"usercredentials-text": "Ніжэй пададзеныя пацьверджаныя пасьведчаньні выбранага рахунку ўдзельніка.",
+	"usercredentials-leg-user": "Рахунак удзельніка",
+	"usercredentials-leg-areas": "Асноўныя вобласьці інтарэсаў",
+	"usercredentials-leg-person": "Асабістыя зьвесткі",
+	"usercredentials-leg-other": "Іншая інфармацыя",
+	"usercredentials-leg-ip": "IP-адрас",
+	"usercredentials-email": "Адрас электроннай пошты:",
+	"usercredentials-real": "Сапраўднае імя:",
+	"usercredentials-bio": "Біяграфія:",
+	"usercredentials-attach": "Рэзюмэ:",
+	"usercredentials-notes": "Дадатковая інфармацыя:",
+	"usercredentials-urls": "Сьпіс сайтаў:",
+	"usercredentials-ip": "Арыгінальны ІР-адрас:",
+	"usercredentials-xff": "Арыгінальны X-Forwarded-For:",
+	"usercredentials-agent": "Арыгінальны User-Agent:",
+	"usercredentials-member": "Правы:",
+	"usercredentials-badid": "Пасьведчаньні гэтага ўдзельніка ня знойдзеныя.\nПраверце, ці правільна напісана імя ўдзельніка."
+}

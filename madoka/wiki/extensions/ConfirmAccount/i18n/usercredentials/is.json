@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"S.Örvarr.S",
+			"Ævar Arnfjörð Bjarmason"
+		]
+	},
+	"usercredentials-user": "Notandanafn:",
+	"usercredentials-leg-user": "Aðgangur notanda",
+	"usercredentials-leg-areas": "Aðal áhugamál",
+	"usercredentials-leg-person": "Persónulegar upplýsingar",
+	"usercredentials-leg-other": "Aðrar upplýsingar",
+	"usercredentials-email": "Netfang:",
+	"usercredentials-real": "Raunverulegt nafn:",
+	"usercredentials-bio": "Sjálfsævisaga:",
+	"usercredentials-attach": "Ferilskrá:",
+	"usercredentials-notes": "Viðbótarskýring:",
+	"usercredentials-urls": "Listi yfir vefsíður:",
+	"usercredentials-ip": "Upprunalegt vistfang:",
+	"usercredentials-member": "Réttindi:"
+}

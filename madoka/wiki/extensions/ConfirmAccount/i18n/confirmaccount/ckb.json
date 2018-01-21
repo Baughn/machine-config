@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Calak",
+			"Sarchia"
+		]
+	},
+	"confirmaccount-leg-user": "ھەژماری بەکارھێنەر",
+	"confirmaccount-real": "ناو:",
+	"confirmaccount-noreason": "(ھیچ)",
+	"confirmaccount-ip": "ناونیشانی ئایپی:",
+	"confirmaccount-submit": "پشتدار بکەرەوە",
+	"confirmaccount-wsum": "بەخێربێی!"
+}

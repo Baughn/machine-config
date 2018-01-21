@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"Belekvor",
+			"Erdemaslancan",
+			"Mirzali"
+		]
+	},
+	"confirmaccounts": "Wazayışê hesabi araşt kerê",
+	"confirmaccount-real-q": "Name",
+	"confirmaccount-email-q": "E-posta",
+	"confirmaccount-bio-q": "Biyografiye",
+	"confirmaccount-review": "Çım berze cı",
+	"confirmaccount-type": "Grube:",
+	"confirmaccount-leg-ip": "Melumate IP adresi",
+	"confirmaccount-name": "Nameyê karberi",
+	"confirmaccount-real": "Name:",
+	"confirmaccount-email": "E-posta:",
+	"confirmaccount-reqtype": "Pozisyon:",
+	"confirmaccount-pos-0": "nuskar",
+	"confirmaccount-pos-1": "vurnkar",
+	"confirmaccount-bio": "Biyografiye:",
+	"confirmaccount-attach": "Ravêrdenacı/CV:",
+	"confirmaccount-noreason": "(çıniyo)",
+	"confirmaccount-hold": "Tepêş",
+	"confirmaccount-ip": "Adresa IPy:",
+	"confirmaccount-submit": "Tesdiq ke",
+	"confirmaccount-canthold": "Na qayıla şıma ya dard biya yana esteriyaya.",
+	"confirmaccount-wsum": "Xeyr amey!"
+}

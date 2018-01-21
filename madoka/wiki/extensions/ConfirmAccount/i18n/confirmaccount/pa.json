@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Aalam"
+		]
+	},
+	"confirmaccounts": "ਅਕਾਊਂਟ ਮੰਗ ਪੁਸ਼ਟੀ",
+	"confirmaccount-real-q": "ਨਾਂ",
+	"confirmaccount-email-q": "ਈਮੇਲ",
+	"confirmaccount-showopen": "ਮੰਗਾਂ ਖੋਲ੍ਹੋ",
+	"confirmaccount-showrej": "ਰੱਦ ਕੀਤੀਆਂ ਮੰਗਾਂ",
+	"confirmaccount-review": "ਝਲਕ",
+	"confirmaccount-type": "ਕਤਾਰ:"
+}

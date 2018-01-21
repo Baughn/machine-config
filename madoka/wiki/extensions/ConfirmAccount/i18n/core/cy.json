@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Lloffiwr"
+		]
+	},
+	"requestaccount-loginnotice": "I gael cyfrif defnyddiwr, rhaid i chi '''[[Special:RequestAccount|wneud cais am gyfrif]]'''.",
+	"right-confirmaccount": "Gweld [[Special:ConfirmAccounts|y ciw o'r ceisiadau am gyfrifon]]"
+}

@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michawiki"
+		]
+	},
+	"usercredentials": "Wósobinske pódaśa wužywarja",
+	"usercredentials-leg": "Pytanje jo wósobinske pódaśa wužywarja wobkšuśiło",
+	"usercredentials-user": "Wužywarske mě:",
+	"usercredentials-text": "Dołojce su wobkšuśone wósobinske pódaśa wubranego wužywarskego konta.",
+	"usercredentials-leg-user": "Wužywarske konto",
+	"usercredentials-leg-areas": "Głowne zajmowe wobcerki",
+	"usercredentials-leg-person": "Wósobinske informacije",
+	"usercredentials-leg-other": "Druge informacije",
+	"usercredentials-leg-ip": "Daty IP-adrese",
+	"usercredentials-email": "E-mail:",
+	"usercredentials-real": "Napšawdne mě:",
+	"usercredentials-bio": "Biografija:",
+	"usercredentials-attach": "Žywjenjoběg:",
+	"usercredentials-notes": "Pśidatne pśipiski:",
+	"usercredentials-urls": "Lisćina websedłow",
+	"usercredentials-ip": "Originalna IP-adresa:",
+	"usercredentials-xff": "Spócetny X-Forwarde-For:",
+	"usercredentials-agent": "Spócetny pśistupny program:",
+	"usercredentials-member": "Pšawa:",
+	"usercredentials-badid": "Za toś togo wužywarja njebuchu žedne wósobinske pódaśa namakane. Pśekontrolěruj, lěc te mě jo pšawje napisane."
+}

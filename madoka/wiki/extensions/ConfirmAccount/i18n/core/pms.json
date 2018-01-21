@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Borichèt",
+			"Bèrto 'd Sèra",
+			"Dragonòt"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1''' mëssagi ch'a speto [[Special:ConfirmAccounts|{{PLURAL:$1|d'arcesta ëd cont confermà|d'arceste ëd cont confermà}}]]. '''A-i é dabzògn ëd soa atension!'''",
+	"requestaccount-loginnotice": "Për deurb-se un sò cont utent, a venta '''[[Special:RequestAccount|ch<nowiki>'</nowiki>a në ciama un]]'''.",
+	"right-confirmaccount": "Vardé la [[Special:ConfirmAccounts|coa con ij cont ciamà]]",
+	"right-requestips": "Vardé j'adrësse IP dël ciamant durant ël tratament dij cont ciamà",
+	"right-lookupcredentials": "Visualisa [[Special:UserCredentials|credensiaj utent]]"
+}

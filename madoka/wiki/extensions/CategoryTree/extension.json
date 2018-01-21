@@ -1,0 +1,119 @@
+{
+	"name": "CategoryTree",
+	"author": "Daniel Kinzler",
+	"url": "https://www.mediawiki.org/wiki/Extension:CategoryTree",
+	"descriptionmsg": "categorytree-desc",
+	"license-name": "GPL-2.0+",
+	"type": "parserhook",
+	"ConfigRegistry": {
+		"categorytree": "GlobalVarConfig::newInstance"
+	},
+	"ExtensionFunctions": [
+		"CategoryTreeHooks::initialize"
+	],
+	"SpecialPages": {
+		"CategoryTree": "CategoryTreePage"
+	},
+	"APIModules": {
+		"categorytree": "ApiCategoryTree"
+	},
+	"MessagesDirs": {
+		"CategoryTree": [
+			"i18n"
+		]
+	},
+	"ExtensionMessagesFiles": {
+		"CategoryTreeAlias": "CategoryTree.alias.php",
+		"CategoryTreeMagic": "CategoryTree.i18n.magic.php"
+	},
+	"AutoloadClasses": {
+		"CategoryTreePage": "CategoryTreePage.php",
+		"CategoryTree": "CategoryTreeFunctions.php",
+		"CategoryTreeCategoryPage": "CategoryPageSubclass.php",
+		"CategoryTreeCategoryViewer": "CategoryPageSubclass.php",
+		"CategoryTreeHooks": "CategoryTree.hooks.php",
+		"CategoryTreeMode": "CategoryTreeMode.php",
+		"CategoryTreeHidePrefix": "CategoryTreeHidePrefix.php",
+		"ApiCategoryTree": "ApiCategoryTree.php"
+	},
+	"ResourceModules": {
+		"ext.categoryTree": {
+			"scripts": "ext.categoryTree.js",
+			"messages": [
+				"categorytree-collapse",
+				"categorytree-expand",
+				"categorytree-collapse-bullet",
+				"categorytree-expand-bullet",
+				"categorytree-load",
+				"categorytree-loading",
+				"categorytree-nothing-found",
+				"categorytree-no-subcategories",
+				"categorytree-no-parent-categories",
+				"categorytree-no-pages",
+				"categorytree-error",
+				"categorytree-retry"
+			]
+		},
+		"ext.categoryTree.css": {
+			"position": "top",
+			"styles": "ext.categoryTree.css"
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "modules",
+		"remoteExtPath": "CategoryTree/modules"
+	},
+	"Hooks": {
+		"ArticleFromTitle": [
+			"CategoryTreeHooks::articleFromTitle"
+		]
+	},
+	"config": {
+		"CategoryTreeMaxChildren": 200,
+		"CategoryTreeAllowTag": true,
+		"CategoryTreeDisableCache": 21600,
+		"CategoryTreeHTTPCache": false,
+		"CategoryTreeMaxDepth": {
+			"10": 1,
+			"20": 1,
+			"0": 2
+		},
+		"CategoryTreeForceHeaders": false,
+		"CategoryTreeSidebarRoot": null,
+		"CategoryTreeHijackPageCategories": false,
+		"CategoryTreeUseCategoryTable": true,
+		"CategoryTreeOmitNamespace": 20,
+		"CategoryTreeDefaultMode": 0,
+		"CategoryTreeDefaultOptions": {
+			"mode": null,
+			"hideprefix": null,
+			"showcount": false,
+			"namespaces": false
+		},
+		"CategoryTreeCategoryPageMode": 0,
+		"CategoryTreeCategoryPageOptions": {
+			"mode": null,
+			"showcount": true
+		},
+		"CategoryTreeSpecialPageOptions": {
+			"showcount": true
+		},
+		"CategoryTreeSidebarOptions": {
+			"mode": 0,
+			"hideprefix": 20,
+			"showcount": false,
+			"hideroot": true,
+			"namespaces": false,
+			"depth": 1
+		},
+		"CategoryTreePageCategoryOptions": {
+			"mode": 100,
+			"hideprefix": 20,
+			"showcount": false,
+			"hideroot": false,
+			"namespaces": false,
+			"depth": 0
+		}
+	},
+	"manifest_version": 1
+}

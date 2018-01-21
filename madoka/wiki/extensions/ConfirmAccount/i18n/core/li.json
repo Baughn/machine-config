@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Pahles"
+		]
+	},
+	"confirmaccount-newrequests": "Dao {{PLURAL:$1|steit|stoon}} '''$1''' [[Special:ConfirmAccounts|{{PLURAL:$1|gebroekersaanvraog|gebroekersaanvraoge}}]] aope. '''Dien aandach is nujig!'''",
+	"requestaccount-loginnotice": "Um 'n gebroekersaccount te kriege mós te '''[[Special:RequestAccount|'ne aanvraog doon]]'''",
+	"right-confirmaccount": "[[Special:CorfirmAccounts|Wachrie mit gebroekersaanvraoge]] betrachte",
+	"right-requestips": "De IP-adresse van aanvraogers betrachte bie 't verwirke van gebroekersaanvraage",
+	"right-lookupcredentials": "[[Special:UserCredentials|Gebroekersreferenties]] betrachte"
+}

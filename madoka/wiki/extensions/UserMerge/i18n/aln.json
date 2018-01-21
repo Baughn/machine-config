@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Mdupont"
+		]
+	},
+	"usermerge": "Përziej dhe fshini përdoruesit",
+	"usermerge-desc": "[[Special:UserMerge|referencat bashkohet nga një user në një përdorues tjetër]] në bazën e të dhënave wiki - do të fshini gjithashtu përdoruesit e vjetër pas bashkohen. Kërkon''''usermerge privilegje",
+	"usermerge-badolduser": "emrin e pavlefshme të vjetra",
+	"usermerge-badnewuser": "emrin e pavlefshme të reja",
+	"usermerge-nonewuser": "Bosh emrin e re - duke supozuar të bashkohen për të \"\" $1 \". <br /> Kliko \"{{int:usermerge-submit}}\" për të pranuar.",
+	"usermerge-noolduser": "Bosh emrin e vjetër",
+	"usermerge-fieldset": "Emr të bashkojë",
+	"usermerge-olduser": "përdorues Vjetër (bashkojë nga):",
+	"usermerge-newuser": "Përdorues i ri (të bashkohen për të):",
+	"usermerge-deleteolduser": "Fshi përdorues i vjetër",
+	"usermerge-submit": "Merge përdorues",
+	"usermerge-badtoken": "Pavlefshme redakto shenjë",
+	"usermerge-userdeleted": "$1 ($2) është fshirë.",
+	"usermerge-userdeleted-log": "përdorues Deleted: $2 ($3)",
+	"usermerge-success": "Merge nga $1 ($2) për $3 ($4), është i kompletuar.",
+	"usermerge-success-log": "User $2 ($3) bashkohen në $4 ($5)",
+	"usermerge-logpage": "Përdoruesi bashkojë log",
+	"usermerge-logpagetext": "Ky është një regjistër i përdoruesit bashkojë veprimet.",
+	"usermerge-noselfdelete": "Ju nuk mund të fshini ose përpuqni nga vetë!",
+	"usermerge-protectedgroup": "Në pamundësi për të bashkuar nga përdoruesi - user është në një grup të mbrojtura.",
+	"right-usermerge": "Merge përdoruesit"
+}

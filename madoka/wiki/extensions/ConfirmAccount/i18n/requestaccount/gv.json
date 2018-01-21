@@ -1,0 +1,16 @@
+{
+	"@metadata": {
+		"authors": [
+			"MacTire02"
+		]
+	},
+	"requestaccount-leg-user": "Coontys yn ymmydeyr",
+	"requestaccount-leg-person": "Oayllys persoonagh",
+	"requestaccount-leg-other": "Oayllys elley",
+	"requestaccount-real": "Feer-ennym:",
+	"requestaccount-email": "Enmys post-L:",
+	"requestaccount-level-0": "ughtar",
+	"requestaccount-level-1": "reagheyder",
+	"requestaccount-bio": "Beashnys persoonagh:",
+	"requestaccount-notes": "Noteyn elley:"
+}

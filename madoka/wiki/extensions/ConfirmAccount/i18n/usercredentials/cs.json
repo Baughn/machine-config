@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"Jkjk",
+			"Li-sung",
+			"Matěj Grabovský",
+			"Mormegil",
+			"Vks"
+		]
+	},
+	"usercredentials": "Osobní údaje uživatele",
+	"usercredentials-user": "Uživatelské jméno:",
+	"usercredentials-leg-user": "Uživatelský účet",
+	"usercredentials-leg-areas": "Hlavní oblasti zájmu",
+	"usercredentials-leg-person": "Osobní informace",
+	"usercredentials-leg-other": "Další informace",
+	"usercredentials-email": "E-mail:",
+	"usercredentials-real": "Skutečné jméno:",
+	"usercredentials-bio": "Biografie:",
+	"usercredentials-attach": "Životopis:",
+	"usercredentials-notes": "Další poznámky:",
+	"usercredentials-urls": "Seznam webových stránek:",
+	"usercredentials-ip": "Původní IP adresa:",
+	"usercredentials-member": "Práva:"
+}

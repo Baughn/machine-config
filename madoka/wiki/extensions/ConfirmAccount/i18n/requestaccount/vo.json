@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"Malafaya",
+			"Smeira"
+		]
+	},
+	"requestaccount": "Begön kali",
+	"requestaccount-dup": "'''Demolös: Ya enunädol oli me kal peregistaröl.'''",
+	"requestaccount-leg-user": "Gebanakal",
+	"requestaccount-leg-person": "Nüns pösodik",
+	"requestaccount-leg-other": "Nüns votik",
+	"requestaccount-real": "Nem jenöfik:",
+	"requestaccount-same": "(nem ot äs nem jenöfik)",
+	"requestaccount-email": "Ladet leäktronik:",
+	"requestaccount-reqtype": "Staned:",
+	"requestaccount-level-0": "lautan",
+	"requestaccount-bio": "Lifajenäd pösodik:",
+	"requestaccount-notes": "Noets pluik:",
+	"requestaccount-tooshort": "Lifajenäd olik muton labön {{PLURAL:$1|vodi|vodis}} pu $1.",
+	"requestaccount-submit": "Begön kali"
+}

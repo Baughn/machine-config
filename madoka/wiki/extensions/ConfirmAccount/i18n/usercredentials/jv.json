@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Meursault2004",
+			"Pras",
+			"NoiX180"
+		]
+	},
+	"usercredentials-user": "Jeneng panganggo:",
+	"usercredentials-leg-user": "Rékening panganggo",
+	"usercredentials-leg-person": "Katérangan priangga",
+	"usercredentials-leg-other": "Informasi liya",
+	"usercredentials-email": "E-mail:",
+	"usercredentials-real": "Jeneng asli:",
+	"usercredentials-bio": "Biografi:",
+	"usercredentials-attach": "Résumé/CV:",
+	"usercredentials-notes": "Cathetan tambahan:",
+	"usercredentials-urls": "Daftar situs-situs wèb:",
+	"usercredentials-ip": "Alamat IP asli:",
+	"usercredentials-member": "Hak-hak:"
+}

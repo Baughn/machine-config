@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Aram1985"
+		]
+	},
+	"googlelogin-manage-isplusser": "Գրանցված է Google Plus-ոմ",
+	"googlelogin-manage-orgname": "Կազմակերպության անվանում",
+	"googlelogin-manage-orgsince": "Մինչ",
+	"googlelogin-manage-yes": "Այո՛",
+	"googlelogin-manage-no": "ո՛չ",
+	"googlelogin-manage-errorloading": "Բեռնման սխալ"
+}

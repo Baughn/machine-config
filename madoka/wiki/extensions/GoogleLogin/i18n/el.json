@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Geraki",
+			"Stam.nikos"
+		]
+	},
+	"googlelogin-login-already-registered": "Έχω ήδη ένα λογαριασμό {{SITENAME}}",
+	"googlelogin-prefs-status": "GoogleLogin κατάσταση:",
+	"tag-googlelogin": "[[Special:GoogleLogin|GoogleLogin]]",
+	"tag-googlelogin-description": "Εγγραφές με αυτό το tag έγιναν με το [[Special:GoogleLogin|GoogleLogin]]"
+}

@@ -1,0 +1,36 @@
+{
+	"@metadata": {
+		"authors": [
+			"BeginaFelicysym",
+			"Derbeth",
+			"Equadus",
+			"Leinad",
+			"Maikking",
+			"Masti",
+			"McMonster",
+			"Sp5uhe",
+			"ToSter",
+			"Wpedzich"
+		]
+	},
+	"usercredentials": "Uprawnienia użytkownika",
+	"usercredentials-leg": "Podejrzyj zatwierdzone informacje uwierzytelniające dotyczące użytkownika",
+	"usercredentials-user": "Nazwa użytkownika:",
+	"usercredentials-text": "Poniżej znajdują się zatwierdzone informacje uwierzytelniające na temat wybranego użytkownika.",
+	"usercredentials-leg-user": "Konto użytkownika",
+	"usercredentials-leg-areas": "Główne obszary zainteresowań",
+	"usercredentials-leg-person": "Informacje osobiste",
+	"usercredentials-leg-other": "Inne informacje",
+	"usercredentials-leg-ip": "dane adresu IP",
+	"usercredentials-email": "Adres e‐mail",
+	"usercredentials-real": "Imię i nazwisko:",
+	"usercredentials-bio": "Biografia:",
+	"usercredentials-attach": "Życiorys:",
+	"usercredentials-notes": "Dodatkowe informacje:",
+	"usercredentials-urls": "Wykaz witryn:",
+	"usercredentials-ip": "Oryginalny adres IP:",
+	"usercredentials-xff": "Oryginalny X-Forwarded-For:",
+	"usercredentials-agent": "Oryginalna przeglądarka:",
+	"usercredentials-member": "Prawa:",
+	"usercredentials-badid": "Nie znaleziono informacji uwierzytelniających na temat tego użytkownika.\nSprawdź, czy prawidłowo wpisałeś nazwę konta."
+}

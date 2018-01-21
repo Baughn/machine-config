@@ -1,0 +1,39 @@
+{
+	"@metadata": {
+		"authors": [
+			"Das Schäfchen",
+			"Kghbln",
+			"Lukas9950",
+			"Metalhead64",
+			"Purodha",
+			"Raimond Spekking",
+			"Umherirrender"
+		]
+	},
+	"usermerge": "Benutzerkonten zusammenführen und löschen",
+	"usermerge-desc": "[[Special:UserMerge|Führt Referenzen von einem Benutzer zu einem anderen in der Wikidatenbank zusammen]] und löscht auch die folgende Zusammenführung alter Benutzer. Erfordert das ''usermerge''-Recht.",
+	"usermerge-badolduser": "Ungültiger alter Benutzername",
+	"usermerge-badnewuser": "Ungültiger neuer Benutzername",
+	"usermerge-nonewuser": "Es wurde kein neuer Benutzername angegeben. Daher wird eine Zusammenführung mit „{{GENDER:$1|$1}}“ angenommen.<br />\nZum Ausführen auf „{{int:usermerge-submit}}“ klicken.",
+	"usermerge-noolduser": "Es wurde kein neuer Benutzername angegeben.",
+	"usermerge-same-old-and-new-user": "Die alten und neuen Benutzernamen müssen unterschiedlich sein.",
+	"usermerge-fieldset": "Benutzernamen zum Zusammenführen",
+	"usermerge-olduser": "Alter Benutzername (zusammenführen von):",
+	"usermerge-newuser": "Neuer Benutzername (zusammenführen nach):",
+	"usermerge-deleteolduser": "Alten Benutzernamen löschen",
+	"usermerge-submit": "Benutzerkonten zusammenführen",
+	"usermerge-badtoken": "Ungültiges Bearbeitungstoken",
+	"usermerge-userdeleted": "„{{GENDER:$1|$1}}“ ($2) wurde gelöscht.",
+	"usermerge-userdeleted-log": "hat „$2“ ($3) gelöscht",
+	"usermerge-success": "Die Zusammenführung von „{{GENDER:$1|$1}}“ ($2) nach „{{GENDER:$3|$3}}“ ($4) war erfolgreich.",
+	"usermerge-success-log": "hat „{{GENDER:$2|$2}}“ ($3) mit „{{GENDER:$4|$4}}“ ($5) zusammengeführt",
+	"usermerge-logpage": "Benutzerkontenzusammenführungs-Logbuch",
+	"usermerge-logpagetext": "Dies ist das Logbuch der Benutzerkontenzusammenführungen.",
+	"usermerge-noselfdelete": "Die Zusammenführung mit {{GENDER:$1|sich selbst}} ist nicht möglich.",
+	"usermerge-protectedgroup": "Die Zusammenführung ist nicht möglich: {{GENDER:$1|Der Benutzer|Die Benutzerin}} befindet sich in einer geschützten Gruppe.",
+	"right-usermerge": "Benutzerkonten zusammenführen",
+	"action-usermerge": "Benutzer zusammenzuführen",
+	"usermerge-autopagedelete": "Automatisch während der Benutzerkontenzusammenführung gelöscht",
+	"usermerge-page-unmoved": "Die Seite „$1“ konnte nicht nach „$2“ verschoben werden.",
+	"usermerge-move-log": "Seite während der Benutzerkontenzusammenführung von „[[User:$1|$1]]“ nach „[[User:$2|{{GENDER:$2|$2}}]]“ automatisch verschoben"
+}

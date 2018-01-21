@@ -1,0 +1,18 @@
+{
+	"@metadata": {
+		"authors": [
+			"Beta16",
+			"Darth Kule",
+			"Melos",
+			"Pietrodn",
+			"Stefano-c",
+			"Giacomo Checchin"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1''' email per conferma [[Special:ConfirmAccounts|utenze {{PLURAL:$1|è|sono}} in attesa]]. '''È necessaria la tua attenzione!'''",
+	"requestaccount-loginnotice": "Per ottenere un'utenza, è necessario '''[[Special:RequestAccount|richiederne una]]'''.",
+	"right-confirmaccount": "Visualizza la [[Special:ConfirmAccounts|coda delle utenze richieste]]",
+	"right-requestips": "Visualizza gli indirizzi IP del richiedente mentre processa le utenze richieste",
+	"right-lookupcredentials": "Visualizza [[Special:UserCredentials|credenziali utente]]",
+	"action-confirmaccount": "rivedere ed accettare le utenze"
+}

@@ -1,0 +1,35 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kwj2772",
+			"아라",
+			"Hwangjy9"
+		]
+	},
+	"usermerge": "사용자 합치기 및 삭제",
+	"usermerge-desc": "위키 데이터베이스에서 [[Special:UserMerge|참고한 한 사용자에서 다른 사용자로 합치며]], 합치고 나서 이에 따라 이전 사용자는 삭제됩니다. '''usermerge''' 권한 필요",
+	"usermerge-badolduser": "잘못된 이전 사용자 이름입니다.",
+	"usermerge-badnewuser": "잘못된 새 사용자 이름입니다.",
+	"usermerge-nonewuser": "빈 새 사용자 이름입니다. \"{{GENDER:$1|$1}}\"(으)로 가정하여 합칩니다.<br />\n동의하면 \"{{int:usermerge-submit}}\"을 클릭하세요.",
+	"usermerge-noolduser": "이전 사용자 이름이 비어 있음",
+	"usermerge-same-old-and-new-user": "이전과 새 사용자 이름은 달라야 합니다.",
+	"usermerge-fieldset": "사용자 이름 합치기",
+	"usermerge-olduser": "(합쳐질) 이전 사용자:",
+	"usermerge-newuser": "(합칠) 새 사용자:",
+	"usermerge-deleteolduser": "이전 사용자를 삭제하기",
+	"usermerge-submit": "사용자 합치기",
+	"usermerge-badtoken": "잘못된 편집 토큰",
+	"usermerge-userdeleted": "{{GENDER:$1|$1}} ($2)님이 삭제되었습니다.",
+	"usermerge-userdeleted-log": "님이 사용자: $2 ($3) 계정을 삭제했습니다",
+	"usermerge-success": "{{GENDER:$1|$1}} ($2)님을 {{GENDER:$3|$3}} ($4)에 합치는 것을 완료했습니다.",
+	"usermerge-success-log": "님이 {{GENDER:$2|$2}} ($3) 사용자를 {{GENDER:$4|$4}} ($5) 계정으로 합쳤습니다",
+	"usermerge-logpage": "사용자 병합 기록",
+	"usermerge-logpagetext": "사용자 병합 동작의 기록입니다.",
+	"usermerge-noselfdelete": "{{GENDER:$1|자신}}으로부터 삭제나 합치기를 할 수 없습니다!",
+	"usermerge-protectedgroup": "{{GENDER:$1|사용자}}로부터 합칠 수 없습니다: 사용자는 보호된 그룹에 있습니다.",
+	"right-usermerge": "사용자 합치기",
+	"action-usermerge": "사용자 합치기",
+	"usermerge-autopagedelete": "사용자를 합칠 때 자동으로 삭제했습니다",
+	"usermerge-page-unmoved": "$1 문서를 $2 문서로 이동하지 못했습니다.",
+	"usermerge-move-log": "\"[[User:$1|$1]]\" 사용자를 \"[[User:$2|{{GENDER:$2|$2}}]]\"(으)로 합치면서 문서를 자동으로 이동했습니다"
+}

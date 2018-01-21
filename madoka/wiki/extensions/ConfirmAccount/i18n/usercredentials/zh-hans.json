@@ -1,0 +1,32 @@
+{
+	"@metadata": {
+		"authors": [
+			"Chenxiaoqino",
+			"Hydra",
+			"Kuailong",
+			"Mark85296341",
+			"Wilsonmess",
+			"Yfdyh000"
+		]
+	},
+	"usercredentials": "用户资格",
+	"usercredentials-leg": "查找已验证的用户资格",
+	"usercredentials-user": "用户名：",
+	"usercredentials-text": "下面是已选中用户的有效资格。",
+	"usercredentials-leg-user": "用户账户",
+	"usercredentials-leg-areas": "主要的兴趣范围",
+	"usercredentials-leg-person": "个人信息",
+	"usercredentials-leg-other": "其他信息",
+	"usercredentials-leg-ip": "IP地址数据",
+	"usercredentials-email": "电子邮件：",
+	"usercredentials-real": "真实姓名：",
+	"usercredentials-bio": "个人简介：",
+	"usercredentials-attach": "简历或履历：",
+	"usercredentials-notes": "附加注解:",
+	"usercredentials-urls": "网站列表:",
+	"usercredentials-ip": "原始IP地址：",
+	"usercredentials-xff": "原始 X-Forwarded-For:",
+	"usercredentials-agent": "原始 User-Agent:",
+	"usercredentials-member": "权限：",
+	"usercredentials-badid": "没有凭据找到该用户。\n检查名称拼写是否正确。"
+}

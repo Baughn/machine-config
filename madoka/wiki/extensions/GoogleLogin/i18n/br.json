@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"Y-M D",
+			"Fohanno",
+			"Macofe"
+		]
+	},
+	"googlelogin": "Kevreañ gant Google",
+	"googlelogin-generic-error": "Hopopop, ur fazi a oa. Distroit, mar plij, hag easaeit en-dro. Kemennadenn : $1",
+	"googlelogin-createnotallowed": "N'oc'h ket aotreet da grouiñ ur gont nevez gant GoogleLogin.",
+	"googlelogin-form-choosename-title": "Dibab an anv implijer",
+	"googlelogin-form-choosename": "Choazit hoc'h anv implijer evit krouiñ ur gont wiki, mar plij",
+	"googlelogin-form-choosename-finish-title": "Krouiñ ur gont wiki",
+	"googlelogin-form-choosename-error": "Ret eo deoc'h choaz un anv implijer pe choaz unan eus ar re a ginnigomp deoc'h.",
+	"googlelogin-form-choosename-existerror": "En implij emañ an anv implijer ''$1'' dija, choazit unan all, mar plij.",
+	"googlelogin-form-merge-title": "Liammañ kont an implijer",
+	"googlelogin-form-logout": "Kevreañ gant ur gont Google all",
+	"googlelogin-form-backlink": "Distreiñ d'ar c'hevreañ Google",
+	"googlelogin-email": "Chomlec'h postel",
+	"googlelogin-googleuser": "Implijer Google",
+	"googlelogin-information-title": "Titouroù diwar-benn ar gont",
+	"googlelogin-linkstatus": "Statud al liamm",
+	"googlelogin-linked": "liammet",
+	"googlelogin-or": "pe",
+	"googlelogin-unlinked": "n'eo ket liammet",
+	"googlelogin-success-merge": "Bremañ eo liammet ho kont wiki ouzh ho kont Google.",
+	"googlelogin-success-unlink": "Gourc'hemennoù deoc'h ! N'eo ket liammet ken ho kont wiki ouzh ho kont Google.",
+	"googlelogin-prefs-status": "Statud GoogleLogin :"
+}

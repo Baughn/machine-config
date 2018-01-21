@@ -1,0 +1,39 @@
+{
+	"@metadata": {
+		"authors": [
+			"Jopparn",
+			"Lejonel",
+			"Lokal Profil",
+			"Martinwiss",
+			"Micke",
+			"Sannab",
+			"WikiPhoenix"
+		]
+	},
+	"usermerge": "Slå ihop och radera användarkonton",
+	"usermerge-desc": "Ger möjlighet att [[Special:UserMerge|slå samman användarkonton]] genom att alla referenser till en användare byts ut till en annan användare i databasen, samt att efter sammanslagning radera gamla konton. Kräver behörigheten ''usermerge''.",
+	"usermerge-badolduser": "Ogiltigt gammalt användarnamn",
+	"usermerge-badnewuser": "Ogiltigt nytt användarnamn",
+	"usermerge-nonewuser": "Tomt nytt användarnamn. Antar sammanslagning till \"{{GENDER:$1|$1}}\".<br />\nKlicka på \"{{int:usermerge-submit}}\" för att godkänna.",
+	"usermerge-noolduser": "Gammalt användarnamn tomt",
+	"usermerge-same-old-and-new-user": "De gamla och nya användarnamnen måste vara åtskilda.",
+	"usermerge-fieldset": "Användarnamn att förena",
+	"usermerge-olduser": "Gammalt användarnamn (slå ihop från)",
+	"usermerge-newuser": "Nytt användarnamn (slå ihop till)",
+	"usermerge-deleteolduser": "Ta bort den gamla användaren",
+	"usermerge-submit": "Förena konton",
+	"usermerge-badtoken": "Ogiltigt redigeringstecken",
+	"usermerge-userdeleted": "{{GENDER:$1|$1}} ($2) har raderats.",
+	"usermerge-userdeleted-log": "Raderad användare: $2 ($3)",
+	"usermerge-success": "Sammanslagning från {{GENDER:$1|$1}} ($2) till {{GENDER:$3|$3}} ($4) är slutfört.",
+	"usermerge-success-log": "Användare {{GENDER:$2|$2}} ($3) slogs samman med {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Användarsammanslagningslogg",
+	"usermerge-logpagetext": "Det här är en logg över sammanslagningar av användarkonton.",
+	"usermerge-noselfdelete": "Du kan inte radera eller slå samman {{GENDER:$1|ditt}} eget konto!",
+	"usermerge-protectedgroup": "Kan inte sammanfoga från {{GENDER:$1|användaren}}: Användaren är medlem i en skyddad användargrupp.",
+	"right-usermerge": "Slå ihop användarkonton",
+	"action-usermerge": "slå ihop användarkonton",
+	"usermerge-autopagedelete": "Ta bort automatiskt när användare slås ihop",
+	"usermerge-page-unmoved": "Sidan $1 kan inte tas bort till $2",
+	"usermerge-move-log": "Ta automatiskt bort sidan när du slår ihop användare \"[[User:$1|$1]]\" med \"[[User:$2|{{GENDER:$2|$2}}]]\""
+}

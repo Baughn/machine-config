@@ -1,0 +1,33 @@
+{
+	"@metadata": {
+		"authors": [
+			"Meno25",
+			"OsamaK",
+			"روخو",
+			"محمد أحمد عبد الفتاح"
+		]
+	},
+	"usermerge": "دمج وحذف المستخدمين",
+	"usermerge-desc": "[[Special:UserMerge|يدمج المراجع من مستخدم إلى آخر]] في قاعدة بيانات الويكي - سيحذف أيضا المستخدمين القدامى بعد الدمج. يتطلب صلاحيات ''usermerge''",
+	"usermerge-badolduser": "اسم المستخدم القديم غير صحيح",
+	"usermerge-badnewuser": "اسم المستخدم الجديد غير صحيح",
+	"usermerge-nonewuser": "اسم مستخدم جديد فارغ - افتراض الدمج إلى \"$1\".<br />\nاضغط \"{{int:usermerge-submit}}\" للقبول.",
+	"usermerge-noolduser": "اسم المستخدم القديم فارغ",
+	"usermerge-fieldset": "أسماء المستخدمين للدمج",
+	"usermerge-olduser": "مستخدم قديم (دمج من):",
+	"usermerge-newuser": "مستخدم جديد (دمج إلى):",
+	"usermerge-deleteolduser": "حذف المستخدم القديم",
+	"usermerge-submit": "دمج المستخدم",
+	"usermerge-badtoken": "نص تعديل غير صحيح",
+	"usermerge-userdeleted": "$1($2) تم حذفه.",
+	"usermerge-userdeleted-log": "حذف المستخدم: $2($3)",
+	"usermerge-success": "الدمج من $1($2) إلى $3($4) اكتمل.",
+	"usermerge-success-log": "المستخدم $2($3) تم دمجه مع $4($5)",
+	"usermerge-logpage": "سجل دمج المستخدم",
+	"usermerge-logpagetext": "هذا سجل بأفعال دمج المستخدمين.",
+	"usermerge-noselfdelete": "لا يمكنك حذف أو دمج من نفسك!",
+	"usermerge-protectedgroup": "غير قادر على الدمج من المستخدم - المستخدم في مجموعة محمية.",
+	"right-usermerge": "دمج المستخدمين",
+	"action-usermerge": "دمج المستخدمين",
+	"usermerge-page-unmoved": "تعذر نقل الصفحة $1 إلى $2."
+}

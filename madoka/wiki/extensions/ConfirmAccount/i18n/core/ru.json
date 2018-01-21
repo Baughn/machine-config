@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ferrer",
+			"Ignatus",
+			"Kaganer",
+			"Kv75",
+			"Lockal",
+			"MaxSem",
+			"Rubin",
+			"Sasha Blashenkov",
+			"Александр Сигачёв",
+			"Okras"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1''' {{PLURAL:$1|заявка|заявок|заявки}} на создание учётной записи с подтверждённым адресом эл. почты [[Special:ConfirmAccounts|{{PLURAL:$1|ожидает рассмотрения|ожидают рассмотрения}}]]. '''Требуется ваше внимание!'''",
+	"requestaccount-loginnotice": "Чтобы получить учётную запись, вы должны её [[Special:RequestAccount|запросить]].",
+	"right-confirmaccount": "просмотр [[Special:ConfirmAccounts|запросов на создание учётных записей]]",
+	"right-requestips": "Просмотр IP-адресов авторов запросов на создание учётных записей",
+	"right-lookupcredentials": "просмотр [[Special:UserCredentials|удостоверяющей информации об участниках]]",
+	"action-confirmaccount": "проверку и принятие учётных записей"
+}

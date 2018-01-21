@@ -1,0 +1,15 @@
+{
+	"@metadata": {
+		"authors": [
+			"Crazymadlover",
+			"Omnipaedista"
+		]
+	},
+	"requestaccount-leg-user": "Λογισμός χρωμένου",
+	"requestaccount-real": "ἀληθὲς ὄνομα:",
+	"requestaccount-email": "Ἡλεκτρονικὴ διεύθυνσις:",
+	"requestaccount-reqtype": "Θέσις:",
+	"requestaccount-level-0": "δημιουργός",
+	"requestaccount-level-1": "μεταγραφεύς",
+	"requestaccount-attach": "Βιογραφικόν (προαιρετικόν):"
+}

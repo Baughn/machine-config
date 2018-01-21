@@ -1,0 +1,35 @@
+{
+	"@metadata": {
+		"authors": [
+			"S.Örvarr.S",
+			"Snævar",
+			"Ævar Arnfjörð Bjarmason",
+			"Macofe",
+			"Sveinki"
+		]
+	},
+	"requestaccount": "Sækja um aðgang",
+	"requestaccount-leg-user": "Aðgangur notanda",
+	"requestaccount-leg-areas": "Aðal áhugamál",
+	"requestaccount-leg-person": "Persónulegar upplýsingar",
+	"requestaccount-leg-other": "Aðrar upplýsingar",
+	"requestaccount-real": "Raunverulegt nafn:",
+	"requestaccount-same": "(fyllt út hér fyrir neðan)",
+	"requestaccount-email": "Netfang:",
+	"requestaccount-reqtype": "Staða:",
+	"requestaccount-level-0": "höfundur",
+	"requestaccount-level-1": "ritstjóri",
+	"requestaccount-bio": "Sjálfsævisaga:",
+	"requestaccount-attach": "Ferilskrá (valfrjálst):",
+	"requestaccount-notes": "Viðbótarskýring:",
+	"requestaccount-urls": "Listi yfir vefsíður, ef einhverjar (aðskildu með línum):",
+	"requestaccount-tooshort": "Notandaupplýsingarnar þínar þurfa í minnsta lagi að vera $1 {{PLURAL:$1|orð}} að lengd.",
+	"requestaccount-submit": "Sækja um aðgang",
+	"requestaccount-sent": "Beðni þín um aðgang var móttekin og bíður nú yfirferðar hjá stjórnendum. Staðfestingarpóstur var sendur á netfangið þitt.",
+	"requestaccount-econf": "Netfangið þitt hefur verið staðfest og mun vera listað sem slíkt meðal aðgangsbeðna.",
+	"requestaccount-email-subj": "{{SITENAME}} netfangs-staðfesting",
+	"requestaccount-email-body": "Einhver með vistfangið „$1“ hefur beðið um að búa til aðganginn „$2“ með þessu netfangi á {{SITENAME}} vefnum.\n\nTil að steðfesta að þú viljir búa til þennan aðgang á {{SITENAME}} þarftu að opna þennan tengil í vafranum þínum:\n\n$3\n\nÞér verður sent lykilorð í pósti verði aðgangurinn búinn til. Þessi staðfestingarpóstur rennur út $4.",
+	"requestaccount-email-subj-admin": "Beðni um notanda a {{SITENAME}}",
+	"requestaccount-email-body-admin": "$1 hefur beðið um aðgang að sem bíður staðfestingar, notandinn hefur þegar staðfest netfangið sitt.\n\nÞú getur staðfest beðnina hér:\n\n$2",
+	"acct_request_throttle_hit": "Þú hefur þegar sótt um $1 {{PLURAL:$1|aðgang|aðganga}}. Þú getur ekki sent inn fleiri beðnir."
+}

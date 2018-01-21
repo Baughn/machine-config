@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"Умар"
+		]
+	},
+	"confirmaccount-real-q": "ЦӀе",
+	"confirmaccount-email-q": "Электронан пошт",
+	"confirmaccount-bio-q": "Биографи",
+	"confirmaccount-showopen": "делина дехарш",
+	"confirmaccount-showrej": "юхадаьхна дехарш",
+	"confirmaccount-showexp": "шира делла дехарш",
+	"confirmaccount-review": "Хьажар",
+	"confirmaccount-all": "(гайта ерриге рогӀехь)",
+	"confirmaccount-type": "Хаьржина рогӀе:",
+	"confirmaccount-type-0": "хира болу автораш",
+	"confirmaccount-type-1": "хира болу автораш",
+	"confirmaccount-q-open": "делина дехарш",
+	"confirmaccount-name": "Декъашхочун цӀе",
+	"confirmaccount-real": "ЦӀе:",
+	"confirmaccount-email": "Электронан пошт:",
+	"confirmaccount-reqtype": "Дарж:",
+	"confirmaccount-pos-0": "автор",
+	"confirmaccount-pos-1": "тадар",
+	"confirmaccount-withcv": "(цуьнах лацар билгалдош далош ду)",
+	"confirmaccount-noreason": "(яц)",
+	"confirmaccount-submit": "Бакъдан",
+	"confirmaccount-wsum": "Марша догӀийла!",
+	"confirmaccount-email-subj": "{{SITENAME}} дӀаяздар дехар"
+}

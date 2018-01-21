@@ -1,0 +1,18 @@
+{
+	"@metadata": {
+		"authors": [
+			"Omnipaedista",
+			"SPQRobin",
+			"UV"
+		]
+	},
+	"usercredentials-user": "Nomen usoris:",
+	"usercredentials-leg-user": "Ratio usoris:",
+	"usercredentials-email": "Litterae electronicae:",
+	"usercredentials-real": "Nomen verum:",
+	"usercredentials-bio": "Biographia:",
+	"usercredentials-attach": "Curriculum vitae:",
+	"usercredentials-notes": "Notae addititiae:",
+	"usercredentials-ip": "Locus IP originalis:",
+	"usercredentials-member": "Potestates:"
+}

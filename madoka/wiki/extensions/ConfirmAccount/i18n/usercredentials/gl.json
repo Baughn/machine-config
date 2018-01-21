@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"Alma",
+			"Elisardojm",
+			"Toliño",
+			"Xosé"
+		]
+	},
+	"usercredentials": "Credenciais do usuario",
+	"usercredentials-leg": "Verificar as credenciais confirmadas dun usuario",
+	"usercredentials-user": "Nome de usuario:",
+	"usercredentials-text": "A continuación están as credenciais validadas das contas de usuario seleccionadas.",
+	"usercredentials-leg-user": "Conta de usuario",
+	"usercredentials-leg-areas": "Principais áreas de interese",
+	"usercredentials-leg-person": "Información persoal",
+	"usercredentials-leg-other": "Outra información:",
+	"usercredentials-leg-ip": "Datos do enderezo IP",
+	"usercredentials-email": "Correo electrónico:",
+	"usercredentials-real": "Nome real:",
+	"usercredentials-bio": "Biografía:",
+	"usercredentials-attach": "Currículo/CV:",
+	"usercredentials-notes": "Notas adicionais:",
+	"usercredentials-urls": "Lista de sitios web:",
+	"usercredentials-ip": "Enderezo IP orixinal:",
+	"usercredentials-xff": "X-Forwarded-For orixinal:",
+	"usercredentials-agent": "Axente de usuario orixinal:",
+	"usercredentials-member": "Dereitos:",
+	"usercredentials-badid": "Non se atoparon credenciais para este usuario. Comprobe que o nome estea escrito correctamente."
+}

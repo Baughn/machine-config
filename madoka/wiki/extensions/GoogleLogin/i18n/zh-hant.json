@@ -1,0 +1,19 @@
+{
+	"@metadata": {
+		"authors": [
+			"Liuxinyu970226",
+			"Cwlin0416",
+			"LEEJACK",
+			"LNDDYL",
+			"Macofe"
+		]
+	},
+	"googlelogin-create": "使用 Google 建立",
+	"googlelogin-generic-error": "啊呀，出現錯誤。請返回並再試。訊息：$1",
+	"googlelogin-form-merge-title": "連結使用者帳號",
+	"googlelogin-form-next": "下一步",
+	"googlelogin-form-merge": "連結 Google 至 wiki 帳號",
+	"googlelogin-information-title": "帳號資訊",
+	"googlelogin-or": "或",
+	"googlelogin-success-merge": "您的 wiki 帳號現已連結到您的 Google 使用者帳戶。"
+}

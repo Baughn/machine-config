@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Base",
+			"Ата"
+		]
+	},
+	"confirmaccount-newrequests": "[[Special:ConfirmAccounts|Очікують]] '''$1''' {{PLURAL:$1|запит|запити|запитів}} на обліковий запис від користувачів з підтвердженими адресами. '''Зверніть Вашу увагу!'''",
+	"requestaccount-loginnotice": "Для отримання облікового запису користувача, ви повинні \"'[[Special:RequestAccount|зробити запит]]\"'.",
+	"right-confirmaccount": "перегляд [[Special:ConfirmAccounts|черги запитів на створення облікових записів]]",
+	"right-requestips": "перегляд IP-адрес авторів запитів на створення облікових записів",
+	"right-lookupcredentials": "Перегляд [[Special:UserCredentials|удостовіряючої інформації про користувачів]]",
+	"action-confirmaccount": "перегляд і прийняття облікових записів"
+}

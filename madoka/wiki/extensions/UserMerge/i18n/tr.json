@@ -1,0 +1,31 @@
+{
+	"@metadata": {
+		"authors": [
+			"Joseph",
+			"Karduelis",
+			"Srhat",
+			"Violetanka"
+		]
+	},
+	"usermerge": "Kullanıcıları birleştir ve sil",
+	"usermerge-desc": "Viki veritabanında [[Special:UserMerge|referansları bir kullanıcıdan diğerine birleştirir]] - birleşmeyi mütakip eski kullanıcıları da siler. ''Kullanıcıbirleştir'' ayrıcalığı gerekir",
+	"usermerge-badolduser": "Geçersiz eski kullanıcı adı",
+	"usermerge-badnewuser": "Geçersiz yeni kullanıcı",
+	"usermerge-nonewuser": "Yeni boş kullanıcıadı - \"$1\" ile birleştirme varsayılıyor.<br />\nKabul etmek için \"{{int:usermerge-submit}}\"e tıklayın.",
+	"usermerge-noolduser": "Boş eski kullanıcı adı",
+	"usermerge-fieldset": "Birleştirilecek kullanıcı adları",
+	"usermerge-olduser": "Eski kullanıcı (dan birleştir):",
+	"usermerge-newuser": "Yeni kullanıcı (e birleştir):",
+	"usermerge-deleteolduser": "Eski kullanıcıyı sil",
+	"usermerge-submit": "Kullanıcıyı birleştir",
+	"usermerge-badtoken": "Geçersiz değişiklik dizgeciği",
+	"usermerge-userdeleted": "{{GENDER:$1|$1}} ($2) silindi.",
+	"usermerge-userdeleted-log": "Silinen kullanıcı: $2 ($3)",
+	"usermerge-success": "{{GENDER:$1|$1}} ($2) kullanıcısından {{GENDER:$3|$3}} ($4) kullanıcısına birleştirme tamamlandı.",
+	"usermerge-success-log": "{{GENDER:$2|$2}} ($3) kullanıcısı {{GENDER:$4|$4}} ($5) kullanıcısıyla birleştirildi",
+	"usermerge-logpage": "Kullanıcı birleştirme günlüğü",
+	"usermerge-logpagetext": "Bu bir kullanıcı birleştirme eylemleri günlüğüdür.",
+	"usermerge-noselfdelete": "{{GENDER:$1|kendinizi}} birleştiremez ya da silemezsiniz!",
+	"usermerge-protectedgroup": "{{GENDER:$1|kullanıcısından}}:birleştirilemiyor: Kullanıcı korunan bir grupta bulunuyor.",
+	"right-usermerge": "Kullanıcıları birleştir"
+}

@@ -1,0 +1,33 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michaello",
+			"Milicevic01",
+			"Rancher",
+			"Михајло Анђелковић",
+			"Сербијана"
+		]
+	},
+	"requestaccount-leg-user": "Korisnički nalog",
+	"requestaccount-leg-areas": "Glavne sfere interesovanja",
+	"requestaccount-leg-person": "Lični podaci",
+	"requestaccount-leg-other": "Druge informacije",
+	"requestaccount-leg-tos": "Uslovi korišćenja",
+	"requestaccount-real": "Pravo ime:",
+	"requestaccount-same": "(istovetno pravom imenu)",
+	"requestaccount-email": "Imejl adresa:",
+	"requestaccount-reqtype": "Pozicija:",
+	"requestaccount-level-0": "autor",
+	"requestaccount-level-1": "editor",
+	"requestaccount-info": "(?)",
+	"requestaccount-bio": "Lična biografija (samo prost tekst):",
+	"requestaccount-attach": "Rezime ili CV (neobavezno):",
+	"requestaccount-notes": "Dodatne napomene:",
+	"requestaccount-urls": "Spisak vebsajtova, ako ih ima (odvojeni novim linijama):",
+	"requestaccount-agree": "Morate da potvrdite da ste dobro uneli svoje pravo ime i da se složite sa uslovima korišćenja.",
+	"requestaccount-inuse": "Korisničko ime je već u upotrebi i čeka na odobrenje.",
+	"requestaccount-tooshort": "Vaša biografija mora da sadrži najmanje $1 {{PLURAL:$1|reč|reči}}.",
+	"requestaccount-emaildup": "Drugi nalog, koji čeka odobrenje, već koristi ovu imejl adresu.",
+	"requestaccount-sent": "Vaš zahtev za nalogom je uspešno poslat i čeka na pregled.\nElektronska poruka za potvrdu je poslata na Vašu adresu Vaše elektronske pošte.",
+	"requestaccount-econf": "Vaša imejl adresa je bila potvrđena i biće prikazana kao takva u Vašem zahtevu za nalogom."
+}

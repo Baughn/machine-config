@@ -1,0 +1,40 @@
+{
+	"@metadata": {
+		"authors": [
+			"Meursault2004",
+			"Pras",
+			"Nemo bis",
+			"Macofe",
+			"NoiX180"
+		]
+	},
+	"requestaccount": "Nyuwun rékening (akun)",
+	"requestaccount-dup": "'''Pènget: Panjenengan wis log mlebu mawa rékening sing kadaftar.'''",
+	"requestaccount-leg-user": "Rékening (akun) panganggo",
+	"requestaccount-leg-person": "Katerangan priangga",
+	"requestaccount-leg-other": "Informasi liya",
+	"requestaccount-real": "Jeneng asli:",
+	"requestaccount-same": "(padha karo jeneng asli)",
+	"requestaccount-email": "Alamat e-mail:",
+	"requestaccount-reqtype": "Posisi:",
+	"requestaccount-level-0": "pangripta",
+	"requestaccount-level-1": "sing besut",
+	"requestaccount-bio": "Babad slira pribadi:",
+	"requestaccount-attach": "Riwayat urip utawa CV (opsional):",
+	"requestaccount-notes": "Cathetan tambahan:",
+	"requestaccount-urls": "Daftar situs-situs wèb, yèn ana (pisahen mawa garis-garis anyar):",
+	"requestaccount-agree": "Panjenengan kudu mastèkaké yèn jeneng asli panjenengan iku bener lan panjenengan sarujuk karo Sarat Paladènan (''Terms of Service'') kita.",
+	"requestaccount-inuse": "Jeneng panganggo iki wis dienggo lan saiki lagi ing tahap ''pending'' panyuwunan rékening.",
+	"requestaccount-tooshort": "Biografiné sampéyan saora-orané isi $1 {{PLURAL:$1|tembung}}.",
+	"requestaccount-emaildup": "Sawijining panyuwunan rékening (akun) liyané sing lagi ''pending'' nganggo alamat e-mail sing padha",
+	"requestaccount-exts": "Jenis berkas lampiran (''attachment'') ora diparengaké.",
+	"requestaccount-resub": "Berkas CV/riwayat urip panjenengan kudu dipilih manèh amerga alesan kaslamatan.\nLirwakna lapangan iki kosong yèn panjenengan ora kepéngin manèh nglebokaké CV.",
+	"requestaccount-tos": "Aku wis maca lan sarujuk nuruti [[{{MediaWiki:Requestaccount-page}}|Sarat Paladènan (''Terms of Service'')]]-é {{SITENAME}}.\nJeneng sing tak-wènèhaké minangka \"Jeneng asli\" iku pancèn jenengku dhéwé.",
+	"requestaccount-submit": "Nyuwun rékening (akun)",
+	"requestaccount-sent": "Panyuwunan akun panjenengan wis kasil dikirim lan saiki lagi dipriksa.\nSawijining layang konfirmasi wis dikirim menyang alamat layang-e panjenengan.",
+	"requestaccount-econf": "Alamat e-mail panjenengan wis dikonfirmasi lan bakal didokok ing daftar kaya ing panyuwunan rékening panjenengan.",
+	"requestaccount-email-subj": "Konfirmasi alamat e-mail {{SITENAME}}",
+	"requestaccount-email-subj-admin": "Panyuwunan rékening ing {{SITENAME}}",
+	"requestaccount-email-body-admin": "$1 wis nyuwun rékening lan saiki nunggu konfirmasi.\nAlamat e-mailé wis dikonfirmasi. Panjenengan bisa konfirmasi panyuwunan iki ing:\n\n$2",
+	"acct_request_throttle_hit": "Nuwun sèwu, panjenengan wis nyuwun {{PLURAL:$1|1 akun|$1 akun}}.\nPanjenengan ora bisa nyuwun rékening anyar manèh."
+}

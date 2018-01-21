@@ -1,0 +1,19 @@
+{
+	"@metadata": {
+		"authors": [
+			"Aotake",
+			"Fryed-peach",
+			"JtFuruhata",
+			"Schu",
+			"Shirayuki",
+			"青子守歌",
+			"Otokoume"
+		]
+	},
+	"confirmaccount-newrequests": "現在、'''$1個'''のメール認証済み{{PLURAL:$1|[[Special:ConfirmAccounts|アカウント申請]]}}が承認待ちになっています。'''注意が必要です!'''",
+	"requestaccount-loginnotice": "利用者アカウントを取得するには、'''[[Special:RequestAccount|アカウント登録申請]]'''をしてください。",
+	"right-confirmaccount": "[[Special:ConfirmAccounts|アカウント申請キュー]]を閲覧",
+	"right-requestips": "アカウント申請の処理中に申請者のIPアドレスを閲覧",
+	"right-lookupcredentials": "[[Special:UserCredentials|利用者信頼情報]]を閲覧",
+	"action-confirmaccount": "アカウントの確認および承諾"
+}

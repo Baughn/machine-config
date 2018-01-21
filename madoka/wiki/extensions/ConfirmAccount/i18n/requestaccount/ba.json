@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ләйсән",
+			"Айсар"
+		]
+	},
+	"requestaccount-reqtype": "Вазифа",
+	"requestaccount-level-0": "автор",
+	"requestaccount-level-1": "мөхәррир",
+	"requestaccount-sent": "Һеҙҙең аккаунт тикшерелеү өҫтөндә. Раҫлау хаты һеҙҙең электрон адресҡа ебәрелде."
+}

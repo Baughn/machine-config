@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kaustubh",
+			"Kiranmayee",
+			"Siddhartha Ghai",
+			"आलोक"
+		]
+	},
+	"usercredentials": "सदस्य के क्रेडेन्शियल्स",
+	"usercredentials-leg": "सदस्यके प्रमाणित किये हुए क्रेडेन्शियल्स देखें",
+	"usercredentials-user": "सदस्यनाम:",
+	"usercredentials-text": "नीचे चुने हुए सदस्य खाते के प्रमाणित किये हुए क्रेडेन्शियल्स दिये हुए हैं।",
+	"usercredentials-leg-user": "सदस्य खाता",
+	"usercredentials-leg-areas": "पसंद के मुख्य एरिया",
+	"usercredentials-leg-person": "वैयक्तिक जानकारी",
+	"usercredentials-leg-other": "अन्य जानकारी",
+	"usercredentials-email": "इ-मेल:",
+	"usercredentials-real": "असली नाम:",
+	"usercredentials-bio": "चरित्र:",
+	"usercredentials-attach": "रिज़्यूम/सीवी:",
+	"usercredentials-notes": "अधिक जानकारी:",
+	"usercredentials-urls": "वेबसाईट्स की सूची:",
+	"usercredentials-ip": "मूल आईपी एड्रेस:",
+	"usercredentials-member": "अधिकार:",
+	"usercredentials-badid": "इस सदस्य के क्रेडेन्शियल्स मिले नहीं।\nसदस्यनाम सही हैं इसकी जाँच करें।"
+}

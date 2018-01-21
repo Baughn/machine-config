@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"AnakngAraw",
+			"Jojit fb"
+		]
+	},
+	"usercredentials": "Mga katibayan ng katangian ng tagagamit",
+	"usercredentials-leg": "Natiyak ng paghahanap ang mga katibayan ng katangian para sa isang tagagamit",
+	"usercredentials-user": "Pangalan ng tagagamit:",
+	"usercredentials-text": "Nasa ibaba ang napatotohanang mga katibayan ng katangian ng napiling account ng tagagamit.",
+	"usercredentials-leg-user": "Account ng tagagamit",
+	"usercredentials-leg-areas": "Mga pangunahing bagay-bagay na kinawiwilihan",
+	"usercredentials-leg-person": "Pansariling kabatiran",
+	"usercredentials-leg-other": "Iba pang kabatiran",
+	"usercredentials-leg-ip": "Dato ng tirahang IP",
+	"usercredentials-email": "E-liham:",
+	"usercredentials-real": "Totoong pangalan:",
+	"usercredentials-bio": "Talambuhay:",
+	"usercredentials-attach": "Talaan ng karanasan sa hanapbuhay:",
+	"usercredentials-notes": "Karagdagang mga tala:",
+	"usercredentials-urls": "Talaan ng mga websayt:",
+	"usercredentials-ip": "Orihinal na adres ng IP:",
+	"usercredentials-xff": "Orihinal na Isinulong-Ang-X-Para-Sa:",
+	"usercredentials-agent": "Orihinal na Ahente-Ng-Tagagamit:",
+	"usercredentials-member": "Mga karapatan:",
+	"usercredentials-badid": "Walang natagpuang mga katibaya ng katangian para sa tagagamit na ito.\nSuriin kung ibinaybay ng tama ang pangalan."
+}

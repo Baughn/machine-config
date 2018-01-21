@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"Chhorran",
+			"Lovekhmer",
+			"Sovichet",
+			"Thearith",
+			"គីមស៊្រុន",
+			"វ័ណថារិទ្ធ"
+		]
+	},
+	"usercredentials-user": "អត្តនាម៖",
+	"usercredentials-leg-user": "គណនីអ្នកប្រើប្រាស់",
+	"usercredentials-leg-areas": "ចំណង់ចំណូលចិត្ត",
+	"usercredentials-leg-person": "ព័ត៌មាន​ផ្ទាល់ខ្លួន",
+	"usercredentials-leg-other": "ព័ត៌មានផ្សេងទៀត",
+	"usercredentials-email": "អ៊ីមែល​៖",
+	"usercredentials-real": "ឈ្មោះពិត​៖",
+	"usercredentials-bio": "ជីវប្រវត្តិ​៖",
+	"usercredentials-attach": "ប្រវត្តិរូប​៖",
+	"usercredentials-notes": "ចំណាំ​បន្ថែម​៖",
+	"usercredentials-urls": "បញ្ជី​នៃ​បណ្ដាញវិប​៖",
+	"usercredentials-ip": "អាសយដ្ឋាន IP ដើមដំបូង ៖",
+	"usercredentials-member": "សិទ្ធិ​៖"
+}

@@ -1,0 +1,15 @@
+{
+	"@metadata": {
+		"authors": [
+			"Aksi great",
+			"Ashok modhvadia",
+			"Dineshjk",
+			"Dsvyas"
+		]
+	},
+	"requestaccount-real": "સાચુ નામ:",
+	"requestaccount-level-0": "લેખક",
+	"requestaccount-level-1": "સંપાદક",
+	"requestaccount-notes": "વિશેષ નોંધ",
+	"requestaccount-exts": "જોડાયેલ ફાઇલનો પ્રકાર અમાન્ય છે."
+}

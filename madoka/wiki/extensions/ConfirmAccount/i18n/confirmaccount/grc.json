@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"Crazymadlover",
+			"Omnipaedista"
+		]
+	},
+	"confirmaccount-real-q": "Ὄνομα",
+	"confirmaccount-email-q": "Ἠλεκτρονικαὶ ἐπιστολαί",
+	"confirmaccount-bio-q": "Βιογραφία",
+	"confirmaccount-review": "Ἐπισκόπησις",
+	"confirmaccount-type": "Οὐρά:",
+	"confirmaccount-leg-user": "Λογισμὸς χρωμένου",
+	"confirmaccount-leg-other": "Ἑτέρα πύστις",
+	"confirmaccount-name": "Ὄνομα χρωμένου",
+	"confirmaccount-real": "Ὄνομα:",
+	"confirmaccount-email": "Ἠλεκτρονικαὶ ἐπιστολαί:",
+	"confirmaccount-reqtype": "Θέσις:",
+	"confirmaccount-pos-0": "δημιουργός",
+	"confirmaccount-pos-1": "μεταγραφεύς",
+	"confirmaccount-bio": "Βιογραφία:",
+	"confirmaccount-attach": "Βιογραφικόν:",
+	"confirmaccount-noreason": "(οὐδεμία)",
+	"confirmaccount-ip": "Διεύθυνσις IP:",
+	"confirmaccount-submit": "Κυροῦν",
+	"confirmaccount-wsum": "Ὡς εὖ παρέστης!"
+}

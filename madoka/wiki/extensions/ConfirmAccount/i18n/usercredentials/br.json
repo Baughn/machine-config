@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Fohanno",
+			"Fulup",
+			"Y-M D"
+		]
+	},
+	"usercredentials": "Daveennoù an implijer",
+	"usercredentials-leg": "Gwiriekadenn kadarnaet eus daveoù un implijer.",
+	"usercredentials-user": "Anv implijer :",
+	"usercredentials-text": "Amañ emañ daveennoù gwiriekaet kont an implijer diuzet.",
+	"usercredentials-leg-user": "Kont implijer",
+	"usercredentials-leg-areas": "Tachennoù dedenn pennañ :",
+	"usercredentials-leg-person": "Titouroù personel",
+	"usercredentials-leg-other": "Titouroù all",
+	"usercredentials-leg-ip": "roadennoù chomlec'h IP",
+	"usercredentials-email": "Postel :",
+	"usercredentials-real": "Gwir anv :",
+	"usercredentials-bio": "Buhezskrid :",
+	"usercredentials-attach": "Diverrañ/CV :",
+	"usercredentials-notes": "Notennoù ouzhpenn :",
+	"usercredentials-urls": "Roll lec'hiennoù internet :",
+	"usercredentials-ip": "Chomlec'h IP orin :",
+	"usercredentials-agent": "Implijer-Gwazour orin :",
+	"usercredentials-member": "Gwirioù :",
+	"usercredentials-badid": "N'eus ket bet kavet daveennoù evit an implijer-mañ.\nGwiriit ha skrivet-mat eo an anv."
+}

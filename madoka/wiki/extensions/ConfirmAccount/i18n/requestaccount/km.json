@@ -1,0 +1,37 @@
+{
+	"@metadata": {
+		"authors": [
+			"Chhorran",
+			"Lovekhmer",
+			"Sovichet",
+			"Thearith",
+			"គីមស៊្រុន",
+			"វ័ណថារិទ្ធ"
+		]
+	},
+	"requestaccount": "សំណើសុំគណនី",
+	"requestaccount-page": "{{ns:project}}:លក្ខខណ្ឌ ប្រើប្រាស់សេវា",
+	"requestaccount-dup": "'''សម្គាល់: លោកអ្នកត្រូវបានកត់ឈ្មោះចូលរួចហើយ ជាមួយនឹងគណនីដែលបានចុះឈ្មោះ។'''",
+	"requestaccount-leg-user": "គណនីអ្នកប្រើប្រាស់",
+	"requestaccount-leg-areas": "ចំណង់ចំណូលចិត្ត",
+	"requestaccount-leg-person": "ព័ត៌មានផ្ទាល់ខ្លួន",
+	"requestaccount-leg-other": "ព័ត៌មានផ្សេងទៀត",
+	"requestaccount-leg-tos": "លក្ខខណ្ឌ​នៃ​សេវាកម្ម​",
+	"requestaccount-real": "ឈ្មោះពិត៖",
+	"requestaccount-same": "(ដូចឈ្មោះពិត)",
+	"requestaccount-email": "អាសយដ្ឋានអ៊ីមែល៖",
+	"requestaccount-reqtype": "តួនាទី៖",
+	"requestaccount-level-0": "អ្នកនិពន្ធ៖",
+	"requestaccount-level-1": "ឧបករណ៍កែប្រែ",
+	"requestaccount-bio": "ជីវប្រវត្តិផ្ទាល់ខ្លួន (អក្សរសុទ្ធ)៖",
+	"requestaccount-attach": "ប្រវត្តិរូប (ស្រេចចិត្ត)​៖",
+	"requestaccount-notes": "សម្គាល់បន្ថែម៖",
+	"requestaccount-urls": "បញ្ជីវិបសាយ បើមាន (ចែកគ្នាដោយការចុះបន្ទាត់)៖",
+	"requestaccount-agree": "អ្នកត្រូវតែបញ្ជាក់ថា ឈ្មោះពិតរបស់អ្នកត្រឹមត្រូវ និងថាអ្នកព្រមព្រៀងជាមួយ «លក្ខខណ្ឌប្រើប្រាស់សេវាកម្ម» នេះ ។",
+	"requestaccount-tooshort": "ជីវប្រវត្តិរបស់អ្នកត្រូវតែមានយ៉ាងតិច $1 ពាក្យ។",
+	"requestaccount-tos": "ខ្ញុំបានអាននិងយល់ព្រមជាមួយ[[{{MediaWiki:Requestaccount-page}}|លក្ខខណ្ឌប្រើប្រាស់សេវាកម្ម]] របស់ {{SITENAME}}។\nឈ្មោះដែលខ្ញុំបានផ្ដល់អោយនៅក្រោម «ឈ្មោះពិត» គឺពិតជាឈ្មោះពិតរបស់ខ្ញុំផ្ទាល់មែន។",
+	"requestaccount-submit": "សំណើសុំគណនី",
+	"requestaccount-email-subj": "ការបញ្ជាក់ទទួលស្គាល់ អាសយដ្ឋានអ៊ីមែល {{SITENAME}}",
+	"requestaccount-email-subj-admin": "សំណើសុំគណនីរបស់{{SITENAME}}",
+	"acct_request_throttle_hit": "សូមអភ័យទោស។ អ្នកបានស្នើសុំ {{PLURAL:$1|១ គណនី|$1 គណនី}} រួចហើយ។\n\nអ្នកមិនអាចធ្វើការស្នើសុំទៀតបានទេ។"
+}

@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Snakesteuben",
+			"Robin0van0der0vliet"
+		]
+	},
+	"requestaccount-email": "E-mailadres:",
+	"requestaccount-level-0": "auteur",
+	"requestaccount-level-1": "redakteur"
+}

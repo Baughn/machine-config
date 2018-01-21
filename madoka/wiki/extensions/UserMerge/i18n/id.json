@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"IvanLanin",
+			"Rex",
+			"Bennylin"
+		]
+	},
+	"usermerge": "Penggabungan dan penghapusan Pengguna",
+	"usermerge-desc": "[[Special:UserMerge|Menggabungkan rekam jejak dari suatu pengguna ke pengguna lain]] di basis data wiki - sekaligus menghapus pengguna lama setelah selesai digabungkan. Tindakan ini memerlukan hak ''usermerge''.",
+	"usermerge-badolduser": "Nama pengguna lama tidak sah",
+	"usermerge-badnewuser": "Nama pengguna baru tidak sah",
+	"usermerge-nonewuser": "Nama pengguna baru tidak dituliskan - diasumsikan akan digabungkan ke \"$1\".<br />\nKlik \"{{int:usermerge-submit}}\" untuk melanjutkan.",
+	"usermerge-noolduser": "Nama pengguna lama tidak diisi",
+	"usermerge-fieldset": "Akun-akun pengguna yang akan digabungkan",
+	"usermerge-olduser": "Pengguna lama (digabungkan dari):",
+	"usermerge-newuser": "Pengguna baru (digabungkan ke):",
+	"usermerge-deleteolduser": "Hapus pengguna lama",
+	"usermerge-submit": "Gabungkan pengguna",
+	"usermerge-badtoken": "Token penyuntingan tidak sah",
+	"usermerge-userdeleted": "$1 ($2) telah dihapuskan.",
+	"usermerge-userdeleted-log": "Pengguna telah dihapuskan: $2 ($3)",
+	"usermerge-success": "$1 ($2) telah selesai digabungkan ke $3 ($4).",
+	"usermerge-success-log": "Pengguna $2 ($3) telah digabungkan ke $4 ($5)",
+	"usermerge-logpage": "Catatan penggabungan pengguna",
+	"usermerge-logpagetext": "Ini adalah catatan tindakan penggabungan pengguna.",
+	"usermerge-noselfdelete": "Anda tidak dapat menghapus atau menggabungkan dari Anda sendiri!",
+	"usermerge-protectedgroup": "Tidak dapat menggabungkan dari pengguna ini - pengguna ini termasuk dalam kelompok terproteksi.",
+	"right-usermerge": "Menggabungkan pengguna"
+}

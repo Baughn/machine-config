@@ -1,0 +1,36 @@
+{
+	"@metadata": {
+		"authors": [
+			"Boivie",
+			"Diupwijk",
+			"Fluff",
+			"Jon Harald Søby",
+			"Lejonel",
+			"M.M.S.",
+			"Najami",
+			"Per",
+			"WikiPhoenix",
+			"Lokal Profil"
+		]
+	},
+	"usercredentials": "Referenser för användare",
+	"usercredentials-leg": "Se bekräftade referenser för en användare",
+	"usercredentials-user": "Användarnamn:",
+	"usercredentials-text": "Härunder visas de bekräftade referenserna för det valda användarkontot.",
+	"usercredentials-leg-user": "Användarkonto",
+	"usercredentials-leg-areas": "Intresseområden",
+	"usercredentials-leg-person": "Personlig information",
+	"usercredentials-leg-other": "Annan information",
+	"usercredentials-leg-ip": "IP-adressdata",
+	"usercredentials-email": "E-post:",
+	"usercredentials-real": "Riktigt namn:",
+	"usercredentials-bio": "Biografi:",
+	"usercredentials-attach": "Meritförteckning/CV:",
+	"usercredentials-notes": "Andra anmärkningar:",
+	"usercredentials-urls": "Lista över webbplatser:",
+	"usercredentials-ip": "Ursprunglig IP-adress:",
+	"usercredentials-xff": "Ursprunglig X-Forwarded-For:",
+	"usercredentials-agent": "Ursprunglig User-Agent:",
+	"usercredentials-member": "Rättigheter:",
+	"usercredentials-badid": "Hittade inga referenser för denna användare. Kontrollera att namnet är rättstavat."
+}

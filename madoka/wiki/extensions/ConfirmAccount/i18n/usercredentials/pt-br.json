@@ -1,0 +1,31 @@
+{
+	"@metadata": {
+		"authors": [
+			"Eduardo.mps",
+			"Giro720",
+			"Helder.wiki",
+			"Jaideraf",
+			"Luckas Blade"
+		]
+	},
+	"usercredentials": "Credenciais de usuário",
+	"usercredentials-leg": "Procurar credenciais confirmadas para um usuário",
+	"usercredentials-user": "Nome de usuário:",
+	"usercredentials-text": "Abaixo estão as credenciais validadas da conta de usuário selecionada.",
+	"usercredentials-leg-user": "Conta de usuário",
+	"usercredentials-leg-areas": "Principais áreas de interesse",
+	"usercredentials-leg-person": "Informações pessoais",
+	"usercredentials-leg-other": "Outras informações",
+	"usercredentials-leg-ip": "Dados de endereço IP",
+	"usercredentials-email": "E-mail:",
+	"usercredentials-real": "Nome real:",
+	"usercredentials-bio": "Biografia:",
+	"usercredentials-attach": "Curriculum Vitae:",
+	"usercredentials-notes": "Notas adicionais:",
+	"usercredentials-urls": "Lista de sites:",
+	"usercredentials-ip": "Endereço IP original:",
+	"usercredentials-xff": "Original X-Forwarded-For:",
+	"usercredentials-agent": "Original User-Agent:",
+	"usercredentials-member": "Privilégios:",
+	"usercredentials-badid": "Não foram encontradas credenciais para este usuário. \nVerifique se o nome está escrito corretamente."
+}

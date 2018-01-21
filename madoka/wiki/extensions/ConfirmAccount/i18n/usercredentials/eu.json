@@ -1,0 +1,15 @@
+{
+	"@metadata": {
+		"authors": [
+			"An13sa"
+		]
+	},
+	"usercredentials-user": "Erabiltzaile izena:",
+	"usercredentials-leg-person": "Norberaren informazioa",
+	"usercredentials-email": "Emaila:",
+	"usercredentials-real": "Benetako izena:",
+	"usercredentials-bio": "Biografia:",
+	"usercredentials-attach": "Curriculuma:",
+	"usercredentials-urls": "Webgune zerrenda:",
+	"usercredentials-ip": "Jatorrizko IP helbidea:"
+}

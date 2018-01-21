@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Aalam",
+			"Babanwalia"
+		]
+	},
+	"requestaccount": "ਅਕਾਊਂਟ ਬੇਨਤੀ",
+	"requestaccount-page": "{{ns:project}}: ਸਰਵਿਸ ਦੀਆਂ ਸ਼ਰਤਾਂ",
+	"requestaccount-dup": "'''ਨੋਟ: ਤੁਸੀਂ ਪਹਿਲਾਂ ਹੀ ਰਜਿਸਟਰ ਹੋਏ ਅਕਾਊਂਟ ਨਾਲ ਲਾਗ ਹੋ ਚੁੱਕੇ ਹੋ।'''",
+	"requestaccount-leg-user": "ਵਰਤੋਂਕਾਰ ਖਾਤਾ",
+	"requestaccount-leg-areas": "ਦਿਲਚਸਪੀ ਦੇ ਖਾਸ ਖੇਤਰ",
+	"requestaccount-leg-person": "ਨਿੱਜੀ ਜਾਣਕਾਰੀ",
+	"requestaccount-leg-other": "ਹੋਰ ਜਾਣਕਾਰੀ",
+	"requestaccount-leg-tos": "ਸਰਵਿਸ ਦੀਆਂ ਸ਼ਰਤਾਂ",
+	"requestaccount-real": "ਅਸਲੀ ਨਾਂ:",
+	"requestaccount-same": "(ਅਸਲੀ ਨਾਂ ਵਾਂਗ ਹੀ)",
+	"requestaccount-email": "ਈਮੇਲ ਐਡਰੈੱਸ:",
+	"requestaccount-reqtype": "ਸਥਿਤੀ:",
+	"requestaccount-level-0": "ਲੇਖਕ",
+	"requestaccount-level-1": "ਐਡੀਟਰ",
+	"requestaccount-bio": "ਨਿੱਜੀ ਜਾਣਕਾਰੀ:",
+	"requestaccount-notes": "ਹੋਰ ਨੋਟ:",
+	"requestaccount-inuse": "ਵਰਤੋਂਕਾਰ-ਨਾਂ ਪਹਿਲੋਂ ਹੀ ਇੱਕ ਲਟਕਦੀ ਖਾਤਾ ਬੇਨਤੀ ਵਿੱਚ ਵਰਤਿਆ ਜਾ ਰਿਹਾ ਹੈ।",
+	"requestaccount-submit": "ਅਕਾਊਂਟ ਬੇਨਤੀ",
+	"requestaccount-email-subj": "{{SITENAME}} ਈਮੇਲ ਐਡਰੈੱਸ ਪੁਸ਼ਟੀ",
+	"requestaccount-email-subj-admin": "{{SITENAME}} ਅਕਾਊਂਟ ਮੰਗ"
+}

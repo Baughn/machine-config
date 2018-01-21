@@ -1,0 +1,34 @@
+{
+	"@metadata": {
+		"authors": [
+			"Liangent"
+		]
+	},
+	"requestaccount": "Darxosti hisob",
+	"requestaccount-page": "{{ns:project}}:Şarthoi Xidmat",
+	"requestaccount-dup": "'''Ezoh: Şumo allakaj bo hisobi sabtşuda vurud kardaed.'''",
+	"requestaccount-leg-user": "Hisobi korbar",
+	"requestaccount-leg-person": "Ittilooti şaxsī",
+	"requestaccount-leg-other": "Ittilooti digar",
+	"requestaccount-acc-text": "Ba nişonai poctai elektroniji şumo pajomi tasdiqi dar holi firistodani in darxost firistoda xohad şud.\nLutfan bo klik kardani pajvandi tasdiqiji tariqi poctai elektronī firistoda şuda posux dihed.\nGuzarvoƶa niz dar holati eçod şudani hisobi şumo ba nişonai poctai elektronī firistoda xohad şud.",
+	"requestaccount-real": "Nomi aslī:",
+	"requestaccount-same": "(monandi nomi aslī)",
+	"requestaccount-email": "Nişonai poctai elektronī:",
+	"requestaccount-reqtype": "Vazifa:",
+	"requestaccount-level-0": "muallif",
+	"requestaccount-level-1": "viroişgar",
+	"requestaccount-bio": "Zindaginomai şaxsī:",
+	"requestaccount-notes": "Ezohoti ilovagī:",
+	"requestaccount-urls": "Fehristi somonaho, agar zijod boşad (bo satrhoi çadid çudo kuned):",
+	"requestaccount-agree": "Şumo bojad tasdiq kuned ki nomi asliji şumo durust ast va şumo bo Şarthoi Xidmati mo rozī hasted.",
+	"requestaccount-inuse": "Nomi korbarī allakaj dar istifodai darxosti hisobi dar tajbuda ast.",
+	"requestaccount-emaildup": "Digar darxosti hisobi dar tajbuda hamin nişoniji poctai elektroniro istifoda mebarad.",
+	"requestaccount-exts": "Nav'i zamimaviji parvanda noravost.",
+	"requestaccount-tos": "Man [[{{MediaWiki:Requestaccount-page}}|Şarthoi Xidmati]] dar {{SITENAME}} budaro xondam va bo onho vafodor hastam.\nNomi muşaxxaskardai man zeri \"Nomi Aslī\" dar haqiqat nomi asliji xudi man ast.",
+	"requestaccount-submit": "Darxosti hisob",
+	"request-account-econf": "Nişonai poctai elektroniji şumo tasdiq şud va hamin tavr dar darxosti hisobi şumo fehrist xohad şud.",
+	"requestaccount-email-subj": "{{SITENAME}} tasdiqi nişonai poctai elektronī",
+	"requestaccount-email-body": "Şaxse, ehtimolan şumo az nişonai IP $1, hisobi \"$2\" bo nişonai poctai elektronī dar {{SITENAME}} darxost kard.\n\nBaroi tasdiq, ki in hisob dar haqiqat ba şumo dar {{SITENAME}} taaluq dorad, in pajvandro dar mururgaraton boz kuned:\n\n$3\n\nAgar hisob eçod şuda boşad, tanho ba şumo kalimai ubur tariqi poctai elektronī firistoda xohad şud.\nAgar in şumo *nest*, pajvandro dunbol nakuned.\nIn kodi tasdiq dar $4 ba xotima xohad rasid.",
+	"requestaccount-email-subj-admin": "{{SITENAME}} darxosti hisob",
+	"requestaccount-email-body-admin": "\"$1\" hisobero darxost kard va muntaziri tasdiqi on meboşad.\nNişonai poctai elektronī tasdiq şud. Şumo darxostro metavoned inço \"$2\" tasdiq kuned."
+}

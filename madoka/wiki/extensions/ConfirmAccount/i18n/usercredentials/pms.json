@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"Borichèt",
+			"Bèrto 'd Sèra",
+			"Dragonòt"
+		]
+	},
+	"usercredentials": "Credensiaj utent.",
+	"usercredentials-leg": "Verìfica credensiaj confermà për n'utent",
+	"usercredentials-user": "Nòm utent:",
+	"usercredentials-text": "Sota a-i son le credensiaj validà dël cont utent selessionà.",
+	"usercredentials-leg-user": "Cont utent.",
+	"usercredentials-leg-areas": "Àree d'anteresse prinsipaj",
+	"usercredentials-leg-person": "Anformassion përsonaj",
+	"usercredentials-leg-other": "Àutre anformassion",
+	"usercredentials-leg-ip": "Dat ëd l'adrëssa IP",
+	"usercredentials-email": "Pòsta eletrònica:",
+	"usercredentials-real": "Nòm ver:",
+	"usercredentials-bio": "Biografìa:",
+	"usercredentials-attach": "Resumé:",
+	"usercredentials-notes": "Nòte adissionaj:",
+	"usercredentials-urls": "Lista ëd sit an sl'aragnà:",
+	"usercredentials-ip": "Adrëssa IP original:",
+	"usercredentials-xff": "X-Forwarded-For original:",
+	"usercredentials-agent": "User-Agent original:",
+	"usercredentials-member": "Drit:",
+	"usercredentials-badid": "Gnun-e credensiaj trovà për st'utent-sì.\nCh'a contròla che ël nòm a sia scrivù da bin."
+}

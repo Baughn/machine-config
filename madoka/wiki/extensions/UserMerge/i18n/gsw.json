@@ -1,0 +1,32 @@
+{
+	"@metadata": {
+		"authors": [
+			"Als-Chlämens",
+			"Als-Holder"
+		]
+	},
+	"usermerge": "Benutzerkonte zämmefiere un lesche",
+	"usermerge-desc": "[[Special:UserMerge|Fiert Benutzerkonte in dr Wiki-Datebank zämme]] - s alt Benutzerkonto wird no dr Zämmefierig glescht. Bruucht s ''usermerge''-Rächt.",
+	"usermerge-badolduser": "Uugiltiger alter Benutzername",
+	"usermerge-badnewuser": "Uugiltiger nejer Benutzername",
+	"usermerge-nonewuser": "Läärer nejer Benutzername - s wird e Zämmefierig mit „$1“ vermuetet.<br />\nKlick uf \"{{int:usermerge-submit}}\" go s Uusfiere.",
+	"usermerge-noolduser": "Läärer alter Benutzername",
+	"usermerge-fieldset": "Benutzernäme, wu solle zämmegfiert wäre",
+	"usermerge-olduser": "Alter Benutzername (zämmefiere vu):",
+	"usermerge-newuser": "Nejer Benutzername (zämmefiere noch):",
+	"usermerge-deleteolduser": "Alte Benutzername lesche",
+	"usermerge-submit": "Benutzerkonte zämmefiere",
+	"usermerge-badtoken": "Uugiltig Bearbeite-Token",
+	"usermerge-userdeleted": "„$1“ ($2) isch glescht wore.",
+	"usermerge-userdeleted-log": "Gleschter Benutzername: „$2“ ($3)",
+	"usermerge-success": "D Zämmefierig vu „$1“ ($2) noch „$3“ ($4) isch vollständig.",
+	"usermerge-success-log": "Benutzername „$2“ ($3) zämmegfiert mit „$4“ ($5)",
+	"usermerge-logpage": "Benutzerkonte-Zämmefierigs-Logbuech",
+	"usermerge-logpagetext": "Des isch s Logbuech vu dr Benutzerkonte-Zämmefierige.",
+	"usermerge-noselfdelete": "Zämmefierig mit sich sälber isch nit megli!",
+	"usermerge-protectedgroup": "Zämmefierig nit megli - Benutzername isch in ere gschitze Gruppe.",
+	"right-usermerge": "Benutzerkonte zämmefiere",
+	"usermerge-autopagedelete": "Derwyylischt de Benutzerchontezämmefierig automatisch glöscht",
+	"usermerge-page-unmoved": "D Syte „$1“ het nüt chönne uf „$2“ verschobe werde.",
+	"usermerge-move-log": "Dur d Benutzerchontezämmefierig vu „[[User:$1|$1]]“ noch „[[User:$2|$2]]“ automatisch verschobeni Syte"
+}

@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Jacob.jose",
+			"Junaidpv",
+			"Praveenp",
+			"Shijualex"
+		]
+	},
+	"confirmaccount-newrequests": "ഇമെയിൽ വിലാസം സ്ഥിരീകരിക്കപ്പെട്ട '''$1''' {{PLURAL:$1|[[Special:ConfirmAccounts|അംഗത്വത്തിനായുള്ള അഭ്യർത്ഥന]]|[[Special:ConfirmAccounts|അംഗത്വത്തിനായുള്ള അഭ്യർത്ഥനകൾ]]}} പെൻ‌ഡിംങ്ങാണ്‌.",
+	"requestaccount-loginnotice": "ഉപയോക്തൃ അംഗത്വം ലഭിക്കുന്നതിനായി താങ്കൾ '''[[Special:RequestAccount|ഉപയോക്തൃഅംഗത്വത്തിനായി അഭ്യർത്ഥിക്കണം]]'''."
+}

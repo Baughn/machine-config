@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"Avjoska",
+			"Pikne"
+		]
+	},
+	"requestaccount-leg-user": "Kasutajakonto",
+	"requestaccount-leg-areas": "Põhilised huvivaldkonnad",
+	"requestaccount-leg-person": "Personaalne informatsioon",
+	"requestaccount-leg-other": "Muu informatsioon",
+	"requestaccount-real": "Tegelik nimi:",
+	"requestaccount-same": "(sama mis tegelik nimi)",
+	"requestaccount-email": "E-posti aadress:",
+	"requestaccount-reqtype": "Positsioon:",
+	"requestaccount-level-0": "autor",
+	"requestaccount-level-1": "toimetaja",
+	"requestaccount-info": "(?)",
+	"requestaccount-bio": "Isiku biograafia (vaid lihttekst):",
+	"requestaccount-attach": "Elulugu või CV (valikuline):",
+	"requestaccount-notes": "Lisainfo:"
+}

@@ -1,0 +1,18 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ahmed-Najib-Biabani-Ibrahimkhel"
+		]
+	},
+	"usercredentials-user": "کارن-نوم:",
+	"usercredentials-leg-user": "گڼون",
+	"usercredentials-leg-person": "ځاني مالومات",
+	"usercredentials-leg-other": "نور مالومات",
+	"usercredentials-email": "برېښليک:",
+	"usercredentials-real": "اصلي نوم:",
+	"usercredentials-bio": "ژوندليک:",
+	"usercredentials-urls": "د وېبځايونو لړليک:",
+	"usercredentials-ip": "آرنۍ آی پي پته:",
+	"usercredentials-agent": "آرنی کارن-پلاوی:",
+	"usercredentials-member": "رښتې:"
+}

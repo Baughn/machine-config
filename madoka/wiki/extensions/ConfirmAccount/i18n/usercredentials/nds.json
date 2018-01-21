@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Slomox"
+		]
+	},
+	"usercredentials-user": "Brukernaam:",
+	"usercredentials-leg-user": "Brukerkonto",
+	"usercredentials-email": "E-Mail:",
+	"usercredentials-real": "Echten Naam:",
+	"usercredentials-bio": "Biografie:",
+	"usercredentials-member": "Rechten:"
+}

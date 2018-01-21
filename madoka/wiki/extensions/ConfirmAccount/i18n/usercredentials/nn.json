@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"Gunnernett",
+			"Harald Khan",
+			"Jon Harald Søby",
+			"Njardarlogar"
+		]
+	},
+	"usercredentials": "Brukarattestar",
+	"usercredentials-leg": "Finn stadfeste attestar for ein brukar",
+	"usercredentials-user": "Brukarnamn:",
+	"usercredentials-text": "Under er dei stadfeste attestane til den valde brukarkontoen.",
+	"usercredentials-leg-user": "Brukarkonto",
+	"usercredentials-leg-areas": "Hovudinteresser",
+	"usercredentials-leg-person": "Personleg informasjon",
+	"usercredentials-leg-other": "Annan informasjon",
+	"usercredentials-email": "E-post:",
+	"usercredentials-real": "Verkeleg namn:",
+	"usercredentials-bio": "Biografi:",
+	"usercredentials-attach": "Resyme/CV:",
+	"usercredentials-notes": "Andre merknader:",
+	"usercredentials-urls": "Lista over nettstader:",
+	"usercredentials-ip": "Opphavleg IP-adressa:",
+	"usercredentials-member": "Rettar:",
+	"usercredentials-badid": "Ingen attestar vart funne for brukaren.\nGjer deg viss om at namnet er stava rett."
+}

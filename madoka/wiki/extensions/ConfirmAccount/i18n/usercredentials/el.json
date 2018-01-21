@@ -1,0 +1,26 @@
+{
+	"@metadata": {
+		"authors": [
+			"Consta",
+			"Crazymadlover",
+			"Egmontaz",
+			"Omnipaedista",
+			"ZaDiak"
+		]
+	},
+	"usercredentials": "Διαπιστευτήρια χρήστη",
+	"usercredentials-user": "Όνομα χρήστη:",
+	"usercredentials-leg-user": "Λογαριασμός χρήστη",
+	"usercredentials-leg-areas": "Κύρια πεδία ενδιαφέροντος",
+	"usercredentials-leg-person": "Προσωπικές πληροφορίες",
+	"usercredentials-leg-other": "Άλλες πληροφορίες",
+	"usercredentials-leg-ip": "Στοιχεία διεύθυνσης IP",
+	"usercredentials-email": "Ηλεκτρονικό ταχυδρομείο:",
+	"usercredentials-real": "Πραγματικό όνομα:",
+	"usercredentials-bio": "Βιογραφία:",
+	"usercredentials-attach": "Βιογραφικό:",
+	"usercredentials-notes": "Συμπληρωματικές σημειώσεις:",
+	"usercredentials-urls": "Λίστα ιστοσελίδων:",
+	"usercredentials-ip": "Αρχική διεύθυνση IP:",
+	"usercredentials-member": "Δικαιώματα:"
+}

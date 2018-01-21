@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"AnakngAraw",
+			"Jojit fb"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1''' bukas na e-mail ang natiyak [[Special:ConfirmAccounts|ang account na {{PLURAL:$1|hiniling ay nakabinbin|mga hiniling ay nakabinbin}}]]. '''Kailangan ang pagpansin mo!'''",
+	"requestaccount-loginnotice": "Upang makatanggap ng isang account ng tagagamit, dapat kang '''[[Special:RequestAccount|humiling ng isa]]'''.",
+	"right-confirmaccount": "Tingnan ang [[Special:ConfirmAccounts|pila na may hinihiling na mga account]]",
+	"right-requestips": "Tingnan ang mga IP address ng humihiling habang isinasagawa ang hinihiling na mga account",
+	"right-lookupcredentials": "Tingnan ang [[Special:UserCredentials|mga kredensyal ng tagagamit]]"
+}

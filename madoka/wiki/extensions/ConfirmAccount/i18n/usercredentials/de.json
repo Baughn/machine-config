@@ -1,0 +1,37 @@
+{
+	"@metadata": {
+		"authors": [
+			"Als-Holder",
+			"Kghbln",
+			"Leithian",
+			"MF-Warburg",
+			"Pill",
+			"Purodha",
+			"Raimond Spekking",
+			"Revolus",
+			"Rrosenfeld",
+			"The Evil IP address",
+			"Umherirrender"
+		]
+	},
+	"usercredentials": "Anmeldedaten des Benutzers",
+	"usercredentials-leg": "Bestätigte Anmeldedaten eines Benutzers einsehen",
+	"usercredentials-user": "Benutzername:",
+	"usercredentials-text": "Die bestätigten Anmeldedaten für das ausgewählte Benutzerkonto:",
+	"usercredentials-leg-user": "Benutzerkonto",
+	"usercredentials-leg-areas": "Interessensgebiete",
+	"usercredentials-leg-person": "Persönliche Informationen",
+	"usercredentials-leg-other": "Weitere Informationen",
+	"usercredentials-leg-ip": "Daten der IP-Adresse",
+	"usercredentials-email": "E-Mail:",
+	"usercredentials-real": "Bürgerlicher Name:",
+	"usercredentials-bio": "Biographie:",
+	"usercredentials-attach": "Lebenslauf:",
+	"usercredentials-notes": "Zusätzliche Bemerkungen:",
+	"usercredentials-urls": "Liste der Webseiten:",
+	"usercredentials-ip": "Originale IP-Adresse:",
+	"usercredentials-xff": "Ursprünglicher „X-Forwarded-For“ (XFF):",
+	"usercredentials-agent": "Ursprüngliches Zugriffsprogramm:",
+	"usercredentials-member": "Rechte:",
+	"usercredentials-badid": "Es wurden keine Anmeldedaten für diesen Benutzer gefunden.\nBitte die Schreibweise des Benutzerkontos überprüfen."
+}

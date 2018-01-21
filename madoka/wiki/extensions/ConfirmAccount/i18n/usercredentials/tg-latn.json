@@ -1,0 +1,18 @@
+{
+	"@metadata": {
+		"authors": [
+			"Liangent"
+		]
+	},
+	"usercredentials": "Ixtijoroti korbar",
+	"usercredentials-user": "Nomi korbarī:",
+	"usercredentials-leg-user": "Hisobi korbarī",
+	"usercredentials-leg-person": "Ittilooti şaxsī",
+	"usercredentials-leg-other": "Ittilooti digar",
+	"usercredentials-email": "Poctai elektronī:",
+	"usercredentials-real": "Nomi aslī:",
+	"usercredentials-bio": "Zindaginoma:",
+	"usercredentials-notes": "Ezohoti ilovagī:",
+	"usercredentials-urls": "Fehristi somonaho:",
+	"usercredentials-ip": "Nişonai IP-i aslī:"
+}

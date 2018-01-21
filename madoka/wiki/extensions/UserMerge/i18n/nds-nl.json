@@ -1,0 +1,32 @@
+{
+	"@metadata": {
+		"authors": [
+			"Servien"
+		]
+	},
+	"usermerge": "Gebrukers samenvoegen en vortdoon",
+	"usermerge-desc": "Zet n [[Special:UserMerge|spesiale zied]] derbie um gebrukers samen te voegen en de ouwe gebruker(s) vort te doon (hierveur is t recht ''usermerge'' neudig)",
+	"usermerge-badolduser": "Ongeldige ouwe gebrukersnaam",
+	"usermerge-badnewuser": "Ongeldige nieje gebrukersnaam",
+	"usermerge-nonewuser": "De nieje gebrukersnaam is niet op-egeven. Der wörden vanuut egaon dat der samenevoegd mut wörden naor \"{{GENDER:$1|$1}}\".<br />\nKlik \"{{int:usermerge-submit}}\" um de haandeling uut te voeren.",
+	"usermerge-noolduser": "Ouwe gebrukersnaam is niet op-egeven",
+	"usermerge-fieldset": "Gebrukersnamen die samenevoegen mutten wörden",
+	"usermerge-olduser": "Ouwe gebruker (samenvoegen van):",
+	"usermerge-newuser": "Nieje gebruker (samenvoegen naor):",
+	"usermerge-deleteolduser": "Ouwe gebruker vortdoon",
+	"usermerge-submit": "Gebruker samenvoegen",
+	"usermerge-badtoken": "Ongeldig bewarkingstoken",
+	"usermerge-userdeleted": "$1 ($2) is vort-edaon.",
+	"usermerge-userdeleted-log": "Vort-edaone gebruker: $2 ($3)",
+	"usermerge-success": "Samenvoegen van $1 ($2) naor {{GENDER:$3|$3}} ($4) is aoferond.",
+	"usermerge-success-log": "Gebruker $2 ($3) samenevoegd naor {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Logboek gebrukerssamenvoegingen",
+	"usermerge-logpagetext": "Dit is t logboek van gebrukerssamenvoegingen.",
+	"usermerge-noselfdelete": "Je kunnen je eigen niet vortdoon of samenvoegen!",
+	"usermerge-protectedgroup": "Kan de gebrukers niet samenvoegen. De gebruker zit in n bescharmde groep.",
+	"right-usermerge": "Gebrukers samenvoegen",
+	"action-usermerge": "gebrukers samenvoegen",
+	"usermerge-autopagedelete": "Automaties vortedaon bie t samenvoegen van gebrukers",
+	"usermerge-page-unmoved": "De zied $1 kon niet herneumd wörden naor $2.",
+	"usermerge-move-log": "Zied is automaties verplaotst bie t herneumen van de gebruker \"[[User:$1|$1]]\" naor \"[[User:$2|$2]]\""
+}

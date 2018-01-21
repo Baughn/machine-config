@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"Melancholie",
+			"Michawiki",
+			"Yekrats",
+			"KuboF"
+		]
+	},
+	"usermerge": "Kunigi kaj forigi uzantojn",
+	"usermerge-badolduser": "Nevalida malnova salutnomo",
+	"usermerge-badnewuser": "Nevalida nova salutnomo",
+	"usermerge-noolduser": "Malplena malnova salutnomo",
+	"usermerge-fieldset": "Kunigotaj salutnomoj",
+	"usermerge-olduser": "Malnova uzanto (kunigante de):",
+	"usermerge-newuser": "Nova uzanto (kunigante al):",
+	"usermerge-deleteolduser": "Forigi malnovan uzanton",
+	"usermerge-submit": "Kunigi uzanton",
+	"usermerge-badtoken": "Nevalida redakta ĵetono",
+	"usermerge-userdeleted": "$1 ($2) estis forigita.",
+	"usermerge-userdeleted-log": "Forigis uzanton: $2 ($3)",
+	"usermerge-success": "Kunigado de $1 ($2) al $3 ($4) kompletiĝis.",
+	"usermerge-success-log": "Uzanto $2 ($3) kunigita al $4 ($5)",
+	"usermerge-logpage": "Protokolo pri kunigado de uzantoj",
+	"usermerge-logpagetext": "Jen protokolo de kunigadoj de uzantoj",
+	"usermerge-noselfdelete": "Vi ne povas forigi aŭ kunigi de vi mem!",
+	"usermerge-protectedgroup": "Ne eblis kunigi de uzanto - uzanto estas en protektita grupo.",
+	"right-usermerge": "Kunfandi uzantojn",
+	"usermerge-page-unmoved": "La paĝo $1 ne povas esti alinomita al $2."
+}

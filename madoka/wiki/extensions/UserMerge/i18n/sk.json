@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Helix84"
+		]
+	},
+	"usermerge": "Zlúčenie a zmazanie používateľov",
+	"usermerge-desc": "[[Special:UserMerge|Zlučuje odkazy na jedného používateľa na odkazy na druhého]] v databáze wiki; tiež následne zmaže starého používateľa. Vyžaduje oprávnenie ''usermerge''.",
+	"usermerge-badolduser": "Neplatné staré používateľské meno",
+	"usermerge-badnewuser": "Neplatné nové používateľské meno",
+	"usermerge-nonewuser": "Prázdne nové používateľské meno - predpokladá sa zlúčenie do „$1“.<br />\nKliknutím na „{{int:usermerge-submit}}“ prijmete.",
+	"usermerge-noolduser": "Prázdne staré používateľské meno",
+	"usermerge-fieldset": "Zlúčiť používateľov",
+	"usermerge-olduser": "Starý používateľ (zlúčiť odtiaľto)",
+	"usermerge-newuser": "Nový používateľ (zlúčiť sem)",
+	"usermerge-deleteolduser": "Zmazať starého používateľa",
+	"usermerge-submit": "Zlúčiť používateľov",
+	"usermerge-badtoken": "Neplatný token úprav",
+	"usermerge-userdeleted": "$1($2) bol zmazaný.",
+	"usermerge-userdeleted-log": "Zmazaný používateľ: $2($3)",
+	"usermerge-success": "Zlúčenie z $1($2) do $3($4) je dokončené.",
+	"usermerge-success-log": "Používateľ $2($3) bol zlúčený do $4($5)",
+	"usermerge-logpage": "Záznam zlúčení používateľov",
+	"usermerge-logpagetext": "Toto je záznam zlúčení používateľov.",
+	"usermerge-noselfdelete": "Nemôžete zmazať alebo zlúčiť svoj účet!",
+	"usermerge-protectedgroup": "Nebolo možné zlúčiť uvedeného používateľa - používateľ je v chránenej skupine.",
+	"right-usermerge": "Zlučovať používateľov"
+}

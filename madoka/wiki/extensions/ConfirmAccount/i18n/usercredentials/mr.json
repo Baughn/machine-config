@@ -1,0 +1,26 @@
+{
+	"@metadata": {
+		"authors": [
+			"Htt",
+			"Kaustubh",
+			"Mahitgar"
+		]
+	},
+	"usercredentials": "सदस्याची शिफारसपत्रे",
+	"usercredentials-leg": "सदस्याची प्रमाणित केलेली शिफारसपत्रे पहा",
+	"usercredentials-user": "सदस्यनाव:",
+	"usercredentials-text": "खाली निवडलेल्या सदस्याची प्रमाणित केलेली शिफारसपत्रे दिलेली आहेत.",
+	"usercredentials-leg-user": "सदस्य खाते",
+	"usercredentials-leg-areas": "पसंतीची मुख्य क्षेत्रे",
+	"usercredentials-leg-person": "वैयक्तिक माहिती",
+	"usercredentials-leg-other": "इतर माहिती",
+	"usercredentials-email": "विपत्र:",
+	"usercredentials-real": "खरे नाव:",
+	"usercredentials-bio": "चरित्र:",
+	"usercredentials-attach": "रिज्यूम/सीव्ही:",
+	"usercredentials-notes": "अधिक माहिती:",
+	"usercredentials-urls": "संकेतस्थळांची यादी:",
+	"usercredentials-ip": "मूळ आयपी अंकपत्ता:",
+	"usercredentials-member": "अधिकार:",
+	"usercredentials-badid": "या सदस्याची शिफारसपत्रे सापडली नाहीत. सदस्य नाव बरोबर असल्याची खात्री करा."
+}

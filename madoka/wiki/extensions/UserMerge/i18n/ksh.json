@@ -1,0 +1,33 @@
+{
+	"@metadata": {
+		"authors": [
+			"Purodha"
+		]
+	},
+	"usermerge": "Metmaacher zosammelääje un fott schmiiße",
+	"usermerge-desc": "[[Special:UserMerge|Läät de Date fun einem Metmaacher met anem andere Metmaacher komplät zosamme]] en dem Wiki singe Datebank, un kann donoh och de övverhollte Metmaacher fottschmieße. Doför bruch mer et „{{int:right-usermerge}}“ Rääsch (<em lang=\"en\">usermerge</em>)",
+	"usermerge-badolduser": "Dä ahle Metmaachername es nit jöltesch",
+	"usermerge-badnewuser": "Dä neue Metmaachername es nit jöltesch",
+	"usermerge-nonewuser": "Keine neue Metmaachername aanjejovve. Mer vermoode, dat De {{GENDER:$1|mem|mem|med dämm Metmaacher|met dä|mem}} „$1“ zosamme lääje wells.<br />\nKleck op „{{int:usermerge-submit}}“ öm dat esu ze maache.",
+	"usermerge-noolduser": "Keine ahle Metmaachername aanjejovve",
+	"usermerge-same-old-and-new-user": "Dä ahle un der neue Nahme för dä Metmaacher möße onejahl sin.",
+	"usermerge-fieldset": "De Name vun dä Metmaacher zum Zosamme lääje",
+	"usermerge-olduser": "Dä ahle Metmaachername (Zosamme lääje fun&nbsp;…):",
+	"usermerge-newuser": "Dä neuje Metmaachername (Zosamme lääje noh&nbsp;…):",
+	"usermerge-deleteolduser": "Dä ahle Metmaacher fott schmiiße",
+	"usermerge-submit": "Zosammelääje",
+	"usermerge-badtoken": "Onjöltesch Kennzeiche",
+	"usermerge-userdeleted": "{{GENDER:$1|Dä|Dat|Dä Metmaacher|De|Dat}} „$1“ ($2) es jetz fott jeschmeße.",
+	"usermerge-userdeleted-log": "Fott jeschmeße Metmaacherame: „$2“ ($3)",
+	"usermerge-success": "Et Zosammelääje {{GENDER:$1|vum|vum|vumm Metmaacher|vun dä|vum}} „$1“ ($2) {{GENDER:$3|mem|mem|med dämm Metmaacher|met dä|mem}} „$3“ {{GENDER:$3|nohm|nohm|nohm|noh dä|nohm}} „$3“ ($4) es komplätt.",
+	"usermerge-success-log": "{{GENDER:$2|Dä Metmaacher|De Metmaacherėn|Dä Metmaacher|De Metmaacherėn|Dä Metmaacher}} mem Nahme „$2“ ($3) es zosammejelaat met {{GENDER:$4|däm Metmaacher|dä Metmaacherėn|däm Metmaacher|dä Metmaacherėn|däm Metmaacher}} mem Name „$4“ ($5)",
+	"usermerge-logpage": "Logbohch övver et Metmaacher_Zosammelähje",
+	"usermerge-logpagetext": "Dat heh es et Logbohch övver de zosammejelaate Metmaachere.",
+	"usermerge-noselfdelete": "Ene Metmaacher met sesch sellver zosamme ze lääje, wat ene Quatsch! Dat jeiht nit.{{GENDER:$1|}}",
+	"usermerge-protectedgroup": "Schahdt. Di esu zosamme ze lähje es nit müjjelesch. {{GENDER:$1|Dä Metmaacher|De Metmaacherėn|Dä Metmaacher|De Metmaacherėn|Dä Metmaacher}} „$1“ es en en Jropp, di et Zosammelähje verbehdt.",
+	"right-usermerge": "Metmaacher zosammelääje",
+	"action-usermerge": "Metmaacher zosammelähje",
+	"usermerge-autopagedelete": "Automattesch fottjeschmeße beim Metmaacher Zusammelääje",
+	"usermerge-page-unmoved": "Mer kůnnte di Sigg „$1“ nit op „$2“ ömnänne.",
+	"usermerge-move-log": "Di Sigg weet automatesch ömjenannt weil mer {{GENDER:$1|dä Metmaacher|de Metmaacherėn|dä Metmaacher|de Metmaacherėn|dä Metmaacher}} „[[User:$1|$1]]“ met {{GENDER:$2|däm Metmaacher|dä Metmaacherėn|däm Metmaacher|dä Metmaacherėn|däm Metmaacher}} „[[User:$2|$2]]“ aam zesamme lääje sin."
+}

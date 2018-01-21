@@ -1,0 +1,33 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michawiki"
+		]
+	},
+	"usermerge": "Wužiwarske konta zjednoćić a zničić",
+	"usermerge-desc": "[[Special:UserMerge|Zjednoća referency wužiwarjow]] we wikowej datowej bance - stare wužiwarske konto so po zjednoćenju wušmórnje. Žada sej prawa ''usermerge''.",
+	"usermerge-badolduser": "Njepłaćiwe stare wužiwarske mjeno",
+	"usermerge-badnewuser": "Njepłaćiwe nowe wužiwarske mjeno",
+	"usermerge-nonewuser": "Falowace nowe wužiwarske mjeno - najskerje zjednoćenje do \"{{GENDER:$1|$1}}\".<br />\nKlikń na \"{{int:usermerge-submit}}\", zo by akceptował.",
+	"usermerge-noolduser": "Falowace stare wužiwarske mjeno",
+	"usermerge-same-old-and-new-user": "Stare a nowe wužiwarske mjena dyrbja so rozeznawać.",
+	"usermerge-fieldset": "Wužiwarskej mjenje, kotrejž matej so zjednoćić",
+	"usermerge-olduser": "Stary wužiwar (zjednoćić wot):",
+	"usermerge-newuser": "Nowy wužiwar (zjednoćić do):",
+	"usermerge-deleteolduser": "Stare wužiwarske mjeno zničić",
+	"usermerge-submit": "Wužiwarske konta zjednoćić",
+	"usermerge-badtoken": "Njepłaćiwe wobdźěłanske znamjo",
+	"usermerge-userdeleted": "$1($2) bu zničeny.",
+	"usermerge-userdeleted-log": "Wušmórnjeny wužiwar: $2($3)",
+	"usermerge-success": "Zjednoćenje wot $1 ($2) do {{GENDER:$3|$3}} ($4) je dokónčene.",
+	"usermerge-success-log": "Wužiwar $2 ($3) je so z {{GENDER:$4|$4}} ($5) zjednoćił",
+	"usermerge-logpage": "Protokol wužiwarskich zjednoćenjow",
+	"usermerge-logpagetext": "To je protokol wužiwarskich zjednoćenjow.",
+	"usermerge-noselfdelete": "Njemóžeš sam wušmórnyć abo zjednoćić!",
+	"usermerge-protectedgroup": "Zjednoćenje wužiwarjow njemóžno - wužiwar je w škitanej skupinje",
+	"right-usermerge": "Wužiwarjow zjednoćić",
+	"action-usermerge": "wužiwarjow zjednoćić",
+	"usermerge-autopagedelete": "Při zjednoćenju wužiwarjow awtomatisce zhašany",
+	"usermerge-page-unmoved": "Strona $1 njeda so do $2 přesunyć.",
+	"usermerge-move-log": "Strona za zjednoćenje wužiwarja \"[[User:$1|$1]]\" z \"[[User:$2|{{GENDER:$2|$2}}]]\" awtomatisce přesunjena"
+}

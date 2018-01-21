@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Chinneeb",
+			"MongolWiki",
+			"Wisdom"
+		]
+	},
+	"confirmaccount-text": "Бүртгүүлэх",
+	"confirmaccount-name": "Хэрэглэгчийн нэр",
+	"confirmaccount-blockip": "IP хаягийг блок хийх"
+}

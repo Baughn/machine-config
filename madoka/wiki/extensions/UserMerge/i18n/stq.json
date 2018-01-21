@@ -1,0 +1,27 @@
+{
+	"@metadata": {
+		"authors": [
+			"Pyt"
+		]
+	},
+	"usermerge": "Benutserkonten touhoopefiere un läskje",
+	"usermerge-desc": "[[Special:UserMerge|Fiert Benutserkonten in ju Wiki-Doatenbank touhoope]] - dät oolde Benutserkonto wäd ätter ju Touhoopefierenge läsked. Ärfoardert dät ''usermerge''-Gjucht.",
+	"usermerge-badolduser": "Uungultigen oolden Benutsernoome",
+	"usermerge-badnewuser": "Uungultigen näien Benutsernoome",
+	"usermerge-nonewuser": "Loosen näien Benutsernoome - der is ne Touhoopefierenge mäd „$1“ fermoudjen.<br />\nKlik ap  „{{int:usermerge-submit}}“ toun Uutfieren.",
+	"usermerge-noolduser": "Loosen oolden Benutsernoome",
+	"usermerge-olduser": "Oolden Benutsernoome (touhoopefieren fon):",
+	"usermerge-newuser": "Näien Benutsernoome (touhoopefieren ätter):",
+	"usermerge-deleteolduser": "Oolden Benutsernoome läskje",
+	"usermerge-submit": "Benutserkonten touhoopefiere",
+	"usermerge-badtoken": "Uungultich Beoarbaidjen-Token",
+	"usermerge-userdeleted": "„$1“ ($2) wuud läsked.",
+	"usermerge-userdeleted-log": "Läskeden Benutsernoome: „$2“ ($3)",
+	"usermerge-success": "Ju Touhoopefierenge fon „$1“ ($2) ätter „$3“ ($4) is fulboodich.",
+	"usermerge-success-log": "Benutsernoome „$2“ ($3) touhoopefierd mäd „$4“ ($5)",
+	"usermerge-logpage": "Benutserkonten-Touhoopefierenge-Logbouk",
+	"usermerge-logpagetext": "Dit is dät Logbouk fon do Benutserkonten-Touhoopefierengen.",
+	"usermerge-noselfdelete": "Touhoopefierenge mäd aan sälwen is nit muugelk!",
+	"usermerge-protectedgroup": "Touhoopefierenge nit muugelk - Benutsernoome is in ne skutsede Gruppe.",
+	"right-usermerge": "Benutserkonten fereenje"
+}

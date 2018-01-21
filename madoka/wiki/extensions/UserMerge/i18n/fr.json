@@ -1,0 +1,42 @@
+{
+	"@metadata": {
+		"authors": [
+			"Crochet.david",
+			"Gomoko",
+			"Grondin",
+			"Guillom",
+			"IAlex",
+			"McDutchie",
+			"PieRRoMaN",
+			"Seb35",
+			"Sherbrooke",
+			"Urhixidur"
+		]
+	},
+	"usermerge": "Fusionner et supprimer des utilisateurs",
+	"usermerge-desc": "[[Special:UserMerge|Fusionne les références d’un utilisateur vers un autre]] dans la base de données wiki - supprimera aussi les anciens utilisateurs après la fusion. Nécessite le privilège ''usermerge''",
+	"usermerge-badolduser": "Ancien nom d’utilisateur invalide",
+	"usermerge-badnewuser": "Nouveau nom d’utilisateur invalide",
+	"usermerge-nonewuser": "Nouveau nom d’utilisateur vide. Nous supposons que vous voulez fusionner dans \"{{GENDER:$1|$1}}\".<br />\nCliquez sur \"{{int:usermerge-submit}}\" pour accepter.",
+	"usermerge-noolduser": "Ancien nom d’utilisateur vide",
+	"usermerge-same-old-and-new-user": "L’ancien et le nouveau nom de l’utilisateur doivent être différents.",
+	"usermerge-fieldset": "Noms d’utilisateur à fusionner",
+	"usermerge-olduser": "Ancien utilisateur (fusionner depuis) :",
+	"usermerge-newuser": "Nouvel utilisateur (fusionner avec) :",
+	"usermerge-deleteolduser": "Supprimer l’ancien utilisateur",
+	"usermerge-submit": "Fusionner l’utilisateur",
+	"usermerge-badtoken": "Jeton de modification invalide",
+	"usermerge-userdeleted": "$1 ($2) a été supprimé{{GENDER:$1||e}}.",
+	"usermerge-userdeleted-log": "Contributeur supprimé : $2 ($3)",
+	"usermerge-success": "La fusion de {{GENDER:$1|$1}} ($2) avec {{GENDER:$3|$3}} ($4) est terminée.",
+	"usermerge-success-log": "{{GENDER:$2|Utilisateur|Utilisatrice}} $2 ($3) fusionné{{GENDER:$2||e}} avec {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Journal des fusions de comptes utilisateur",
+	"usermerge-logpagetext": "Voici un journal des actions de fusions d’utilisateurs.",
+	"usermerge-noselfdelete": "Vous ne pouvez pas vous supprimer ou vous fusionner {{GENDER:$1|vous-même}} !",
+	"usermerge-protectedgroup": "Impossible de fusionner l’{{GENDER:$1|utilisateur|utilisatrice}} : l’{{GENDER:$1|utilisateur|utilisatrice}} est dans un groupe protégé.",
+	"right-usermerge": "Fusionner des utilisateurs",
+	"action-usermerge": "fusionner les utilisateurs",
+	"usermerge-autopagedelete": "Supprimé automatiquement lors de la fusion de utilisateurs",
+	"usermerge-page-unmoved": "Cette page $1 ne peut pas être déplacée vers $2.",
+	"usermerge-move-log": "Page déplacée automatiquement lors de la fusion de l’utilisateur \"[[User:$1|$1]]\" en \"[[User:$2|{{GENDER:$2|$2}}]]\""
+}

@@ -1,0 +1,36 @@
+{
+	"@metadata": {
+		"authors": [
+			"Armando-Martin",
+			"BicScope",
+			"Crazymadlover",
+			"Fitoschido",
+			"Imre",
+			"Lin linao",
+			"Locos epraix",
+			"Pertile",
+			"Sanbec",
+			"Translationista"
+		]
+	},
+	"usercredentials": "Credenciales de usuario",
+	"usercredentials-leg": "Buscar credenciales confirmadas para un usuario",
+	"usercredentials-user": "Nombre de usuario:",
+	"usercredentials-text": "A continuación se muestran las credenciales validadas para la cuenta de usuario seleccionada.",
+	"usercredentials-leg-user": "Cuenta de usuario",
+	"usercredentials-leg-areas": "Principales áreas de interés",
+	"usercredentials-leg-person": "Información personal",
+	"usercredentials-leg-other": "Otra información",
+	"usercredentials-leg-ip": "Datos de direcciones IP",
+	"usercredentials-email": "Correo electrónico:",
+	"usercredentials-real": "Nombre real:",
+	"usercredentials-bio": "Biografía:",
+	"usercredentials-attach": "Solicitud/Currículum:",
+	"usercredentials-notes": "Notas adicionales:",
+	"usercredentials-urls": "Lista de sitios web:",
+	"usercredentials-ip": "Dirección IP original:",
+	"usercredentials-xff": "Original X-Reenviado-A:",
+	"usercredentials-agent": "Usuario-Agente original:",
+	"usercredentials-member": "Derechos:",
+	"usercredentials-badid": "No se han encontrado credenciales para este usuario.\nVerifique que el nombre se ha escrito correctamente."
+}

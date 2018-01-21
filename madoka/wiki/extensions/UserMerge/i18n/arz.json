@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ghaly",
+			"Meno25"
+		]
+	},
+	"usermerge": "دمج وحذف اليوزرز",
+	"usermerge-desc": "[[Special:UserMerge|يدمج المراجع من يوزر ليوزر]] فى قاعدة بيانات الويكى - يحذف اليوزرز القدام بعد الدمج. يتطلب صلاحيات ''usermerge''",
+	"usermerge-badolduser": "اسم اليوزر القديم مش صحيح",
+	"usermerge-badnewuser": "اسم اليوزر الجديد مش صحيح",
+	"usermerge-nonewuser": "اسم يوزر جديد فارغ - افتراض الدمج إلى $1.<br />\nاضغط \"{{int:usermerge-submit}}\" للقبول.",
+	"usermerge-noolduser": "اسم اليوزر القديم فارغ",
+	"usermerge-fieldset": "أسماء اليوزرز للدمج",
+	"usermerge-olduser": "يوزر قديم (دمج من):",
+	"usermerge-newuser": "يوزر جديد (دمج ل):",
+	"usermerge-deleteolduser": "حذف اليوزر القديم",
+	"usermerge-submit": "دمج اليوزر",
+	"usermerge-badtoken": "نص تعديل غير صحيح",
+	"usermerge-userdeleted": "$1($2) تم حذفه.",
+	"usermerge-userdeleted-log": "حذف اليوزر: $2($3)",
+	"usermerge-success": "الدمج من $1($2) إلى $3($4) اكتمل.",
+	"usermerge-success-log": "اليوزر $2($3) تم دمجه مع $4($5)",
+	"usermerge-logpage": "سجل دمج اليوزر",
+	"usermerge-logpagetext": "ده سجل بأفعال دمج اليوزرز.",
+	"usermerge-noselfdelete": "لا يمكنك حذف أو دمج من نفسك!",
+	"usermerge-protectedgroup": "مش قادر  يدمج من اليوزر - اليوزر فى مجموعة محمية.",
+	"right-usermerge": "دمج اليوزرز"
+}

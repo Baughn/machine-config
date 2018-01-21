@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Geitost",
+			"Imre",
+			"Kghbln",
+			"The Evil IP address",
+			"Umherirrender"
+		]
+	},
+	"confirmaccount-newrequests": "[[Special:ConfirmAccounts|{{PLURAL:$1|Ein offener, per E-Mail bestätigter Benutzerkontenantrag wartet|$1 offene, per E-Mail bestätigte Benutzerkontenanträge warten}}]] auf Bearbeitung. '''Bitte kümmern Sie sich darum. Vielen Dank.'''",
+	"requestaccount-loginnotice": "Um ein Benutzerkonto zu erhalten, müssen Sie es '''[[Special:RequestAccount|beantragen]]'''."
+}

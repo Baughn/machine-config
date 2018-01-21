@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Basharh"
+		]
+	},
+	"usercredentials-user": "ܫܡܐ ܕܡܦܠܚܢܐ:",
+	"usercredentials-leg-user": "ܚܘܫܒܢܐ ܕܡܦܠܚܢܐ",
+	"usercredentials-leg-person": "ܝܕ̈ܥܬܐ ܦܪ̈ܨܘܦܝܬܐ",
+	"usercredentials-leg-other": "ܝܕ̈ܥܬܐ ܐܚܪ̈ܢܝܬܐ",
+	"usercredentials-email": "ܒܝܠܕܪܐ ܐܠܩܛܪܘܢܝܐ:",
+	"usercredentials-real": "ܫܡܐ ܫܪܝܪܐ:",
+	"usercredentials-member": "ܙܕ̈ܩܐ:"
+}

@@ -1,0 +1,32 @@
+{
+	"@metadata": {
+		"authors": [
+			"Consta",
+			"Crazymadlover",
+			"Egmontaz",
+			"Omnipaedista",
+			"Tifa93",
+			"ZaDiak"
+		]
+	},
+	"requestaccount": "Αίτηση λογαριασμού",
+	"requestaccount-page": "{{ns:project}}:Όροι Χρήσης",
+	"requestaccount-leg-user": "Λογαριασμός χρήστη",
+	"requestaccount-leg-areas": "Κύρια πεδία ενδιαφέροντος",
+	"requestaccount-leg-person": "Προσωπικές πληροφορίες",
+	"requestaccount-leg-other": "Άλλες πληροφορίες",
+	"requestaccount-leg-tos": "Όροι Χρήσης",
+	"requestaccount-acc-text": "Ένα μήνυμα επιβεβαίωσης θα σταλεί στη διεύθυνση email σου μόλις υποβάλλεις αυτή την αίτηση. Η διεύθυνση δεν θα δημοσιευτεί.\nΠαρακαλώ απάντησε πατώντας τον σύνδεσμο επιβεβαίωσης που έλαβες με το email.\nΤέλος, θα λάβεις τον κωδικό σου με email όταν δημιουργηθεί ο λογαριασμός σου.",
+	"requestaccount-real": "Πραγματικό όνομα:",
+	"requestaccount-same": "(το ίδιο με το πραγματικό όνομα)",
+	"requestaccount-email": "Διεύθυνση ηλεκτρονικού ταχυδρομείου:",
+	"requestaccount-reqtype": "Θέση:",
+	"requestaccount-level-0": "δημιουργός",
+	"requestaccount-level-1": "συντάκτης",
+	"requestaccount-bio": "Προσωπική βιογραφία:",
+	"requestaccount-attach": "Βιογραφικό (προαιρετικό):",
+	"requestaccount-notes": "Συμπληρωματικές σημειώσεις:",
+	"requestaccount-tooshort": "Το βιογραφικό σας θα πρέπει να είναι τουλάχιστον $1 {{PLURAL:$1|λέξη|λέξεις}}",
+	"requestaccount-submit": "Αίτηση λογαριασμού",
+	"requestaccount-email-subj-admin": "Αίτηση λογαριασμού στο {{SITENAME}}"
+}

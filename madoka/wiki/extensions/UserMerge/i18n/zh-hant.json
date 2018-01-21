@@ -1,0 +1,38 @@
+{
+	"@metadata": {
+		"authors": [
+			"Liangent",
+			"Liuxinyu970226",
+			"Mark85296341",
+			"Wrightbus",
+			"Cwlin0416",
+			"LNDDYL"
+		]
+	},
+	"usermerge": "合併並刪除使用者",
+	"usermerge-desc": "可 [[Special:UserMerge|合併一位使用者至另一位使用者]]，在合併之後會同時刪除舊使用者。 需要開啟 ''usermerge'' 權限",
+	"usermerge-badolduser": "無效的舊使用者名稱。",
+	"usermerge-badnewuser": "無效的新使用者名稱。",
+	"usermerge-nonewuser": "未填寫新使用者名稱。預設合併至 \"{{GENDER:$1|$1}}\"。<br />\n點選 {{int:usermerge-submit}} 繼續。",
+	"usermerge-noolduser": "未填寫舊使用者名稱。",
+	"usermerge-same-old-and-new-user": "新舊使用者名稱必須不同。",
+	"usermerge-fieldset": "要合併的使用者名稱",
+	"usermerge-olduser": "舊使用者 (合併自)：",
+	"usermerge-newuser": "新使用者 (合併至)：",
+	"usermerge-deleteolduser": "刪除舊使用者",
+	"usermerge-submit": "合併使用者",
+	"usermerge-badtoken": "無效的編輯權杖。",
+	"usermerge-userdeleted": "{{GENDER:$1|$1}} ($2) 已刪除。",
+	"usermerge-userdeleted-log": "已刪除使用者：$2 ($3)",
+	"usermerge-success": "已完成由 {{GENDER:$1|$1}} ($2) 至 {{GENDER:$3|$3}} ($4) 的合併。",
+	"usermerge-success-log": "使用者 {{GENDER:$2|$2}} ($3) 已合併至 {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "使用者合併日誌",
+	"usermerge-logpagetext": "此頁為使用者合併動作的記錄。",
+	"usermerge-noselfdelete": "您無法刪除或合併{{GENDER:$1|自己}}！",
+	"usermerge-protectedgroup": "無法完成{{GENDER:$1|使用者}}合併：使用者屬於受保護群組成員。",
+	"right-usermerge": "合併使用者",
+	"action-usermerge": "合併使用者",
+	"usermerge-autopagedelete": "合併後自動刪除使用者",
+	"usermerge-page-unmoved": "頁面 $1 無法移動至 $2。",
+	"usermerge-move-log": "合併 \"[[User:$1|$1]]\" 至 \"[[User:$2|{{GENDER:$2|$2}}]]\" 時已自動移動頁面"
+}

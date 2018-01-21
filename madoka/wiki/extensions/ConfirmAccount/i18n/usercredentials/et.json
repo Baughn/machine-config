@@ -1,0 +1,22 @@
+{
+	"@metadata": {
+		"authors": [
+			"Avjoska",
+			"Pikne"
+		]
+	},
+	"usercredentials-user": "Kasutajanimi:",
+	"usercredentials-leg-user": "Kasutajakonto",
+	"usercredentials-leg-areas": "Peamised huvialad",
+	"usercredentials-leg-person": "Personaalne informatsioon",
+	"usercredentials-leg-other": "Muu informatsioon",
+	"usercredentials-leg-ip": "IP-aadressi andmed",
+	"usercredentials-email": "E-posti aadress:",
+	"usercredentials-real": "Tegelik nimi:",
+	"usercredentials-bio": "Biograafia:",
+	"usercredentials-attach": "Elulugu/CV:",
+	"usercredentials-notes": "Lisainfo:",
+	"usercredentials-urls": "Veebilehtede loend:",
+	"usercredentials-ip": "Originaalne IP-aadress:",
+	"usercredentials-member": "Õigused:"
+}

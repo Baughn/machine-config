@@ -1,0 +1,26 @@
+{
+	"@metadata": {
+		"authors": [
+			"Minh Nguyen",
+			"Vinhtantran",
+			"පසිඳු කාවින්ද"
+		]
+	},
+	"confirmaccount-real-q": "Tên",
+	"confirmaccount-email-q": "Thư điện tử",
+	"confirmaccount-bio-q": "Tiểu sử",
+	"confirmaccount-review": "Duyệt",
+	"confirmaccount-leg-user": "Tài khoản",
+	"confirmaccount-leg-person": "Thông tin cá nhân",
+	"confirmaccount-leg-other": "Thông tin khác",
+	"confirmaccount-name": "Tên người dùng",
+	"confirmaccount-real": "Tên:",
+	"confirmaccount-email": "Thư điện tử:",
+	"confirmaccount-reqtype": "Vị trí:",
+	"confirmaccount-pos-0": "tác giả",
+	"confirmaccount-pos-1": "người sửa trang",
+	"confirmaccount-bio": "Tiểu sử:",
+	"confirmaccount-notes": "Chi tiết:",
+	"confirmaccount-noreason": "(không có)",
+	"confirmaccount-submit": "Xác nhận"
+}

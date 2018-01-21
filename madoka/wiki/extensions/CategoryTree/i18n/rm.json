@@ -1,0 +1,19 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kazu89",
+			"Terfili"
+		]
+	},
+	"categorytree": "Structura da las categorias",
+	"categorytree-portlet": "Categorias",
+	"categorytree-category": "Categoria:",
+	"categorytree-mode-all": "Tut las paginas",
+	"categorytree-collapse": "cumprimer",
+	"categorytree-expand": "extender",
+	"categorytree-num-categories": "$1 C",
+	"categorytree-num-pages": "$1 P",
+	"categorytree-num-files": "$1 D",
+	"categorytree-num-empty": "vid",
+	"categorytree-loading": "chargiar…"
+}

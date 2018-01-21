@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Nayvik"
+		]
+	},
+	"requestaccount-leg-person": "ವೈಯುಕ್ತಿಕ ಮಾಹಿತಿ",
+	"requestaccount-level-0": "ಕರ್ತೃ",
+	"requestaccount-level-1": "ಸಂಪಾದಕ",
+	"requestaccount-email-subj-admin": "{{SITENAME}} ಖಾತೆ ಕೋರಿಕೆ"
+}

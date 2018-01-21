@@ -1,0 +1,37 @@
+{
+	"@metadata": {
+		"authors": [
+			"CERminator"
+		]
+	},
+	"requestaccount": "Zahtjev za račun",
+	"requestaccount-page": "{{ns:project}}:Uslovi korištenja",
+	"requestaccount-dup": "'''Napomena: Već ste prijavljeni sa registrovanim računom.'''",
+	"requestaccount-leg-user": "Korisnički račun",
+	"requestaccount-leg-areas": "Glavna područja interesa",
+	"requestaccount-leg-person": "Lične informacije",
+	"requestaccount-leg-other": "Ostale informacije",
+	"requestaccount-leg-tos": "Uslovi usluge",
+	"requestaccount-areas-text": "Odaberite tematske oblasti ispod u kojima imate formalno iskustva ili u kojima bi željeli najviše raditi.",
+	"requestaccount-real": "Pravo ime:",
+	"requestaccount-same": "(isto kao i pravo ime)",
+	"requestaccount-email": "E-mail adresa:",
+	"requestaccount-reqtype": "Pozicija:",
+	"requestaccount-level-0": "autor",
+	"requestaccount-level-1": "uređivač",
+	"requestaccount-bio": "Lična biografija (samo obični tekst):",
+	"requestaccount-attach": "Biografija (opcionalno):",
+	"requestaccount-notes": "Dodatne napomene:",
+	"requestaccount-urls": "Spisak web stranica, ako ih ima (odvojiti sa novim redovima):",
+	"requestaccount-agree": "Morate potvrditi da je ovo Vaše pravo ime i da prihvatate naša Pravila usluga.",
+	"requestaccount-inuse": "Korisničko ime je već u upotrebi u zahtjevu za račun.",
+	"requestaccount-tooshort": "Vaša biografija mora biti duga najmanje $1 {{PLURAL:$1|riječ|riječi}}.",
+	"requestaccount-emaildup": "Drugi zahtjev za račun na čekanju koristi istu e-mail adresu.",
+	"requestaccount-exts": "Vrsta datoteke u privitku nije dopuštena.",
+	"requestaccount-submit": "Zahtjevaj račun",
+	"requestaccount-sent": "Vaš zahtjev za račun je uspješno poslan i sada očekuje provjeru.\nMail za potvrdu je poslan na Vašu e-mail adresu.",
+	"request-account-econf": "Vaša e-mail adresa je potvrđena i bit će prikazana kako je navedeno u Vašem zahjevu za račun.",
+	"requestaccount-email-subj": "{{SITENAME}} e-mail adresa potvrde",
+	"requestaccount-email-subj-admin": "Zahtjev za račun na {{SITENAME}}",
+	"acct_request_throttle_hit": "Žao nam je, već ste zahtjevali otvaranje {{PLURAL:$1|1 računa|$1 računa}}.\nNe možete podnositi više zahtjeva."
+}

@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Zygimantus"
+		]
+	},
+	"googlelogin-manage-usersubmit": "Tvarkyti vartotoją",
+	"googlelogin-manage-isplusser": "Registruota „Google+“",
+	"googlelogin-manage-givenid": "„Google“ ID, kurį įvedėte, jau yra susietas su kitu viki naudotoju.",
+	"googlelogin-success-merge": "Jūsų viki paskyra dabar yra susieta su jūsu „Google“ paskyra.",
+	"googlelogin-success-unlink": "Jūsų viki paskyra nebėra susieta su jūsų „Google“ paskyra.",
+	"right-managegooglelogin": "Galite pridėti, pašalinti ir peržiūrėti „GoogleLogin“ ryšius"
+}

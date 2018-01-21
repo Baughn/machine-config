@@ -1,0 +1,34 @@
+{
+	"@metadata": {
+		"authors": [
+			"Minh Nguyen",
+			"Vinhtantran"
+		]
+	},
+	"usermerge": "Trộn và xóa thành viên",
+	"usermerge-desc": "[[Special:UserMerge|Trộn các tham chiếu từ thành viên này sang một thành viên khác]] trong cơ sở dữ liệu wiki – đồng thời xóa thành viên cũ sau khi trộn. Cần phải có quyền ''usermerge''",
+	"usermerge-badolduser": "Tên thành viên cũ không hợp lệ",
+	"usermerge-badnewuser": "Tên thành viên mới không hợp lệ",
+	"usermerge-nonewuser": "Tên thành viên mới đã để trống. Có lẽ nên trộn với với “$1”.<br />\nNhấn “{{int:usermerge-submit}}” để chấp nhận.",
+	"usermerge-noolduser": "Tên thành viên cũ trống",
+	"usermerge-same-old-and-new-user": "Các tên người dùng cũ và mới phải khác nhau.",
+	"usermerge-fieldset": "Các tên thành viên sẽ trộn",
+	"usermerge-olduser": "Thành viên cũ (trộn từ đây):",
+	"usermerge-newuser": "Thành viên mới (trộn đến đây):",
+	"usermerge-deleteolduser": "Xóa thành viên cũ",
+	"usermerge-submit": "Trộn thành viên",
+	"usermerge-badtoken": "Thẻ sửa đổi không hợp lệ",
+	"usermerge-userdeleted": "$1 ($2) đã bị xóa.",
+	"usermerge-userdeleted-log": "Người đã xóa: $2 ($3)",
+	"usermerge-success": "Việc trộn từ $1 ($2) đến $3 ($4) đã hoàn thành.",
+	"usermerge-success-log": "Thành viên $2 ($3) đã được trộn sang $4 ($5)",
+	"usermerge-logpage": "Nhật trình trộn thành viên",
+	"usermerge-logpagetext": "Đây là nhật trình ghi lại các tác vụ trộn thành viên.",
+	"usermerge-noselfdelete": "Bạn không thể xóa hoặc trộn từ {{GENDER:$1}}chính bạn!",
+	"usermerge-protectedgroup": "Không thể trộn từ {{GENDER:$1}}thành viên này: thành viên này thuộc nhóm được bảo vệ.",
+	"right-usermerge": "Trộn thành viên",
+	"action-usermerge": "trộn người dùng",
+	"usermerge-autopagedelete": "Được tự động xóa khi trộn người dùng",
+	"usermerge-page-unmoved": "Trang $1 không thể di chuyển đến $2.",
+	"usermerge-move-log": "Đã tự động di chuyển trang khi trộn thành viên “[[User:$1|$1]]” vào “[[User:$2|$2]]”"
+}

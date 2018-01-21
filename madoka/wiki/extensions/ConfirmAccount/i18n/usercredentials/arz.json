@@ -1,0 +1,24 @@
+{
+	"@metadata": {
+		"authors": [
+			"Meno25"
+		]
+	},
+	"usercredentials": "مؤهلات المستخدم",
+	"usercredentials-leg": "ابحث عن المؤهلات المؤكدة لمستخدم",
+	"usercredentials-user": "اسم المستخدم:",
+	"usercredentials-text": "بالأسفل المؤهلات المؤكدة لحساب المستخدم المختار.",
+	"usercredentials-leg-user": "حساب المستخدم",
+	"usercredentials-leg-areas": "الاهتمامات الرئيسية",
+	"usercredentials-leg-person": "المعلومات الشخصية",
+	"usercredentials-leg-other": "معلومات أخرى",
+	"usercredentials-email": "البريد الإلكتروني:",
+	"usercredentials-real": "الاسم الحقيقي:",
+	"usercredentials-bio": "السيرة الشخصية:",
+	"usercredentials-attach": "استكمال/سيرة شخصية:",
+	"usercredentials-notes": "ملاحظات إضافية:",
+	"usercredentials-urls": "قائمة مواقع الويب:",
+	"usercredentials-ip": "عنوان الأيبى الأصلي:",
+	"usercredentials-member": "الصلاحيات:",
+	"usercredentials-badid": "لا مؤهلات تم العثور عليها لهذا المستخدم.\nتأكد من أن الاسم مكتوب بطريقة صحيحة."
+}

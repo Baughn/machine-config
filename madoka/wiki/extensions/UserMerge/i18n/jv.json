@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"Meursault2004",
+			"Pras",
+			"NoiX180"
+		]
+	},
+	"usermerge": "Panggabungan lan pambusakan panganggo",
+	"usermerge-desc": "[[Special:UserMerge|Nggabungaké rèferènsi saka panganggo siji menyang liyané]] ing basis data wiki - bakal sekaligus mbusak panganggo lawas sawisé rampung panggabungan. Tindakan iki merlokaké hak ''usermerge''.",
+	"usermerge-badolduser": "Jeneng panganggo lawas ora sah",
+	"usermerge-badnewuser": "Jeneng panganggo anyar ora absah",
+	"usermerge-nonewuser": "Jeneng panganggo kothong - dianggep bakal digabungaké menyang $1.<br />\nKlik \"{{int:usermerge-submit}}\" kanggo nerusaké.",
+	"usermerge-noolduser": "Jeneng panganggo sing lawas kosong",
+	"usermerge-olduser": "Panganggo lawas (digabungaké saka):",
+	"usermerge-newuser": "Panganggo anyar (digabungaké menyang):",
+	"usermerge-deleteolduser": "Busak panganggo lawas",
+	"usermerge-submit": "Gabung panganggo",
+	"usermerge-badtoken": "Token panyuntingan ora absah",
+	"usermerge-userdeleted": "$1 ($2) wis dibusak.",
+	"usermerge-userdeleted-log": "Panganggo dibusak: $2 ($3)",
+	"usermerge-success": "$1 ($2) wis rampung digabungaké menyang $3 ($4).",
+	"usermerge-success-log": "Panganggo $2 ($3) wis digabungaké menyang $4 ($5)",
+	"usermerge-logpage": "Log panggabungan panganggo",
+	"usermerge-logpagetext": "Iki sawijining log aksi panggabungan panganggo.",
+	"usermerge-noselfdelete": "Panjenengan ora bisa mbusak utawa nggabung saka panjenengan dhéwé!",
+	"usermerge-protectedgroup": "Ora bisa nggabungaké saka panganggo iki - panganggo ana jroning klompok kareksa.",
+	"right-usermerge": "Gabung panganggo",
+	"usermerge-move-log": "Otomatis ngalih kaca nalika nggabungaké naraguna \"[[User:$1|$1]]\" karo \"[[User:$2|{{GENDER:$2|$2}}]]\""
+}

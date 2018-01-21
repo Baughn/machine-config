@@ -1,0 +1,42 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ebraminio",
+			"Huji",
+			"Leyth",
+			"Mjbmr",
+			"ZxxZxxZ",
+			"Alirezaaa"
+		]
+	},
+	"categorytree": "درخت رده",
+	"categorytree-portlet": "رده‌ها",
+	"categorytree-legend": "نمایش درخت رده",
+	"categorytree-desc": "ابزار مبتنی بر AJAX برای نمایش [[Special:CategoryTree|ساختار رده‌های]] یک ویکی",
+	"categorytree-header": "نام رده‌ای را وارد کنید تا محتویات آن به صورت درختی نمایش یابد. توجه کنید که این کار نیاز به قابلیت‌های پیشرفتهٔ جاوااسکریپت موسوم به ای‌جکس دارد. اگر از مرورگری خیلی قدیمی استفاده می‌کنید یا جاوااسکریپت را غیرفعال کرده‌اید، کار نمی‌کند.",
+	"categorytree-category": "رده:",
+	"categorytree-go": "نمایش درخت",
+	"categorytree-parents": "ریشه",
+	"categorytree-mode-label": "حالت:",
+	"categorytree-mode-categories": "فقط رده‌ها",
+	"categorytree-mode-pages": "صفحات به جز تصاویر",
+	"categorytree-mode-all": "همهٔ صفحات",
+	"categorytree-collapse": "نهفتن",
+	"categorytree-expand": "گسترش",
+	"categorytree-expand-bullet": "◄",
+	"categorytree-empty-bullet": "◄",
+	"categorytree-member-counts": "شامل {{PLURAL:$1|یک زیررده|$1 زیررده}}، {{PLURAL:$2|یک صفحه|$2 صفحه}} و {{PLURAL:$3|یک پرونده|$3 پرونده است}}",
+	"categorytree-num-categories": "$1 ر",
+	"categorytree-num-pages": "$1 ص",
+	"categorytree-num-files": "$1 پ",
+	"categorytree-num-empty": "خالی",
+	"categorytree-load": "بارگیری",
+	"categorytree-loading": "در حال بارگیری...",
+	"categorytree-nothing-found": "هیچ‌چیز یافت نشد.",
+	"categorytree-no-subcategories": "هیچ زیررده‌ای ندارد.",
+	"categorytree-no-parent-categories": "فاقد ردهٔ بالاتر",
+	"categorytree-no-pages": "هیچ صفحه یا زیررده‌ای ندارد.",
+	"categorytree-not-found": "ردهٔ <i>$1</i> یافت نشد",
+	"categorytree-error": "اشکال در دریافت اطلاعات.",
+	"categorytree-retry": "لطفاً کمی صبر کنید و دوباره امتحان کنید."
+}

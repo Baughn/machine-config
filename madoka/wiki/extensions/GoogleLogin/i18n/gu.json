@@ -1,0 +1,19 @@
+{
+	"@metadata": {
+		"authors": [
+			"Sushant savla",
+			"Nisargjhaveri"
+		]
+	},
+	"googlelogin-manage-notexist": "<strong>$1</strong> નામ ધરાવતો કોઈ સભ્ય નથી.",
+	"googlelogin-manage-notlinked": "આ ખાતું ગુગલ ખાતા સાથે જોડાયેલું નથી.",
+	"googlelogin-manage-changelegend": "Google ID બદલો",
+	"googlelogin-manage-changedsuccess": "આ ખાતું હવે ગુગલ ખાતા સાથે સાંકળી લેવાયું છે.",
+	"googlelogin-manage-isplusser": "ગુગલ પ્લસ પર નોંધાયેલું",
+	"googlelogin-manage-orgname": "સંસ્થાનું નામ",
+	"googlelogin-manage-orgsince": "થી",
+	"googlelogin-manage-yes": "હા",
+	"googlelogin-manage-dismiss": "વિસર્જન",
+	"googlelogin-manage-errorloading": "લોડિંગ ત્રુટિ",
+	"googlelogin-form-next": "આગળ"
+}

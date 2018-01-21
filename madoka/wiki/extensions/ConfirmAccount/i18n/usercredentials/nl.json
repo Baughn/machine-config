@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"Annabel",
+			"SPQRobin",
+			"Siebrand"
+		]
+	},
+	"usercredentials": "Referenties van gebruiker",
+	"usercredentials-leg": "Bevestigde referenties voor gebruiker",
+	"usercredentials-user": "Gebruikersnaam:",
+	"usercredentials-text": "Overzicht van de bevestigde referenties voor de geselecteerde gebruiker:",
+	"usercredentials-leg-user": "Gebruikersaccount",
+	"usercredentials-leg-areas": "Interessegebieden",
+	"usercredentials-leg-person": "Persoonlijke gegevens",
+	"usercredentials-leg-other": "Overige informatie",
+	"usercredentials-leg-ip": "IP-adresgegevens",
+	"usercredentials-email": "E-mailadres:",
+	"usercredentials-real": "Echte naam:",
+	"usercredentials-bio": "Biografie:",
+	"usercredentials-attach": "CV:",
+	"usercredentials-notes": "Overige opmerkingen:",
+	"usercredentials-urls": "Lijst van websites:",
+	"usercredentials-ip": "Oorspronkelijk IP-adres:",
+	"usercredentials-xff": "Oorspronkelijke X-Forwarded-For:",
+	"usercredentials-agent": "Oorspronkelijke User-Agent:",
+	"usercredentials-member": "Rechten:",
+	"usercredentials-badid": "Geen referenties gevonden voor deze gebruiker.\nKijk na of de naam correct gespeld is."
+}

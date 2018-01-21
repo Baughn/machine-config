@@ -1,0 +1,34 @@
+{
+	"@metadata": {
+		"authors": [
+			"AS",
+			"Ahonc",
+			"Alex Khimich",
+			"Andriykopanytsia",
+			"Base",
+			"Prima klasy4na",
+			"Ата",
+			"Тест"
+		]
+	},
+	"usercredentials": "Облікові дані користувача",
+	"usercredentials-leg": "Пошук підтверджених облікових даних користувача",
+	"usercredentials-user": "Ім'я користувача:",
+	"usercredentials-text": "Нижче наведені підтверджені облікові дані обраного облікового запису користувача.",
+	"usercredentials-leg-user": "Обліковий запис",
+	"usercredentials-leg-areas": "Основні області інтересів",
+	"usercredentials-leg-person": "Особиста інформація",
+	"usercredentials-leg-other": "Інша інформація",
+	"usercredentials-leg-ip": "Дані IP-адреси",
+	"usercredentials-email": "Електронна пошта:",
+	"usercredentials-real": "Справжнє ім'я:",
+	"usercredentials-bio": "Біографія:",
+	"usercredentials-attach": "Резюме/CV:",
+	"usercredentials-notes": "Додаткова інформація:",
+	"usercredentials-urls": "Список веб-сайтів:",
+	"usercredentials-ip": "Оригінальна IP-адреса:",
+	"usercredentials-xff": "Оригінальний X-Forwarded-For:",
+	"usercredentials-agent": "Оригінальний User-Agent:",
+	"usercredentials-member": "Права:",
+	"usercredentials-badid": "Не знайдено облікових даних цього користувача.\nПеревірте правильність написання імені."
+}

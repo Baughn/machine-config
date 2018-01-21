@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"EileenSanda"
+		]
+	},
+	"requestaccount-loginnotice": "Fyri at fáa eina brúkarakonto, mást tú '''[[Special:RequestAccount|biðja um eina]]'''.",
+	"right-confirmaccount": "Hygg eftir [[Special:ConfirmAccounts|røðini við umbøn um konto]]",
+	"right-requestips": "Hygg eftir IP adressunum hjá umsøkjara, meðan umbidnar kontur verða viðgjørdar"
+}

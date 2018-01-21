@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Xuacu"
+		]
+	},
+	"confirmaccount-newrequests": "Anguaño hai '''$1''' [[Special:ConfirmAccounts|{{PLURAL:$1|solicitú de cuenta pendiente|solicitúes de cuentes pendientes}}]]. '''Fai falta la to atención!'''",
+	"requestaccount-loginnotice": "Pa tener una cuenta d'usuariu, tienes de '''[[Special:RequestAccount|solicitar una]]'''.",
+	"right-confirmaccount": "Ver la [[Special:ConfirmAccounts|cola de solicitúes de cuentes]]",
+	"right-requestips": "Ver la direición IP del solicitante al procesar les solicitúes de cuentes",
+	"right-lookupcredentials": "Ver les [[Special:UserCredentials|credenciales del usuariu]]",
+	"action-confirmaccount": "revisar y aceptar les cuentes"
+}

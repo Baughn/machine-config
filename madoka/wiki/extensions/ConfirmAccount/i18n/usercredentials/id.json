@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bennylin",
+			"Irwangatot",
+			"IvanLanin",
+			"Iwan Novirion",
+			"Mahali syarifuddin",
+			"Rex"
+		]
+	},
+	"usercredentials": "Kredensial pengguna",
+	"usercredentials-leg": "Lihat konfirmasi Kredensial untuk pengguna",
+	"usercredentials-user": "Nama pengguna:",
+	"usercredentials-text": "Berikut adalah Kredensial yang sah untuk akun pengguna terpilih.",
+	"usercredentials-leg-user": "Akun pengguna",
+	"usercredentials-leg-areas": "Bidang utama yang diminati",
+	"usercredentials-leg-person": "Informasi pribadi",
+	"usercredentials-leg-other": "Informasi lain",
+	"usercredentials-leg-ip": "Data alamat IP",
+	"usercredentials-email": "Surel:",
+	"usercredentials-real": "Nama asli:",
+	"usercredentials-bio": "Biografi:",
+	"usercredentials-attach": "Resume/CV:",
+	"usercredentials-notes": "Catatan tambahan:",
+	"usercredentials-urls": "Daftar situs web:",
+	"usercredentials-ip": "Alamat IP asal:",
+	"usercredentials-member": "Hak:",
+	"usercredentials-badid": "Tidak ditemukan Kredensial untuk pengguna ini,\nPeriksa! apakah nama dieja dengan benar."
+}

@@ -1,0 +1,29 @@
+{
+	"@metadata": {
+		"authors": [
+			"CERminator",
+			"Srdjan m"
+		]
+	},
+	"usermerge": "Spajanje i brisanje korisnika",
+	"usermerge-desc": "[[Special:UserMerge|Spajanje referenci sa jednog na drugog kornisnika]] u wiki bazi podataka - također će obrisaiti stare korisnike nakon spajanja. Zahtjeva ''usermerge'' privilegije.",
+	"usermerge-badolduser": "Nevaljano staro korisničko ime",
+	"usermerge-badnewuser": "Nevaljano novo korisničko ime",
+	"usermerge-nonewuser": "Prazno novo korisničko ime - pretpostavljam da se spaja na \"$1\".<br />\nKliknite na \"{{int:usermerge-submit}}\" za prihvatanje.",
+	"usermerge-noolduser": "Prazno staro korisničko ime",
+	"usermerge-fieldset": "Korisnička imena za spajanje",
+	"usermerge-olduser": "Stari korisnik (spajanje sa):",
+	"usermerge-newuser": "Novi korisnik (spajanje na):",
+	"usermerge-deleteolduser": "Obriši starog korisnika",
+	"usermerge-submit": "Spoji korisnika",
+	"usermerge-badtoken": "Nevaljan token izmjene",
+	"usermerge-userdeleted": "{{GENDER:$1|Korisnik|Korisnica}} $1 ($2) {{GENDER:$1|obrisan|obrisana}} je.",
+	"usermerge-userdeleted-log": "Obrisani korisnik: $2 ($3)",
+	"usermerge-success": "Spajanje sa $1 ($2) na $3 ($4) je završeno.",
+	"usermerge-success-log": "{{GENDER:$2|Korisnik|Korisnica}} $2 ($3) {{GENDER:$2|spojen|spojena}} je sa {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Zapisnik spajanja korisnika",
+	"usermerge-logpagetext": "Ovo je zapisnik akcija spajanja korisnika.",
+	"usermerge-noselfdelete": "Ne možete obrisati ili spajati od samog sebe!",
+	"usermerge-protectedgroup": "Ne može se spajati od korisnika - korisnik je u zaštićenoj grupi.",
+	"right-usermerge": "Spajanje korisnika"
+}

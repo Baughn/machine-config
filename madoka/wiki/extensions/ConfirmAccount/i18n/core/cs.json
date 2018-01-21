@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Jkjk",
+			"Li-sung",
+			"Matěj Grabovský",
+			"Mormegil"
+		]
+	},
+	"requestaccount-loginnotice": "Chcete-li získat uživatelský účet, je třeba o něj '''[[Special:RequestAccount|požádat]]'''."
+}

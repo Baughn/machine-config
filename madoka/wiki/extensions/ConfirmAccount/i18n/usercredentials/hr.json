@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Dalibor Bosits",
+			"Dnik",
+			"Ex13",
+			"SpeedyGonsales"
+		]
+	},
+	"usercredentials-user": "Suradničko ime:",
+	"usercredentials-leg-user": "Suradnički račun",
+	"usercredentials-leg-person": "Osobni podaci",
+	"usercredentials-leg-other": "Ostali podaci",
+	"usercredentials-email": "E-pošta (''e-mail''):",
+	"usercredentials-real": "Pravo ime:",
+	"usercredentials-bio": "Biografija:",
+	"usercredentials-attach": "Rezime/CV:",
+	"usercredentials-notes": "Dodatne bilješke:",
+	"usercredentials-urls": "Popis internetskih stranica:",
+	"usercredentials-ip": "Izvorna IP adresa:",
+	"usercredentials-member": "Prava:",
+	"usercredentials-badid": "Za danog suradnika nisu nađeni podaci.\nProvjerite je li ime točno napisano."
+}

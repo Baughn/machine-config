@@ -1,0 +1,19 @@
+{
+	"@metadata": {
+		"authors": [
+			"Joachim Mos",
+			"Slomox"
+		]
+	},
+	"confirmaccount-real-q": "Naam",
+	"confirmaccount-email-q": "E-Mail",
+	"confirmaccount-bio-q": "Biografie",
+	"confirmaccount-leg-user": "Brukerkonto",
+	"confirmaccount-name": "Brukernaam",
+	"confirmaccount-real": "Naam:",
+	"confirmaccount-email": "E-Mail:",
+	"confirmaccount-pos-0": "Schriever",
+	"confirmaccount-ip": "IP-Adress:",
+	"confirmaccount-submit": "Tostimmen",
+	"confirmaccount-wsum": "Willkamen!"
+}

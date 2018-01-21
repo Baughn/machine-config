@@ -1,0 +1,39 @@
+{
+	"@metadata": {
+		"authors": [
+			"McDutchie",
+			"SPQRobin",
+			"Siebrand",
+			"Southparkfan",
+			"Sjoerddebruin",
+			"Nemo bis",
+			"HanV"
+		]
+	},
+	"usermerge": "Gebruikers samenvoegen en verwijderen",
+	"usermerge-desc": "Voegt een [[Special:UserMerge|speciale pagina]] toe om gebruikers samen te voegen en de oude gebruiker(s) te verwijderen. Hiervoor is het recht ''usermerge'' nodig.",
+	"usermerge-badolduser": "Ongeldige oude gebruiker",
+	"usermerge-badnewuser": "Ongeldige nieuwe gebruiker",
+	"usermerge-nonewuser": "De nieuwe gebruikersnaam is niet opgegeven.\nEr wordt aangenomen dat er samengevoegd moet worden naar \"{{GENDER:$1|$1}}\".<br />\nKlik \"{{int:usermerge-submit}}\" om de handeling uit te voeren.",
+	"usermerge-noolduser": "De oude gebruiker is niet opgegeven.",
+	"usermerge-same-old-and-new-user": "De oude en nieuwe gebruikersnamen moeten verschillend zijn.",
+	"usermerge-fieldset": "Samen te voegen gebruikersnamen",
+	"usermerge-olduser": "Oude gebruiker (samenvoegen van):",
+	"usermerge-newuser": "Nieuwe gebruiker (samenvoegen naar):",
+	"usermerge-deleteolduser": "Oude gebruiker verwijderen",
+	"usermerge-submit": "Gebruiker samenvoegen",
+	"usermerge-badtoken": "Ongeldig bewerkingstoken",
+	"usermerge-userdeleted": "{{GENDER:$1|$1}} ($2) is verwijderd.",
+	"usermerge-userdeleted-log": "Verwijderde gebruiker: $2 ($3)",
+	"usermerge-success": "Samenvoegen van {{GENDER:$1|$1}} ($2) naar {{GENDER:$3|$3}} ($4) is afgerond.",
+	"usermerge-success-log": "Gebruiker {{GENDER:$2|$2}} ($3) samengevoegd naar {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Logboek gebruikerssamenvoegingen",
+	"usermerge-logpagetext": "Dit is het logboek van gebruikerssamenvoegingen.",
+	"usermerge-noselfdelete": "U kunt niet verwijderen of samenvoegen van {{GENDER:$1|uzelf}}!",
+	"usermerge-protectedgroup": "Het is niet mogelijk de gebruikers samen te voegen. De gebruiker zit in een beschermde groep.",
+	"right-usermerge": "Gebruikers samenvoegen",
+	"action-usermerge": "gebruikers samen te voegen",
+	"usermerge-autopagedelete": "Automatisch verwijderd bij het samenvoegen van gebruikers",
+	"usermerge-page-unmoved": "De pagina $1 kon niet hernoemd worden naar $2.",
+	"usermerge-move-log": "Pagina automatisch hernoemd bij het samenvoegen van gebruiker \"[[User:$1|$1]]\" naar \"[[User:$2|{{GENDER:$2|$2}}]]\""
+}

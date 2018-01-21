@@ -1,0 +1,23 @@
+{
+	"@metadata": {
+		"authors": [
+			"Jacob.jose",
+			"Junaidpv",
+			"Praveenp",
+			"Shijualex"
+		]
+	},
+	"usercredentials-user": "ഉപയോക്തൃനാമം:",
+	"usercredentials-leg-user": "ഉപയോക്തൃഅംഗത്വം",
+	"usercredentials-leg-areas": "താല്പര്യമുള്ള പ്രധാന മേഖലകൾ",
+	"usercredentials-leg-person": "വ്യക്തിഗത വിവരങ്ങൾ",
+	"usercredentials-leg-other": "മറ്റ് വിവരങ്ങൾ",
+	"usercredentials-email": "ഇമെയിൽ",
+	"usercredentials-real": "യഥാർത്ഥ പേര്‌:",
+	"usercredentials-bio": "ആത്മകഥ:",
+	"usercredentials-attach": "റെസ്യൂം/സിവി:",
+	"usercredentials-notes": "കൂടുതൽ കുറിപ്പുകൾ:",
+	"usercredentials-urls": "വെബ്ബ് സൈറ്റുകളുടെ പട്ടിക:",
+	"usercredentials-ip": "യഥാർത്ഥ IP വിലാസം:",
+	"usercredentials-member": "അവകാശങ്ങൾ"
+}

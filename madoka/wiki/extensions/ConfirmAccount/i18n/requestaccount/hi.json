@@ -1,0 +1,39 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kaustubh",
+			"Kiranmayee",
+			"Siddhartha Ghai",
+			"आलोक",
+			"Sfic"
+		]
+	},
+	"requestaccount": "खाता मंगायें",
+	"requestaccount-page": "{{ns:project}}:शर्तें और नियम",
+	"requestaccount-dup": "'''सूचना: आपने पहले से पंजीकृत खाते से लॉग इन किया हुआ हैं।'''",
+	"requestaccount-leg-user": "सदस्य खाता",
+	"requestaccount-leg-areas": "मुख्य पसंद",
+	"requestaccount-leg-person": "वैयक्तिक जानकारी",
+	"requestaccount-leg-other": "अन्य जानकारी",
+	"requestaccount-areas-text": "नीचे दिये हुए विषयोंसे आपके पसंदके तथा आप जिसमें माहिर हैं ऐसे विषय चुनें।",
+	"requestaccount-real": "असली नाम:",
+	"requestaccount-same": "(असली नाम ही हैं)",
+	"requestaccount-email": "ई-मेल पता:",
+	"requestaccount-reqtype": "पोज़िशन:",
+	"requestaccount-level-0": "लेखक",
+	"requestaccount-level-1": "संपादक",
+	"requestaccount-bio": "वैयक्तिक चरित्र:",
+	"requestaccount-attach": "रिज़्यूम या सीव्ही (वैकल्पिक):",
+	"requestaccount-notes": "अधिक जानकारी:",
+	"requestaccount-urls": "वेबसाईट्स की सूची, अगर हैं तो (एक लाईनमें एक):",
+	"requestaccount-agree": "आपने दिया हुआ खुद का असली नाम सहीं हैं और आपको शर्ते और नियम मान्य हैं ऐसा सर्टिफाई करें।",
+	"requestaccount-inuse": "आपने दिया हुआ सदस्यनाम पहले ही किसीने पूछा हैं।",
+	"requestaccount-tooshort": "आपके वैयक्तिक चरित्र में कमसे कम $1 {{PLURAL:$1|शब्द|शब्द}} होना जरूरी हैं।",
+	"requestaccount-emaildup": "एक अन्य पूरी न हुई माँगमें यह इ-मेल एड्रेस दिया हुआ हैं।",
+	"requestaccount-exts": "संलग्न प्रकार की संचिका की अनुमति नहीं है।",
+	"requestaccount-submit": "खाता मंगायें",
+	"requestaccount-sent": "आपके खाता खोलने का अनुरोध सफलतापूर्वक भेज दिया गया है और यह अभी समीक्षा हेतु प्रतीक्षा में है।\nसत्यापन के लिए ईमेल आपके ईमेल पते पर भेज दिया गया है।",
+	"requestaccount-econf": "आपका इ-मेल एड्रेस प्रमाणित हो गया है और इसे अब आपकी खाता खोलेने की माँग में दर्ज कर दिया गया हैं।",
+	"requestaccount-email-subj": "{{SITENAME}} इमेल एड्रेस प्रमाणिकरण",
+	"requestaccount-email-subj-admin": "{{SITENAME}} खाता खोलने की माँग"
+}

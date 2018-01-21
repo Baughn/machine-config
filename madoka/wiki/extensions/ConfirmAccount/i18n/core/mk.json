@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bjankuloski06",
+			"Brest"
+		]
+	},
+	"confirmaccount-newrequests": "Има '''$1''' [[Special:ConfirmAccounts|{{PLURAL:$1|отворено барање за сметка|отворени барања за сметка}}]] во исчекување. '''Потребно е вашето внимание!'''",
+	"requestaccount-loginnotice": "За да добиете корисничка сметка, морате да '''[[Special:RequestAccount|поднесете барање]]'''.",
+	"right-confirmaccount": "Погледајте ја [[Special:ConfirmAccounts|редицата со побарани сметки]]",
+	"right-requestips": "Прегледување на IP-адресите на барателот при работата на побарани сметки",
+	"right-lookupcredentials": "Погледајте ги [[Special:UserCredentials|препораките за корисникот]]",
+	"action-confirmaccount": "преглед и прифаќање сметки"
+}

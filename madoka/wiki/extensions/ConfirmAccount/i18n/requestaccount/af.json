@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Arnobarnard",
+			"Naudefj",
+			"SPQRobin"
+		]
+	},
+	"requestaccount": "Versoek gebruikersrekening",
+	"requestaccount-leg-areas": "Gebiede van belangstelling",
+	"requestaccount-leg-person": "Persoonlike inligting",
+	"requestaccount-leg-other": "Ander inligting",
+	"requestaccount-real": "Regte naam:",
+	"requestaccount-email": "E-posadres:",
+	"requestaccount-reqtype": "Posisie:",
+	"requestaccount-level-0": "outeur",
+	"requestaccount-level-1": "redakteur",
+	"requestaccount-notes": "Addisionele notas:",
+	"requestaccount-submit": "Versoek gebruikersrekening",
+	"requestaccount-email-subj-admin": "{{SITENAME}} gebruikersversoeke"
+}

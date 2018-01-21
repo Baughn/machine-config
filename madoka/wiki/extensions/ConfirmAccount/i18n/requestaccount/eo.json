@@ -1,0 +1,35 @@
+{
+	"@metadata": {
+		"authors": [
+			"Amikeco",
+			"Michawiki",
+			"Yekrats"
+		]
+	},
+	"requestaccount": "Peti konton",
+	"requestaccount-page": "{{ns:project}}:Regularo de Servo",
+	"requestaccount-dup": "'''Notu: Vi jam ensalutis kun registrita konto.'''",
+	"requestaccount-leg-user": "Konto de uzanto",
+	"requestaccount-leg-areas": "Ĉefaj fakoj de intereso",
+	"requestaccount-leg-person": "Persona informo",
+	"requestaccount-leg-other": "Alia informo",
+	"requestaccount-real": "Reala nomo:",
+	"requestaccount-same": "(sama kiel reala nomo)",
+	"requestaccount-email": "Retpoŝta adreso:",
+	"requestaccount-reqtype": "Pozicio:",
+	"requestaccount-level-0": "aŭtoro",
+	"requestaccount-level-1": "Redaktanto",
+	"requestaccount-bio": "Persona biografio:",
+	"requestaccount-attach": "Karierresumo (nedeviga):",
+	"requestaccount-notes": "Pluaj notoj:",
+	"requestaccount-tooshort": "Via biografio devas havi almenaŭ $1 {{PLURAL:$1|vorton|vortojn}}.",
+	"requestaccount-emaildup": "Alia peto por kontrolenda konto uzas la saman retadreson.",
+	"requestaccount-exts": "Dosiertipo de aldonaĵo estas malpermesita.",
+	"requestaccount-submit": "Peti konton",
+	"requestaccount-sent": "Via konta peto estas sukcese sendita kaj nun bezonas kontrolon.\nKonfirma retpoŝto estas sendita al via retpoŝtadreso.",
+	"request-account-econf": "Via retadreso estis konfirmita kaj estos listigita tiel en via konta peto.",
+	"requestaccount-email-subj": "{{SITENAME}} retpoŝta konfirmo",
+	"requestaccount-email-body": "Iu, verŝajne vi de IP-adreso $1, petis konton \"$2\" kun ĉi tiu retadreso ĉe {{SITENAME}}.\n\nKonfirmi ke ĉi tiu konto ja apartenas al vi ĉe {{SITENAME}}, malfermu ĉi tiun ligilon en via retumilo:\n\n$3\n\nSe la konto estas kreita, nur al vi estos retpoŝtita la pasvorto.\nSe ĉi tio ne devenas al vi, ne sekvu la ligilon.\nĈi tiu konfirmado findatiĝis je $4.",
+	"requestaccount-email-subj-admin": "{{SITENAME}} peto por konto",
+	"acct_request_throttle_hit": "Bedaŭrinde, vi jam petis {{PLURAL:$1|1 konton|$1 kontojn}}.\nVi ne povas peti pluajn petojn."
+}

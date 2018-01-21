@@ -1,0 +1,40 @@
+{
+	"@metadata": {
+		"authors": [
+			"Joetaras"
+		]
+	},
+	"confirmaccounts": "Conferme le richiste de cunde utende",
+	"confirmaccount-real-q": "Nome",
+	"confirmaccount-email-q": "E-mail",
+	"confirmaccount-bio-q": "Biografije",
+	"confirmaccount-showopen": "richieste aperte",
+	"confirmaccount-showrej": "richieste scettate",
+	"confirmaccount-showheld": "richieste tenute",
+	"confirmaccount-showexp": "richieste scadute",
+	"confirmaccount-review": "Reviste",
+	"confirmaccount-all": "(fà vedè tutte le code)",
+	"confirmaccount-type": "Code:",
+	"confirmaccount-leg-user": "Cunde de l'utende",
+	"confirmaccount-leg-areas": "Prengepàle aree de inderesse",
+	"confirmaccount-leg-person": "'Mbormaziune personele",
+	"confirmaccount-leg-other": "Otre 'mbormaziune",
+	"confirmaccount-name": "Nome de l'utende",
+	"confirmaccount-real": "Nome:",
+	"confirmaccount-email": "E-mail:",
+	"confirmaccount-reqtype": "Posizione:",
+	"confirmaccount-pos-0": "autore",
+	"confirmaccount-pos-1": "cangiatore",
+	"confirmaccount-bio": "Biografije:",
+	"confirmaccount-attach": "Riepileghe/CV:",
+	"confirmaccount-notes": "Note aggiundive:",
+	"confirmaccount-urls": "Liste de le site web:",
+	"confirmaccount-none-p": "(non g'è previste)",
+	"confirmaccount-confirm": "Ause l'opzione de sotte pe accettà, scettà o tenè sta richieste:",
+	"confirmaccount-econf": "(confermete)",
+	"confirmaccount-reject": "({{GENDER:$1|scettate}} da [[User:$1|$1]] 'u $3 a le $4)",
+	"confirmaccount-noreason": "(ninde)",
+	"confirmaccount-hold": "Tìne",
+	"confirmaccount-ip": "Indirizze IP:",
+	"confirmaccount-submit": "Conferme"
+}

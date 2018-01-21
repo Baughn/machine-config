@@ -1,0 +1,19 @@
+@import "mediawiki.mixins";
+@import "mixins/roboto.font.less";
+@import "mixins/googleLoginButtonIcon.less";
+
+/* Login with Google button for OOJs UI according to Googles brand guidelines:
+ https://developers.google.com/identity/branding-guidelines */
+#mw-input-googlelogin {
+  &.oo-ui-buttonInputWidget,
+  button {
+    height: 40px;
+    // OOJs UI icons could be possible too, but they need some complicated styles, too,
+    // to look like required by the brand guidelines
+    .googleLoginButtonIcon();
+  }
+  .oo-ui-labelElement-label {
+    margin-left: 2.5em;
+    .googleLoginRoboto();
+  }
+}

@@ -1,0 +1,30 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kc kennylau"
+		]
+	},
+	"requestaccount": "請求戶口",
+	"requestaccount-login": "請求戶口",
+	"requestaccount-text": "'''完成並遞交下面嘅表格去請求一個用戶戶口'''。\n\n\t請確認你響請求一個戶口之前，先讀過[[{{MediaWiki:Requestaccount-page}}|服務細則]]。\n\n\t一旦個戶口批准咗，你將會收到一個電郵通知訊息，噉個戶口就可以響[[Special:Userlogin]]度用。",
+	"requestaccount-dup": "'''留意: 你已經登入咗做一個已經註冊咗嘅戶口。'''",
+	"requestaccount-acc-text": "當完成請求時，一封確認訊息會發到你嘅電郵地址。\n\t請響封電郵度撳個確認連結去回應佢。同時，當你個戶口開咗之後，你戶口個密碼將會電郵畀你。",
+	"requestaccount-ext-text": "下面嘅資料會保密，而且只係會用響呢次請求度。\n\t你可能需要列示聯絡資料，好似電話號碼等去幫手證明你嘅確認。",
+	"requestaccount-bio-text": "你嘅傳記將會設定做響你用戶頁度嘅預設內容。試吓包含任何嘅憑據。\n\t而且你係肯定你係可以發佈呢啲資料。你嘅名可以透過[[Special:Preferences]]改到。",
+	"requestaccount-real": "真名:",
+	"requestaccount-same": "(同真名一樣)",
+	"requestaccount-email": "電郵地址:",
+	"requestaccount-bio": "個人傳記:",
+	"requestaccount-notes": "附加註解:",
+	"requestaccount-urls": "網站一覽，如有者 (用新行分開):",
+	"requestaccount-agree": "你一定要證明到你個真名係啱嘅，而且你同意我哋嘅服務細則。",
+	"requestaccount-inuse": "個用戶名已經用來請求緊個戶口。",
+	"requestaccount-tooshort": "你嘅傳記一定要最少有$1個字長。",
+	"requestaccount-tos": "我已經讀咗同埋同意持續遵守{{SITENAME}}嘅服務細則。",
+	"requestaccount-submit": "請求戶口",
+	"requestaccount-sent": "你個戶口請求已經成功發出，現正等候複審。",
+	"request-account-econf": "你嘅電郵地址已經確認，將會響你嘅戶口請求度列示。",
+	"requestaccount-email-subj": "{{SITENAME}}電郵地址確認",
+	"requestaccount-email-body": "有人，可能係你，由IP地址$1，響{{SITENAME}}度用呢個電郵地址請求一個叫做\"$2\"嘅戶口。\n\n去確認呢個戶口真係屬於響{{SITENAME}}上面嘅你，就響你嘅瀏覽器度開呢個連結:\n\n$3\n\n如果個戶口開咗，只有你先至會收到個電郵密碼。如果呢個戶口*唔係*你嘅話，唔好撳個連結。\n呢個確認碼將會響$4過期。",
+	"acct_request_throttle_hit": "對唔住，你已經請求咗$1個戶口。你唔可以請求更多個戶口。"
+}

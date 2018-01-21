@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Erdemaslancan",
+			"Mirzali"
+		]
+	},
+	"requestaccount": "Hesab bıwaze",
+	"requestaccount-leg-user": "Hesabê karberi",
+	"requestaccount-leg-other": "Melumatê bini",
+	"requestaccount-leg-tos": "Şertê Xızmeti",
+	"requestaccount-real": "Nameyo raştay:",
+	"requestaccount-email": "Adresa e-postey:",
+	"requestaccount-reqtype": "Pozisyon:",
+	"requestaccount-level-0": "nuskar",
+	"requestaccount-level-1": "vurnkar",
+	"requestaccount-notes": "Notê oleki:",
+	"requestaccount-submit": "Hesab bıwaze",
+	"requestaccount-email-subj": "{{SITENAME}} araştkerdena adres ê emalî",
+	"requestaccount-email-subj-admin": "{{SITENAME}} ra hesab waştış"
+}

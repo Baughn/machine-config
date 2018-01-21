@@ -1,0 +1,33 @@
+{
+	"@metadata": {
+		"authors": [
+			"Dbc334"
+		]
+	},
+	"usermerge": "Spoji in izbriši uporabnike",
+	"usermerge-desc": "[[Special:UserMerge|Združi sklice iz enega uporabnika na drugega]] v zbirki podatkov wikija – prav tako po združitvi izbriše stare uporabnika. Potrebuje pravico ''usermerge''",
+	"usermerge-badolduser": "Neveljavno staro uporabniško ime",
+	"usermerge-badnewuser": "Neveljavno novo uporabniško ime",
+	"usermerge-nonewuser": "Prazno novo uporabniško ime. Predpostavljam združitev z »{{GENDER:$1|$1}}«.<br />\nKliknite »{{int:usermerge-submit}}« za sprejetje.",
+	"usermerge-noolduser": "Prazno staro uporabniško ime",
+	"usermerge-same-old-and-new-user": "Stara in nova uporabniška imena morajo biti različna.",
+	"usermerge-fieldset": "Uporabniška imena za spajanje",
+	"usermerge-olduser": "Stari uporabnik (spoji od):",
+	"usermerge-newuser": "Novi uporabnik (spoji do):",
+	"usermerge-deleteolduser": "Izbriši starega uporabnika",
+	"usermerge-submit": "Spoji uporabnika",
+	"usermerge-badtoken": "Neveljavni žeton urejanja",
+	"usermerge-userdeleted": "{{GENDER:$1|$1}} ($2) smo izbrisali.",
+	"usermerge-userdeleted-log": "Izbrisal(-a) uporabnika: $2 ($3)",
+	"usermerge-success": "Združitev iz {{GENDER:$1|$1}} ($2) v {{GENDER:$3|$3}} ($4) je končana.",
+	"usermerge-success-log": "{{GENDER:$2|Uporabnika|Uporabnico}} $2 ($3) smo spojili z {{GENDER:$4|$4}} ($5)",
+	"usermerge-logpage": "Dnevnik spajanja uporabnikov",
+	"usermerge-logpagetext": "To je dnevnik dejanj spajanja uporabnikov.",
+	"usermerge-noselfdelete": "Ne morete izbrisati ali združevati {{GENDER:$1|sebe}}!",
+	"usermerge-protectedgroup": "Ne morem združiti {{GENDER:$1|uporabnika|uporabnice}} – {{GENDER:$1|uporabnik|uporabnica}} je v zaščiteni skupini.",
+	"right-usermerge": "Spajanje uporabnikov",
+	"action-usermerge": "spajanje uporabnikov",
+	"usermerge-autopagedelete": "Samodejno izbrisano med združevanjem uporabnikov",
+	"usermerge-page-unmoved": "Strani $1 ni bilo mogoče prestaviti na $2.",
+	"usermerge-move-log": "Samodejno prestavljena stran med združevanjem uporabnika »[[User:$1|$1]]« z »[[User:$2|{{GENDER:$2|$2}}]]«"
+}

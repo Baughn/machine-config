@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Giromin Cangiaxo"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1''' e-mail pe conferma [[Special:ConfirmAccounts|{{PLURAL:$1|a domanda|e domande}} d'utença {{PLURAL:$1|a l'è|son}} in atteisa]]. '''Gh'è besoeugno da to atençion!'''",
+	"requestaccount-loginnotice": "Pe otegnî un'utença l'è necessaio '''[[Special:RequestAccount|fâ domanda]]'''.",
+	"right-confirmaccount": "Vixoalizza a [[Special:ConfirmAccounts|coa de utençe domandæ]]",
+	"right-requestips": "Vixualizza i adressi IP do domandante de mentre se processa i utençe domandæ",
+	"right-lookupcredentials": "Vixualizza e [[Special:UserCredentials|credençiæ utente]]",
+	"action-confirmaccount": "rivedde e açettâ i utençe"
+}

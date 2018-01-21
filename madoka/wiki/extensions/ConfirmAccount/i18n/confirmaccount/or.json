@@ -1,0 +1,19 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ansumang",
+			"Odisha1",
+			"Psubhashish"
+		]
+	},
+	"confirmaccount-real-q": "ନାମ",
+	"confirmaccount-name": "ବ୍ୟବହାରକାରୀନାମ",
+	"confirmaccount-real": "ନାମ",
+	"confirmaccount-email": "ଇ-ମେଲ:",
+	"confirmaccount-reqtype": "ସ୍ଥିତି:",
+	"confirmaccount-pos-0": "ଲେଖକ",
+	"confirmaccount-pos-1": "ସମ୍ପାଦକ",
+	"confirmaccount-noreason": "(କିଛି ନାହିଁ)",
+	"confirmaccount-submit": "ନିଶ୍ଚିତ କରନ୍ତୁ",
+	"confirmaccount-wsum": "ସ୍ଵାଗତ!"
+}

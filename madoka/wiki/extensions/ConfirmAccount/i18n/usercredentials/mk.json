@@ -1,0 +1,28 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bjankuloski06",
+			"Brest"
+		]
+	},
+	"usercredentials": "Препораки за корисник",
+	"usercredentials-leg": "Проверете ги потврдените препораки за некој корисник",
+	"usercredentials-user": "Корисничко име:",
+	"usercredentials-text": "Подолу се прикажани потврдените препораки за избраната корисничка сметка.",
+	"usercredentials-leg-user": "Корисничка сметка",
+	"usercredentials-leg-areas": "Главни полиња на интерес",
+	"usercredentials-leg-person": "Лични информации",
+	"usercredentials-leg-other": "Други информации",
+	"usercredentials-leg-ip": "Податоци за IP-адресата",
+	"usercredentials-email": "Е-пошта:",
+	"usercredentials-real": "Вистинско име:",
+	"usercredentials-bio": "Биографија:",
+	"usercredentials-attach": "Резиме/CV:",
+	"usercredentials-notes": "Дополнителни забелешки:",
+	"usercredentials-urls": "Список на мрежни места:",
+	"usercredentials-ip": "Изворна IP-адреса",
+	"usercredentials-xff": "Изворен X-Forwarded-For:",
+	"usercredentials-agent": "Изворен застапнички програм:",
+	"usercredentials-member": "Права:",
+	"usercredentials-badid": "Нема пронајдено препораки за овој корисник.\nПроверете дали името е правилно напишано."
+}

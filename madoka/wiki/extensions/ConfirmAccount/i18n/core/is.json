@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"S.Örvarr.S",
+			"Ævar Arnfjörð Bjarmason",
+			"Snævar"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1''' opin [[Special:ConfirmAccounts|{{PLURAL:$1|notandabeiðni|notandabeiðnir}}]] {{PLURAL:$1|með staðfest netfang bíður|með staðfest netföng bíða}} samþykkis.",
+	"requestaccount-loginnotice": "Ef þú ert ekki þegar með aðgang verður þú að '''[[Special:RequestAccount|sækja um einn slíkan]]'''."
+}

@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"Veeven"
+		]
+	},
+	"usermerge": "వాడుకరి విలీనం మరియు తొలగింపు",
+	"usermerge-badolduser": "తప్పుడు పాత వాడుకరిపేరు",
+	"usermerge-badnewuser": "తప్పుడు కొత్త వాడుకరిపేరు",
+	"usermerge-noolduser": "పాత వాడుకరిపేరు ఖాళీగా ఉంది",
+	"usermerge-fieldset": "విలీనించాల్సిన వాడుకరిపేర్లు",
+	"usermerge-olduser": "పాత వాడుకరి (నుండి విలీనం):",
+	"usermerge-newuser": "కొత్త వాడుకరి (గా విలీనం):",
+	"usermerge-deleteolduser": "పాత వాడుకరిని తొలగించు",
+	"usermerge-submit": "వాడుకరిని విలీనం చేయ్యండి",
+	"usermerge-userdeleted": "$1 ($2)ని తొలగించాం.",
+	"usermerge-userdeleted-log": "వాడుకరిని తొలగించాం: $2 ($3)",
+	"usermerge-success": "$1 ($2) నుండి $3 ($4) కి విలీనం పూర్తయ్యింది.",
+	"usermerge-success-log": "$2 ($3) వాడుకరి $4 ($5)లో విలీనమయ్యారు",
+	"usermerge-logpage": "వాడుకరి విలీనాల చిట్టా",
+	"usermerge-logpagetext": "ఇది వాడుకరి విలీనాల చిట్టా.",
+	"usermerge-noselfdelete": "మిమ్మల్ని మీరే తొలగించుకోలేరు లేదా మీలో విలీనం కాలేరు!",
+	"right-usermerge": "వాడుకరులను విలీనం చేయగలగడం",
+	"usermerge-move-log": "\"[[User:$1|$1]]\" పేరును \"[[User:$2|$2]]\"కు మార్చేప్పుడు పేజీని ఆటోమాటిగ్గా తరలించాం"
+}

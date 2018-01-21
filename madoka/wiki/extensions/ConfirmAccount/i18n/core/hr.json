@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Dalibor Bosits",
+			"Dnik",
+			"Ex13",
+			"SpeedyGonsales"
+		]
+	},
+	"confirmaccount-newrequests": "u tijeku '''$1''' e-mailom {{PLURAL:$1|potvrđen [[Special:ConfirmAccounts|zahtjev za računom]]|potvrđenih [[Special:ConfirmAccounts|zahtjeva za računom]]}}",
+	"requestaccount-loginnotice": "Da bi dobili suradnički račun, trebate ga '''[[Special:RequestAccount|zatražiti]]'''."
+}

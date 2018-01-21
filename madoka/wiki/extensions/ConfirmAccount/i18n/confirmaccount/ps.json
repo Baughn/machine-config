@@ -1,0 +1,31 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ahmed-Najib-Biabani-Ibrahimkhel"
+		]
+	},
+	"confirmaccount-real-q": "نوم",
+	"confirmaccount-email-q": "برېښليک",
+	"confirmaccount-bio-q": "ژوندليک",
+	"confirmaccount-showrej": "رټل شوې غوښتنې",
+	"confirmaccount-review": "بياکتنه",
+	"confirmaccount-q-open": "پرانيستې غوښتنې",
+	"confirmaccount-leg-user": "گڼون",
+	"confirmaccount-leg-person": "ځاني مالومات",
+	"confirmaccount-leg-other": "نور مالومات",
+	"confirmaccount-name": "کارن-نوم",
+	"confirmaccount-real": "نوم:",
+	"confirmaccount-email": "برېښليک:",
+	"confirmaccount-pos-0": "ليکوال",
+	"confirmaccount-pos-1": "سمونگر",
+	"confirmaccount-bio": "ژوندليک:",
+	"confirmaccount-urls": "د وېبځايونو لړليک:",
+	"confirmaccount-noreason": "(هېڅ)",
+	"confirmaccount-create": "گڼون (گڼون جوړول)",
+	"confirmaccount-ip": "IP پته:",
+	"confirmaccount-agent": "کارن-پلاوی:",
+	"confirmaccount-submit": "تاييد",
+	"confirmaccount-wsum": "ښه راغلئ!",
+	"confirmaccount-email-body": "په {{SITENAME}} باندې د يوه گڼون لپاره غوښتنه مو ومنل شوه .\n\nگڼون نوم: $1\n\nپټنوم: $2\n\nد تحفظ د سببونو لپاره تاسو ته پکار ده چې د وروسته له دې چې د لومړي ځل لپاره غونډال ته ننوتلی نو مهرباني وکړی خپل پټنوم بدل کړی. د دې لپاره چې غونډال ته ننوځی، مهرباني وکړی {{fullurl:Special:UserLogin}} ولاړ شی.",
+	"confirmaccount-email-body2": "په {{SITENAME}} باندې د يوه گڼون لپاره غوښتنه مو ومنل شوه .\n\nگڼون نوم: $1\n\nپټنوم: $2\n\n$3\n\nد تحفظ د سببونو لپاره تاسو ته پکار ده چې د وروسته له دې چې د لومړي ځل لپاره غونډال ته ننوتلی نو مهرباني وکړی خپل پټنوم بدل کړی. د دې لپاره چې غونډال ته ننوځی، مهرباني وکړی {{fullurl:Special:UserLogin}} ولاړ شی."
+}

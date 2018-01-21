@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Michawiki"
+		]
+	},
+	"confirmaccount-newrequests": "'''$1''' {{PLURAL:$1|pśez e-mail wobkšuśone|pśez e-mail wobkšuśonej|pśez e-mail wobkšuśone|pśez e-mail wobkšuśonych }} [[Special:ConfirmAccounts|{{PLURAL:$1|póžedanje na konto jo njedocynjone|póžedani na konśe stej njedocynjonej| póžedanja na konta su njedocynjone|póžedanjow na konta jo njedocynjone}}]]. '''Pšosym staraj wó to!'''",
+	"requestaccount-loginnotice": "Aby dostał wužywarske konto, musyš '''[[Special:RequestAccount|póžedanje na nje stajiś]]'''.",
+	"right-confirmaccount": "[[Special:ConfirmAccounts|Cakański rěd z pominanymi kontami]] se woglědaś",
+	"right-requestips": "IP-adrese póžadarja se woglědaś, mjaztym až se pominane konta pśeźěłuju",
+	"right-lookupcredentials": "[[Special:UserCredentials|Wužywarske wopšawnjeńki]] se woglědaś"
+}

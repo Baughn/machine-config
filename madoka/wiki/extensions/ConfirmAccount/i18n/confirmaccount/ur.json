@@ -1,0 +1,18 @@
+{
+	"@metadata": {
+		"authors": [
+			"පසිඳු කාවින්ද"
+		]
+	},
+	"confirmaccount-real-q": "نام",
+	"confirmaccount-email-q": "ای میل",
+	"confirmaccount-bio-q": "سوانح حیات",
+	"confirmaccount-review": "کا جائزہ لینے",
+	"confirmaccount-leg-user": "صارف اکاؤنٹ",
+	"confirmaccount-name": "صارف کا نام",
+	"confirmaccount-real": "نام:",
+	"confirmaccount-email": "ای میل:",
+	"confirmaccount-reqtype": "حیثیت:",
+	"confirmaccount-pos-0": "مصنف",
+	"confirmaccount-pos-1": "ایڈیٹر"
+}
