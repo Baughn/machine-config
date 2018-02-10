@@ -17,7 +17,7 @@
     "nomodeset"
   ];
   # For Threadripper
-  boot.kernelPackages = pkgs.linuxPackages_4_14;
+  boot.kernelPackages = pkgs.linuxPackages_4_15;
 
   ## Networking
   networking.hostName = "saya"; # Define your hostname.
