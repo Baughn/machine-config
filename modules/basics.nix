@@ -16,9 +16,10 @@
   ## System environment
   environment.systemPackages = with pkgs; [
      # Debug/dev tools
-     tcpdump nmap gdb gradle python3Packages.virtualenv gitAndTools.gitFull
+     tcpdump nmap gdb gradle python3Packages.virtualenv
      telnet man-pages posix_man_pages mono rust.cargo rust.rustc gcc stack
      pythonFull python3Full freeipmi
+     gitAndTools.gitFull gitAndTools.git-annex
      # System/monitoring/etc tools
      parted psmisc atop hdparm sdparm whois sysstat htop nload iftop
      smartmontools pciutils lsof schedtool nixops numactl dmidecode
