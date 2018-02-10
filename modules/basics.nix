@@ -65,7 +65,6 @@
   hardware.cpu.intel.updateMicrocode = true;
   hardware.cpu.amd.updateMicrocode = true;
   hardware.enableKSM = true;
-  hardware.mcelog.enable = true;
   zramSwap.enable = true;
   boot.cleanTmpDir = true;
   boot.kernel.sysctl = {
