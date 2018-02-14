@@ -245,6 +245,12 @@ in
       "brage-cdn.stream" = base {
         "/" = minecraft;
       };
+      "kubernetes.brage.info" = base {
+        "/" = {
+          proxyPass = "https://localhost:444/";
+          extraConfig = "proxy_ssl_verify off;";
+        };
+      };
       "status.brage.info" = proxy 9090;
       "grafana.brage.info" = proxy 3000;
       "tppi.brage.info" = root "/home/tppi/web";

@@ -21,4 +21,5 @@ borg create -vxp --stats \
   --exclude '/home/*/tmp'
 
 borg prune -v --list $REPOSITORY --prefix '{hostname}-' \
-  --keep-daily=7 --keep-weekly=8 --keep-monthly=24
+  --keep-daily=7 --keep-weekly=8 --keep-monthly=24 \
+  | grep -v '^Keeping archive:'

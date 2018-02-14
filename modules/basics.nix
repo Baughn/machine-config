@@ -22,7 +22,7 @@
      gitAndTools.gitFull gitAndTools.git-annex
      # System/monitoring/etc tools
      parted psmisc atop hdparm sdparm whois sysstat htop nload iftop
-     smartmontools pciutils lsof schedtool nixops numactl dmidecode
+     smartmontools pciutils lsof schedtool nixops numactl dmidecode iotop
      # Shell tools
      file irssi links2 screen parallel moreutils vim mutt finger_bsd
      autojump units progress pv

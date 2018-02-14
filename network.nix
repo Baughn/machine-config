@@ -22,6 +22,8 @@
       ./saya/configuration.nix
       ./modules/desktop.nix
       ./modules/plex.nix
+      ./modules/libvirtd.nix
+      ./modules/nvidia.nix
     ];
     
     systemd.enableEmergencyMode = true;
@@ -46,6 +48,7 @@
 
     imports = [
       ./madoka/configuration.nix
+#      ./modules/kubernetes-master.nix
     ];
   };
 
