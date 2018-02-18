@@ -4,7 +4,8 @@
 
 { config, pkgs, lib, ... }:
 
-let sshKeys = import ../modules/sshKeys.nix;
+let
+  userLib = pkgs.callPackage ../modules/users.nix {};
 in
 
 {
@@ -68,99 +69,11 @@ in
     internalInterfaces = [ "ve-eln-wiki" ];
   };
 
-  # Next free ID: 1019.
-  users.extraUsers.svein = {
-    isNormalUser = true;
-    uid = 1004;
-    extraGroups = [ "wheel" "docker" ];
-    openssh.authorizedKeys.keys = sshKeys.svein;
-  };
-  users.extraUsers.mei = {
-    isNormalUser = true;
-    uid = 1017;
-    openssh.authorizedKeys.keys = [
-      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDMZr+a9w5b6VyqkdNbepBSkjpKQBdAZHJRCRS9SnqVubQIhYg6WsYYOtjp0GKM2SK5MqcrLUQYiT2LDUFOtC4zFxgCcZ6IoAcVqDCiZH8oeDkZlo/Qv0boKovOAGxqf0IdC+KMDhDDMBczuhOECUonFi6ArsXg9JbRJ1xDkTvIftFyypcdM9LDFAxIEEMqx6iIu0ANLvSNvI4xLjiav9tP8+Ea5TPBTm4H0EpsJNA3YsQPuC5TvbVH0kIl1NTdG1CjeZgiMSAAQoNy15Ik1EDoCp/eRO9JzRYNmU4/Z+af5Ns6SP1e/uSYkxoQNneSSWzPRagdNbTN+wVKJ91qaFVL mei@mei-hevs"
-    ];
-  };
-  users.extraUsers.einsig = {
-    isNormalUser = true;
-    uid = 1014;
-    openssh.authorizedKeys.keys = sshKeys.einsig;
-  };
-  users.extraUsers.prospector = {
-    isNormalUser = true;
-    uid = 1015;
-    openssh.authorizedKeys.keys = sshKeys.prospector;
-  };
-  users.extraUsers.minecraft = {
-    isNormalUser = true;
-    uid = 1000;
-    extraGroups = [ ];
-    openssh.authorizedKeys.keys = builtins.concatLists (lib.attrValues sshKeys);
-  };
-  users.extraUsers.tppi = {
-    isNormalUser = true;
-    uid = 1013;
-    openssh.authorizedKeys.keys = builtins.concatLists [
-      sshKeys.svein sshKeys.kim sshKeys.luke sshKeys.prospector
-    ];
-  };
-  users.extraUsers.bloxgate = {
-    isNormalUser = true;
-    uid = 1001;
-    extraGroups = [ ];
-    openssh.authorizedKeys.keys = sshKeys.bloxgate;
-  };
-  users.extraUsers.buizerd = {
-    isNormalUser = true; 
-    uid = 1010;
-    openssh.authorizedKeys.keys = sshKeys.buizerd;
-  };
-  users.extraUsers.darqen27 = {
-    isNormalUser = true; 
-    uid = 1007;
-    extraGroups = [ ];
-    openssh.authorizedKeys.keys = sshKeys.darqen27;
-  };
-  users.extraUsers.david = {
-    isNormalUser = true; 
-    uid = 1005;
-  };
-  users.extraUsers.jmc = {
-    isNormalUser = true; 
-    uid = 1003;
-    extraGroups = [ ];
-    shell = "/run/current-system/sw/bin/bash";
-    openssh.authorizedKeys.keys = sshKeys.jmc;
-  };
-  users.extraUsers.kim = {
-    isNormalUser = true; 
-    uid = 1002;
-    extraGroups = [ "wheel" ];
-    openssh.authorizedKeys.keys = sshKeys.kim;
-  };
-  users.extraUsers.luke = {
-    isNormalUser = true; 
-    uid = 1006;
-    extraGroups = [ ];
-    openssh.authorizedKeys.keys = sshKeys.luke;
-  };
-  users.extraUsers.simplynoire = {
-    isNormalUser = true; 
-    uid = 1009;
-  };
-  users.extraUsers.vindex = {
-    isNormalUser = true; 
-    uid = 1011;
-    extraGroups = [ ];
-    openssh.authorizedKeys.keys=sshKeys.vindex;
-  };
-  users.extraUsers.xgas = {
-    isNormalUser = true;
-    uid = 1012;
-    openssh.authorizedKeys.keys = sshKeys.xgas;
-  };
-
+  users = userLib.include [
+    "mei" "einsig" "prospector" "minecraft" "bloxgate" "buizerd"
+    "darqen27" "david" "jmc" "kim" "luke" "simplynoire" "vindex"
+    "xgas" "will"
+  ];
 
   ## Webserver ##
   services.nginx = {

@@ -1,5 +1,9 @@
 { config, pkgs, lib, ...}:
 
+let
+  userLib = pkgs.callPackage ../modules/users.nix {};
+in
+
 {
   # Software
   programs.java.enable = true;
@@ -18,7 +22,7 @@
      # Debug/dev tools
      tcpdump nmap gdb gradle python3Packages.virtualenv
      telnet man-pages posix_man_pages mono rust.cargo rust.rustc gcc stack
-     pythonFull python3Full freeipmi
+     pythonFull python3Full freeipmi binutils
      gitAndTools.gitFull gitAndTools.git-annex
      # System/monitoring/etc tools
      parted psmisc atop hdparm sdparm whois sysstat htop nload iftop
@@ -29,7 +33,7 @@
      # File transfer
      rsync wget rtorrent unison znapzend sshfsFuse borgbackup
      # Nix tools
-     nox nix-repl
+     nox nix-repl nix-prefetch-git
      # Video manipulation
      mkvtoolnix-cli
      (libav_all.override {
@@ -53,11 +57,8 @@
    ];
 
   # User setup
-  users.defaultUserShell = "/run/current-system/sw/bin/zsh";
-  users.extraUsers.svein = {
-    isNormalUser = true;
-    extraGroups = ["wheel" "docker" "wireshark"];
-    openssh.authorizedKeys.keys = (import ../modules/sshKeys.nix).svein;
+  users = (userLib.include [ "svein" ]) // {
+    defaultUserShell = "/run/current-system/sw/bin/zsh";
   };
 
   # System setup

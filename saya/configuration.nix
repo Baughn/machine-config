@@ -4,6 +4,10 @@
 
 { config, pkgs, ... }:
 
+let
+  userLib = pkgs.callPackage ../modules/users.nix {};
+in
+
 {
   imports = [ ./hardware-configuration.nix ];
 
@@ -36,6 +40,7 @@
 
   services.unifi.enable = true;
 
-  ## Desktop
-  users.extraUsers.svein.uid = 1000;
+  users = userLib.include [
+    "will"
+  ];
 }

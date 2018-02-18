@@ -71,31 +71,18 @@
    '';
   };
 
-  # Open up for znapzend.
-  users.extraUsers.znapzend = {
-    isNormalUser = true;
-    uid = 1001;
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAW37vjjfhK1hBwHO6Ja4TRuonXchlLVIYnA4Px9hTYD svein@madoka.brage.info"
-    ];
-  };
-  security.sudo.extraConfig = ''
-    znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs list*
-    znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs recv -uF stash/backup/*
-    znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs get*
-    znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs destroy stash/backup/*
-    znapzend ALL= NOPASSWD: /run/current-system/sw/bin/test *
-  '';
-
-  ## Users ##
-  users.extraUsers.svein = {
-    uid = 1000;
-  };
-  # users.extraUsers.kim = {
+  # # Open up for znapzend.
+  # users.extraUsers.znapzend = {
   #   isNormalUser = true;
-  #   uid = 1002;
   #   openssh.authorizedKeys.keys = [
-  #     "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEA3j9muBMkqIAQ8BLBK5Ki4I1l2gg//Yt/YLmZd6nAaqYO4OeZ50k7x4F1OFRnyWScDqb4C5XggG8FaBQVe5RfP43sKDFx6F9En/zPB0JwbWT7iVXlZHFLLqqZ+vzrEmEYexQSwftpR1neKWb39fZjOcZTvd7Tk3sGNbnr/0LMYW0= kim@localhost"
+  #     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAW37vjjfhK1hBwHO6Ja4TRuonXchlLVIYnA4Px9hTYD svein@madoka.brage.info"
   #   ];
   # };
+  # security.sudo.extraConfig = ''
+  #   znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs list*
+  #   znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs recv -uF stash/backup/*
+  #   znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs get*
+  #   znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs destroy stash/backup/*
+  #   znapzend ALL= NOPASSWD: /run/current-system/sw/bin/test *
+  # '';
 }

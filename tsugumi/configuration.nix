@@ -4,6 +4,10 @@
 
 { config, pkgs, ... }:
 
+let
+  userLib = pkgs.callPackage ../modules/users.nix {};
+in
+
 {
   imports = [ ./hardware-configuration.nix ];
 
@@ -35,28 +39,28 @@
   };
 
   ## Services ##
-  # Samba
-  services.samba = {
-    enable = false;
-    shares = {
-      public = {
-        browseable = "yes";
-        comment = "Music";
-        "guest ok" = "yes";
-        path = "/home/svein/Music/";
-        "read only" = true;
-     };
-   };
-   extraConfig = ''
-     guest account = smbguest
-     map to guest = bad user
-   '';
-  };
-  users.users.smbguest = {
-      name = "smbguest";
-      uid = config.ids.uids.smbguest;
-      description = "SMB guest user";
-  };
+  # # Samba
+  # services.samba = {
+  #   enable = false;
+  #   shares = {
+  #     public = {
+  #       browseable = "yes";
+  #       comment = "Music";
+  #       "guest ok" = "yes";
+  #       path = "/home/svein/Music/";
+  #       "read only" = true;
+  #    };
+  #  };
+  #  extraConfig = ''
+  #    guest account = smbguest
+  #    map to guest = bad user
+  #  '';
+  # };
+  # users.users.smbguest = {
+  #     name = "smbguest";
+  #     uid = config.ids.uids.smbguest;
+  #     description = "SMB guest user";
+  # };
 
   # Nginx
   services.nginx = {
@@ -89,22 +93,7 @@
     };
   };
 
-  ## User accounts, beyond my own ##
-  users.extraUsers.svein.uid = 1000;
-  users.extraUsers.pl = {
-    isNormalUser = true;
-    uid = 1001;
-  };
-  users.extraUsers.sh = {
-    isNormalUser = true;
-    uid = 1002;
-  };
-  users.extraUsers.prometheus = {
-    isNormalUser = true;
-    uid = 1006;
-  };
-  users.extraUsers.aquagon = {
-    isNormalUser = true;
-    uid = 1007;
-  };
+  users = userLib.include [
+    "pl" "aquagon" "will"
+  ];
 }
