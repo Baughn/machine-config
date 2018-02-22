@@ -37,7 +37,8 @@ in
       6987  # rtorrent
     ];
     allowedUDPPorts = [
-      6987 34197
+      6987  # rtorrent
+      34197 # factorio
     ];
   };
 
