@@ -24,8 +24,11 @@ in
   ## Networking
   networking.hostName = "saya";
   networking.hostId = "7a4f1297";
+  services.udev.extraRules = ''
+      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="10:7b:44:92:13:2d", NAME="net"
+  '';
 
-  networking.interfaces.enp5s0 = {
+  networking.interfaces.net = {
     useDHCP = true;
     ip4 = [{ address = "192.168.1.42"; prefixLength = 24; }];
   };
