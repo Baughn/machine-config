@@ -22,7 +22,7 @@
       ./saya/configuration.nix
       ./modules/desktop.nix
       ./modules/plex.nix
-      ./modules/libvirtd.nix
+      ./modules/virtualisation.nix
       ./modules/nvidia.nix
     ];
     

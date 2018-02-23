@@ -2,7 +2,6 @@
 
 {
   virtualisation.docker.enable = true;
-  virtualisation.libvirtd.enable = true;
-  users.extraUsers.svein.extraGroups = [ "libvirtd" ];
+  users.extraUsers.svein.extraGroups = [ "docker" ];
   networking.firewall.checkReversePath = false;
 }
