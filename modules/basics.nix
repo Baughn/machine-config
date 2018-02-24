@@ -35,7 +35,7 @@ in
      # Nix tools
      nox nix-repl nix-prefetch-git
      # Video manipulation
-     mkvtoolnix-cli
+     mkvtoolnix-cli ffmpeg
      (libav_all.override {
        x264Support = true;
      }).libav_12
@@ -150,5 +150,5 @@ in
   services.postfix.enable = true;
 
   # The NixOS release to be compatible with for stateful data such as databases.
-  system.stateVersion = "17.03";
+  system.stateVersion = "18.03";
 }

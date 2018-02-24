@@ -4,12 +4,20 @@
     enableRollback = true;
   };
   
-  defaults = {
+  defaults = { config, pkgs, ... }: {
     deployment.owners = [ "sveina@gmail.com" ];
     imports = [
       ./modules/basics.nix
       ./modules/emergency-shell.nix
     ];
+
+    environment.etc = {
+      nix-system-pkgs.source = /home/svein/dev/nix-system;
+      nixos.source = builtins.filterSource
+        (path: type: baseNameOf path != "secrets" && type != "symlink" && !(pkgs.lib.hasSuffix ".qcow2" path))
+        ./.;
+    };
+    nix.nixPath = [ "nixpkgs=/etc/nix-system-pkgs" ];
   };
 
   saya = { config, pkgs, ... }: {

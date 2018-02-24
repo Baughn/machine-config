@@ -1,5 +1,4 @@
-#!/usr/bin/env nix-shell
-#!nix-shell -i zsh -p nixops zsh
+#!/usr/bin/env zsh
 
 set -xue -o pipefail
 cd "$(dirname "$(readlink -f "$0")")"

@@ -4,7 +4,7 @@
   environment.systemPackages = with pkgs; [
     google-chrome steam pavucontrol mpv youtube-dl wine
     gnome3.gnome_terminal compton blender gimp-with-plugins
-    maim ncmpcpp xorg.xdpyinfo xorg.xev xorg.xkill
+    ncmpcpp xorg.xdpyinfo xorg.xev xorg.xkill # maim
     steam-run firefox glxinfo mpd xlockmore xorg.xwd
   ];
 
