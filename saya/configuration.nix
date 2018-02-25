@@ -30,7 +30,7 @@ in
 
   networking.interfaces.net = {
     useDHCP = true;
-    ip4 = [{ address = "192.168.1.42"; prefixLength = 24; }];
+    ipv4.addresses = [{ address = "192.168.1.42"; prefixLength = 24; }];
   };
   networking.firewall = {
     allowedTCPPorts = [ 

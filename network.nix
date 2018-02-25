@@ -28,10 +28,12 @@
 
     imports = [
       ./saya/configuration.nix
+      ./modules/zfs.nix
       ./modules/desktop.nix
       ./modules/plex.nix
       ./modules/virtualisation.nix
       ./modules/nvidia.nix
+      ./modules/rsyncd.nix
     ];
     
     systemd.enableEmergencyMode = true;
@@ -45,6 +47,7 @@
 
     imports = [
       ./tsugumi/configuration.nix
+      ./modules/zfs.nix
       ./modules/plex.nix
     ];
   };
@@ -56,7 +59,7 @@
 
     imports = [
       ./madoka/configuration.nix
-#      ./modules/kubernetes-master.nix
+      ./modules/zfs.nix
     ];
   };
 
@@ -67,6 +70,7 @@
 
   #   imports = [
   #     ./tromso/configuration.nix
+  #     ./modules/zfs.nix
   #   ];
   # };
 }
