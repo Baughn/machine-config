@@ -32,6 +32,6 @@ update() {
       touch .timestamp
   fi
 
-  nixops modify -d personal ./network.nix
+  nixops modify -d personal ./personal.nix
   nixops deploy -d personal --check -j 8 --cores 16 -I "nixpkgs=$HOME/dev/nix-system" "$@"
 }
