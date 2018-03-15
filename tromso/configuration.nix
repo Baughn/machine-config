@@ -7,9 +7,6 @@
 {
   imports = [ ./hardware-configuration.nix ];
 
-  # Temp
-  boot.kernelPackages = pkgs.linuxPackages_latest;
-
   # Use the gummiboot efi boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.timeout = 3;

@@ -1,12 +1,28 @@
 { config, pkgs, ...}:
 
 {
+  ## Packages
   environment.systemPackages = with pkgs; [
     google-chrome steam pavucontrol mpv youtube-dl wine
     gnome3.gnome_terminal compton blender gimp-with-plugins
     ncmpcpp xorg.xdpyinfo xorg.xev xorg.xkill # maim
     steam-run firefox glxinfo mpd xlockmore xorg.xwd
   ];
+
+  ## Fonts
+  fonts = {
+    enableDefaultFonts = true;
+    enableFontDir = true;
+    enableGhostscriptFonts = true;
+    fonts = with pkgs; [
+      corefonts  # Microsoft free fonts.
+      inconsolata  # Monospaced.
+      ubuntu_font_family  # Ubuntu fonts.
+      unifont # some international languages.
+      ipafont # Japanese.
+      roboto # Android? Eh, it's a nice font.
+    ];
+  };
 
   services.xserver = {
     enable = true;

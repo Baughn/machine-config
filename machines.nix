@@ -16,6 +16,9 @@ rec {
       { name = "system";
         path = sys.system;
       }
+      { name = "zfs-test";
+        path = (import /home/svein/dev/nix-system/nixos/tests/zfs.nix {}).stable {};
+      }
       { name = "xfce-test";
         path = import /home/svein/dev/nix-system/nixos/tests/xfce.nix { config = sys.config; };
       }

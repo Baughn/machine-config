@@ -29,8 +29,6 @@ in
     "nomodeset"
   ];
   systemd.enableEmergencyMode = true;
-  # For Threadripper
-  boot.kernelPackages = pkgs.linuxPackages_4_15;
 
   # Development
   nix.extraOptions = ''

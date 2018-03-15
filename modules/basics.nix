@@ -128,20 +128,6 @@ in
   };
   time.timeZone = "Europe/Dublin";
 
-  ## Fonts
-  fonts = {
-    enableFontDir = true;
-    enableGhostscriptFonts = true;
-    fonts = with pkgs; [
-      corefonts  # Microsoft free fonts.
-      inconsolata  # Monospaced.
-      ubuntu_font_family  # Ubuntu fonts.
-      unifont # some international languages.
-      ipafont # Japanese.
-      roboto # Android? Eh, it's a nice font.
-    ];
-  };
-
   ## Common services
   services.locate.enable = true;
   services.cron = {
