@@ -1,3 +1,4 @@
 keep-build.*
 .timestamp
 secrets
+result

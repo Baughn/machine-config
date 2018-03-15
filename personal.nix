@@ -1,4 +1,4 @@
-{
+rec {
   network = {
     description = "Personal machines (pets)";
     enableRollback = true;
@@ -10,14 +10,6 @@
       ./modules/basics.nix
       ./modules/emergency-shell.nix
     ];
-
-    environment.etc = {
-      nix-system-pkgs.source = /home/svein/dev/nix-system;
-      nixos.source = builtins.filterSource
-        (path: type: baseNameOf path != "secrets" && type != "symlink" && !(pkgs.lib.hasSuffix ".qcow2" path))
-        ./.;
-    };
-    nix.nixPath = [ "nixpkgs=/etc/nix-system-pkgs" ];
   };
 
   saya = { config, pkgs, ... }: {
@@ -28,15 +20,7 @@
 
     imports = [
       ./saya/configuration.nix
-      ./modules/zfs.nix
-      ./modules/desktop.nix
-      ./modules/plex.nix
-      ./modules/virtualisation.nix
-      ./modules/nvidia.nix
-      ./modules/rsyncd.nix
     ];
-    
-    systemd.enableEmergencyMode = true;
   };
 
   tsugumi = { config, pkgs, ... }: {
@@ -59,7 +43,6 @@
 
     imports = [
       ./madoka/configuration.nix
-      ./modules/zfs.nix
     ];
   };
 

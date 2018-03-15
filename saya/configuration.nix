@@ -9,7 +9,17 @@ let
 in
 
 {
-  imports = [ ./hardware-configuration.nix ];
+  imports = [
+    ./hardware-configuration.nix
+    ../modules/basics.nix
+    ../modules/emergency-shell.nix
+    ../modules/zfs.nix
+    ../modules/desktop.nix
+    ../modules/plex.nix
+    ../modules/virtualisation.nix
+    ../modules/nvidia.nix
+    ../modules/rsyncd.nix
+  ];
 
   ## Boot
   boot.loader.systemd-boot.enable = true;
@@ -18,19 +28,29 @@ in
     "boot.shell_on_fail"
     "nomodeset"
   ];
+  systemd.enableEmergencyMode = true;
   # For Threadripper
   boot.kernelPackages = pkgs.linuxPackages_4_15;
+
+  # Development
+  nix.extraOptions = ''
+    gc-keep-outputs = true
+    gc-keep-derivations = true
+  '';
 
   ## Networking
   networking.hostName = "saya";
   networking.hostId = "7a4f1297";
+  networking.bridges.br0 = {
+    interfaces = [ "net" ];
+  };
   services.udev.extraRules = ''
       ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="10:7b:44:92:13:2d", NAME="net"
   '';
 
-  networking.interfaces.net = {
+  networking.interfaces.br0 = {
     useDHCP = true;
-    ipv4.addresses = [{ address = "192.168.1.42"; prefixLength = 24; }];
+    # ipv4.addresses = [{ address = "192.168.1.42"; prefixLength = 24; }];
   };
   networking.firewall = {
     allowedTCPPorts = [ 
@@ -42,7 +62,7 @@ in
     ];
   };
 
-  services.unifi.enable = true;
+  #services.unifi.enable = true;
 
   users = userLib.include [
     "will"

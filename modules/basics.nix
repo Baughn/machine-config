@@ -5,6 +5,15 @@ let
 in
 
 {
+  # Nix propagation
+  environment.etc = {
+    nix-system-pkgs.source = /home/svein/dev/nix-system;
+    nixos.source = builtins.filterSource
+      (path: type: baseNameOf path != "secrets" && type != "symlink" && !(pkgs.lib.hasSuffix ".qcow2" path))
+      ./.;
+  };
+  nix.nixPath = [ "nixpkgs=/etc/nix-system-pkgs" ];
+
   # Software
   programs.java.enable = true;
   programs.mosh.enable = true;
@@ -19,6 +28,8 @@ in
 
   ## System environment
   environment.systemPackages = with pkgs; [
+     # Fixed nixops
+     (import /home/svein/dev/nixops/release.nix {}).build.x86_64-linux
      # Debug/dev tools
      tcpdump nmap gdb gradle python3Packages.virtualenv
      telnet man-pages posix_man_pages mono rust.cargo rust.rustc gcc stack
@@ -26,7 +37,7 @@ in
      gitAndTools.gitFull gitAndTools.git-annex
      # System/monitoring/etc tools
      parted psmisc atop hdparm sdparm whois sysstat htop nload iftop
-     smartmontools pciutils lsof schedtool nixops numactl dmidecode iotop
+     smartmontools pciutils lsof schedtool numactl dmidecode iotop
      # Shell tools
      file irssi links2 screen parallel moreutils vim mutt finger_bsd
      autojump units progress pv
@@ -66,7 +77,7 @@ in
   hardware.cpu.intel.updateMicrocode = true;
   hardware.cpu.amd.updateMicrocode = true;
   hardware.enableKSM = true;
-  zramSwap.enable = true;
+  # zramSwap.enable = true;
   boot.cleanTmpDir = true;
   boot.kernel.sysctl = {
     "fs.inotify.max_user_watches" = 1048576;

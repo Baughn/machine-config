@@ -55,6 +55,7 @@
     allowedUDPPortRanges = [{from = 60000; to = 61000;}];
   };
 
+  nixpkgs.config.allowUnfree = true;
   services.unifi.enable = true;
 
   # DHCPd

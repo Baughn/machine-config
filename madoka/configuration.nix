@@ -12,6 +12,8 @@ in
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      ../modules/basics.nix
+      ../modules/zfs.nix
       ./minecraft.nix
       #./mediawiki.nix
     ];
