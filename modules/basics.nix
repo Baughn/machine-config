@@ -85,7 +85,7 @@ in
   };
 
   ## Nix setup
-  nix.buildCores = 8;
+  nix.buildCores = 0;
   nix.daemonIONiceLevel = 19;
   nix.daemonNiceLevel = 19;
   nix.extraOptions = "auto-optimise-store = true";
