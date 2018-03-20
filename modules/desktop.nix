@@ -27,10 +27,10 @@
   services.xserver = {
     enable = true;
     desktopManager = {
-      default = "xfce";
-      xfce.enable = true;
-      gnome3.enable = false;
-      plasma5.enable = false;
+#      default = "xfce";
+#      xfce.enable = true;
+      gnome3.enable = true;
+#      plasma5.enable = true;
     };
     windowManager.xmonad = {
       enable = true;

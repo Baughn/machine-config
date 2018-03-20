@@ -3,12 +3,12 @@
 set -xue -o pipefail
 cd "$(dirname "$(readlink -f "$0")")"
 
-HERE="$(pwd)"
-CHANNEL="18.03"
+export HERE="$(pwd)"
+export CHANNEL="18.03"
 
 update() {
    BASE=$(curl https://howoldis.herokuapp.com/api/channels | \
-              jq -r 'map(select(.name == "nixos-$CHANNEL"))[0].commit')
+              jq -r "map(select(.name == \"nixos-$CHANNEL\"))[0].commit")
    if [[ $BASE = "null" ]]; then
      BASE="origin/release-$CHANNEL"
      pushd $HOME/dev/nix-system; git fetch; popd
