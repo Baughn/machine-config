@@ -157,9 +157,6 @@ in
         "/baughn".extraConfig = "alias /home/svein/web;";
         "/tppi".extraConfig = "alias /home/tppi/web;";
       } // { default = true; };
-      "brage-cdn.stream" = base {
-        "/" = minecraft;
-      };
       "kubernetes.brage.info" = base {
         "/" = {
           proxyPass = "https://localhost:444/";
@@ -182,12 +179,6 @@ in
       };
       "quest.brage.info" = proxy 2222;
       "warmroast.brage.info" = proxy 23000;
-      "wiki.brage.info" = base {
-        "/" = {
-          proxyPass = "http://192.168.10.2";
-          extraConfig = "rewrite ^(/)$ http://wiki.brage.info/wiki/ permanent;";
-        };
-      };
       "hydra.brage.info" = proxy 3001;
     };
   };
