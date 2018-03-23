@@ -32,6 +32,7 @@
       gnome3.enable = true;
 #      plasma5.enable = true;
     };
+    displayManager.gdm.enable = true;
     windowManager.xmonad = {
       enable = true;
       enableContribAndExtras = true;
