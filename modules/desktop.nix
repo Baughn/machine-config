@@ -7,6 +7,7 @@
     gnome3.gnome_terminal compton blender gimp-with-plugins
     ncmpcpp xorg.xdpyinfo xorg.xev xorg.xkill # maim
     steam-run firefox glxinfo mpd xlockmore xorg.xwd
+    idea.idea-community
   ];
 
   ## Fonts
@@ -43,6 +44,17 @@
     xkbOptions = "ctrl:swapcaps";
     enableCtrlAltBackspace = true;
     exportConfiguration = true;
+
+    inputClassSections = [''
+      Identifier "Mouse Remap"
+      MatchProduct "Mad Catz Mad Catz M.M.O.7 Mouse|M.M.O.7"
+      MatchIsPointer "true"
+      MatchDevicePath "/dev/input/event*"
+      Option    "Buttons" "24"
+      Option    "ButtonMapping" "1 2 3 4 5 0 0 8 9 10 11 12 0 0 0 16 17 7 6 0 0 0 0 0" 
+      Option    "AutoReleaseButtons" "20 21 22 23 24" 
+      Option    "ZAxisMapping" "4 5 6 7"
+    ''];
   };
 
   hardware.pulseaudio = {

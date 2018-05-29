@@ -46,7 +46,7 @@ in
      # Nix tools
      nox nix-repl nix-prefetch-git
      # Video manipulation
-     mkvtoolnix-cli ffmpeg
+     mkvtoolnix-cli ffmpeg-full
      (libav_all.override {
        x264Support = true;
      }).libav_12
@@ -86,7 +86,7 @@ in
 
   ## Nix setup
   nix.buildCores = 0;
-  nix.daemonIONiceLevel = 19;
+  nix.daemonIONiceLevel = 7;
   nix.daemonNiceLevel = 19;
   nix.extraOptions = "auto-optimise-store = true";
   nix.gc.automatic = true;

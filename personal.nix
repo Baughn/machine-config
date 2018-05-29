@@ -46,14 +46,13 @@ rec {
     ];
   };
 
-  # tromso = { config, pkgs, ... }: {
-  #   deployment = {
-  #     targetHost = "tromso.brage.info";
-  #   };
+  tromso = { config, pkgs, ... }: {
+    deployment = {
+      targetHost = "tromso.brage.info";
+    };
 
-  #   imports = [
-  #     ./tromso/configuration.nix
-  #     ./modules/zfs.nix
-  #   ];
-  # };
+    imports = [
+      ./tromso/configuration.nix
+    ];
+  };
 }

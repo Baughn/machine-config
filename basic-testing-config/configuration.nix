@@ -11,14 +11,7 @@ in
 {
   imports = [
     ./hardware-configuration.nix
-    ../modules/basics.nix
-    ../modules/emergency-shell.nix
-    ../modules/zfs.nix
-    ../modules/desktop.nix
-    ../modules/plex.nix
-    ../modules/virtualisation.nix
     ../modules/nvidia.nix
-    ../modules/rsyncd.nix
   ];
 
   ## Boot
@@ -26,15 +19,8 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelParams = [
     "boot.shell_on_fail"
-    "nomodeset"
   ];
   systemd.enableEmergencyMode = true;
-
-  # Development
-  nix.extraOptions = ''
-    gc-keep-outputs = true
-    gc-keep-derivations = true
-  '';
 
   ## Networking
   networking.hostName = "saya";
@@ -48,21 +34,45 @@ in
 
   networking.interfaces.br0 = {
     useDHCP = true;
-    # ipv4.addresses = [{ address = "192.168.1.42"; prefixLength = 24; }];
-  };
-  networking.firewall = {
-    allowedTCPPorts = [ 
-      6987  # rtorrent
-    ];
-    allowedUDPPorts = [
-      6987  # rtorrent
-      34197 # factorio
-    ];
   };
 
-  services.unifi.enable = true;
+  users = userLib.include [ "svein" ];
 
-  users = userLib.include [
-    "will"
-  ];
+  ## Fonts
+  fonts = {
+    enableDefaultFonts = true;
+  };
+
+  services.xserver = {
+    enable = true;
+    desktopManager = {
+      gnome3.enable = true;
+    };
+    displayManager.gdm.enable = true;
+    xkbOptions = "ctrl:swapcaps";
+    enableCtrlAltBackspace = true;
+    exportConfiguration = true;
+
+    inputClassSections = [''
+      Identifier "Mouse Remap"
+      MatchProduct "Mad Catz Mad Catz M.M.O.7 Mouse|M.M.O.7"
+      MatchIsPointer "true"
+      MatchDevicePath "/dev/input/event*"
+      Option    "Buttons" "24"
+      Option    "ButtonMapping" "1 2 3 4 5 0 0 8 9 10 11 12 0 0 0 16 17 7 6 0 0 0 0 0" 
+      Option    "AutoReleaseButtons" "20 21 22 23 24" 
+      Option    "ZAxisMapping" "4 5 6 7"
+    ''];
+  };
+
+  hardware.pulseaudio = {
+    enable = true;
+  };
+
+  hardware.opengl = {
+    enable = true;
+    s3tcSupport = true;
+  };
+
+  nixpkgs.config.allowUnfree = true;
 }

@@ -17,13 +17,17 @@ rec {
         path = sys.system;
       }
       { name = "zfs-test";
-        path = (import /home/svein/dev/nix-system/nixos/tests/zfs.nix {}).stable {};
+        path = (import /home/svein/dev/nix-system/nixos/tests/zfs.nix {}).stable { };
       }
       { name = "xfce-test";
-        path = import /home/svein/dev/nix-system/nixos/tests/xfce.nix { config = sys.config; };
+        path = import /home/svein/dev/nix-system/nixos/tests/xfce.nix {
+          config = sys.config;
+        };
       }
       { name = "xmonad-test";
-        path = import /home/svein/dev/nix-system/nixos/tests/xmonad.nix { config = sys.config; };
+        path = import /home/svein/dev/nix-system/nixos/tests/xmonad.nix {
+          config = sys.config;
+        };
       }];
   }) systems);
 }

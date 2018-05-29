@@ -5,7 +5,7 @@ let
   users = {
     svein = {
       uid = 1000;
-      extraGroups = [ "wheel" "wireshark" ];
+      extraGroups = [ "wheel" "wireshark" "systemd-journal" ];
     };
     bloxgate.uid = 1001;
     kim.uid = 1002;
@@ -31,6 +31,7 @@ let
     pl.uid = 1051;
     aquagon.uid = 1052;
     # Next free ID: 1054
+    anne.uid = 1100;
   };
   includeUser = username: ({
     isNormalUser = true;

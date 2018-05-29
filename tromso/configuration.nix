@@ -4,8 +4,17 @@
 
 { config, pkgs, ... }:
 
+let
+  userLib = pkgs.callPackage ../modules/users.nix {};
+in
+
 {
-  imports = [ ./hardware-configuration.nix ];
+  imports = [
+    ./hardware-configuration.nix
+    ../modules/basics.nix
+    ../modules/desktop.nix
+    ../modules/amdgpu.nix
+  ];
 
   # Use the gummiboot efi boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -13,11 +22,27 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.supportedFilesystems = [ "zfs" ];
   systemd.enableEmergencyMode = false;  # Start up no matter what, if at all possible.
+  hardware.cpu.amd.updateMicrocode = true;
+
+  users = userLib.include [
+    "anne"
+  ];
+
+  # HACK: Workaround the C6 bug.
+  systemd.services.fix-zen-c6 = {
+    description = "Work around the AMD C6 bug";
+    path = [ pkgs.python ];
+    wantedBy = [ "multi-user.target" ];
+    script = ''
+      python ${./zenstates.py} --c6-disable
+    '';
+  };
+    
 
   ## Plex ##
   # services.plex.enable = true;
   services.nginx = {
-    enable = true;
+#    enable = true;
     recommendedGzipSettings = true;
     recommendedOptimisation = true;
     recommendedProxySettings = true;
@@ -33,18 +58,6 @@
   ## Networking ##
   networking.hostName = "tromso";
   networking.hostId = "5c118177";
-  networking.enableIPv6 = true;
-
-  services.udev.extraRules = ''
-    ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="30:85:a9:9e:c2:29", NAME="uplink"
-    ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="68:05:ca:0e:7c:a3", NAME="internal"
-  '';
-
-  services.ddclient = {
-    enable = true;
-    domain = "tromso.brage.info";
-    username = "Vaughn";
-  };
 
   networking.firewall = {
     trustedInterfaces = [ "internal" ];
@@ -54,20 +67,6 @@
 
   nixpkgs.config.allowUnfree = true;
   services.unifi.enable = true;
-
-  # DHCPd
-  services.dhcpd4 = {
-    enable = false;
-    interfaces = [ "internal" ];
-    extraConfig = ''
-      option routers 10.4.0.1;
-      option domain-name-servers 8.8.8.8, 8.8.4.4;
-      option domain-name "brage.info";
-      subnet 10.4.0.0 netmask 255.255.0.0 {
-        range 10.4.1.2 10.4.1.200;
-      }
-   '';
-  };
 
   # # Open up for znapzend.
   # users.extraUsers.znapzend = {

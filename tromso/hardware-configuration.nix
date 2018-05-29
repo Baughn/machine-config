@@ -8,13 +8,13 @@
     [ <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ehci_pci" "ahci" "sd_mod" ];
-  boot.kernelModules = [ "kvm-intel" ];
+  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "sd_mod" ];
+  boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "/dev/disk/by-uuid/59d54178-765a-4c8b-9847-21b2610b817e";
-      fsType = "ext4";
+    { device = "ssd/root";
+      fsType = "zfs";
     };
 
   fileSystems."/boot" =
@@ -22,13 +22,13 @@
       fsType = "vfat";
     };
 
-  fileSystems."/var/lib/crashplan" =
-    { device = "stash/crashplan";
+  fileSystems."/home" =
+    { device = "stash/home";
       fsType = "zfs";
     };
 
-  fileSystems."/home" =
-    { device = "stash/home";
+  fileSystems."/home/anne" =
+    { device = "stash/home/anne";
       fsType = "zfs";
     };
 
@@ -37,7 +37,13 @@
       fsType = "zfs";
     };
 
+  fileSystems."/home/znapzend" =
+    { device = "stash/home/znapzend";
+      fsType = "zfs";
+    };
+
   swapDevices = [ ];
 
-  nix.maxJobs = 2;
+  nix.maxJobs = lib.mkDefault 12;
+  powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
 }
