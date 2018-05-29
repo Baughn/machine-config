@@ -22,11 +22,6 @@
       fsType = "zfs";
     };
 
-  fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/51FA-69A5";
-      fsType = "vfat";
-    };
-
   fileSystems."/home" =
     { device = "rpool/home";
       fsType = "zfs";
@@ -41,6 +36,13 @@
     { device = "rpool/home/svein/Movies";
       fsType = "zfs";
     };
+
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-uuid/1B6D-446E";
+      fsType = "vfat";
+    };
+
+  swapDevices = [ ];
 
   nix.maxJobs = lib.mkDefault 8;
   powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
