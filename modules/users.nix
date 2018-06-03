@@ -30,7 +30,13 @@ let
     will.uid = 1050;
     pl.uid = 1051;
     aquagon.uid = 1052;
-    # Next free ID: 1054
+    znapzend = {
+      uid = 1054;
+      openssh.authorizedKeys.keys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAW37vjjfhK1hBwHO6Ja4TRuonXchlLVIYnA4Px9hTYD svein@madoka.brage.info"
+      ] ++ sshKeys.svein;
+    };
+    # Next free ID: 1055
     anne.uid = 1100;
   };
   includeUser = username: ({

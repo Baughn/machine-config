@@ -29,7 +29,8 @@ in
   ## System environment
   environment.systemPackages = with pkgs; [
      # Fixed nixops
-     (import /home/svein/dev/nixops/release.nix {}).build.x86_64-linux
+#     (import /home/svein/dev/nixops/release.nix {}).build.x86_64-linux
+     nixops
      # Debug/dev tools
      tcpdump nmap gdb gradle python3Packages.virtualenv
      telnet man-pages posix_man_pages mono rust.cargo rust.rustc gcc stack

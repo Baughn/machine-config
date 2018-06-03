@@ -19,6 +19,7 @@ in
     ../modules/virtualisation.nix
     ../modules/nvidia.nix
     ../modules/rsyncd.nix
+    ../modules/unifi.nix
   ];
 
   ## Boot
@@ -59,8 +60,6 @@ in
       34197 # factorio
     ];
   };
-
-  services.unifi.enable = true;
 
   users = userLib.include [
     "will"

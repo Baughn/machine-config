@@ -22,7 +22,7 @@ in
   networking.hostName = "tsugumi";
   networking.hostId = "3b3fc025";
   services.udev.extraRules = ''
-      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="d0:50:99:c0:fd:fb", NAME="internal"
+      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="10:7b:44:92:17:20", NAME="internal"
   '';
 
   networking.firewall.allowedTCPPorts = [

@@ -14,6 +14,7 @@ in
     ../modules/basics.nix
     ../modules/desktop.nix
     ../modules/amdgpu.nix
+    ../modules/unifi.nix
   ];
 
   # Use the gummiboot efi boot loader.
@@ -25,7 +26,7 @@ in
   hardware.cpu.amd.updateMicrocode = true;
 
   users = userLib.include [
-    "anne"
+    "anne" "znapzend"
   ];
 
   # HACK: Workaround the C6 bug.
@@ -66,20 +67,13 @@ in
   };
 
   nixpkgs.config.allowUnfree = true;
-  services.unifi.enable = true;
 
-  # # Open up for znapzend.
-  # users.extraUsers.znapzend = {
-  #   isNormalUser = true;
-  #   openssh.authorizedKeys.keys = [
-  #     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAW37vjjfhK1hBwHO6Ja4TRuonXchlLVIYnA4Px9hTYD svein@madoka.brage.info"
-  #   ];
-  # };
-  # security.sudo.extraConfig = ''
-  #   znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs list*
-  #   znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs recv -uF stash/backup/*
-  #   znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs get*
-  #   znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs destroy stash/backup/*
-  #   znapzend ALL= NOPASSWD: /run/current-system/sw/bin/test *
-  # '';
+  # Open up for znapzend.
+  security.sudo.extraConfig = ''
+    znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs list*
+    znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs recv -uF stash/backup/*
+    znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs get*
+    znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs destroy stash/backup/*
+    znapzend ALL= NOPASSWD: /run/current-system/sw/bin/test *
+  '';
 }

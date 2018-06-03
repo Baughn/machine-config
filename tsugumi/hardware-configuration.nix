@@ -8,13 +8,18 @@
     [ <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
+  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usbhid" "sd_mod" ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "rpool/nix";
+    { device = "rpool/nixos";
       fsType = "zfs";
+    };
+
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-uuid/EA1C-E08E";
+      fsType = "vfat";
     };
 
   fileSystems."/home" =
@@ -22,12 +27,52 @@
       fsType = "zfs";
     };
 
-  fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/6360-A6AC";
-      fsType = "vfat";
+  fileSystems."/home/aquagon" =
+    { device = "rpool/home/aquagon";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein" =
+    { device = "rpool/home/svein";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/Anime" =
+    { device = "rpool/home/svein/Anime";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/Documents" =
+    { device = "rpool/home/svein/Documents";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/Games" =
+    { device = "rpool/home/svein/Games";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/backups" =
+    { device = "rpool/home/svein/backups";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/dcc" =
+    { device = "rpool/home/svein/dcc";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/secure-encfs" =
+    { device = "rpool/home/svein/secure-encfs";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/web" =
+    { device = "rpool/home/svein/web";
+      fsType = "zfs";
     };
 
   swapDevices = [ ];
 
-  nix.maxJobs = lib.mkDefault 24;
+  nix.maxJobs = lib.mkDefault 8;
 }
