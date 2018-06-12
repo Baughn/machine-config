@@ -30,6 +30,8 @@ in
     "nomodeset"
   ];
   systemd.enableEmergencyMode = true;
+  boot.kernelPackages = pkgs.linuxPackages_4_15;
+#  boot.zfs.enableUnstable = true;
 
   # Development
   nix.extraOptions = ''

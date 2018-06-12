@@ -28,8 +28,6 @@ in
 
   ## System environment
   environment.systemPackages = with pkgs; [
-     # Fixed nixops
-#     (import /home/svein/dev/nixops/release.nix {}).build.x86_64-linux
      nixops
      # Debug/dev tools
      tcpdump nmap gdb gradle python3Packages.virtualenv
@@ -39,9 +37,10 @@ in
      # System/monitoring/etc tools
      parted psmisc atop hdparm sdparm whois sysstat htop nload iftop
      smartmontools pciutils lsof schedtool numactl dmidecode iotop
+     usbutils
      # Shell tools
      file irssi links2 screen parallel moreutils vim mutt finger_bsd
-     autojump units progress pv
+     autojump units progress pv mc
      # File transfer
      rsync wget rtorrent unison znapzend sshfsFuse borgbackup
      # Nix tools

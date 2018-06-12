@@ -31,12 +31,12 @@ in
     139
   ];
 
-  # VPN link to Uiharu.
-  services.openvpn.servers.uiharu = {
-    autoStart = true;
-    config = builtins.readFile ../secrets/memespace-vpn/ovpn.conf;
-    up = "route add -net 10.16.0.0/16 gw 10.16.128.1";
-  };
+#  # VPN link to Uiharu.
+#  services.openvpn.servers.uiharu = {
+#    autoStart = true;
+#    config = builtins.readFile ../secrets/memespace-vpn/ovpn.conf;
+#    up = "route add -net 10.16.0.0/16 gw 10.16.128.1";
+#  };
 
   ## Services ##
   # # Samba
