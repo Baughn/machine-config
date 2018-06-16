@@ -10,7 +10,7 @@ in
     nix-system-pkgs.source = /home/svein/dev/nix-system;
     nixos.source = builtins.filterSource
       (path: type: baseNameOf path != "secrets" && type != "symlink" && !(pkgs.lib.hasSuffix ".qcow2" path))
-      ./.;
+      ../.;
   };
   nix.nixPath = [ "nixpkgs=/etc/nix-system-pkgs" ];
 
@@ -28,19 +28,19 @@ in
 
   ## System environment
   environment.systemPackages = with pkgs; [
-     nixops
+     nixops dysnomia disnix
      # Debug/dev tools
      tcpdump nmap gdb gradle python3Packages.virtualenv
      telnet man-pages posix_man_pages mono rust.cargo rust.rustc gcc stack
-     pythonFull python3Full freeipmi binutils
-     gitAndTools.gitFull gitAndTools.git-annex
+     pythonFull python3Full freeipmi binutils jq
+     gitAndTools.gitFull gitAndTools.git-annex sqliteInteractive
      # System/monitoring/etc tools
      parted psmisc atop hdparm sdparm whois sysstat htop nload iftop
      smartmontools pciutils lsof schedtool numactl dmidecode iotop
      usbutils
      # Shell tools
      file irssi links2 screen parallel moreutils vim mutt finger_bsd
-     autojump units progress pv mc
+     autojump units progress pv mc mkpasswd
      # File transfer
      rsync wget rtorrent unison znapzend sshfsFuse borgbackup
      # Nix tools
