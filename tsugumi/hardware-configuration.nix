@@ -8,71 +8,79 @@
     [ <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usbhid" "sd_mod" ];
+  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usbhid" "sd_mod" ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "rpool/nixos";
+    { device = "nvmpool/nixos";
+      fsType = "zfs";
+    };
+
+  fileSystems."/var" =
+    { device = "nvmpool/nixos/var";
       fsType = "zfs";
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/EA1C-E08E";
+    { device = "/dev/disk/by-uuid/BFA4-84D9";
       fsType = "vfat";
     };
 
   fileSystems."/home" =
-    { device = "rpool/home";
+    { device = "stash/home";
       fsType = "zfs";
     };
 
   fileSystems."/home/aquagon" =
-    { device = "rpool/home/aquagon";
+    { device = "stash/home/aquagon";
       fsType = "zfs";
     };
 
   fileSystems."/home/svein" =
-    { device = "rpool/home/svein";
+    { device = "stash/home/svein";
       fsType = "zfs";
     };
 
   fileSystems."/home/svein/Anime" =
-    { device = "rpool/home/svein/Anime";
+    { device = "stash/home/svein/Anime";
       fsType = "zfs";
     };
 
   fileSystems."/home/svein/Documents" =
-    { device = "rpool/home/svein/Documents";
+    { device = "stash/home/svein/Documents";
       fsType = "zfs";
     };
 
   fileSystems."/home/svein/Games" =
-    { device = "rpool/home/svein/Games";
+    { device = "stash/home/svein/Games";
       fsType = "zfs";
     };
 
   fileSystems."/home/svein/backups" =
-    { device = "rpool/home/svein/backups";
+    { device = "stash/home/svein/backups";
       fsType = "zfs";
     };
 
   fileSystems."/home/svein/dcc" =
-    { device = "rpool/home/svein/dcc";
+    { device = "stash/home/svein/dcc";
       fsType = "zfs";
     };
 
   fileSystems."/home/svein/secure-encfs" =
-    { device = "rpool/home/svein/secure-encfs";
+    { device = "stash/home/svein/secure-encfs";
       fsType = "zfs";
     };
 
   fileSystems."/home/svein/web" =
-    { device = "rpool/home/svein/web";
+    { device = "stash/home/svein/web";
       fsType = "zfs";
     };
 
-  swapDevices = [ ];
+  swapDevices =
+    [ { device = "/dev/disk/by-uuid/bbd5f027-b1fb-4cb7-aa2c-cbe593a24adb"; }
+    ];
 
   nix.maxJobs = lib.mkDefault 8;
+  powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
 }
