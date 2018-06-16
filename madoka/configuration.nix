@@ -137,7 +137,7 @@ in
         inherit locations;
       };
       proxy = port: base {
-        "/".proxyPass = "http://localhost:" + toString(port) + "/";
+        "/".proxyPass = "http://127.0.0.1:" + toString(port) + "/";
       };
       root = dir: base {
         "/".root = dir;
@@ -153,13 +153,13 @@ in
     in {
       "madoka.brage.info" = base {
         "/" = minecraft;
-        "/warmroast".proxyPass = "http://localhost:23000/";
+        "/warmroast".proxyPass = "http://127.0.0.1:23000/";
         "/baughn".extraConfig = "alias /home/svein/web;";
         "/tppi".extraConfig = "alias /home/tppi/web;";
       } // { default = true; };
 #      "kubernetes.brage.info" = base {
 #        "/" = {
-#          proxyPass = "https://localhost:444/";
+#          proxyPass = "https://127.0.0.1:444/";
 #          extraConfig = "proxy_ssl_verify off;";
 #        };
 #      };
@@ -173,7 +173,7 @@ in
       "cache.brage.info" = root "/home/svein/web/cache";
       "znc.brage.info" = base { 
          "/" = {
-           proxyPass = "https://localhost:4000";
+           proxyPass = "https://127.0.0.1:4000";
            extraConfig = "proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;";
          };
       };

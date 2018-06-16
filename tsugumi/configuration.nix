@@ -94,7 +94,7 @@ in
         };
       };
       "wiki.sufficientvelocity.com" = base {
-        locations."/".proxyPass = "http://localhost:3300";
+        locations."/".proxyPass = "http://127.0.0.1:3300";
       };
     };
   };
