@@ -1,0 +1,82 @@
+{
+	"name": "SyntaxHighlight",
+	"version": "2.0",
+	"author": [
+		"Brion Vibber",
+		"Tim Starling",
+		"Rob Church",
+		"Niklas Laxström",
+		"Ori Livneh",
+		"Ed Sanders"
+	],
+	"url": "https://www.mediawiki.org/wiki/Extension:SyntaxHighlight",
+	"descriptionmsg": "syntaxhighlight-desc",
+	"license-name": "GPL-2.0+",
+	"type": "parserhook",
+	"requires": {
+		"MediaWiki": ">= 1.27"
+	},
+	"MessagesDirs": {
+		"SyntaxHighlight_GeSHi": [
+			"i18n"
+		]
+	},
+	"AutoloadClasses": {
+		"SyntaxHighlight": "SyntaxHighlight.class.php",
+		"SyntaxHighlight_GeSHi": "SyntaxHighlight.class.php",
+		"GeSHi": "SyntaxHighlight.GeSHi.php",
+		"SyntaxHighlightAce": "SyntaxHighlight.ace.php",
+		"SyntaxHighlightGeSHiCompat": "SyntaxHighlight.GeSHi.compat.php",
+		"ResourceLoaderGeSHiVisualEditorModule": "ResourceLoaderSyntaxHighlightVisualEditorModule.php",
+		"ResourceLoaderSyntaxHighlightVisualEditorModule": "ResourceLoaderSyntaxHighlightVisualEditorModule.php"
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "modules",
+		"remoteExtPath": "SyntaxHighlight_GeSHi/modules"
+	},
+	"ResourceModules": {
+		"ext.pygments": {
+			"position": "top",
+			"targets": [
+				"desktop",
+				"mobile"
+			],
+			"styles": [
+				"pygments.generated.css",
+				"pygments.wrapper.css"
+			]
+		}
+	},
+	"Hooks": {
+		"ParserFirstCallInit": [
+			"SyntaxHighlight::onParserFirstCallInit"
+		],
+		"ContentGetParserOutput": [
+			"SyntaxHighlight::onContentGetParserOutput"
+		],
+		"ApiFormatHighlight": [
+			"SyntaxHighlight::onApiFormatHighlight"
+		],
+		"ResourceLoaderRegisterModules": [
+			"SyntaxHighlight::onResourceLoaderRegisterModules"
+		]
+	},
+	"SyntaxHighlightModels": {
+		"css": "css",
+		"javascript": "javascript"
+	},
+	"VisualEditorPluginModules": [
+		"ext.geshi.visualEditor"
+	],
+	"config": {
+		"PygmentizePath": false
+	},
+	"TrackingCategories": [
+		"syntaxhighlight-error-category"
+	],
+	"ParserTestFiles": [
+		"tests/parserTests.txt"
+	],
+	"load_composer_autoloader": true,
+	"manifest_version": 1
+}

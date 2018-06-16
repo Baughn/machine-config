@@ -1,0 +1,35 @@
+li.gallerybox {
+	vertical-align: top;
+	display: inline-block;
+}
+
+ul.gallery,
+li.gallerybox {
+	zoom: 1;
+	*display: inline;
+}
+
+ul.gallery {
+	margin: 2px;
+	padding: 2px;
+	display: block;
+}
+
+li.gallerycaption {
+	font-weight: bold;
+	text-align: center;
+	display: block;
+	word-wrap: break-word;
+}
+
+li.gallerybox div.thumb {
+	background-color: #fff;
+	border: 1px solid #ccc;
+}
+
+div.gallerytext {
+	overflow: hidden;
+	font-size: 10pt;
+	padding: 2px 4px;
+	word-wrap: break-word;
+}

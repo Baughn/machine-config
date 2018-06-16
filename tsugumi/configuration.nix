@@ -9,12 +9,15 @@ let
 in
 
 {
-  imports = [ ./hardware-configuration.nix ];
+  imports = [
+    ./hardware-configuration.nix
+    ../disnix/production/tsugumi-config.nix
+  ];
 
   # Use the gummiboot efi boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-
+  
   # Thermal control?
   #services.thermald.enable = true;
 
@@ -89,6 +92,9 @@ in
           root = "/home/aquagon/web/";
           extraConfig = "autoindex on;";
         };
+      };
+      "wiki.sufficientvelocity.com" = base {
+        locations."/".proxyPass = "http://localhost:3300";
       };
     };
   };
