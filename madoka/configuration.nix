@@ -74,7 +74,7 @@ in
   users = userLib.include [
     "mei" "einsig" "prospector" "minecraft" "bloxgate" "buizerd"
     "darqen27" "david" "jmc" "kim" "luke" "simplynoire" "vindex"
-    "xgas" "will"
+    "xgas" "will" "lucca"
   ];
 
   ## Webserver ##

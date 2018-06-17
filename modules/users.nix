@@ -36,7 +36,8 @@ let
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAW37vjjfhK1hBwHO6Ja4TRuonXchlLVIYnA4Px9hTYD svein@madoka.brage.info"
       ] ++ sshKeys.svein;
     };
-    # Next free ID: 1055
+    lucca.uid = 1055;
+    # Next free ID: 1056
     anne.uid = 1100;
   };
   includeUser = username: ({
