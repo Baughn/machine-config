@@ -15,13 +15,13 @@ in
     ../modules/desktop.nix
     ../modules/amdgpu.nix
     ../modules/unifi.nix
+    ../modules/zfs.nix
   ];
 
   # Use the gummiboot efi boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.timeout = 3;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.supportedFilesystems = [ "zfs" ];
   systemd.enableEmergencyMode = false;  # Start up no matter what, if at all possible.
   hardware.cpu.amd.updateMicrocode = true;
 
