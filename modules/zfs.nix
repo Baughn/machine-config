@@ -7,4 +7,5 @@
       cd $hd; echo noop > queue/scheduler
     done
   '';
+  services.zfs.autoScrub.enable = true;
 }
