@@ -1,0 +1,1 @@
+ssh -Ct tsugumi.brage.info screen -dUR
