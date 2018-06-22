@@ -1,5 +1,5 @@
-# Write your default config options here!
+ontop
+ao=openal
+alang=jpn
+slang=jpn
 
-cache=1000000
-hwdec=auto
-no-audio-display

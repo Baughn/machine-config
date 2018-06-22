@@ -32,13 +32,22 @@ if ! (uname -a | grep -q NixOS); then
   )
 
   sudo apt install -y "${PACKAGES[@]}"
-fi
 
-for i in *; do
-  if [[ "$i" != 'install.sh' ]]; then
-    stow "$i"
-  fi
-done
+  for i in *; do
+    if [[ "$i" != 'install.sh' ]]; then
+      stow "$i"
+    fi
+  done
+
+else
+
+  for i in *; do
+    if [[ "$i" != 'install.sh' ]]; then
+      nix-shell -p stow --run "stow $i"
+    fi
+  done
+
+fi
 
 xmonad --recompile
 
