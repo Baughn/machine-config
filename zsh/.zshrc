@@ -96,9 +96,6 @@ alias -g gp='| grep -ei'
 # Fuck.
 eval $(thefuck --alias)
 
-# Start MPD
-pidof mpd > /dev/null || mpd ~/Music/mpd.conf
-
 # Finalize
 zstyle ':completion:*' use-cache on
 compinit -u
