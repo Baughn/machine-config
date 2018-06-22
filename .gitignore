@@ -1,5 +1,6 @@
 keep-build.*
-.timestamp
 secrets
 result
 /vms
+/.state
+/.base
