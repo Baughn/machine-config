@@ -92,9 +92,8 @@ fi
 ## Aliases
 # Pipes and stuff
 alias -g gp='| grep -ei'
-
-# Start MPD
-pidof mpd > /dev/null || mpd ~/Music/mpd.conf
+# Fuck.
+eval $(thefuck --alias)
 
 # Finalize
 zstyle ':completion:*' use-cache on

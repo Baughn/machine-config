@@ -7,13 +7,14 @@
 
 ; ELPA etc.
 (setq package-archives
-      '(("gnu" . "http://elpa.gnu.org/packages/")
-        ("marmalade" . "http://marmalade-repo.org/packages/")
-        ("melpa" . "http://melpa.milkbox.net/packages/")))
+      '(("GELPA" . "http://gelpa-182518.googleplex.com/packages/")
+        ("gnu" . "https://elpa.gnu.org/packages/")
+        ("melpa" . "https://melpa.org/packages/")
+        ("marmalade" . "https://marmalade-repo.org/packages/")))
 (defvar desired-packages
   '(indent-guide column-marker nyan-mode smex pov-mode ipython ein js2-mode js3-mode
-                 multiple-cursors flyspell-lazy yasnippet buffer-move helm
-                 color-theme undo-tree pabbrev expand-region))
+                 multiple-cursors flyspell-lazy yasnippet buffer-move ivy undo-tree
+                 color-theme pabbrev expand-region))
 ;; Google
 (let ((path "/usr/local/google/home/svein/.emacs-google"))
   (and (file-exists-p path)
@@ -22,14 +23,13 @@
 (package-initialize)
 
 ;; Install any missing packages
-(unless package-archive-contents
-  (package-refresh-contents))
+(package-refresh-contents)
 (dolist (package desired-packages)
   (unless (package-installed-p package)
     (package-install package)))
 
 ;; Pabbrev must be turned on before yasnippet.
-;; (global-pabbrev-mode)
+(global-pabbrev-mode)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -46,32 +46,15 @@
  '(font-lock-maximum-size 256000)
  '(global-undo-tree-mode t)
  '(haskell-font-lock-symbols (quote unicode))
- '(haskell-mode-hook (quote (imenu-add-menubar-index turn-on-eldoc-mode turn-on-haskell-decl-scan turn-on-haskell-doc turn-on-haskell-indentation)))
- '(helm-M-x-fuzzy-match t)
- '(helm-adaptive-mode t nil (helm-adaptive))
- '(helm-google-suggest-use-curl-p t)
- '(highlight-changes-face-list (quote (highlight-changes-1 highlight-changes-2 highlight-changes-3 highlight-changes-4 highlight-changes-5 highlight-changes-6 highlight-changes-7)))
+ '(haskell-mode-hook
+   (quote
+    (imenu-add-menubar-index turn-on-eldoc-mode turn-on-haskell-decl-scan turn-on-haskell-doc turn-on-haskell-indentation)))
+ '(highlight-changes-face-list
+   (quote
+    (highlight-changes-1 highlight-changes-2 highlight-changes-3 highlight-changes-4 highlight-changes-5 highlight-changes-6 highlight-changes-7)))
  '(highlight-changes-global-changes-existing-buffers t)
  '(highlight-changes-invisible-string " -Chg")
  '(highlight-changes-visible-string " +Chg")
- '(ido-auto-merge-delay-time 0.7)
- '(ido-auto-merge-inhibit-characters-regexp "[][*?~]")
- '(ido-auto-merge-work-directories-length 0)
- '(ido-cache-ftp-work-directory-time 1.0)
- '(ido-cache-unc-host-shares-time 8.0)
- '(ido-cannot-complete-command (quote ido-completion-help))
- '(ido-completion-buffer "*Ido Completions*")
- '(ido-default-buffer-method (quote selected-window))
- '(ido-enable-tramp-completion nil)
- '(ido-everywhere t)
- '(ido-max-dir-file-cache 100)
- '(ido-max-directory-size 300000)
- '(ido-max-file-prompt-width 0.35)
- '(ido-max-prospects 12)
- '(ido-max-work-directory-list 50)
- '(ido-max-work-file-list 10)
- '(ido-record-ftp-work-directories nil)
- '(ido-save-directory-list-file "~/.ido.last")
  '(indent-tabs-mode nil)
  '(jit-lock-chunk-size 10000)
  '(jit-lock-context-time 0.5)
@@ -79,8 +62,8 @@
  '(jit-lock-stealth-nice 0.1)
  '(jit-lock-stealth-time 0.5)
  '(jit-lock-stealth-verbose nil)
+ '(js-indent-level 4)
  '(js2-auto-indent-p t)
- '(js2-basic-offset 4)
  '(js2-dynamic-idle-timer-adjust 0)
  '(js2-enter-indents-newline t)
  '(js2-highlight-level 3)
@@ -96,6 +79,9 @@
  '(pabbrev-marker-distance-before-scavenge 2000)
  '(pabbrev-scavenge-some-chunk-size 80)
  '(pabbrev-thing-at-point-constituent (quote symbol))
+ '(package-selected-packages
+   (quote
+    (ivy ivy-dired-history ivy-yasnippet auto-correct haskell-mode ob-kotlin yasnippet undo-tree squery smex pov-mode pabbrev nyan-mode nix-mode multiple-cursors js3-mode js2-mode ipython indent-guide flyspell-lazy fast-file-attributes expand-region ein ditrack-procfs column-marker citc buffer-move borgsearch)))
  '(pdb-path (quote /usr/lib/python2\.7/pdb\.py))
  '(py-backspace-function (quote backward-delete-char-untabify))
  '(py-continuation-offset 4)
@@ -108,7 +94,9 @@
  '(py-ipython-history "~/.ipython/history")
  '(py-lhs-inbound-indent 1)
  '(py-master-file nil)
- '(py-outline-mode-keywords (quote ("class" "def" "elif" "else" "except" "for" "if" "while" "finally" "try" "with")))
+ '(py-outline-mode-keywords
+   (quote
+    ("class" "def" "elif" "else" "except" "for" "if" "while" "finally" "try" "with")))
  '(py-pdbtrack-minor-mode-string " PDB")
  '(py-pep8-command "pep8")
  '(py-pychecker-command "pychecker")
@@ -124,11 +112,16 @@
  '(python-mode-modeline-display "Py")
  '(save-place t nil (saveplace))
  '(show-paren-mode t)
- '(sort-fold-case t)
+ '(sort-fold-case t t)
  '(standard-indent 4)
  '(tab-width 2)
  '(tool-bar-mode nil)
- '(tramp-default-method "ssh")
+ '(tramp-default-method "ssh" nil (tramp))
+ '(tramp-default-proxies-alist nil nil (tramp))
+ '(tramp-save-ad-hoc-proxies t nil (tramp))
+ '(tramp-shell-prompt-pattern
+   "\\(?:^\\|\\)[^]#$%>
+]*#?[]#$%>].* *\\(\\[[0-9;]*[a-zA-Z] *\\)*" nil (tramp))
  '(undo-tree-visualizer-diff t)
  '(uniquify-buffer-name-style (quote post-forward) nil (uniquify))
  '(whitespace-empty (quote whitespace-empty))
@@ -151,8 +144,8 @@
  '(whitespace-tab (quote whitespace-tab))
  '(whitespace-tab-regexp "\\(   +\\)")
  '(whitespace-trailing (quote whitespace-trailing))
- '(yas-global-mode t nil (yasnippet))
- '(yas-prompt-functions (quote (shk-yas/helm-prompt yas-x-prompt yas-dropdown-prompt yas-completing-prompt yas-ido-prompt yas-no-prompt))))
+ '(yas-global-mode t)
+ '(yas-snippet-dirs (quote ("~/.emacs.d/snippets"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -170,10 +163,10 @@
 
 ;; Spellchecking
 ;(flyspell-lazy-mode)
-(dolist (hook '(python-mode-hook c-mode-hook c++-mode-hook borg-mode-hook hook
-                                 javascript-mode-hook js-mode-hook js2-mode-hook
-                                 lisp-mode-hook emacs-lisp-mode-hook))
-  (add-hook hook (lambda () (flyspell-prog-mode))))
+;; (dolist (hook '(python-mode-hook c-mode-hook c++-mode-hook borg-mode-hook hook
+;;                                  javascript-mode-hook js-mode-hook js2-mode-hook
+;;                                  lisp-mode-hook emacs-lisp-mode-hook))
+;;   (add-hook hook (lambda () (flyspell-prog-mode))))
 
 ;; Put backup files in /tmp
 (setq backup-directory-alist
@@ -197,7 +190,6 @@
 (global-set-key (kbd "RET") 'newline-and-indent)
 (global-set-key (kbd "s-o") 'other-window)
 (global-set-key (kbd "M-g") 'goto-line)
-(global-set-key (kbd "M-s") 'isearch-repeat-forward)
 (global-set-key [f6] 'gsearch)
 (global-set-key [f7] 'google-show-tag-locations-regexp)
 (global-set-key [f8] 'google-show-callers)
@@ -284,7 +276,6 @@
 (defun switch-to-previous-buffer ()
   (interactive)
   (switch-to-buffer (other-buffer)))
-(global-set-key [f1] 'switch-to-previous-buffer)
 (global-set-key (kbd "<C-tab>") 'bury-buffer)
 
 ;; Recursive edit
@@ -303,71 +294,73 @@
 (setq org-log-done t)
 (setq org-agenda-files '("~/org/"))
 
-;; Js3-mode
-;; (push "/usr/local/google/home/svein/.emacsd/js2-mode" load-path)
-;; (autoload 'js2-mode "js2-mode" nil t)
-(add-to-list 'auto-mode-alist '("\\.js$" . js3-mode))
-;; ;;; adds symbols included by google closure to js2-additional-externs
-;; (add-hook 'js2-post-parse-callbacks
-;;   (lambda ()
-;;     (let ((buf (buffer-string))
-;;           (index 0))
-;;       (while (string-match "\\(goog\\.require\\|goog\\.provide\\)('\\([^'.]*\\)" buf index)
-;;         (setq index (+ 1 (match-end 0)))
-;;         (add-to-list 'js2-additional-externs (match-string 2 buf))))))
-;; (add-hook 'js2-mode-hook
-;;   (lambda ()
-;;     (local-set-key (kbd "s-y") 'js2-mode-toggle-element)))
+;; Ivy
+(require 'ivy)
+(ivy-mode 1)
+(global-set-key (kbd "C-s") 'swiper)
+(global-set-key (kbd "M-x") 'counsel-M-x)
+(global-set-key (kbd "C-x C-f") 'counsel-find-file)
+(global-set-key (kbd "<f1> f") 'counsel-describe-function)
+(global-set-key (kbd "<f1> v") 'counsel-describe-variable)
+(global-set-key (kbd "<f1> l") 'counsel-find-library)
+(global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
+(global-set-key (kbd "<f2> u") 'counsel-unicode-char)
+(global-set-key (kbd "C-c g") 'counsel-git)
+(global-set-key (kbd "C-c j") 'counsel-git-grep)
+(global-set-key (kbd "C-c k") 'counsel-ag)
+(global-set-key (kbd "C-x l") 'counsel-locate)
+(global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
+(global-set-key (kbd "M-s") 'ivy-resume)
 
 
 ;; Helm & Yasnippet
-(require 'helm-config)
-(define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebind tab to run persistent action
-(define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB works in terminal
-(define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
-(global-set-key (kbd "C-x C-f") 'helm-find-files)
-(define-key global-map [remap occur] 'helm-occur)
-(define-key global-map [remap list-buffers] 'helm-buffers-list)
-(define-key global-map [remap dabbrev-expand] 'helm-dabbrev)
-(global-set-key (kbd "M-x") 'helm-M-x)
-(global-set-key (kbd "M-y") 'helm-show-kill-ring)
-(global-set-key (kbd "C-c h") 'helm-command-prefix)
-(unless (boundp 'completion-in-region-function)
-  (define-key lisp-interaction-mode-map [remap completion-at-point] 'helm-lisp-completion-at-point)
-  (define-key emacs-lisp-mode-map       [remap completion-at-point] 'helm-lisp-completion-at-point))
+;; (require 'helm-config)
+;; (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebind tab to run persistent action
+;; (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB works in terminal
+;; (define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
+;; (global-set-key (kbd "C-x C-f") 'helm-find-files)
+;; (define-key global-map [remap occur] 'helm-occur)
+;; (define-key global-map [remap list-buffers] 'helm-buffers-list)
+;; (define-key global-map [remap dabbrev-expand] 'helm-dabbrev)
+;; (global-set-key (kbd "M-x") 'helm-M-x)
+;; (global-set-key (kbd "M-y") 'helm-show-kill-ring)
+;; (global-set-key (kbd "C-c h") 'helm-command-prefix)
+;; (unless (boundp 'completion-in-region-function)
+;;   (define-key lisp-interaction-mode-map [remap completion-at-point] 'helm-lisp-completion-at-point)
+;;   (define-key emacs-lisp-mode-map       [remap completion-at-point] 'helm-lisp-completion-at-point))
 
-(setq helm-split-window-in-side-p           t ; open helm buffer inside current window, not occupy whole other window
-      helm-move-to-line-cycle-in-source     t ; move to end or beginning of source when reaching top or bottom of source.
-      helm-ff-search-library-in-sexp        t ; search for library in `require' and `declare-function' sexp.
-      helm-scroll-amount                    8 ; scroll 8 lines other window using M-<next>/M-<prior>
-      helm-ff-file-name-history-use-recentf t
-      helm-semantic-fuzzy-match             t ; Fuzzy match for semantic.
-      helm-imenu-fuzzy-match                t ; And so on.
-      )
-(semantic-mode 1)
+;; (setq helm-split-window-in-side-p           t ; open helm buffer inside current window, not occupy whole other window
+;;       helm-move-to-line-cycle-in-source     t ; move to end or beginning of source when reaching top or bottom of source.
+;;       helm-ff-search-library-in-sexp        t ; search for library in `require' and `declare-function' sexp.
+;;       helm-scroll-amount                    8 ; scroll 8 lines other window using M-<next>/M-<prior>
+;;       helm-ff-file-name-history-use-recentf t
+;;       helm-semantic-fuzzy-match             t ; Fuzzy match for semantic.
+;;       helm-imenu-fuzzy-match                t ; And so on.
+;;       )
+;; (semantic-mode 1)
 
 
-(defun shk-yas/helm-prompt (prompt choices &optional display-fn)
-  "Use helm to select a snippet. Put this into `yas-prompt-functions.'"
-  (interactive)
-  (setq display-fn (or display-fn 'identity))
-  (if (require 'helm-config)
-      (let (tmpsource cands result rmap)
-        (setq cands (mapcar (lambda (x) (funcall display-fn x)) choices))
-        (setq rmap (mapcar (lambda (x) (cons (funcall display-fn x) x)) choices))
-        (setq tmpsource
-              (list
-               (cons 'name prompt)
-               (cons 'candidates cands)
-               '(action . (("Expand" . (lambda (selection) selection))))
-               ))
-        (setq result (helm-other-buffer '(tmpsource) "*helm-select-yasnippet"))
-        (if (null result)
-            (signal 'quit "user quit!")
-          (cdr (assoc result rmap))))
-    nil))
+;; (defun shk-yas/helm-prompt (prompt choices &optional display-fn)
+;;   "Use helm to select a snippet. Put this into `yas-prompt-functions.'"
+;;   (interactive)
+;;   (setq display-fn (or display-fn 'identity))
+;;   (if (require 'helm-config)
+;;       (let (tmpsource cands result rmap)
+;;         (setq cands (mapcar (lambda (x) (funcall display-fn x)) choices))
+;;         (setq rmap (mapcar (lambda (x) (cons (funcall display-fn x) x)) choices))
+;;         (setq tmpsource
+;;               (list
+;;                (cons 'name prompt)
+;;                (cons 'candidates cands)
+;;                '(action . (("Expand" . (lambda (selection) selection))))
+;;                ))
+;;         (setq result (helm-other-buffer '(tmpsource) "*helm-select-yasnippet"))
+;;         (if (null result)
+;;             (signal 'quit "user quit!")
+;;           (cdr (assoc result rmap))))
+;;     nil))
 
-(helm-mode 1)
+;; (helm-mode 1)
 
 ;; JSX stuff
 (add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
@@ -394,4 +387,6 @@
 
 
 ;; Work around what.. might be a NixOS bug?
-(setq default-frame-alist nil)
+;; (setq default-frame-alist nil)
+(provide '.emacs)
+;;; .emacs ends here
