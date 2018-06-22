@@ -43,7 +43,7 @@ else
 
   for i in *; do
     if [[ "$i" != 'install.sh' ]]; then
-      nix-shell -p stow --run "stow $i"
+      nix-shell -p stow --run "stow $i -t $HOME"
     fi
   done
 
