@@ -11,6 +11,9 @@ in
 {
   imports = [
     ./hardware-configuration.nix
+    ../modules/basics.nix
+    ../modules/zfs.nix
+    ../modules/plex.nix
     ../disnix/production/tsugumi-config.nix
   ];
 

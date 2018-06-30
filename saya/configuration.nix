@@ -26,17 +26,17 @@ in
   hardware.pulseaudio.package = pkgs.pulseaudioFull.override {
     bluetoothSupport = true;
   };
- environment.etc."bluetooth/audio.conf".source = pkgs.writeText "audio.conf" ''
-   [General]
-   Enable = Source,Sink,Control,Media
-   Disable = Socket,Headset
+  environment.etc."bluetooth/audio.conf".source = pkgs.writeText "audio.conf" ''
+    [General]
+    Enable = Source,Sink,Headset,Gateway,Control,Media
+    Disable = Socket
 
-   HFP=false
+    HFP=false
 
-   [A2DP]
-   SBCSources=1
-   MPEG12Sources=0
- '';
+    [A2DP]
+    SBCSources=1
+    MPEG12Sources=0
+  '';
 
   ## Boot
   boot.loader.systemd-boot.enable = true;

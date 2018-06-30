@@ -47,7 +47,7 @@ in
   '';
   networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
   networking.interfaces.enp0s31f6 = {
-    ip6 = [{
+    ipv6.addresses = [{
       address = "2a01:4f8:172:3065::2";
       prefixLength = 64;
     }];
