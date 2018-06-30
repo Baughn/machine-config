@@ -1,35 +1,34 @@
-;; Package setup
-(require 'package)
+;; Path setup
+(push "/home/svein/.emacs.d/lisp" load-path)
+(push "/usr/local/google/home/svein/.emacs.d/lisp" load-path)
 
-; Nix installed packages
-(add-to-list 'package-directory-list "/run/current-system/sw/share/emacs/site-lisp/elpa")
-(add-to-list 'package-directory-list "~/.nix-profile/share/emacs/site-lisp/elpa")
-
-; ELPA etc.
-(setq package-archives
-      '(("gnu" . "https://elpa.gnu.org/packages/")
-        ("melpa" . "https://melpa.org/packages/")
-        ("marmalade" . "https://marmalade-repo.org/packages/")))
-(defvar desired-packages
-  '(indent-guide column-marker nyan-mode smex pov-mode ipython ein js2-mode js3-mode
-                 multiple-cursors flyspell-lazy yasnippet buffer-move ivy undo-tree
-                 color-theme pabbrev expand-region))
 ;; Google
 (let ((path "/usr/local/google/home/svein/.emacs-google"))
   (and (file-exists-p path)
        (load path)))
 
+;; Package setup
+(defvar desired-packages
+ '(indent-guide nyan-mode smex ein js2-mode js3-mode
+                multiple-cursors flyspell-lazy yasnippet buffer-move counsel undo-tree
+                magit nix-mode gradle-mode lua-mode groovy-mode rust-mode
+		editorconfig expand-region))
+
+(require 'package)
+(setq package-archives
+     '(("melpa" . "https://stable.melpa.org/packages/")
+       ("gnu" . "https://elpa.gnu.org/packages/")
+       ;("marmalade" . "https://marmalade-repo.org/packages/")
+       ))
 (package-initialize)
 
 ;; Install any missing packages
 (package-refresh-contents)
 (dolist (package desired-packages)
-  (unless (package-installed-p package)
-    (package-install package)))
+ (unless (package-installed-p package)
+   (package-install package)))
 
-;; Pabbrev must be turned on before yasnippet.
-(global-pabbrev-mode)
-
+;; Custom
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -73,14 +72,6 @@
  '(js2-pretty-multiline-declarations t)
  '(js3-auto-indent-p t)
  '(js3-enter-indents-newline t)
- '(pabbrev-global-mode-buffer-size-limit nil)
- '(pabbrev-idle-timer-verbose nil)
- '(pabbrev-marker-distance-before-scavenge 2000)
- '(pabbrev-scavenge-some-chunk-size 80)
- '(pabbrev-thing-at-point-constituent (quote symbol))
- '(package-selected-packages
-   (quote
-    (ivy ivy-dired-history ivy-yasnippet auto-correct haskell-mode ob-kotlin yasnippet undo-tree squery smex pov-mode pabbrev nyan-mode nix-mode multiple-cursors js3-mode js2-mode ipython indent-guide flyspell-lazy fast-file-attributes expand-region ein ditrack-procfs column-marker citc buffer-move borgsearch)))
  '(pdb-path (quote /usr/lib/python2\.7/pdb\.py))
  '(py-backspace-function (quote backward-delete-char-untabify))
  '(py-continuation-offset 4)
@@ -161,11 +152,11 @@
 (global-set-key "\M- " 'hippie-expand)
 
 ;; Spellchecking
-;(flyspell-lazy-mode)
-;; (dolist (hook '(python-mode-hook c-mode-hook c++-mode-hook borg-mode-hook hook
-;;                                  javascript-mode-hook js-mode-hook js2-mode-hook
-;;                                  lisp-mode-hook emacs-lisp-mode-hook))
-;;   (add-hook hook (lambda () (flyspell-prog-mode))))
+(flyspell-lazy-mode)
+(dolist (hook '(python-mode-hook c-mode-hook c++-mode-hook borg-mode-hook hook
+                                 javascript-mode-hook js-mode-hook js2-mode-hook
+                                 lisp-mode-hook emacs-lisp-mode-hook))
+  (add-hook hook (lambda () (flyspell-prog-mode))))
 
 ;; Put backup files in /tmp
 (setq backup-directory-alist
@@ -179,13 +170,12 @@
 ;(add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
 ;(add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
 
-
-(defun byte-compile-dest-file (fn)
-  (concat fn "c"))
+;; (defun byte-compile-dest-file (fn)
+;;   (concat fn "c"))
 
 ;; Misc. bindings and setup
 (global-set-key [s-backspace] 'kill-buffer)
-(global-set-key (kbd "M-s-b") 'switch-to-buffer)
+(global-set-key (kbd "M-b") 'switch-to-buffer)
 (global-set-key (kbd "RET") 'newline-and-indent)
 (global-set-key (kbd "s-o") 'other-window)
 (global-set-key (kbd "M-g") 'goto-line)
@@ -206,11 +196,13 @@
 (global-set-key (kbd "<C-S-down>")   'buf-move-down)
 (global-set-key (kbd "<C-S-left>")   'buf-move-left)
 (global-set-key (kbd "<C-S-right>")  'buf-move-right)
-(global-set-key (kbd "M-b") 'helm-mini)
 (global-unset-key (kbd "C-z"))
 (global-set-key (kbd "C-=") 'er/expand-region)
 ;; (global-highlight-changes-mode 1)
 (show-paren-mode 1)
+
+;; Theming
+(load-theme 'solarized-light t)
 
 ;; Identation~~
 (require 'indent-guide)
@@ -263,9 +255,6 @@
 (add-hook 'js-mode-hook 'setup-column-marker)
 (add-hook 'js2-mode-hook 'setup-column-marker)
 ;; (add-hook 'haskell-mode-hook 'setup-column-marker)
-(color-theme-initialize)
-(color-theme-subtle-hacker)
-(setq inhibit-startup-message t)
 
 ;; Multiple cursors!
 (global-set-key (kbd "C-c <") 'mc/mark-all-dwim)
@@ -286,106 +275,103 @@
 (require 'nyan-mode)
 (nyan-mode 1)
 
-;; Org-mode
-(require 'org)
-(define-key global-map "\C-cl" 'org-store-link)
-(define-key global-map "\C-ca" 'org-agenda)
-(setq org-log-done t)
-(setq org-agenda-files '("~/org/"))
+;; ;; Org-mode
+;; (require 'org)
+;; (define-key global-map "\C-cl" 'org-store-link)
+;; (define-key global-map "\C-ca" 'org-agenda)
+;; (setq org-log-done t)
+;; (setq org-agenda-files '("~/org/"))
 
 ;; Ivy
 (require 'ivy)
 (ivy-mode 1)
 (global-set-key (kbd "C-s") 'swiper)
-;(global-set-key (kbd "M-x") 'counsel-M-x)
-;(global-set-key (kbd "C-x C-f") 'counsel-find-file)
-;(global-set-key (kbd "<f1> f") 'counsel-describe-function)
-;(global-set-key (kbd "<f1> v") 'counsel-describe-variable)
-;(global-set-key (kbd "<f1> l") 'counsel-find-library)
-;(global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
-;(global-set-key (kbd "<f2> u") 'counsel-unicode-char)
-;(global-set-key (kbd "C-c g") 'counsel-git)
-;(global-set-key (kbd "C-c j") 'counsel-git-grep)
-;(global-set-key (kbd "C-c k") 'counsel-ag)
-;(global-set-key (kbd "C-x l") 'counsel-locate)
-;(global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
+(global-set-key (kbd "M-x") 'counsel-M-x)
+(global-set-key (kbd "C-x C-f") 'counsel-find-file)
+(global-set-key (kbd "<f1> f") 'counsel-describe-function)
+(global-set-key (kbd "<f1> v") 'counsel-describe-variable)
+(global-set-key (kbd "<f1> l") 'counsel-find-library)
+(global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
+(global-set-key (kbd "<f2> u") 'counsel-unicode-char)
+(global-set-key (kbd "C-c k") 'counsel-ag)
+(global-set-key (kbd "C-x l") 'counsel-locate)
+(global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
 (global-set-key (kbd "M-s") 'ivy-resume)
 
 
-;; Helm & Yasnippet
-;; (require 'helm-config)
-;; (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebind tab to run persistent action
-;; (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB works in terminal
-;; (define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
-;; (global-set-key (kbd "C-x C-f") 'helm-find-files)
-;; (define-key global-map [remap occur] 'helm-occur)
-;; (define-key global-map [remap list-buffers] 'helm-buffers-list)
-;; (define-key global-map [remap dabbrev-expand] 'helm-dabbrev)
-;; (global-set-key (kbd "M-x") 'helm-M-x)
-;; (global-set-key (kbd "M-y") 'helm-show-kill-ring)
-;; (global-set-key (kbd "C-c h") 'helm-command-prefix)
-;; (unless (boundp 'completion-in-region-function)
-;;   (define-key lisp-interaction-mode-map [remap completion-at-point] 'helm-lisp-completion-at-point)
-;;   (define-key emacs-lisp-mode-map       [remap completion-at-point] 'helm-lisp-completion-at-point))
+;; ;; Helm & Yasnippet
+;; ;; (require 'helm-config)
+;; ;; (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebind tab to run persistent action
+;; ;; (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB works in terminal
+;; ;; (define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
+;; ;; (global-set-key (kbd "C-x C-f") 'helm-find-files)
+;; ;; (define-key global-map [remap occur] 'helm-occur)
+;; ;; (define-key global-map [remap list-buffers] 'helm-buffers-list)
+;; ;; (define-key global-map [remap dabbrev-expand] 'helm-dabbrev)
+;; ;; (global-set-key (kbd "M-x") 'helm-M-x)
+;; ;; (global-set-key (kbd "M-y") 'helm-show-kill-ring)
+;; ;; (global-set-key (kbd "C-c h") 'helm-command-prefix)
+;; ;; (unless (boundp 'completion-in-region-function)
+;; ;;   (define-key lisp-interaction-mode-map [remap completion-at-point] 'helm-lisp-completion-at-point)
+;; ;;   (define-key emacs-lisp-mode-map       [remap completion-at-point] 'helm-lisp-completion-at-point))
 
-;; (setq helm-split-window-in-side-p           t ; open helm buffer inside current window, not occupy whole other window
-;;       helm-move-to-line-cycle-in-source     t ; move to end or beginning of source when reaching top or bottom of source.
-;;       helm-ff-search-library-in-sexp        t ; search for library in `require' and `declare-function' sexp.
-;;       helm-scroll-amount                    8 ; scroll 8 lines other window using M-<next>/M-<prior>
-;;       helm-ff-file-name-history-use-recentf t
-;;       helm-semantic-fuzzy-match             t ; Fuzzy match for semantic.
-;;       helm-imenu-fuzzy-match                t ; And so on.
-;;       )
-;; (semantic-mode 1)
-
-
-;; (defun shk-yas/helm-prompt (prompt choices &optional display-fn)
-;;   "Use helm to select a snippet. Put this into `yas-prompt-functions.'"
-;;   (interactive)
-;;   (setq display-fn (or display-fn 'identity))
-;;   (if (require 'helm-config)
-;;       (let (tmpsource cands result rmap)
-;;         (setq cands (mapcar (lambda (x) (funcall display-fn x)) choices))
-;;         (setq rmap (mapcar (lambda (x) (cons (funcall display-fn x) x)) choices))
-;;         (setq tmpsource
-;;               (list
-;;                (cons 'name prompt)
-;;                (cons 'candidates cands)
-;;                '(action . (("Expand" . (lambda (selection) selection))))
-;;                ))
-;;         (setq result (helm-other-buffer '(tmpsource) "*helm-select-yasnippet"))
-;;         (if (null result)
-;;             (signal 'quit "user quit!")
-;;           (cdr (assoc result rmap))))
-;;     nil))
-
-;; (helm-mode 1)
-
-;; JSX stuff
-(add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
-(defadvice web-mode-highlight-part (around tweak-jsx activate)
-  (if (equal web-mode-content-type "jsx")
-      (let ((web-mode-enable-part-face nil))
-        ad-do-it)
-    ad-do-it))
-
-(require 'flycheck)
-(flycheck-define-checker jsxhint-checker
-  "A JSX syntax and style checker based on JSXHint."
-
-  :command ("jsxhint" source)
-  :error-patterns
-  ((error line-start (1+ nonl) ": line " line ", col " column ", " (message) line-end))
-  :modes (web-mode))
-(add-hook 'web-mode-hook
-          (lambda ()
-            (when (equal web-mode-content-type "jsx")
-              ;; enable flycheck
-              (flycheck-select-checker 'jsxhint-checker)
-              (flycheck-mode))))
+;; ;; (setq helm-split-window-in-side-p           t ; open helm buffer inside current window, not occupy whole other window
+;; ;;       helm-move-to-line-cycle-in-source     t ; move to end or beginning of source when reaching top or bottom of source.
+;; ;;       helm-ff-search-library-in-sexp        t ; search for library in `require' and `declare-function' sexp.
+;; ;;       helm-scroll-amount                    8 ; scroll 8 lines other window using M-<next>/M-<prior>
+;; ;;       helm-ff-file-name-history-use-recentf t
+;; ;;       helm-semantic-fuzzy-match             t ; Fuzzy match for semantic.
+;; ;;       helm-imenu-fuzzy-match                t ; And so on.
+;; ;;       )
+;; ;; (semantic-mode 1)
 
 
-;; Work around what.. might be a NixOS bug?
-;; (setq default-frame-alist nil)
+;; ;; (defun shk-yas/helm-prompt (prompt choices &optional display-fn)
+;; ;;   "Use helm to select a snippet. Put this into `yas-prompt-functions.'"
+;; ;;   (interactive)
+;; ;;   (setq display-fn (or display-fn 'identity))
+;; ;;   (if (require 'helm-config)
+;; ;;       (let (tmpsource cands result rmap)
+;; ;;         (setq cands (mapcar (lambda (x) (funcall display-fn x)) choices))
+;; ;;         (setq rmap (mapcar (lambda (x) (cons (funcall display-fn x) x)) choices))
+;; ;;         (setq tmpsource
+;; ;;               (list
+;; ;;                (cons 'name prompt)
+;; ;;                (cons 'candidates cands)
+;; ;;                '(action . (("Expand" . (lambda (selection) selection))))
+;; ;;                ))
+;; ;;         (setq result (helm-other-buffer '(tmpsource) "*helm-select-yasnippet"))
+;; ;;         (if (null result)
+;; ;;             (signal 'quit "user quit!")
+;; ;;           (cdr (assoc result rmap))))
+;; ;;     nil))
+
+;; ;; (helm-mode 1)
+
+;; ;; JSX stuff
+;; (add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
+;; (defadvice web-mode-highlight-part (around tweak-jsx activate)
+;;   (if (equal web-mode-content-type "jsx")
+;;       (let ((web-mode-enable-part-face nil))
+;;         ad-do-it)
+;;     ad-do-it))
+
+;; (require 'flycheck)
+;; (flycheck-define-checker jsxhint-checker
+;;   "A JSX syntax and style checker based on JSXHint."
+
+;;   :command ("jsxhint" source)
+;;   :error-patterns
+;;   ((error line-start (1+ nonl) ": line " line ", col " column ", " (message) line-end))
+;;   :modes (web-mode))
+;; (add-hook 'web-mode-hook
+;;           (lambda ()
+;;             (when (equal web-mode-content-type "jsx")
+;;               ;; enable flycheck
+;;               (flycheck-select-checker 'jsxhint-checker)
+;;               (flycheck-mode))))
+
+
+(setq inhibit-startup-message t)
 (provide '.emacs)
 ;;; .emacs ends here
