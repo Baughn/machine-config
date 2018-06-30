@@ -66,8 +66,6 @@ in
     allowedUDPPortRanges = [{from = 60000; to = 61000;}];
   };
 
-  nixpkgs.config.allowUnfree = true;
-
   # Open up for znapzend.
   security.sudo.extraConfig = ''
     znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs list*

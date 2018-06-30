@@ -4,8 +4,11 @@ let
 in
 
 rec {
-  machines = [ "saya" "tsugumi" "madoka" "tromso" ];
-
+  control = "saya";
+  peers = [ "tsugumi" "madoka" "tromso" ];
+  fastConnections = [ "saya" "tsugumi" ];
+  machines = peers ++ [ control ];
+  
   systems = pkgs.lib.genAttrs machines (machine: (nixos {
     configuration = builtins.toPath "/home/svein/nixos/${machine}/configuration.nix";
   }));

@@ -9,8 +9,13 @@ in
   environment.etc = {
     nix-system-pkgs.source = /home/svein/dev/nix-system;
     nixos.source = builtins.filterSource
-      (path: type: baseNameOf path != "secrets" && type != "symlink" && !(pkgs.lib.hasSuffix ".qcow2" path))
-      ../.;
+      (path: type:
+      baseNameOf path != "secrets"
+      && type != "symlink"
+      && !(pkgs.lib.hasSuffix ".qcow2" path)
+      && baseNameOf path != "server"
+    )
+    ../.;
   };
   nix.nixPath = [ "nixpkgs=/etc/nix-system-pkgs" ];
 

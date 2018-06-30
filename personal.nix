@@ -6,10 +6,6 @@ rec {
   
   defaults = { config, pkgs, ... }: {
     deployment.owners = [ "sveina@gmail.com" ];
-    imports = [
-      ./modules/basics.nix
-      ./modules/emergency-shell.nix
-    ];
   };
 
   saya = { config, pkgs, ... }: {
@@ -31,8 +27,6 @@ rec {
 
     imports = [
       ./tsugumi/configuration.nix
-      ./modules/zfs.nix
-      ./modules/plex.nix
     ];
   };
   
