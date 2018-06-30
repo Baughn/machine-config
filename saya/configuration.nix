@@ -22,6 +22,22 @@ in
     ../modules/unifi.nix
   ];
 
+  hardware.bluetooth.enable = true;
+  hardware.pulseaudio.package = pkgs.pulseaudioFull.override {
+    bluetoothSupport = true;
+  };
+ environment.etc."bluetooth/audio.conf".source = pkgs.writeText "audio.conf" ''
+   [General]
+   Enable = Source,Sink,Control,Media
+   Disable = Socket,Headset
+
+   HFP=false
+
+   [A2DP]
+   SBCSources=1
+   MPEG12Sources=0
+ '';
+
   ## Boot
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
