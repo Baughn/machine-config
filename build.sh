@@ -5,7 +5,7 @@ set -ue -o pipefail
 cd "$(dirname "$(readlink -f "$0")")"
 
 export HERE="$(pwd)"
-export CHANNEL="18.03"
+export CHANNEL="unstable"
 export NIXPKGS="$HOME/dev/nix-system"
 export FORCE_UPDATE=0
 
@@ -19,7 +19,7 @@ commits() {
 }
 
 update() {
-    if [[ $(find "$HERE/.base" -mtime +1 2>&1 | wc -l) -gt 0 ]]; then
+    if [[ $(find "$HERE/.base" -mtime 1 2>&1 | wc -l) -gt 0 ]]; then
         BASE="$(curl https://howoldis.herokuapp.com/api/channels | \
                 jq -r "map(select(.name == \"nixos-$CHANNEL\"))[0].commit")"
         echo $BASE > "$HERE/.base"
@@ -59,7 +59,7 @@ update() {
 
 {
   update
-  nix build '(import ./machines.nix).all'
+  nix build -f machines.nix all --show-trace
 
   nixops modify -d personal ./personal.nix
   nixops deploy -d personal --check -j 8 --cores 16 -I "nixpkgs=$HOME/dev/nix-system" "$@"
