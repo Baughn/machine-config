@@ -25,7 +25,7 @@ in
   programs.mtr.enable = true;
   programs.wireshark.enable = true;
   programs.zsh.enable = true;
-  programs.zsh.enableAutosuggestions = true;
+  programs.zsh.autosuggestions.enable = true;
   programs.zsh.syntaxHighlighting.enable = true;
   programs.nano.nanorc = ''
     set nowrap
@@ -33,7 +33,7 @@ in
 
   ## System environment
   environment.systemPackages = with pkgs; [
-     nixops dysnomia disnix
+     nixops
      # Debug/dev tools
      tcpdump nmap gdb gradle python3Packages.virtualenv
      telnet man-pages posix_man_pages mono rust.cargo rust.rustc gcc stack
@@ -144,5 +144,5 @@ in
   services.postfix.enable = true;
 
   # The NixOS release to be compatible with for stateful data such as databases.
-  system.stateVersion = "18.03";
+  system.nixos.stateVersion = "18.03";
 }

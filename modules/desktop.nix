@@ -34,13 +34,13 @@
 #      plasma5.enable = true;
     };
     displayManager.gdm.enable = true;
-    windowManager.xmonad = {
-      enable = true;
-      enableContribAndExtras = true;
-      extraPackages = h: with h; [
-        MissingH
-      ];
-    };
+    # windowManager.xmonad = {
+    #   enable = true;
+    #   enableContribAndExtras = true;
+    #   extraPackages = h: with h; [
+    #     MissingH
+    #   ];
+    # };
     xkbOptions = "ctrl:swapcaps";
     enableCtrlAltBackspace = true;
     exportConfiguration = true;

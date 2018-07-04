@@ -14,7 +14,7 @@ in
     ../modules/basics.nix
     ../modules/zfs.nix
     ../modules/plex.nix
-    ../disnix/production/tsugumi-config.nix
+    # ../disnix/production/tsugumi-config.nix
   ];
 
   # Use the gummiboot efi boot loader.
