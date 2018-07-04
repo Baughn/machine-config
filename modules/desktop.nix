@@ -8,7 +8,13 @@
     ncmpcpp xorg.xdpyinfo xorg.xev xorg.xkill # maim
     steam-run firefox glxinfo mpd xlockmore xorg.xwd
     idea.idea-community
-  ];
+  ] ++ (with pkgs.dwarf-fortress-packages; [
+    (dwarf-fortress.override {
+      enableDFHack = true;
+      enableSoundSense = true;
+      # enableStoneSense = true;
+     })
+  ]);
 
   ## Fonts
   fonts = {
