@@ -38,11 +38,11 @@ in
     MPEG12Sources=0
   '';
 
-  ## Experimental fan control
-  boot.kernelPatches = [
-    { name = "it87.patch"; patch = ../third_party/it87/from-4.14.diff; }
-  ];
-  environment.systemPackages = [ pkgs.lm_sensors ];
+#  ## Experimental fan control
+#  boot.kernelPatches = [
+#    { name = "it87.patch"; patch = ../third_party/it87/from-4.14.diff; }
+#  ];
+#  environment.systemPackages = [ pkgs.lm_sensors ];
 
   ## Boot
   boot.loader.systemd-boot.enable = true;
