@@ -65,7 +65,7 @@ else
 fi
 
 ### User configuration ###
-export PATH=$HOME/bin:$HOME/local/bin:/usr/local/bin:$HOME/bin/idea/bin:$PATH
+export PATH=$HOME/bin:$HOME/local/bin:/usr/local/bin:$HOME/bin/idea/bin:$HOME/.cargo/bin:$PATH
 export MANPATH=$HOME/local/share/man:"/usr/local/man:$MANPATH"
 export LANG=en_US.UTF-8
 setopt INTERACTIVE_COMMENTS

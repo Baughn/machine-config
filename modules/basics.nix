@@ -36,7 +36,8 @@ in
      nixops
      # Debug/dev tools
      tcpdump nmap gdb gradle python3Packages.virtualenv
-     telnet man-pages posix_man_pages mono rust.cargo rust.rustc gcc stack
+     telnet man-pages posix_man_pages mono heaptrack
+     rustup gcc stack
      pythonFull python3Full freeipmi binutils jq
      gitAndTools.gitFull gitAndTools.git-annex sqliteInteractive
      # System/monitoring/etc tools
