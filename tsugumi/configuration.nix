@@ -36,6 +36,9 @@ in
     6986  # rtorrent
     139
   ];
+  networking.firewall.allowedUDPPorts = [
+    6986 6881  # rtorrent
+  ];
 
 #  # VPN link to Uiharu.
 #  services.openvpn.servers.uiharu = {

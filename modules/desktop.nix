@@ -8,13 +8,10 @@
     ncmpcpp xorg.xdpyinfo xorg.xev xorg.xkill # maim
     steam-run firefox glxinfo mpd xlockmore xorg.xwd
     idea.idea-community
-  ] ++ (with pkgs.dwarf-fortress-packages; [
-    (dwarf-fortress.override {
-      enableDFHack = true;
-      enableSoundSense = true;
-      # enableStoneSense = true;
-     })
-  ]);
+    (dwarf-fortress-packages.dwarf-fortress-full.override {
+      enableIntro = false;
+    })
+  ];
 
   ## Fonts
   fonts = {
@@ -75,4 +72,10 @@
   };
 
   services.udisks2.enable = config.services.xserver.enable;
+  services.gnome3 = {
+    chrome-gnome-shell.enable = true;
+    gnome-disks.enable = true;
+    gnome-terminal-server.enable = true;
+    gvfs.enable = true;
+  };
 }

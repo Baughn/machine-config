@@ -19,7 +19,7 @@ commits() {
 }
 
 update() {
-    if [[ $(find "$HERE/.base" -mtime 1 2>&1 | wc -l) -gt 0 ]]; then
+    if [[ $(find "$HERE/.base" -mtime +0 2>&1 | wc -l) -gt 0 ]]; then
         BASE="$(curl https://howoldis.herokuapp.com/api/channels | \
                 jq -r "map(select(.name == \"nixos-$CHANNEL\"))[0].commit")"
         echo $BASE > "$HERE/.base"
@@ -45,7 +45,7 @@ update() {
     if [[ "$HASH" != "$(cat "$HERE/.state")" ]]; then
         echo 'Hash changed; rebuilding git tree.'
         (cd "$NIXPKGS"
-         git reset --hard -q; git clean -fxd
+         git reset --hard -q; git cherry-pick --abort; git clean -fxd
          git cat-file -t "$BASE" 2>/dev/null >/dev/null || git fetch origin
          git checkout "$BASE" -q
          git branch -D system -q
@@ -59,8 +59,11 @@ update() {
 
 {
   update
+
+  echo 'Building.'
   nix build -f machines.nix all --show-trace
 
+  echo 'Deploying.'
   nixops modify -d personal ./personal.nix
   nixops deploy -d personal --check -j 8 --cores 16 -I "nixpkgs=$HOME/dev/nix-system" "$@"
 }
