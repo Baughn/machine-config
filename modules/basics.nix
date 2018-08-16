@@ -81,6 +81,7 @@ in
 
   # System setup
   ## Misc.
+  powerManagement.enable = false;
   hardware.cpu.intel.updateMicrocode = true;
   hardware.cpu.amd.updateMicrocode = true;
   hardware.enableKSM = true;

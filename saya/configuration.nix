@@ -15,7 +15,6 @@ in
     ../modules/emergency-shell.nix
     ../modules/zfs.nix
     ../modules/desktop.nix
-    ../modules/plex.nix
     ../modules/virtualisation.nix
     ../modules/nvidia.nix
     ../modules/rsyncd.nix
