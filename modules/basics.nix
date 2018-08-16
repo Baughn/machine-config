@@ -50,7 +50,7 @@ in
      # File transfer
      rsync wget rtorrent unison znapzend sshfsFuse borgbackup
      # Nix tools
-     nox nix-repl nix-prefetch-git
+     nox nix-prefetch-git
      # Video manipulation
      mkvtoolnix-cli ffmpeg-full
      (libav_all.override {
