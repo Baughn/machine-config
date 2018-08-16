@@ -45,7 +45,7 @@ update() {
     if [[ "$HASH" != "$(cat "$HERE/.state")" ]]; then
         echo 'Hash changed; rebuilding git tree.'
         (cd "$NIXPKGS"
-         git reset --hard -q; git cherry-pick --abort; git clean -fxd
+         git reset --hard --merge -q; git clean -fxd
          git cat-file -t "$BASE" 2>/dev/null >/dev/null || git fetch origin
          git checkout "$BASE" -q
          git branch -D system -q
