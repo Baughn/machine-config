@@ -3,7 +3,7 @@
 {
   ## Packages
   environment.systemPackages = with pkgs; [
-    google-chrome steam pavucontrol mpv youtube-dl wine
+    google-chrome steam pavucontrol mpv youtube-dl wineFull
     gnome3.gnome_terminal compton blender gimp-with-plugins
     ncmpcpp xorg.xdpyinfo xorg.xev xorg.xkill # maim
     steam-run firefox glxinfo mpd xlockmore xorg.xwd
