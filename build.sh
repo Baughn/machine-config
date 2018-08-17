@@ -14,7 +14,7 @@ commits() {
      cd "$NIXPKGS"
      set +o pipefail
      git log --pretty='format:author %ae%nhash %H' "$BRANCH" \
-         | awk '/^author/ { if ($2 != "sveina@gmail.com" && $2 != "svein@google.com") { exit } } /^hash/ { print $2 }'
+         | awk 'BEGIN { n=0; }; /^author/ { if ($2 != "sveina@gmail.com" && $2 != "svein@google.com" && n > 0) { exit } } /^hash/ { print $2; n++; }'
     )
 }
 
