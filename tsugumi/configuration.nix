@@ -14,6 +14,7 @@ in
     ../modules/basics.nix
     ../modules/zfs.nix
     ../modules/plex.nix
+    ../modules/virtualisation.nix
     # ../disnix/production/tsugumi-config.nix
   ];
 

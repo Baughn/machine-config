@@ -3,11 +3,14 @@
 {
   ## Packages
   environment.systemPackages = with pkgs; [
-    google-chrome steam pavucontrol mpv youtube-dl wineFull
+    google-chrome steam pavucontrol youtube-dl wineFull
     gnome3.gnome_terminal compton blender gimp-with-plugins
     ncmpcpp xorg.xdpyinfo xorg.xev xorg.xkill # maim
     steam-run firefox glxinfo mpd xlockmore xorg.xwd
     idea.idea-community
+    (mpv.override {
+      openalSupport = true;
+    })
     (dwarf-fortress-packages.dwarf-fortress-full.override {
       enableIntro = false;
     })
