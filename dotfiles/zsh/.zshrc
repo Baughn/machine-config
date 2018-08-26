@@ -80,14 +80,11 @@ fi
 
 # Any extra bindirs?
 if [[ -d $HOME/opt ]]; then
-  for d in $HOME/opt/*; do
+  for d in $HOME/opt/*(/N); do
     if [[ -d $d/bin ]]; then
       PATH=$d/bin:$PATH
     fi
   done
-fi
-if [[ -d $HOME/.gem/ruby/ ]]; then
-  PATH=$HOME/.gem/ruby/1.9.1/bin:$PATH
 fi
 
 # Keep ALL THE HISTORY
