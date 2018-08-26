@@ -37,7 +37,8 @@ let
       ] ++ sshKeys.svein;
     };
     lucca.uid = 1055;
-    # Next free ID: 1056
+    dusk.uid = 1056;
+    # Next free ID: 1057
     anne.uid = 1100;
   };
   includeUser = username: ({
