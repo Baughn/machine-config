@@ -1,11 +1,9 @@
 { config, pkgs, ... }:
 
 {
-  # virtualisation.docker.enable = true;
-  # virtualisation.libvirtd.enable = true;
-  # virtualisation.lxc.enable = true;
+  virtualisation.docker.enable = false;
   virtualisation.lxd.enable = true;
-  users.extraUsers.svein.extraGroups = [ "docker" "libvirtd" "lxd" ];
+  users.extraUsers.svein.extraGroups = [ "docker" "lxd" ];
   networking.firewall.checkReversePath = false;
-  environment.systemPackages = [ pkgs.virtmanager pkgs.qemu ];
+  environment.systemPackages = [ pkgs.qemu ];
 }
