@@ -46,7 +46,7 @@ in
      usbutils powertop
      # Shell tools
      file irssi links2 screen parallel moreutils vim mutt finger_bsd
-     autojump units progress pv mc mkpasswd
+     autojump units progress pv mc mkpasswd most
      # File transfer
      rsync wget rtorrent unison znapzend sshfsFuse borgbackup
      # Nix tools
@@ -73,6 +73,10 @@ in
      zip unzip znc bsdgames shared_mime_info p7zip fortune
      gnupg unrar
    ];
+
+  environment.loginShellInit = ''
+    export PAGER=${pkgs.most}/bin/most
+  '';
 
   # User setup
   users = (userLib.include [ "svein" ]) // {
