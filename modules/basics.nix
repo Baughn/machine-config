@@ -43,7 +43,7 @@ in
      # System/monitoring/etc tools
      parted psmisc atop hdparm sdparm whois sysstat htop nload iftop
      smartmontools pciutils lsof schedtool numactl dmidecode iotop
-     usbutils
+     usbutils powertop
      # Shell tools
      file irssi links2 screen parallel moreutils vim mutt finger_bsd
      autojump units progress pv mc mkpasswd
