@@ -6,4 +6,6 @@ It probably isn't very useful to others, but the most interesting parts should b
 
 
 ## License
+Everything written by yours truly is MIT-licensed. All third-party code should be in third_party, and is at least FOSS, but check those licenses yourself.
+
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FBaughn%2Fmachine-config.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FBaughn%2Fmachine-config?ref=badge_large)
