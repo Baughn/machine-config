@@ -19,6 +19,7 @@ in
     ../modules/nvidia.nix
     ../modules/rsyncd.nix
     ../modules/unifi.nix
+    ../modules/znapzend.nix
   ];
 
   hardware.bluetooth.enable = true;
