@@ -1,5 +1,58 @@
 { config, pkgs, ...}:
 
+let
+  minecraft = with pkgs; with stdenv; rec {
+    libraries = with xlibs; lib.makeLibraryPath [
+      stdenv.cc.cc libX11 libXext libXcursor libXrandr libXxf86vm mesa_glu openal libpulseaudio
+    ];
+
+    openalLib = lib.makeLibraryPath [ openal ];
+
+    mcenv = mkDerivation {
+      name = "mcenv-2";
+
+      inherit openalLib libraries;
+
+      phases = ["installPhase"];
+      installPhase = ''
+        mkdir -p $out/bin
+        cat > $out/bin/mcenv << EOF
+          #!${stdenv.shell}
+          # wrapper for mcupdater/minecraft
+          export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$libraries
+          export LD_PRELOAD=$openalLib/libopenal.so
+          source ${jdk}/nix-support/setup-hook
+          export PATH=$PATH:${jdk}/bin:${xorg.xrandr}/bin
+        EOF
+        chmod a+x $out/bin/mcenv
+      '';
+    };
+
+    mkMCDerivation = self: mkDerivation ({
+      phases = "installPhase";
+
+      installPhase = ''
+        mkdir -p $out/bin
+        cat > $out/bin/$name << EOF
+          #!${stdenv.shell}
+          source ${mcenv}/bin/mcenv
+          ${jdk}/bin/java -jar $src "\$@"
+        EOF
+        chmod a+x $out/bin/$name
+      '';
+    } // self);
+
+    mcupdater = mkMCDerivation {
+      name = "mcupdater";
+
+      src = fetchurl {
+        url = https://madoka.brage.info/MCU-Bootstrap.jar;
+        sha256 = "1inihm55bskzkv0svk46xaqpz7qa4zzk6ld8j3nma2w0kp5gvsgf";
+      };
+    };
+  };
+in
+
 {
   ## Packages
   environment.systemPackages = with pkgs; [
@@ -14,6 +67,8 @@
     (dwarf-fortress-packages.dwarf-fortress-full.override {
       enableIntro = false;
     })
+    # Minecraft
+    minecraft.mcupdater
   ];
 
   ## Fonts

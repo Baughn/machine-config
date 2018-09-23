@@ -1,6 +1,7 @@
 let
   # Last working at revision 8726c6d50638fea25808e99192ed546657200d87
-  minecraft-pkgs = import /home/svein/dev/nix-mcupdater {};
+  #minecraft-pkgs = import /home/svein/dev/nix-mcupdater {};
+  minecraft-pkgs = import <nixpkgs> {};
 
   minecraft = with minecraft-pkgs; with stdenv; rec {
 
