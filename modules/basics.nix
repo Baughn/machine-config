@@ -131,6 +131,8 @@ in
   networking.firewall.connectionTrackingModules = [ "ftp" "irc" ];
   services.avahi.enable = true;
   services.avahi.nssmdns = true;
+  # Add hosts for SV.
+  networking.hosts = lib.mapAttrs' (host: ip: lib.nameValuePair ip [(host + ".sv")]) (import /home/svein/sufficient/machines.nix).machines;
   
   ## Time & location ##
   i18n = {
