@@ -20,6 +20,7 @@ in
     ../modules/rsyncd.nix
     ../modules/unifi.nix
     ../modules/znapzend.nix
+    ../modules/monitoring.nix
   ];
 
   hardware.bluetooth.enable = true;
