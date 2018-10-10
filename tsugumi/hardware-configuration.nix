@@ -8,7 +8,7 @@
     [ <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usbhid" "sd_mod" ];
+  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "sd_mod" ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
@@ -42,13 +42,13 @@
       fsType = "zfs";
     };
 
-  fileSystems."/home/svein/Anime" =
-    { device = "stash/home/svein/Anime";
+  fileSystems."/home/svein/web" =
+    { device = "stash/home/svein/web";
       fsType = "zfs";
     };
 
-  fileSystems."/home/svein/Documents" =
-    { device = "stash/home/svein/Documents";
+  fileSystems."/home/svein/Anime" =
+    { device = "stash/home/svein/Anime";
       fsType = "zfs";
     };
 
@@ -62,24 +62,22 @@
       fsType = "zfs";
     };
 
+  fileSystems."/home/svein/Documents" =
+    { device = "stash/home/svein/Documents";
+      fsType = "zfs";
+    };
+
   fileSystems."/home/svein/dcc" =
     { device = "stash/home/svein/dcc";
       fsType = "zfs";
     };
 
-  fileSystems."/home/svein/secure-encfs" =
-    { device = "stash/home/svein/secure-encfs";
+  fileSystems."/var/lib/plex/Plex Media Server/Media" =
+    { device = "stash/plex-media";
       fsType = "zfs";
     };
 
-  fileSystems."/home/svein/web" =
-    { device = "stash/home/svein/web";
-      fsType = "zfs";
-    };
-
-  swapDevices =
-    [ { device = "/dev/disk/by-uuid/bbd5f027-b1fb-4cb7-aa2c-cbe593a24adb"; }
-    ];
+  swapDevices = [ ];
 
   nix.maxJobs = lib.mkDefault 8;
   powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
