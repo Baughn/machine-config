@@ -30,7 +30,7 @@
     rules = [
       ''ALERT JobDown IF up == 0 FOR 5m''
       ''ALERT DiskspaceLow IF node_filesystem_free_bytes{fstype!~"tmpfs|ramfs"} / node_filesystem_size_bytes < 0.15 FOR 5m''
-      ''ALERT MemoryLow IF node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.95 FOR 5m''
+      ''ALERT MemoryLow IF node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.15 FOR 5m''
       ''ALERT SystemdUnitFailed IF node_systemd_units{state="failed"} > 0 FOR 5m''
     ];
     exporters = {
