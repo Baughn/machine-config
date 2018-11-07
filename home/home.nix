@@ -16,6 +16,7 @@ in
 {
   home.packages = with pkgs; [
     htop fortune most ix
+    (callPackage ../tools/up {})
   ];
 
   home.sessionVariables = {
