@@ -47,6 +47,7 @@ in
      # Shell tools
      file irssi links2 screen parallel moreutils vim mutt finger_bsd
      autojump units progress pv mc mkpasswd most
+     (callPackage ../tools/up {})
      # File transfer
      rsync wget rtorrent unison znapzend sshfsFuse borgbackup
      # Nix tools
