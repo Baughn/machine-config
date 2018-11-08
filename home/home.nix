@@ -54,7 +54,7 @@ in
 
       '';
       packages.myVimPackage = with pkgs.vimPlugins; {
-        start = [ fugitive syntastic vim-nix ];
+        start = [ fugitive syntastic vim-nix rust-vim ];
 	opt = [];
       };
     };
