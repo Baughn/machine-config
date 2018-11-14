@@ -39,7 +39,7 @@ in
      telnet man-pages posix_man_pages mono heaptrack
      rustup gcc stack
      pythonFull python3Full freeipmi binutils jq
-     gitAndTools.gitFull gitAndTools.git-annex sqliteInteractive
+     gitAndTools.gitFull sqliteInteractive
      # System/monitoring/etc tools
      parted psmisc atop hdparm sdparm whois sysstat htop nload iftop
      smartmontools pciutils lsof schedtool numactl dmidecode iotop
