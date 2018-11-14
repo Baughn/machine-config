@@ -65,18 +65,17 @@ in
   ## Networking
   networking.hostName = "saya";
   networking.hostId = "7a4f1297";
-  networking.bridges.br0 = {
-    interfaces = [ "net" ];
-  };
   services.udev.extraRules = ''
-      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="10:7b:44:92:13:2d", DEVPATH=="/devices/pci*", NAME="net"
+      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="10:7b:44:92:13:2d", DEVPATH=="/devices/pci*", NAME="eth0"
   '';
-
+  networking.bridges.br0 = {
+    interfaces = [ "eth0" ];
+  };
   networking.interfaces.br0 = {
     useDHCP = true;
-    # ipv4.addresses = [{ address = "192.168.1.42"; prefixLength = 24; }];
   };
-  networking.firewall = {
+
+ networking.firewall = {
     allowedTCPPorts = [ 
       6987  # rtorrent
     ];
