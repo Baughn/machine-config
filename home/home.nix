@@ -39,7 +39,7 @@ in
       customRC = ''
         set nocompatible
         filetype on
-        filetype indent on
+        filetype plugin indent on
         syntax on
 
         set tabstop=2
@@ -52,9 +52,10 @@ in
 
         set guicursor=
 
+        colorscheme desert
       '';
       packages.myVimPackage = with pkgs.vimPlugins; {
-        start = [ fugitive syntastic vim-nix ];
+        start = [ fugitive syntastic vim-nix rust-vim ];
 	opt = [];
       };
     };
