@@ -18,12 +18,20 @@ in
       #./mediawiki.nix
     ];
 
+  # F#&$*ng Spectre
+  #boot.kernelParams = [
+  #  "pti=off"
+  #  "spectre_v2=off"
+  #  "l1tf=off"
+  #  "nospec_store_bypass_disable"
+  #  "no_stf_barrier"
+  #];
+  
   ## Boot ##
   # Use the GRUB 2 boot loader.
   boot.loader.grub.enable = true;
   boot.loader.grub.version = 2;
-  # Define on which hard drive you want to install Grub.
-  boot.loader.grub.devices = [ "/dev/sda" "/dev/sdb" ];
+  boot.loader.grub.devices = [ "/dev/nvme0n1" "/dev/nvme1n1" ];
   # Start up if at all possible.
   systemd.enableEmergencyMode = false;
 
@@ -38,20 +46,19 @@ in
 
   ## Networking ##
   networking.hostName = "madoka";
-  networking.hostId = "f7fcf93e";
- # networking.defaultGateway = "138.201.133.1";
+  networking.hostId = "8425e349";
   # Doesn't work due to missing interface specification.
   #networking.defaultGateway6 = "fe80::1";
-  networking.localCommands = ''
-    ${pkgs.nettools}/bin/route -6 add default gw fe80::1 dev enp0s31f6 || true
-  '';
+  #networking.localCommands = ''
+  #  ${pkgs.nettools}/bin/route -6 add default gw fe80::1 dev enp0s31f6 || true
+  #'';
   networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
-  networking.interfaces.enp0s31f6 = {
-    ipv6.addresses = [{
-      address = "2a01:4f8:172:3065::2";
-      prefixLength = 64;
-    }];
-  };
+  #networking.interfaces.enp0s31f6 = {
+  #  ipv6.addresses = [{
+  #    address = "2a01:4f8:172:3065::2";
+  #    prefixLength = 64;
+  #  }];
+  #};
   networking.firewall = {
     allowPing = true;
     allowedTCPPorts = [ 
@@ -61,15 +68,41 @@ in
       12345  # JMC's ZNC
     ];
     allowedUDPPorts = [
-      34197 # Factorio
+      34197  # Factorio
+      10401  # Wireguard
     ];
   };
-  networking.nat = {
-    enable = true;  # For mediawiki.
-    externalIP = "138.201.133.39";
-    externalInterface = "enp0s31f6";
-    internalInterfaces = [ "ve-eln-wiki" ];
+  #networking.nat = {
+  #  enable = true;  # For mediawiki.
+  #  externalIP = "138.201.133.39";
+  #  externalInterface = "enp0s31f6";
+  #  internalInterfaces = [ "ve-eln-wiki" ];
+  #};
+
+  # Wireguard link between my machines
+  networking.wireguard = {
+    interfaces.wg0 = {
+      ips = [ "10.40.0.2/24" ];
+      listenPort = 10401;
+      peers = [
+        # Tsugumi
+        {
+          allowedIPs = [ "10.40.0.1/32" ];
+          endpoint = "madoka.brage.info:10401";
+          persistentKeepalive = 30;
+          publicKey = "H70HeHNGcA5HHhL2vMetsVj5CP7M3Pd/uI8yKDHN/hM=";
+        }
+        # Saya
+        {
+          allowedIPs = [ "10.40.0.3/32" ];
+          persistentKeepalive = 30;
+          publicKey = "VcQ9no2+2hSTa9BO2fEpickKC50ibWp5uo0HrNBFmk8=";
+        }
+      ];
+      privateKeyFile = "/secrets/wg.key";
+    };
   };
+
 
   users = userLib.include [
     "mei" "einsig" "prospector" "minecraft" "bloxgate" "buizerd"

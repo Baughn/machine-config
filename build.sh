@@ -5,8 +5,8 @@ set -ue -o pipefail
 cd "$(dirname "$(readlink -f "$0")")"
 
 export HERE="$(pwd)"
-export CHANNEL="release-18.09"
-export NIXPKGS="$HOME/dev/nix-system"
+export CHANNEL="18.09"
+export NIXPKGS="$HOME/dev/nix/system"
 export FORCE_UPDATE=0
 
 commits() {
@@ -29,7 +29,7 @@ update() {
     WANTED="$(mktemp)"
     if [[ $BASE = "null" ]]; then
         BASE="origin/release-$CHANNEL"
-        (cd $HOME/dev/nix-system; git fetch)
+        (cd $NIXPKGS; git fetch)
     fi
     echo "Building nix-system tree from base $BASE..."
     cat "$HERE/CHERRY_PICKS" | while read branch; do
@@ -63,7 +63,13 @@ update() {
   echo 'Building.'
   nix build -f machines.nix all --show-trace
 
+  echo 'Spreading secrets.'
+  for machine in secrets/shared/*; do
+    machine=$(basename $machine)
+    rsync --delete-after -av secrets/shared/"$machine"/ "root@$machine".brage.info:/secrets/
+  done
+
   echo 'Deploying.'
   nixops modify -d personal ./personal.nix
-  nixops deploy -d personal --check -j 8 --cores 16 -I "nixpkgs=$HOME/dev/nix-system" "$@"
+  nixops deploy -d personal --check -j 8 --cores 16 -I "nixpkgs=$NIXPKGS" "$@"
 }

@@ -60,7 +60,7 @@ in
     gnome3.gnome_terminal compton blender gimp-with-plugins
     ncmpcpp xorg.xdpyinfo xorg.xev xorg.xkill # maim
     steam-run firefox glxinfo mpd xlockmore xorg.xwd
-    idea.idea-community
+    idea.idea-community virtviewer
     (mpv.override {
       openalSupport = true;
     })
@@ -68,7 +68,7 @@ in
       enableIntro = false;
     })
     # Minecraft
-    minecraft.mcupdater
+    #minecraft.mcupdater
   ];
 
   ## Fonts

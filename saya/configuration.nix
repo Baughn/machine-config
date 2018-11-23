@@ -77,12 +77,37 @@ in
 
  networking.firewall = {
     allowedTCPPorts = [ 
-      6987  # rtorrent
+      6987   # rtorrent
     ];
     allowedUDPPorts = [
-      6987  # rtorrent
-      34197 # factorio
+      6987   # rtorrent
+      34197  # factorio
+      10401  # Wireguard
     ];
+  };
+
+  # Wireguard link between my machines
+  networking.wireguard = {
+    interfaces.wg0 = {
+      ips = [ "10.40.0.3/24" ];
+      peers = [
+        # Madoka
+        {
+          allowedIPs = [ "10.40.0.2/32" ];
+          endpoint = "madoka.brage.info:10401";
+          persistentKeepalive = 30;
+          publicKey = "kTxN9HAb73WDJXRAq704cKs/WS5VJ23oSgaAWeVrvRQ=";
+        }
+        # Tsugumi
+        {
+          allowedIPs = [ "10.40.0.1/32" ];
+          endpoint = "10.19.2.5:10401";
+          persistentKeepalive = 30;
+          publicKey = "H70HeHNGcA5HHhL2vMetsVj5CP7M3Pd/uI8yKDHN/hM=";
+        }
+      ];
+      privateKeyFile = "/secrets/wg.key";
+    };
   };
 
   users = userLib.include [

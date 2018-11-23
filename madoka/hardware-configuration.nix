@@ -8,77 +8,145 @@
     [ <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "sd_mod" ];
+  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "tank/nixos";
+    { device = "rpool";
       fsType = "zfs";
     };
 
   fileSystems."/nix" =
-    { device = "tank/nixos/nix";
+    { device = "rpool/nix";
       fsType = "zfs";
     };
 
   fileSystems."/var" =
-    { device = "tank/nixos/var";
+    { device = "rpool/var";
       fsType = "zfs";
     };
 
   fileSystems."/home" =
-    { device = "tank/home";
-      fsType = "zfs";
-    };
-
-  fileSystems."/var/lib/docker" =
-    { device = "tank/nixos/var/lib-docker";
+    { device = "rpool/home";
       fsType = "zfs";
     };
 
   fileSystems."/home/svein" =
-    { device = "tank/home/svein";
+    { device = "rpool/home/svein";
       fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/win" =
+    { device = "rpool/home/svein/win";
+      fsType = "zfs";
+    };
+
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-uuid/e4d59d71-57e4-4349-a8ef-8f59878d6f85";
+      fsType = "ext4";
     };
 
   fileSystems."/home/minecraft" =
-    { device = "tank/home/minecraft";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/minecraft/incognito" =
-    { device = "tank/home/minecraft/incognito";
+    { device = "rpool/home/minecraft";
       fsType = "zfs";
     };
 
   fileSystems."/home/minecraft/erisia" =
-    { device = "tank/home/minecraft/erisia";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/minecraft/incognito/dynmap" =
-    { device = "tank/home/minecraft/incognito/dynmap";
+    { device = "rpool/home/minecraft/erisia";
       fsType = "zfs";
     };
 
   fileSystems."/home/minecraft/erisia/dynmap" =
-    { device = "tank/home/minecraft/erisia/dynmap";
+    { device = "rpool/home/minecraft/erisia/dynmap";
       fsType = "zfs";
     };
 
-#  fileSystems."/boot" =
-#    { device = 
-#"/dev/disk/by-uuid/c68b0eab-859b-40ff-aad6-3619814cd017";
-#      fsType = "btrfs";
-#    };
+  fileSystems."/home/minecraft/incognito" =
+    { device = "rpool/home/minecraft/incognito";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/incognito/dynmap" =
+    { device = "rpool/home/minecraft/incognito/dynmap";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/bloxgate" =
+    { device = "rpool/home/bloxgate";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/darqen27" =
+    { device = "rpool/home/darqen27";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/david" =
+    { device = "rpool/home/david";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/dusk" =
+    { device = "rpool/home/dusk";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/jmc" =
+    { device = "rpool/home/jmc";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/kim" =
+    { device = "rpool/home/kim";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/lucca" =
+    { device = "rpool/home/lucca";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/luke" =
+    { device = "rpool/home/luke";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/mei" =
+    { device = "rpool/home/mei";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/prospector" =
+    { device = "rpool/home/prospector";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/simplynoire" =
+    { device = "rpool/home/simplynoire";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/vindex" =
+    { device = "rpool/home/vindex";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/will" =
+    { device = "rpool/home/will";
+      fsType = "zfs";
+    };
 
   fileSystems."/home/xgas" =
-    { device = "tank/home/xgas";
+    { device = "rpool/home/xgas";
       fsType = "zfs";
     };
 
-  swapDevices = [];
+  swapDevices =
+    [ { device = "/dev/disk/by-uuid/c659d531-f816-465e-b193-b2c265fa0891"; }
+      { device = "/dev/zd0"; }
+    ];
 
-  nix.maxJobs = lib.mkDefault 8;
+  nix.maxJobs = lib.mkDefault 6;
+  powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
 }
