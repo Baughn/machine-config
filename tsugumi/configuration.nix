@@ -46,7 +46,16 @@ in
   networking.firewall.allowedUDPPorts = [
     6987 6881  # rtorrent
     10401  # Wireguard
+    27016  # Space Engineers
   ];
+  networking.nat = {
+    enable = true;
+    externalInterface = "br0";
+    forwardPorts = [
+      { destination = "10.40.0.2:27016"; proto = "udp"; sourcePort = 27016; }
+    ];
+  };
+
 
   # Wireguard link between my machines
   networking.wireguard = {
