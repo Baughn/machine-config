@@ -44,15 +44,34 @@ in
     139
   ];
   networking.firewall.allowedUDPPorts = [
-    6986 6881  # rtorrent
+    6987 6881  # rtorrent
+    10401  # Wireguard
   ];
 
-#  # VPN link to Uiharu.
-#  services.openvpn.servers.uiharu = {
-#    autoStart = true;
-#    config = builtins.readFile ../secrets/memespace-vpn/ovpn.conf;
-#    up = "route add -net 10.16.0.0/16 gw 10.16.128.1";
-#  };
+  # Wireguard link between my machines
+  networking.wireguard = {
+    interfaces.wg0 = {
+      ips = [ "10.40.0.1/24" ];
+      listenPort = 10401;
+      peers = [
+        # Madoka
+        {
+          allowedIPs = [ "10.40.0.2/32" ];
+          endpoint = "madoka.brage.info:10401";
+          persistentKeepalive = 30;
+          publicKey = "kTxN9HAb73WDJXRAq704cKs/WS5VJ23oSgaAWeVrvRQ=";
+        }
+        # Saya
+        {
+          allowedIPs = [ "10.40.0.3/32" ];
+          endpoint = "saya.brage.info:10401";
+          persistentKeepalive = 30;
+          publicKey = "VcQ9no2+2hSTa9BO2fEpickKC50ibWp5uo0HrNBFmk8=";
+        }
+      ];
+      privateKeyFile = "/secrets/wg.key";
+    };
+  };
 
   ## Services ##
   # # Samba

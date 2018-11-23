@@ -11,7 +11,7 @@ rec {
   saya = { config, pkgs, ... }: {
     deployment = {
       hasFastConnection = true;
-      targetHost = "saya";  # Aka localhost
+      targetHost = "10.40.0.3";
     };
 
     imports = [
@@ -22,7 +22,7 @@ rec {
   tsugumi = { config, pkgs, ... }: {
     deployment = {
       hasFastConnection = true;
-      targetHost = "tsugumi";
+      targetHost = "localhost";
     };
 
     imports = [
@@ -32,7 +32,7 @@ rec {
   
   madoka = { config, pkgs, ... }: {
     deployment = {
-      targetHost = "madoka";
+      targetHost = "madoka.brage.info";
     };
 
     imports = [

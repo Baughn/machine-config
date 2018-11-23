@@ -1,11 +1,11 @@
 let
-  pkgs = (import /home/svein/dev/nix-system {}).pkgs;
-  nixos = (import /home/svein/dev/nix-system/nixos);
+  pkgs = (import /home/svein/dev/nix/system {}).pkgs;
+  nixos = (import /home/svein/dev/nix/system/nixos);
 in
 
 rec {
-  control = "saya";
-  peers = [ "tsugumi" "madoka" "tromso" ];
+  control = "tsugumi";
+  peers = [ "saya" "madoka" "tromso" ];
   fastConnections = [ "saya" "tsugumi" ];
   machines = peers ++ [ control ];
   
@@ -20,7 +20,7 @@ rec {
         path = sys.system;
       }
       { name = "xmonad-test";
-        path = import /home/svein/dev/nix-system/nixos/tests/xmonad.nix {
+        path = import /home/svein/dev/nix/system/nixos/tests/xmonad.nix {
           config = sys.config;
         };
       }];

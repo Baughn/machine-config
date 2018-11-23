@@ -7,7 +7,7 @@ in
 {
   # Nix propagation
   environment.etc = {
-    nix-system-pkgs.source = /home/svein/dev/nix-system;
+    nix-system-pkgs.source = /home/svein/dev/nix/system;
     nixos.source = builtins.filterSource
       (path: type:
       baseNameOf path != "secrets"
@@ -23,6 +23,7 @@ in
   programs.java.enable = true;
   programs.mosh.enable = true;
   programs.mtr.enable = true;
+  programs.tmux.enable = true;
   programs.wireshark.enable = true;
   programs.zsh.enable = true;
   programs.zsh.autosuggestions.enable = true;
@@ -133,7 +134,7 @@ in
   services.avahi.enable = true;
   services.avahi.nssmdns = true;
   # Add hosts for SV.
-  networking.hosts = lib.mapAttrs' (host: ip: lib.nameValuePair ip [(host + ".sv")]) (import /home/svein/sufficient/machines.nix).machines;
+  networking.hosts = lib.mapAttrs' (host: cfg: lib.nameValuePair cfg.publicIP [host]) (import /home/svein/sufficient/network.nix);
   
   ## Time & location ##
   i18n = {
