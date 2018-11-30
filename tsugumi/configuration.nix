@@ -48,13 +48,14 @@ in
     10401  # Wireguard
     27016  # Space Engineers
   ];
-  networking.nat = {
-    enable = true;
-    externalInterface = "br0";
-    forwardPorts = [
-      { destination = "10.40.0.2:27016"; proto = "udp"; sourcePort = 27016; }
-    ];
-  };
+#  networking.nat = {
+#    enable = true;
+#    externalInterface = "br0";
+#    forwardPorts = [
+#      { destination = "10.40.0.2:27016"; proto = "udp"; sourcePort = 27016; loopbackIPs = [ "10.40.0.1" ]; }
+#    ];
+#  };
+  services.unifi.enable = true;
 
 
   # Wireguard link between my machines
