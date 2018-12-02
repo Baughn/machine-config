@@ -16,7 +16,12 @@ in
     ../modules/plex.nix
     ../modules/virtualisation.nix
     # ../disnix/production/tsugumi-config.nix
+    <nixpkgs/nixos/modules/profiles/headless.nix>
+    <nixpkgs/nixos/modules/profiles/hardened.nix>
   ];
+
+  # Work around #1915
+  boot.kernel.sysctl."user.max_user_namespaces" = 100;
 
   # Use GRUB, with fallbacks. Once fallbacks are implemented.
   boot.loader.efi.canTouchEfiVariables = true;
