@@ -14,6 +14,10 @@ let ix = with pkgs; stdenv.mkDerivation {
 in
 
 {
+  imports = [
+    ./neovim-plugins.nix
+  ];
+
   home.packages = with pkgs; [
     htop fortune most ix mosh
     (callPackage ../tools/up {})
@@ -35,13 +39,24 @@ in
   programs.neovim = {
     enable = true;
     vimAlias = true;
-    configure = {
-      customRC = ''
-        set nocompatible
-        filetype on
-        filetype plugin indent on
-        syntax on
+    plugins = with pkgs.vimPlugins; [
+      # "Defaults everyone can agree on"
+      sensible
 
+      # Syntax support
+      syntastic
+      vim-nix
+      rust-vim
+      ''
+        let g:rustfmt_command = "rustfmt +nightly"
+        let g:rustfmt_emit_files = 1
+        let g:rustfmt_autosave = 1
+      ''
+
+      # Personal customizations
+      ''
+        set nocompatible
+        
         set tabstop=2
         set shiftwidth=2
         set expandtab
@@ -53,12 +68,8 @@ in
         set guicursor=
 
         colorscheme desert
-      '';
-      packages.myVimPackage = with pkgs.vimPlugins; {
-        start = [ fugitive syntastic vim-nix rust-vim ];
-	opt = [];
-      };
-    };
+      ''
+    ];
   };
 
   programs.ssh = {
@@ -91,5 +102,5 @@ in
 
 
   programs.home-manager.enable = true;
-  programs.home-manager.path = https://github.com/rycee/home-manager/archive/master.tar.gz;
+  programs.home-manager.path = https://github.com/rycee/home-manager/archive/release-18.09.tar.gz;
 }
