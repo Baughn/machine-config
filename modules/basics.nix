@@ -73,7 +73,7 @@ in
           ]))
      # Giant lump of stuff
      zip unzip znc bsdgames shared_mime_info p7zip fortune
-     gnupg unrar
+     gnupg unrar encfs
    ];
 
   environment.loginShellInit = ''
