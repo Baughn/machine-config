@@ -18,9 +18,14 @@ in
     # ../disnix/production/tsugumi-config.nix
   ];
 
-  # Use the gummiboot efi boot loader.
-  boot.loader.systemd-boot.enable = true;
+  # Use GRUB, with fallbacks. Once fallbacks are implemented.
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.grub = {
+    enable = true;
+    zfsSupport = true;
+    efiSupport = true;
+    device = "nodev";
+  };
   
   # Thermal control?
   #services.thermald.enable = true;

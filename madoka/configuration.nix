@@ -49,16 +49,16 @@ in
   networking.hostId = "8425e349";
   # Doesn't work due to missing interface specification.
   #networking.defaultGateway6 = "fe80::1";
-  #networking.localCommands = ''
-  #  ${pkgs.nettools}/bin/route -6 add default gw fe80::1 dev enp0s31f6 || true
-  #'';
+  networking.localCommands = ''
+    ${pkgs.nettools}/bin/route -6 add default gw fe80::1 dev enp0s31f6 || true
+  '';
   networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
-  #networking.interfaces.enp0s31f6 = {
-  #  ipv6.addresses = [{
-  #    address = "2a01:4f8:172:3065::2";
-  #    prefixLength = 64;
-  #  }];
-  #};
+  networking.interfaces.enp0s31f6 = {
+    ipv6.addresses = [{
+      address = "2a01:4f9:2b:808::1";
+      prefixLength = 64;
+    }];
+  };
   networking.firewall = {
     allowPing = true;
     allowedTCPPorts = [ 
