@@ -4,10 +4,6 @@
 
 { config, pkgs, ... }:
 
-let
-  userLib = pkgs.callPackage ../modules/users.nix {};
-in
-
 {
   imports = [
     ./hardware-configuration.nix
@@ -25,9 +21,7 @@ in
   systemd.enableEmergencyMode = false;  # Start up no matter what, if at all possible.
   hardware.cpu.amd.updateMicrocode = true;
 
-  users = userLib.include [
-    "anne" "znapzend"
-  ];
+  users.include = [ "anne" "znapzend" ];
 
   # HACK: Workaround the C6 bug.
   systemd.services.fix-zen-c6 = {

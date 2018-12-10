@@ -4,10 +4,6 @@
 
 { config, pkgs, ... }:
 
-let
-  userLib = pkgs.callPackage ../modules/users.nix {};
-in
-
 {
   imports = [
     ./hardware-configuration.nix
@@ -110,7 +106,5 @@ in
     };
   };
 
-  users = userLib.include [
-    "will"
-  ];
+  users.include = [ "will" ];
 }

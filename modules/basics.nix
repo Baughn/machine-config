@@ -1,10 +1,17 @@
 { config, pkgs, lib, ...}:
 
-let
-  userLib = pkgs.callPackage ../modules/users.nix {};
-in
-
 {
+  imports = [
+    ./users.nix
+  ];
+
+  # User setup
+  users.users.root.openssh.authorizedKeys.keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDFqQOHIaerfzhi0pQHZ/U1ES2yvql9NY46A01TjmgAl svein@tsugumi"
+  ];
+  users.defaultUserShell = "/run/current-system/sw/bin/zsh";
+  users.include = [ "svein" ];
+  
   # Nix propagation
   environment.etc = {
     nix-system-pkgs.source = /home/svein/dev/nix/system;
@@ -79,11 +86,6 @@ in
   environment.loginShellInit = ''
     export PAGER=${pkgs.most}/bin/most
   '';
-
-  # User setup
-  users = (userLib.include [ "svein" ]) // {
-    defaultUserShell = "/run/current-system/sw/bin/zsh";
-  };
 
   # System setup
   ## Misc.

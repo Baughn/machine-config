@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, config, ... }:
 
 let
   sshKeys = import ./sshKeys.nix;
@@ -47,8 +47,16 @@ let
   } // users.${username});
 in
 
-{
-  include = usernames: {
-    extraUsers = lib.genAttrs usernames includeUser;
+with lib; {
+  options = {
+    users.include = mkOption {
+      type = types.listOf types.str;
+      description = "Users to include on this system";
+      default = [];
+    };
+  };
+
+  config = {
+    users.users = lib.genAttrs config.users.include includeUser;
   };
 }
