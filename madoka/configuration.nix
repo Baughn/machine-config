@@ -4,10 +4,6 @@
 
 { config, pkgs, lib, ... }:
 
-let
-  userLib = pkgs.callPackage ../modules/users.nix {};
-in
-
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -104,7 +100,7 @@ in
   };
 
 
-  users = userLib.include [
+  users.include = [
     "mei" "einsig" "prospector" "minecraft" "bloxgate" "buizerd"
     "darqen27" "david" "jmc" "kim" "luke" "simplynoire" "vindex"
     "xgas" "will" "lucca" "dusk"

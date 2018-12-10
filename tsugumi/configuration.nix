@@ -4,10 +4,6 @@
 
 { config, pkgs, ... }:
 
-let
-  userLib = pkgs.callPackage ../modules/users.nix {};
-in
-
 {
   imports = [
     ./hardware-configuration.nix
@@ -17,7 +13,7 @@ in
     ../modules/virtualisation.nix
     # ../disnix/production/tsugumi-config.nix
     <nixpkgs/nixos/modules/profiles/headless.nix>
-    <nixpkgs/nixos/modules/profiles/hardened.nix>
+    # <nixpkgs/nixos/modules/profiles/hardened.nix>
   ];
 
   # Work around #1915
@@ -151,7 +147,5 @@ in
     };
   };
 
-  users = userLib.include [
-    "pl" "aquagon" "will"
-  ];
+  users.include = ["pl" "aquagon" "will"];
 }
