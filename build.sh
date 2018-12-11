@@ -66,8 +66,9 @@ update() {
   echo 'Spreading secrets.'
   for machine in secrets/shared/*; do
     machine=$(basename $machine)
-    rsync --timeout=10 --delete-after -av secrets/shared/"$machine"/ "root@$machine".brage.info:/secrets/ || true
+    rsync --timeout=10 --delete-after -av secrets/shared/"$machine"/ "root@$machine".brage.info:/secrets/ || true &
   done
+  wait
 
   echo 'Deploying.'
   nixops modify -d personal ./personal.nix
