@@ -7,7 +7,7 @@
     pure = true;
     zetup = {
       "rpool/home" = {
-        plan = "1d=>15m,1w=>1h";
+        plan = "1d=>15min,1w=>1h";
         recursive = true;
         destinations.tsugumi = {
           host = "znapzend@brage.info";
