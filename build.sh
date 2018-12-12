@@ -60,7 +60,7 @@ update() {
 {
   update
 
-  echo 'Building.'
+  echo 'Building all system configurations.'
   nix build -f machines.nix all --show-trace
 
   echo 'Spreading secrets.'
