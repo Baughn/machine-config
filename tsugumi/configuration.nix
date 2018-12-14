@@ -27,6 +27,11 @@
     efiSupport = true;
     device = "nodev";
   };
+
+  # Work around https://github.com/oetiker/znapzend/issues/376
+  services.openssh.extraConfig = ''
+    MaxStartups 30:60:100
+  '';
   
   # Thermal control?
   #services.thermald.enable = true;
