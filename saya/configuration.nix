@@ -97,7 +97,7 @@
         # Tsugumi
         {
           allowedIPs = [ "10.40.0.1/32" ];
-          endpoint = "10.19.2.5:10401";
+          endpoint = "10.19.2.2:10401";
           persistentKeepalive = 30;
           publicKey = "H70HeHNGcA5HHhL2vMetsVj5CP7M3Pd/uI8yKDHN/hM=";
         }
