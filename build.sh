@@ -50,7 +50,9 @@ update() {
          git checkout "$BASE" -q
          git branch -D system -q
          git checkout -b system -q
-         git cherry-pick $(cat "$WANTED") >/dev/null
+         for cp in $(cat "$WANTED"); do
+           git cherry-pick $cp >/dev/null
+         done
         )
         echo "$HASH" > "$HERE/.state"
     fi
