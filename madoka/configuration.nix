@@ -20,14 +20,14 @@ let
 in
 
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-      ../modules/basics.nix
-      ../modules/zfs.nix
-      ./minecraft.nix
-      #./mediawiki.nix
-    ];
+  imports = [
+    ../modules
+    ./hardware-configuration.nix
+    ../modules/basics.nix
+    ../modules/zfs.nix
+    ./minecraft.nix
+    #./mediawiki.nix
+  ];
 
   # F#&$*ng Spectre
   #boot.kernelParams = [
