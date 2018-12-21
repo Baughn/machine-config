@@ -53,7 +53,7 @@
      smartmontools pciutils lsof schedtool numactl dmidecode iotop
      usbutils powertop w3m autossh
      # Shell tools
-     file irssi links2 screen parallel moreutils vim mutt finger_bsd
+     file irssi links2 screen parallel moreutils neovim mutt finger_bsd
      autojump units progress pv mc mkpasswd most
      (callPackage ../tools/up {})
      # File transfer
