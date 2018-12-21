@@ -6,6 +6,7 @@
 
 {
   imports = [
+    ../modules
     ./hardware-configuration.nix
     ../modules/basics.nix
 #    ../modules/desktop.nix
@@ -24,14 +25,14 @@
   users.include = [ "anne" "znapzend" ];
 
   # HACK: Workaround the C6 bug.
-  systemd.services.fix-zen-c6 = {
-    description = "Work around the AMD C6 bug";
-    path = [ pkgs.python ];
-    wantedBy = [ "multi-user.target" ];
-    script = ''
-      python ${./zenstates.py} --c6-disable
-    '';
-  };
+  #systemd.services.fix-zen-c6 = {
+  #  description = "Work around the AMD C6 bug";
+  #  path = [ pkgs.python ];
+  #  wantedBy = [ "multi-user.target" ];
+  #  script = ''
+  #    python ${./zenstates.py} --c6-disable
+  #  '';
+  #};
     
 
   ## Plex ##
