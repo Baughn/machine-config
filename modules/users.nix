@@ -5,7 +5,7 @@ let
   users = {
     svein = {
       uid = 1000;
-      extraGroups = [ "wheel" "wireshark" "systemd-journal" "disnix" ];
+      extraGroups = [ "wheel" "wireshark" "systemd-journal" "disnix" "networkmanager" ];
     };
     bloxgate.uid = 1001;
     kim.uid = 1002;

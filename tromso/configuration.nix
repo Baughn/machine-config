@@ -13,6 +13,8 @@
     ../modules/unifi.nix
   ];
 
+  networking.networkmanager.enable = true;
+
   # Use the gummiboot efi boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.timeout = 3;
