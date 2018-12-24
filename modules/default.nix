@@ -1,5 +1,8 @@
 { config, pkgs, ... }:
 
 {
-  imports = [];
+  imports = [
+    ./basics.nix
+    ./zfs.nix
+  ];
 }

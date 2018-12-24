@@ -23,8 +23,6 @@ in
   imports = [
     ../modules
     ./hardware-configuration.nix
-    ../modules/basics.nix
-    ../modules/zfs.nix
     ./minecraft.nix
     #./mediawiki.nix
   ];

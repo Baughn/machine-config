@@ -8,9 +8,7 @@
   imports = [
     ../modules
     ./hardware-configuration.nix
-    ../modules/basics.nix
     ../modules/emergency-shell.nix
-    ../modules/zfs.nix
     ../modules/desktop.nix
     ../modules/virtualisation.nix
     ../modules/nvidia.nix
