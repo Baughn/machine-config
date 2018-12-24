@@ -33,7 +33,19 @@
   #    python ${./zenstates.py} --c6-disable
   #  '';
   #};
-    
+
+  # Following https://bugs.launchpad.net/linux/+bug/1690085/comments/69
+  boot.kernelParams = [
+    "rcu_nocbs=0-11"
+  ];
+  boot.kernelPatches = [{
+    name = "c6-patch";
+    patch = null;
+    extraConfig = ''
+      RCU_EXPERT y
+      RCU_NOCB_CPU y
+    '';
+  }];
 
   ## Plex ##
   # services.plex.enable = true;
