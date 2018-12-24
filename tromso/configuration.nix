@@ -8,11 +8,9 @@
   imports = [
     ../modules
     ./hardware-configuration.nix
-    ../modules/basics.nix
-#    ../modules/desktop.nix
+    ../modules/desktop.nix
     ../modules/amdgpu.nix
     ../modules/unifi.nix
-    ../modules/zfs.nix
   ];
 
   # Use the gummiboot efi boot loader.
