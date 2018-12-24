@@ -8,7 +8,7 @@
     [ <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "sd_mod" ];
+  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "sd_mod" "nvme" ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
@@ -33,7 +33,7 @@
     };
 
   fileSystems."/home/svein" =
-    { device = "stash/home/svein";
+    { device = "ssd/home/svein";
       fsType = "zfs";
     };
 
