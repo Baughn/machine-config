@@ -9,6 +9,12 @@ export CHANNEL="18.09"
 export NIXPKGS="$HOME/dev/nix/system"
 export FORCE_UPDATE=0
 
+get_base() {
+  BASE="$(curl https://howoldis.herokuapp.com/api/channels | \
+          jq -r "map(select(.name == \"nixos-$CHANNEL\"))[0].commit")"
+  echo "$BASE"
+}
+
 commits() {
     (BRANCH="$1"
      cd "$NIXPKGS"
@@ -20,8 +26,7 @@ commits() {
 
 update() {
     if [[ $(find "$HERE/.base" -mtime +0 2>&1 | wc -l) -gt 0 ]]; then
-        BASE="$(curl https://howoldis.herokuapp.com/api/channels | \
-                jq -r "map(select(.name == \"nixos-$CHANNEL\"))[0].commit")"
+        BASE="$(get_base)"
         echo $BASE > "$HERE/.base"
     else
         BASE="$(cat $HERE/.base)"
@@ -60,6 +65,17 @@ update() {
 }
 
 {
+  if [[ "$1" = "--update" ]]; then
+    shift
+    BASE="$(get_base)"
+    if [[ "$BASE" != "$(cat $HERE/.base)" ]]; then
+      echo "$BASE" > "$HERE/.base"
+    else
+      echo "Base didn't change"
+      exit 0
+    fi
+  fi
+
   update
 
   echo 'Building all system configurations.'
