@@ -12,21 +12,6 @@
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
-  fileSystems."/" =
-    { device = "rpool";
-      fsType = "zfs";
-    };
-
-  fileSystems."/nix" =
-    { device = "rpool/nix";
-      fsType = "zfs";
-    };
-
-  fileSystems."/var" =
-    { device = "rpool/var";
-      fsType = "zfs";
-    };
-
   fileSystems."/home" =
     { device = "rpool/home";
       fsType = "zfs";
@@ -40,11 +25,6 @@
   fileSystems."/home/svein/win" =
     { device = "rpool/home/svein/win";
       fsType = "zfs";
-    };
-
-  fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/e4d59d71-57e4-4349-a8ef-8f59878d6f85";
-      fsType = "ext4";
     };
 
   fileSystems."/home/minecraft" =
@@ -141,11 +121,6 @@
     { device = "rpool/home/xgas";
       fsType = "zfs";
     };
-
-  swapDevices =
-    [ { device = "/dev/disk/by-uuid/c659d531-f816-465e-b193-b2c265fa0891"; }
-      { device = "/dev/zd0"; }
-    ];
 
   nix.maxJobs = lib.mkDefault 6;
   powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
