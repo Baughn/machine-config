@@ -122,6 +122,5 @@
       fsType = "zfs";
     };
 
-  nix.maxJobs = lib.mkDefault 6;
   powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
 }

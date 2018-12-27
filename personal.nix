@@ -50,11 +50,10 @@ rec {
         '';
       };
     };
-    networking.hostId = "8425e349";
 
     imports = [
       modules/default.nix
-    #  ./madoka/configuration.nix
+      madoka/configuration.nix
     ];
   };
 
