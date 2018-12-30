@@ -6,9 +6,10 @@ let
   });
 
   xmonad = test "xmonad";
+  gnome = test "gnome3-gdm";
 
   tests = pkgs.runCommand "proof-of-tests" {
-    tests = [ xmonad ];
+    tests = [ xmonad gnome ];
   } ''
     mkdir -p $out/share/doc/proof-of-tests
     i=1
