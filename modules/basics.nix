@@ -14,7 +14,7 @@
   
   # Nix propagation
   environment.etc = {
-    nix-system-pkgs.source = /home/svein/dev/nix/system;
+    nix-system-pkgs.source = pkgs.path;
     nixos.source = builtins.filterSource
       (path: type:
       baseNameOf path != "secrets"

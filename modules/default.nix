@@ -4,5 +4,6 @@
   imports = [
     ./basics.nix
     ./zfs.nix
+    ./tests.nix
   ];
 }
