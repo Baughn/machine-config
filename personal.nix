@@ -46,7 +46,7 @@ rec {
           part btrfs.1 --ondisk=nvme0n1 --size=16000
           part btrfs.2 --ondisk=nvme1n1 --size=16000
 
-          btrfs / --data=1 --metadata=1 --label=root btrfs.1 btrfs.2
+          btrfs / --data=0 --metadata=0 --label=root btrfs.1 btrfs.2
         '';
       };
     };
