@@ -82,10 +82,10 @@ in
   # Doesn't work due to missing interface specification.
   #networking.defaultGateway6 = "fe80::1";
   networking.localCommands = ''
-    ${pkgs.nettools}/bin/route -6 add default gw fe80::1 dev enp0s31f6 || true
+    ${pkgs.nettools}/bin/route -6 add default gw fe80::1 dev eth0 || true
   '';
   networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
-  networking.interfaces.enp0s31f6 = {
+  networking.interfaces.eth0 = {
     ipv6.addresses = [{
       address = "2a01:4f9:2b:808::1";
       prefixLength = 64;
@@ -107,7 +107,7 @@ in
   #networking.nat = {
   #  enable = true;  # For mediawiki.
   #  externalIP = "138.201.133.39";
-  #  externalInterface = "enp0s31f6";
+  #  externalInterface = "eth0";
   #  internalInterfaces = [ "ve-eln-wiki" ];
   #};
 
