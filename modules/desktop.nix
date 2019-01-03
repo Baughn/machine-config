@@ -14,6 +14,14 @@
     (dwarf-fortress-packages.dwarf-fortress-full.override {
       enableIntro = false;
     })
+    # Emacs
+    ((emacsPackagesNgGen pkgs.emacs).emacsWithPackages (p: with p.melpaStablePackages; [
+        solarized-theme indent-guide
+        nyan-mode smex ein js2-mode js3-mode
+        multiple-cursors flyspell-lazy yasnippet buffer-move counsel
+        p.elpaPackages.undo-tree magit nix-mode gradle-mode lua-mode
+        groovy-mode editorconfig rust-mode pabbrev expand-region
+        ]))
   ];
 
   ## Fonts
