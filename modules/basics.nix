@@ -70,14 +70,6 @@
      # Monitoring, eventually to be a module.
      prometheus prometheus-node-exporter prometheus-alertmanager
      prometheus-nginx-exporter
-     # Emacs
-     ((emacsPackagesNgGen pkgs.emacs).emacsWithPackages (p: with p.melpaStablePackages; [
-          solarized-theme indent-guide
-          nyan-mode smex ein js2-mode js3-mode
-          multiple-cursors flyspell-lazy yasnippet buffer-move counsel
-          p.elpaPackages.undo-tree magit nix-mode gradle-mode lua-mode
-          groovy-mode editorconfig rust-mode pabbrev expand-region
-          ]))
      # Giant lump of stuff
      zip unzip znc bsdgames shared_mime_info p7zip fortune
      gnupg unrar encfs
