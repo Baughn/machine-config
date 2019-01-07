@@ -6,9 +6,12 @@
   ];
 
   # User setup
-  users.users.root.openssh.authorizedKeys.keys = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDFqQOHIaerfzhi0pQHZ/U1ES2yvql9NY46A01TjmgAl svein@tsugumi"
-  ];
+  users.users.root = {
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDFqQOHIaerfzhi0pQHZ/U1ES2yvql9NY46A01TjmgAl svein@tsugumi"
+    ];
+    inherit (import ../secrets) initialPassword;
+  };
   users.defaultUserShell = "/run/current-system/sw/bin/zsh";
   users.include = [ "svein" ];
   

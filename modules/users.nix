@@ -6,6 +6,7 @@ let
     svein = {
       uid = 1000;
       extraGroups = [ "wheel" "wireshark" "systemd-journal" "disnix" "networkmanager" ];
+      inherit (import ../secrets) initialPassword;
     };
     bloxgate.uid = 1001;
     kim.uid = 1002;
