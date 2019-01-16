@@ -110,7 +110,7 @@
   security.sudo.wheelNeedsPassword = false;
   security.apparmor.enable = true;
   security.pam.enableGoogleAuth = true;
-#  services.fail2ban.enable = true;
+  services.fail2ban.enable = true;
   ### SSH
   services.openssh = {
     enable = true;
