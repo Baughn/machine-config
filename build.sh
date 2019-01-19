@@ -90,4 +90,7 @@ update() {
   echo 'Deploying.'
   nixops modify -d personal ./personal.nix
   nixops deploy -d personal --check -j 8 --cores 16 -I "nixpkgs=$NIXPKGS" "$@"
+
+  echo 'Updating home-manager.'
+  nixops ssh-for-each "sudo -su svein bash -c 'home-manager switch'" -d personal "$@"
 }
