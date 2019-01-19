@@ -105,9 +105,5 @@ in
       '';
     };
 
-    factorio = pkgs.factorio.override {
-      username = "sveina@gmail.com";
-      password = "dkVe3WEQn9KkQC0e";
-    };
   };
 }
