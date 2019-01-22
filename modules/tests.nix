@@ -1,15 +1,19 @@
 { config, pkgs, ... }:
 
 let
-  test = file: (import (pkgs.path + "/nixos/tests/${file}.nix") {
+  file = f: (import (pkgs.path + "/nixos/tests/${f}.nix"));
+
+  test = f: (file f {
     inherit config;
   });
 
   xmonad = test "xmonad";
   gnome = test "gnome3-gdm";
+  # The 19.03 version should work with just `(test "zfs").stable`.
+  zfs = (file "zfs" {}).stable {};
 
   tests = pkgs.runCommand "proof-of-tests" {
-    tests = [ xmonad gnome ];
+    tests = [ xmonad gnome zfs ];
   } ''
     mkdir -p $out/share/doc/proof-of-tests
     i=1
