@@ -97,6 +97,7 @@ in
     oh-my-zsh.theme = "robbyrussell";
     profileExtra = ''
       if [ -e $HOME/.nix-profile/etc/profile.d/nix.sh ]; then . $HOME/.nix-profile/etc/profile.d/nix.sh; fi
+      export GOPATH=$HOME/go
     '';
   };
 
