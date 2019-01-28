@@ -65,7 +65,7 @@ update() {
 }
 
 {
-  if [[ "$1" = "--update" ]]; then
+  if [[ "${1:-}" = "--update" ]]; then
     shift
     BASE="$(get_base)"
     if [[ "$BASE" != "$(cat $HERE/.base)" ]]; then
