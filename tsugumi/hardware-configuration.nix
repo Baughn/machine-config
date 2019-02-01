@@ -42,6 +42,11 @@
       fsType = "zfs";
     };
 
+  fileSystems."/home/svein/fast" =
+    { device = "nvmpool/svein";
+      fsType = "zfs";
+    };
+
   fileSystems."/home/svein/Media" =
     { device = "stash/home/svein/Media";
       fsType = "zfs";
