@@ -78,7 +78,7 @@ update() {
 
   update
 
-  nixops deploy -d personal --check -j 8 --cores 16 -I "nixpkgs=$NIXPKGS" --build-only
+  nixops deploy -d personal --check -j 8 --cores 16 -I "nixpkgs=$NIXPKGS" --build-only "$@"
 
   echo 'Spreading secrets.'
   for machine in secrets/shared/*; do
