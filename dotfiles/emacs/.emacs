@@ -1,34 +1,30 @@
-;; Path setup
-(push "/home/svein/.emacs.d/lisp" load-path)
-(push "/usr/local/google/home/svein/.emacs.d/lisp" load-path)
+;; ELPA
+(require 'package)
+(setq package-archives
+      '(;("GELPA" . "http://gelpa-182518.googleplex.com/packages/")
+        ("gnu" . "https://elpa.gnu.org/packages/")
+        ("melpa" . "https://melpa.org/packages/")
+        ;("marmalade" . "https://marmalade-repo.org/packages/")
+        ))
+(defvar desired-packages
+  '(indent-guide column-marker nyan-mode smex pov-mode ipython ein js2-mode js3-mode
+                 multiple-cursors flyspell-lazy yasnippet buffer-move ivy undo-tree
+                 pabbrev expand-region))
 
-;; Google
-(let ((path "/usr/local/google/home/svein/.emacs-google"))
+;; Init google stuff.
+(let ((path "~/.emacs-google"))
   (and (file-exists-p path)
        (load path)))
 
-;; Package setup
-(defvar desired-packages
- '(indent-guide nyan-mode smex ein js2-mode js3-mode
-                multiple-cursors flyspell-lazy yasnippet buffer-move counsel undo-tree
-                magit nix-mode gradle-mode lua-mode groovy-mode rust-mode
-		editorconfig expand-region))
-
-(require 'package)
-(setq package-archives
-     '(("melpa" . "https://stable.melpa.org/packages/")
-       ("gnu" . "https://elpa.gnu.org/packages/")
-       ;("marmalade" . "https://marmalade-repo.org/packages/")
-       ))
-(package-initialize)
-
 ;; Install any missing packages
-(package-refresh-contents)
-(dolist (package desired-packages)
- (unless (package-installed-p package)
-   (package-install package)))
+(package-initialize)
+(when (not package-archive-contents)
+  (package-refresh-contents))
 
-;; Custom
+(dolist (package desired-packages)
+  (unless (package-installed-p package)
+    (package-install package)))
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -37,7 +33,6 @@
  '(browse-url-browser-function (quote browse-url-chromium))
  '(browse-url-chromium-program "google-chrome-stable")
  '(column-number-mode t)
- '(elisp-cache-byte-compile-files t)
  '(elisp-cache-freshness-delay 1440)
  '(fill-column 80)
  '(flycheck-disabled-checkers (quote (go-build)))
@@ -72,6 +67,15 @@
  '(js2-pretty-multiline-declarations t)
  '(js3-auto-indent-p t)
  '(js3-enter-indents-newline t)
+ '(org-clock-persist t)
+ '(pabbrev-global-mode-buffer-size-limit nil)
+ '(pabbrev-idle-timer-verbose nil)
+ '(pabbrev-marker-distance-before-scavenge 2000)
+ '(pabbrev-scavenge-some-chunk-size 80)
+ '(pabbrev-thing-at-point-constituent (quote symbol))
+ '(package-selected-packages
+   (quote
+    (diminish pymacs monky ivy-dired-history ivy-yasnippet auto-correct haskell-mode ob-kotlin undo-tree squery smex pov-mode pabbrev nyan-mode multiple-cursors js3-mode js2-mode ipython indent-guide flyspell-lazy fast-file-attributes expand-region ein ditrack-procfs column-marker citc buffer-move borgsearch)))
  '(pdb-path (quote /usr/lib/python2\.7/pdb\.py))
  '(py-backspace-function (quote backward-delete-char-untabify))
  '(py-continuation-offset 4)
@@ -106,7 +110,7 @@
  '(standard-indent 4)
  '(tab-width 2)
  '(tool-bar-mode nil)
- '(tramp-default-method "ssh")
+ '(tramp-default-method "ssh" nil (tramp))
  '(tramp-default-proxies-alist nil nil (tramp))
  '(tramp-save-ad-hoc-proxies t nil (tramp))
  '(tramp-shell-prompt-pattern
@@ -145,18 +149,10 @@
  '(highlight-changes-delete ((((min-colors 88) (class color)) (:strike-through t)))))
 
 ;; Misc. setup
-(setq server-socket-dir "~/.emacs.d/server")
 (server-start)
 (require 'uniquify)
 (blink-cursor-mode (- (*) (*) (*)))
 (global-set-key "\M- " 'hippie-expand)
-
-;; Spellchecking
-(flyspell-lazy-mode)
-(dolist (hook '(python-mode-hook c-mode-hook c++-mode-hook borg-mode-hook hook
-                                 javascript-mode-hook js-mode-hook js2-mode-hook
-                                 lisp-mode-hook emacs-lisp-mode-hook))
-  (add-hook hook (lambda () (flyspell-prog-mode))))
 
 ;; Put backup files in /tmp
 (setq backup-directory-alist
@@ -164,18 +160,13 @@
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
 
-;; Haskell
-;(push "/usr/local/google/home/svein/src/haskellmode-emacs/" load-path)
-;(load "haskell-site-file")
-;(add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
-;(add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
 
 ;; (defun byte-compile-dest-file (fn)
 ;;   (concat fn "c"))
 
 ;; Misc. bindings and setup
 (global-set-key [s-backspace] 'kill-buffer)
-(global-set-key (kbd "M-b") 'switch-to-buffer)
+(global-set-key (kbd "M-s-b") 'switch-to-buffer)
 (global-set-key (kbd "RET") 'newline-and-indent)
 (global-set-key (kbd "s-o") 'other-window)
 (global-set-key (kbd "M-g") 'goto-line)
@@ -184,7 +175,8 @@
 (global-set-key [f8] 'google-show-callers)
 (global-set-key [f9] 'google-pop-tag)
 (global-set-key [f10] 'google-show-matching-tags)
-(global-set-key (kbd "M-r") 'revert-buffer)
+;(global-set-key (kbd "M-r") 'revert-buffer)
+(global-auto-revert-mode)
 (global-set-key (kbd "C-x M-e") 'g4-edit-open-asynchronously)
 (global-set-key (kbd "M-o") 'other-window)
 (global-hi-lock-mode 1)
@@ -192,12 +184,16 @@
 (global-set-key (kbd "C-x M-s") 'sort-lines)
 (global-set-key (kbd "s-s") 'save-buffer)
 (global-set-key (kbd "C-c g") 'magit-status)
+(global-set-key (kbd "C-c C-g") 'autogen)
 (global-set-key (kbd "<C-S-up>")     'buf-move-up)
 (global-set-key (kbd "<C-S-down>")   'buf-move-down)
 (global-set-key (kbd "<C-S-left>")   'buf-move-left)
 (global-set-key (kbd "<C-S-right>")  'buf-move-right)
+(global-set-key (kbd "M-b") 'ivy-switch-buffer)
 (global-unset-key (kbd "C-z"))
 (global-set-key (kbd "C-=") 'er/expand-region)
+(global-set-key (kbd "<C-prior>") 'previous-buffer)
+(global-set-key (kbd "<C-next>") 'next-buffer)
 ;; (global-highlight-changes-mode 1)
 (show-paren-mode 1)
 
@@ -232,14 +228,14 @@
              (push-file-and-open path)
            (if (file-exists-p (concat path ".el"))
                (push-file-and-open (concat path ".el"))
-             (when (y-or-n-p (format "file doesn't exist: %s. Create?" path))
+             (when (y-or-n-p (format "File doesn't exist: %s.  Create? " path))
                (push-file-and-open path)))))))))
 (global-set-key (kbd "C-,") 'pop-file)
                               
 
 ;; 80-column markers.
 (require 'column-marker)
-(defun setup-column-marker () 
+(defun setup-column-marker ()
   (interactive)
   ;; This errors out on read-only files. TODO: Debug.
   (condition-case ex
@@ -255,6 +251,7 @@
 (add-hook 'js-mode-hook 'setup-column-marker)
 (add-hook 'js2-mode-hook 'setup-column-marker)
 ;; (add-hook 'haskell-mode-hook 'setup-column-marker)
+(setq inhibit-startup-message t)
 
 ;; Multiple cursors!
 (global-set-key (kbd "C-c <") 'mc/mark-all-dwim)
@@ -267,7 +264,12 @@
 (global-set-key (kbd "<C-tab>") 'bury-buffer)
 
 ;; Recursive edit
-(global-set-key (kbd "s-[") (lambda () (interactive) (save-window-excursion (save-excursion (recursive-edit)))))
+(defun enter-recursive-edit ()
+  (interactive)
+  (save-window-excursion
+    (save-excursion
+      (recursive-edit))))
+(global-set-key (kbd "s-[") 'enter-recursive-edit)
 (global-set-key (kbd "s-]") 'exit-recursive-edit)
 (global-set-key (kbd "s-M-)") 'abort-recursive-edit)
 
@@ -275,12 +277,52 @@
 (require 'nyan-mode)
 (nyan-mode 1)
 
-;; ;; Org-mode
-;; (require 'org)
-;; (define-key global-map "\C-cl" 'org-store-link)
-;; (define-key global-map "\C-ca" 'org-agenda)
-;; (setq org-log-done t)
-;; (setq org-agenda-files '("~/org/"))
+;; Org-mode
+(require 'org)
+(define-key global-map "\C-cl" 'org-store-link)
+(define-key global-map "\C-ca" 'org-agenda)
+(define-key org-mode-map (kbd "<M-tab>")
+  (lambda () (interactive) (org-cycle '(4))))
+(setq org-log-done t)
+(setq org-agenda-files '("~/org/"))
+(org-clock-persistence-insinuate)
+;; Links
+(org-link-set-parameters
+ "cl"
+ :follow (lambda (cl) (browse-url (format "http://cl/%s" cl)))
+ :export (lambda (cl desc backend)
+           (cond
+            ((eq 'html backend)
+             (format "<a href=\"http://cl/%s\">cl/%s</a>" cl cl))))
+ :face '(:foreground "light blue"))
+(org-link-set-parameters
+ "b"
+ :follow (lambda (cl) (browse-url (format "http://b/%s" cl)))
+ :export (lambda (cl desc backend)
+           (cond
+            ((eq 'html backend)
+             (format "<a href=\"http://b/%s\">b/%s</a>" cl cl))))
+ :face '(:foreground "light blue"))
+;; Capture tasks
+(setq org-default-notes-file "~/org/refile.org")
+(global-set-key (kbd "C-c c") 'org-capture)
+(setq org-capture-templates
+  (quote (("t" "todo" entry (file "~/org/refile.org")
+           "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
+          ("r" "respond" entry (file "~/org/refile.org")
+           "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
+          ("n" "note" entry (file "~/org/refile.org")
+           "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
+          ("j" "Journal" entry (file+datetree "~/org/diary.org")
+           "* %?\n%U\n" :clock-in t :clock-resume t)
+          ("w" "org-protocol" entry (file "~/org/refile.org")
+           "* TODO Review %c\n%U\n" :immediate-finish t)
+          ("m" "Meeting" entry (file "~/org/refile.org")
+           "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
+          ("p" "Phone call" entry (file "~/org/refile.org")
+           "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
+          ("h" "Habit" entry (file "~/org/refile.org")
+           "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
 
 ;; Ivy
 (require 'ivy)
@@ -293,85 +335,39 @@
 (global-set-key (kbd "<f1> l") 'counsel-find-library)
 (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
 (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
+(global-set-key (kbd "C-c g") 'counsel-git)
+(global-set-key (kbd "C-c j") 'counsel-git-grep)
 (global-set-key (kbd "C-c k") 'counsel-ag)
 (global-set-key (kbd "C-x l") 'counsel-locate)
-(global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
 (global-set-key (kbd "M-s") 'ivy-resume)
 
+;; Ropemacs
+(require 'pymacs)
+(pymacs-load "ropemacs" "rope-")
 
-;; ;; Helm & Yasnippet
-;; ;; (require 'helm-config)
-;; ;; (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebind tab to run persistent action
-;; ;; (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB works in terminal
-;; ;; (define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
-;; ;; (global-set-key (kbd "C-x C-f") 'helm-find-files)
-;; ;; (define-key global-map [remap occur] 'helm-occur)
-;; ;; (define-key global-map [remap list-buffers] 'helm-buffers-list)
-;; ;; (define-key global-map [remap dabbrev-expand] 'helm-dabbrev)
-;; ;; (global-set-key (kbd "M-x") 'helm-M-x)
-;; ;; (global-set-key (kbd "M-y") 'helm-show-kill-ring)
-;; ;; (global-set-key (kbd "C-c h") 'helm-command-prefix)
-;; ;; (unless (boundp 'completion-in-region-function)
-;; ;;   (define-key lisp-interaction-mode-map [remap completion-at-point] 'helm-lisp-completion-at-point)
-;; ;;   (define-key emacs-lisp-mode-map       [remap completion-at-point] 'helm-lisp-completion-at-point))
-
-;; ;; (setq helm-split-window-in-side-p           t ; open helm buffer inside current window, not occupy whole other window
-;; ;;       helm-move-to-line-cycle-in-source     t ; move to end or beginning of source when reaching top or bottom of source.
-;; ;;       helm-ff-search-library-in-sexp        t ; search for library in `require' and `declare-function' sexp.
-;; ;;       helm-scroll-amount                    8 ; scroll 8 lines other window using M-<next>/M-<prior>
-;; ;;       helm-ff-file-name-history-use-recentf t
-;; ;;       helm-semantic-fuzzy-match             t ; Fuzzy match for semantic.
-;; ;;       helm-imenu-fuzzy-match                t ; And so on.
-;; ;;       )
-;; ;; (semantic-mode 1)
+;; Bring up my agenda in the morning.
+(run-with-idle-timer
+ (* 3600 8) t
+ (lambda ()
+  (delete-other-windows)
+  (find-file "~/org/index.org")
+  (org-agenda-list)))
+;; Or when I want it.
+(global-set-key (kbd "C-c C-x C-o")
+                'org-clock-out)
+(global-set-key (kbd "C-c C-x C-i")
+                (lambda ()
+                  (interactive)
+                  (condition-case nil
+                      (let ((current-prefix-arg '(4)))
+                        (call-interactively 'org-clock-in))
+                    (error (find-file "~/org/index.org")))))
 
 
-;; ;; (defun shk-yas/helm-prompt (prompt choices &optional display-fn)
-;; ;;   "Use helm to select a snippet. Put this into `yas-prompt-functions.'"
-;; ;;   (interactive)
-;; ;;   (setq display-fn (or display-fn 'identity))
-;; ;;   (if (require 'helm-config)
-;; ;;       (let (tmpsource cands result rmap)
-;; ;;         (setq cands (mapcar (lambda (x) (funcall display-fn x)) choices))
-;; ;;         (setq rmap (mapcar (lambda (x) (cons (funcall display-fn x) x)) choices))
-;; ;;         (setq tmpsource
-;; ;;               (list
-;; ;;                (cons 'name prompt)
-;; ;;                (cons 'candidates cands)
-;; ;;                '(action . (("Expand" . (lambda (selection) selection))))
-;; ;;                ))
-;; ;;         (setq result (helm-other-buffer '(tmpsource) "*helm-select-yasnippet"))
-;; ;;         (if (null result)
-;; ;;             (signal 'quit "user quit!")
-;; ;;           (cdr (assoc result rmap))))
-;; ;;     nil))
+;; Fight modeline clutter
+(require 'diminish)
+(dolist (mode minor-mode-list)
+  (diminish mode))
 
-;; ;; (helm-mode 1)
-
-;; ;; JSX stuff
-;; (add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
-;; (defadvice web-mode-highlight-part (around tweak-jsx activate)
-;;   (if (equal web-mode-content-type "jsx")
-;;       (let ((web-mode-enable-part-face nil))
-;;         ad-do-it)
-;;     ad-do-it))
-
-;; (require 'flycheck)
-;; (flycheck-define-checker jsxhint-checker
-;;   "A JSX syntax and style checker based on JSXHint."
-
-;;   :command ("jsxhint" source)
-;;   :error-patterns
-;;   ((error line-start (1+ nonl) ": line " line ", col " column ", " (message) line-end))
-;;   :modes (web-mode))
-;; (add-hook 'web-mode-hook
-;;           (lambda ()
-;;             (when (equal web-mode-content-type "jsx")
-;;               ;; enable flycheck
-;;               (flycheck-select-checker 'jsxhint-checker)
-;;               (flycheck-mode))))
-
-
-(setq inhibit-startup-message t)
 (provide '.emacs)
 ;;; .emacs ends here
