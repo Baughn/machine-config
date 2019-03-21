@@ -32,8 +32,10 @@
     MaxStartups 30:60:100
   '';
   
-  # Thermal control?
+  # Power management:
   #services.thermald.enable = true;
+  powerManagement.enable = true;
+  powerManagement.powertop.enable = true;
 
   ## Networking ##
   networking.hostName = "tsugumi";

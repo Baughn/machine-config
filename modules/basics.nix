@@ -57,7 +57,7 @@
      usbutils powertop w3m autossh
      # Shell tools
      file irssi links2 screen parallel moreutils neovim mutt finger_bsd
-     autojump units progress pv mc mkpasswd most
+     autojump units progress pv mc mkpasswd most ripgrep
      (callPackage ../tools/up {})
      # File transfer
      rsync wget rtorrent unison znapzend sshfsFuse borgbackup
@@ -84,7 +84,7 @@
 
   # System setup
   ## Misc.
-  powerManagement.enable = false;
+  powerManagement.enable = lib.mkDefault false;
   hardware.cpu.intel.updateMicrocode = true;
   hardware.cpu.amd.updateMicrocode = true;
   hardware.enableKSM = true;

@@ -13,7 +13,7 @@ let
   zfs = (file "zfs" {}).stable {};
 
   tests = pkgs.runCommand "proof-of-tests" {
-    tests = [ xmonad gnome zfs ];
+    tests = [ xmonad gnome ];
   } ''
     mkdir -p $out/share/doc/proof-of-tests
     i=1
