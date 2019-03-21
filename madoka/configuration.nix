@@ -57,6 +57,7 @@ in
       "home/minecraft"
       "home/minecraft/erisia"
       "home/minecraft/incognito"
+      "home/minecraft/leisurely"
       "home/bloxgate"
       "home/darqen27"
       "home/david"

@@ -77,6 +77,11 @@
       fsType = "zfs";
     };
 
+  fileSystems."/home/svein/secure-encfs" =
+    { device = "stash/home/svein/secure-encfs";
+      fsType = "zfs";
+    };
+
   fileSystems."/var/lib/plex/mount" =
     { device = "stash/plex-media";
       fsType = "zfs";
