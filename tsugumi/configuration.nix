@@ -59,6 +59,7 @@
     6987 6881  # rtorrent
     10401  # Wireguard
     27016  # Space Engineers
+    34197  # Factorio
   ];
 #  networking.nat = {
 #    enable = true;
