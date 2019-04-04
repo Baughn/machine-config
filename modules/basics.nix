@@ -3,6 +3,7 @@
 {
   imports = [
     ./users.nix
+    ./logrotate.nix
   ];
 
   # User setup
