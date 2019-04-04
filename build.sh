@@ -5,7 +5,7 @@ set -ue -o pipefail
 cd "$(dirname "$(readlink -f "$0")")"
 
 export HERE="$(pwd)"
-export CHANNEL="18.09"
+export CHANNEL="19.03"
 export NIXPKGS="$HOME/dev/nix/system"
 export FORCE_UPDATE=0
 
