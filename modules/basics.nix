@@ -111,9 +111,9 @@
   ## Security & Login
   security.sudo.wheelNeedsPassword = false;
   security.apparmor.enable = true;
-  security.pam.enableGoogleAuth = true;
   services.fail2ban.enable = true;
   ### SSH
+  security.pam.services.sshd.googleAuthenticator.enable = true;
   services.openssh = {
     enable = true;
     passwordAuthentication = true;
