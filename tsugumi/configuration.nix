@@ -51,23 +51,17 @@
   };
 
   networking.firewall.allowedTCPPorts = [
-    80 443  # Web-server
-    6986  # rtorrent
-    139
+    80 443   # Web-server
+    6986     # rtorrent
+    139 445  # Samba
   ];
   networking.firewall.allowedUDPPorts = [
     6987 6881  # rtorrent
-    10401  # Wireguard
-    27016  # Space Engineers
-    34197  # Factorio
+    10401      # Wireguard
+    27016      # Space Engineers
+    34197      # Factorio
+    137 138    # Samba
   ];
-#  networking.nat = {
-#    enable = true;
-#    externalInterface = "br0";
-#    forwardPorts = [
-#      { destination = "10.40.0.2:27016"; proto = "udp"; sourcePort = 27016; loopbackIPs = [ "10.40.0.1" ]; }
-#    ];
-#  };
   services.unifi.enable = true;
 
 
@@ -97,23 +91,16 @@
   };
 
   ## Services ##
-  # # Samba
-  # services.samba = {
-  #   enable = false;
-  #   shares = {
-  #     public = {
-  #       browseable = "yes";
-  #       comment = "Music";
-  #       "guest ok" = "yes";
-  #       path = "/home/svein/Music/";
-  #       "read only" = true;
-  #    };
-  #  };
-  #  extraConfig = ''
-  #    guest account = smbguest
-  #    map to guest = bad user
-  #  '';
-  # };
+  # Samba
+  services.samba = {
+    enable = true;
+    extraConfig = ''
+      map to guest = bad user
+
+      [homes]
+      read only = no
+    '';
+  };
   # users.users.smbguest = {
   #     name = "smbguest";
   #     uid = config.ids.uids.smbguest;
