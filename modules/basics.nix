@@ -31,6 +31,7 @@
   nix.nixPath = [ "nixpkgs=/etc/nix-system-pkgs" ];
 
   # Software
+  documentation.dev.enable = true;
   programs.java.enable = true;
   programs.mosh.enable = true;
   programs.mtr.enable = true;
