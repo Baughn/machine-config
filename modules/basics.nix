@@ -6,6 +6,16 @@
     ./logrotate.nix
   ];
 
+  # F#&$*ng Spectre
+  boot.kernelParams = [
+    "pti=off"
+    "nospectre_v1"
+    "nospectre_v2"
+    "l1tf=off"
+    "nospec_store_bypass_disable"
+    "no_stf_barrier"
+  ];
+
   # User setup
   users.users.root = {
     openssh.authorizedKeys.keys = [

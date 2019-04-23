@@ -26,15 +26,6 @@ in
     ./minecraft.nix
     #./mediawiki.nix
   ];
-
-  # F#&$*ng Spectre
-  #boot.kernelParams = [
-  #  "pti=off"
-  #  "spectre_v2=off"
-  #  "l1tf=off"
-  #  "nospec_store_bypass_disable"
-  #  "no_stf_barrier"
-  #];
   
   ## Boot ##
   # Start up if at all possible.
