@@ -15,7 +15,7 @@
       text = ''
         #!${pkgs.stdenv.shell}
         export PATH=${pkgs.kexectools}/bin:${pkgs.cpio}/bin:$PATH
-        set -x
+        set -ex
         cd $(mktemp -d)
         pwd
         mkdir initrd
