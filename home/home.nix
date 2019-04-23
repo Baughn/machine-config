@@ -94,7 +94,7 @@ in
     enableCompletion = true;
     oh-my-zsh.enable = true;
     oh-my-zsh.plugins = [ "git" "sudo" ];
-    oh-my-zsh.theme = "robbyrussell";
+    oh-my-zsh.theme = "af-magic";
     profileExtra = ''
       if [ -e $HOME/.nix-profile/etc/profile.d/nix.sh ]; then . $HOME/.nix-profile/etc/profile.d/nix.sh; fi
       export GOPATH=$HOME/go
