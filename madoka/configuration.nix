@@ -26,6 +26,14 @@ in
     ./minecraft.nix
     #./mediawiki.nix
   ];
+
+  # Use the GRUB 2 boot loader.
+  boot.loader.grub.enable = true;
+  boot.loader.grub.version = 2;
+  boot.loader.grub.devices = [
+    "/dev/nvme0n1"
+    "/dev/nvme1n1"
+  ];
   
   ## Boot ##
   # Start up if at all possible.
