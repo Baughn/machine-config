@@ -12,6 +12,20 @@
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
+  fileSystems."/" =
+    { device = "rpool/nixos";
+      fsType = "zfs";
+    };
+
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-uuid/69471374-6ff2-4b47-acea-ed662f57c5c8";
+      fsType = "ext4";
+    };
+
+  swapDevices =
+    [ { device = "/dev/disk/by-uuid/9e4897a3-3bf1-45ea-9682-13e8185e6e93"; }
+    ];
+
   fileSystems."/home" =
     { device = "rpool/home";
       fsType = "zfs";
@@ -122,5 +136,6 @@
       fsType = "zfs";
     };
 
+  nix.maxJobs = lib.mkDefault 12;
   powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
 }
