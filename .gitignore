@@ -1,6 +1,6 @@
 keep-build.*
 secrets
-result
+result*
 /vms
 /.state
 /.base
