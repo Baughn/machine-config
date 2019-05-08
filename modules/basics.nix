@@ -42,6 +42,7 @@
 
   # Software
   documentation.dev.enable = true;
+  environment.extraOutputsToInstall = [ "info" "man" "devman" ];
   programs.java.enable = true;
   programs.mosh.enable = true;
   programs.mtr.enable = true;
@@ -63,6 +64,7 @@
      rustup gcc stack
      pythonFull python3Full freeipmi binutils jq
      gitAndTools.gitFull git-lfs sqliteInteractive
+     config.boot.kernelPackages.bpftrace
      # System/monitoring/etc tools
      parted psmisc atop hdparm sdparm whois sysstat htop nload iftop
      smartmontools pciutils lsof schedtool numactl dmidecode iotop
