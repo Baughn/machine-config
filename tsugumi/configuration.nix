@@ -29,7 +29,7 @@
 
   # Work around https://github.com/oetiker/znapzend/issues/376
   services.openssh.extraConfig = ''
-    MaxStartups 30:60:100
+    MaxStartups 1000
   '';
   
   # Power management:
