@@ -137,7 +137,7 @@
   programs.ssh.setXAuthLocation = true;
 
   ## Power management
-  powerManagement.cpuFreqGovernor = "ondemand";
+  powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
 
   ## Networking & Firewall basics
   networking.domain = "brage.info";
@@ -150,7 +150,7 @@
   
   ## Time & location ##
   i18n = {
-    consoleFont = "Lat2-Terminus16";
+    consoleFont = lib.mkDefault "Lat2-Terminus16";
     consoleKeyMap = "us";
     defaultLocale = "en_US.UTF-8";
   };

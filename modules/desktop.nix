@@ -44,10 +44,10 @@
     desktopManager = {
 #      default = "xfce";
 #      xfce.enable = true;
-      gnome3.enable = true;
+#      gnome3.enable = true;
 #      plasma5.enable = true;
     };
-    displayManager.gdm.enable = true;
+#    displayManager.gdm.enable = true;
     # windowManager.xmonad = {
     #   enable = true;
     #   enableContribAndExtras = true;
@@ -55,7 +55,7 @@
     #     MissingH
     #   ];
     # };
-    xkbOptions = "ctrl:swapcaps";
+    #xkbOptions = "ctrl:swapcaps";
     enableCtrlAltBackspace = true;
     exportConfiguration = true;
 
