@@ -10,10 +10,12 @@
       ./hardware-configuration.nix
       ../modules
       ../modules/desktop.nix
+      ../modules/powersave.nix
     ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot.consoleMode = "0";
   boot.loader.efi.canTouchEfiVariables = true;
   boot.zfs.enableUnstable = true;
   boot.zfs.requestEncryptionCredentials = true;
@@ -22,12 +24,6 @@
   networking.hostId = "a6825f89";
   networking.networkmanager.enable = true;
 
-  # Tune power.
-  powerManagement = {
-    enable = true;
-    powertop.enable = true;
-  };
-  networking.networkmanager.wifi.powersave = true;
   zramSwap.enable = true;
 
   # Select internationalisation properties.
@@ -41,6 +37,10 @@
   # Enable sound.
   sound.enable = true;
   hardware.pulseaudio.enable = true;
+  hardware.pulseaudio.extraModules = [
+    pkgs.pulseaudio-modules-bt
+  ];
+  hardware.bluetooth.enable = true;
 
   # Enable the X11 windowing system.
   services.xserver.enable = true;
