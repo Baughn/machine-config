@@ -82,11 +82,18 @@
     s3tcSupport = true;
   };
 
-  services.udisks2.enable = config.services.xserver.enable;
-  services.gnome3 = {
-    chrome-gnome-shell.enable = true;
-    gnome-disks.enable = true;
-    gnome-terminal-server.enable = true;
-    gvfs.enable = true;
+  #services.udisks2.enable = config.services.xserver.enable;
+  #services.gnome3 = {
+  #  chrome-gnome-shell.enable = true;
+  #  gnome-disks.enable = true;
+  #  gnome-terminal-server.enable = true;
+  #  gvfs.enable = true;
+  #};
+
+  # Comfort
+  services.redshift = {
+    enable = true;
+    latitude = "53.319";
+    longitude = "-6.295";
   };
 }

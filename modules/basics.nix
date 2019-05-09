@@ -97,8 +97,10 @@
   '';
 
   # System setup
+  ## Power
+  powerManagement.enable = lib.mkDefault true;
+
   ## Misc.
-  powerManagement.enable = lib.mkDefault false;
   hardware.cpu.intel.updateMicrocode = true;
   hardware.cpu.amd.updateMicrocode = true;
   hardware.enableKSM = true;
