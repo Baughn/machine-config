@@ -104,6 +104,7 @@
   hardware.cpu.intel.updateMicrocode = true;
   hardware.cpu.amd.updateMicrocode = true;
   hardware.enableKSM = true;
+  hardware.enableAllFirmware = true;
   boot.loader.grub.memtest86.enable = config.boot.loader.grub.enable;
   # zramSwap.enable = true;
   boot.cleanTmpDir = true;
