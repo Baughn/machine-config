@@ -19,12 +19,11 @@ in
   ];
 
   home.packages = with pkgs; [
-    htop fortune most ix mosh
+    htop fortune ix mosh
     (callPackage ../tools/up {})
   ];
 
   home.sessionVariables = {
-    PAGER = "most";
     EDITOR = "vim";
     # Workaround for #599
     LOCALE_ARCHIVE = "${pkgs.glibcLocales}/lib/locale/locale-archive";
