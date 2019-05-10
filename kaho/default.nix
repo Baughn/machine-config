@@ -14,7 +14,9 @@
     ];
 
   # Hardware support
-  hardware.firmware = [ ./firmware ];
+  hardware.firmware = [
+    (pkgs.copyPathToStore ./firmware)
+  ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
