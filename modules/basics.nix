@@ -73,7 +73,7 @@
      usbutils powertop w3m autossh
      # Shell tools
      file irssi links2 screen parallel moreutils neovim mutt finger_bsd
-     autojump units progress pv mc mkpasswd most ripgrep zstd
+     autojump units progress pv mc mkpasswd ripgrep zstd
      (callPackage ../tools/up {})
      # File transfer
      rsync wget rtorrent unison znapzend sshfsFuse borgbackup
@@ -95,7 +95,6 @@
    ];
 
   environment.loginShellInit = ''
-    export PAGER=${pkgs.most}/bin/most
   '';
 
   # System setup
