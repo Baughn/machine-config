@@ -15,7 +15,7 @@ rec {
     };
 
     imports = [
-      ./saya/configuration.nix
+      ./saya/default.nix
     ];
   };
 
@@ -26,7 +26,7 @@ rec {
     };
 
     imports = [
-      ./tsugumi/configuration.nix
+      ./tsugumi/default.nix
     ];
   };
   
@@ -36,7 +36,7 @@ rec {
     };
 
     imports = [
-      madoka/configuration.nix
+      ./madoka/default.nix
     ];
   };
 
@@ -46,7 +46,7 @@ rec {
     };
 
     imports = [
-      ./tromso/configuration.nix
+      ./tromso/default.nix
     ];
   };
 }
