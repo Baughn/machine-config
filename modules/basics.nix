@@ -14,6 +14,8 @@
     "l1tf=off"
     "nospec_store_bypass_disable"
     "no_stf_barrier"
+    # Also, force deep sleep. This should be fine on all modern hardware.
+    "mem_sleep_default=deep"
   ];
 
   # User setup
