@@ -13,11 +13,6 @@
       ../modules/powersave.nix
     ];
 
-  # Hardware support
-  hardware.firmware = [
-    (pkgs.copyPathToStore ./firmware)
-  ];
-
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.consoleMode = "0";
