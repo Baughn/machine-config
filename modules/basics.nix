@@ -89,6 +89,8 @@
      # Monitoring, eventually to be a module.
      prometheus prometheus-node-exporter prometheus-alertmanager
      prometheus-nginx-exporter
+     # Games
+     nethack adom
      # Giant lump of stuff
      zip unzip znc bsdgames shared_mime_info p7zip fortune
      gnupg unrar encfs
