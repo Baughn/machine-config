@@ -46,6 +46,10 @@ in
       syntastic
       vim-nix
       rust-vim
+
+      # Writing
+      goyo
+      #limelight
       ''
         let g:rustfmt_command = "rustfmt +nightly"
         let g:rustfmt_emit_files = 1

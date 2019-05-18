@@ -94,9 +94,11 @@
      # Giant lump of stuff
      zip unzip znc bsdgames shared_mime_info p7zip fortune
      gnupg unrar encfs
-   ];
+  ];
 
   environment.loginShellInit = ''
+    # Makes touchscreens work in Firefox. Ish.
+    export MOZ_USE_XINPUT2=1
   '';
 
   # System setup
