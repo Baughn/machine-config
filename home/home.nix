@@ -59,6 +59,7 @@ in
       # Personal customizations
       ''
         set nocompatible
+        set linebreak
         
         set tabstop=2
         set shiftwidth=2
