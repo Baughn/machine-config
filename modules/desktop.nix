@@ -4,10 +4,13 @@
   ## Packages
   environment.systemPackages = with pkgs; [
     google-chrome steam pavucontrol youtube-dl wineFull
-    gnome3.gnome_terminal compton blender gimp-with-plugins
+    gnome3.gnome_terminal compton blender
     ncmpcpp xorg.xdpyinfo xorg.xev xorg.xkill # maim
     steam-run firefox glxinfo mpd xlockmore xorg.xwd
     idea.idea-community virtviewer
+    # Video / Photo editing
+    kdenlive frei0r gimp-with-plugins
+    # Entertainment
     (mpv.override {
       openalSupport = true;
     })
