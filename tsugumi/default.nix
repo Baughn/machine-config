@@ -85,6 +85,12 @@
           persistentKeepalive = 30;
           publicKey = "VcQ9no2+2hSTa9BO2fEpickKC50ibWp5uo0HrNBFmk8=";
         }
+        # Tromso
+        {
+          allowedIPs = [ "10.40.0.4/32" ];
+          persistentKeepalive = 30;
+          publicKey = "F8V/UkXUxnb+RCF3UePpJSO1opoSORDFv+dI2HqFQW8=";
+        }
       ];
       privateKeyFile = "/secrets/wg.key";
     };
