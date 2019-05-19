@@ -8,7 +8,6 @@
   imports = [
     ../modules
     ./hardware-configuration.nix
-    ../modules/desktop.nix
     ../modules/amdgpu.nix
     ../modules/unifi.nix
   ];
