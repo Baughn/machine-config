@@ -48,7 +48,7 @@ in
 
   ## Backups ##
   services.znapzend = {
-    enable = true;
+    #enable = true;
     autoCreation = true;
     pure = true;
     zetup = znapz [
