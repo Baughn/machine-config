@@ -20,6 +20,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
   systemd.enableEmergencyMode = false;  # Start up no matter what, if at all possible.
   hardware.cpu.amd.updateMicrocode = true;
+  boot.zfs.enableUnstable = true;
 
   users.include = [ "anne" "znapzend" ];
 
@@ -70,14 +71,29 @@
     trustedInterfaces = [ "internal" ];
     allowedTCPPorts = [ 4242 80 ];
     allowedUDPPortRanges = [{from = 60000; to = 61000;}];
+    allowedUDPPorts = [ 10401 ];
   };
 
-  # Open up for znapzend.
-  security.sudo.extraConfig = ''
-    znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs list*
-    znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs recv -uF stash/backup/*
-    znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs get*
-    znapzend ALL= NOPASSWD: /run/current-system/sw/bin/zfs destroy stash/backup/*
-    znapzend ALL= NOPASSWD: /run/current-system/sw/bin/test *
-  '';
+  networking.wireguard = {
+    interfaces.wg0 = {
+      ips = [ "10.40.0.4/24" ];
+      listenPort = 10401;
+      peers = [
+        # Tsugumi
+        {
+          allowedIPs = [ "10.40.0.1/32" ];
+          endpoint = "brage.info:10401";
+          persistentKeepalive = 30;
+          publicKey = "H70HeHNGcA5HHhL2vMetsVj5CP7M3Pd/uI8yKDHN/hM=";
+        }
+        # Saya
+        {
+          allowedIPs = [ "10.40.0.3/32" ];
+          persistentKeepalive = 30;
+          publicKey = "VcQ9no2+2hSTa9BO2fEpickKC50ibWp5uo0HrNBFmk8=";
+        }
+      ];
+      privateKeyFile = "/secrets/wg.key";
+    };
+  };
 }
