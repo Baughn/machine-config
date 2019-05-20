@@ -9,7 +9,6 @@
     ../modules
     ./hardware-configuration.nix
     ../modules/emergency-shell.nix
-    ../modules/desktop.nix
     ../modules/virtualisation.nix
     ../modules/nvidia.nix
     ../modules/rsyncd.nix
@@ -17,6 +16,10 @@
     ../modules/znapzend.nix
     ../modules/monitoring.nix
   ];
+
+  config.me = {
+    desktop.enable = true;
+  };
 
   hardware.bluetooth.enable = true;
   hardware.pulseaudio.package = pkgs.pulseaudioFull.override {

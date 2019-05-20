@@ -28,20 +28,6 @@
   users.defaultUserShell = "/run/current-system/sw/bin/zsh";
   users.include = [ "svein" ];
   
-  # Nix propagation
-  environment.etc = {
-    nix-system-pkgs.source = lib.mkIf (lib.hasPrefix "/nix/store" pkgs.path) pkgs.path;
-    nixos.source = builtins.filterSource
-      (path: type:
-      baseNameOf path != "secrets"
-      && type != "symlink"
-      && !(pkgs.lib.hasSuffix ".qcow2" path)
-      && baseNameOf path != "server"
-    )
-    ../.;
-  };
-  nix.nixPath = lib.mkIf (lib.hasPrefix "/nix/store" pkgs.path) [ "nixpkgs=/etc/nix-system-pkgs" ];
-
   # Software
   documentation.dev.enable = true;
   environment.extraOutputsToInstall = [ "info" "man" "devman" ];

@@ -5,13 +5,21 @@
 { config, pkgs, ... }:
 
 {
-  imports =
-    [
+  imports = [
       ./hardware-configuration.nix
       ../modules
       ../modules/desktop.nix
       ../modules/powersave.nix
-    ];
+  ];
+
+  me = {
+    # Use the default channel for less compilation.
+    propagateNix = false;
+    desktop = {
+      enable = true;
+      #wayland = true;
+    };
+  };
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -19,6 +27,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.zfs.enableUnstable = true;
   boot.zfs.requestEncryptionCredentials = true;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   networking.hostName = "kaho"; # Define your hostname.
   networking.hostId = "a6825f89";
@@ -32,6 +41,7 @@
   };
 
   environment.systemPackages = with pkgs; [
+    acpi
   ];
 
   # Enable sound.
@@ -42,8 +52,7 @@
   ];
   hardware.bluetooth.enable = true;
 
-  # Enable the X11 windowing system.
-  services.xserver.enable = true;
+  # X11 settings.
   services.xserver.layout = "us";
   services.xserver.xkbOptions = "eurosign:e";
   services.xserver.videoDrivers = [ "intel" "modesetting" ];
@@ -59,12 +68,9 @@
 
   # Enable the KDE Desktop Environment.
   services.xserver.displayManager.sddm = {
-    enable = true;
-    enableHidpi = true;
     autoLogin.enable = true;
     autoLogin.user = "svein";
   };
-  services.xserver.desktopManager.plasma5.enable = true;
 
   # This value determines the NixOS release with which your system is to be
   # compatible, in order to avoid breaking some software such as database
