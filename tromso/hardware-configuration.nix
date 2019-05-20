@@ -37,11 +37,6 @@
       fsType = "zfs";
     };
 
-  fileSystems."/home/znapzend" =
-    { device = "stash/home/znapzend";
-      fsType = "zfs";
-    };
-
   swapDevices = [ ];
 
   nix.maxJobs = lib.mkDefault 12;
