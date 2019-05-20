@@ -1,6 +1,7 @@
-{ config, pkgs, ...}:
+{ config, pkgs, lib, ...}:
 
-{
+lib.mkIf config.me.desktop.enable {
+
   ## Packages
   environment.systemPackages = with pkgs; [
     google-chrome steam pavucontrol youtube-dl wineFull
@@ -24,8 +25,10 @@
         multiple-cursors flyspell-lazy yasnippet buffer-move counsel
         p.elpaPackages.undo-tree magit nix-mode gradle-mode lua-mode
         groovy-mode editorconfig rust-mode pabbrev expand-region
-        ]))
-  ];
+      ]))
+    # Wayland
+    kwin
+  ] ++ (lib.optional config.me.desktop.wayland kwin);
 
   ## Fonts
   fonts = {
@@ -42,15 +45,22 @@
     ];
   };
 
-  services.xserver = {
+  programs.sway = lib.mkIf config.me.desktop.wayland {
     enable = true;
+  };
+
+  services.xserver = lib.mkIf (!config.me.desktop.wayland) {
+    enable = true;
+    displayManager.sddm = {
+      enable = true;
+      enableHidpi = true;
+    };
     desktopManager = {
 #      default = "xfce";
 #      xfce.enable = true;
 #      gnome3.enable = true;
-#      plasma5.enable = true;
+      plasma5.enable = true;
     };
-#    displayManager.gdm.enable = true;
     # windowManager.xmonad = {
     #   enable = true;
     #   enableContribAndExtras = true;
@@ -84,14 +94,6 @@
     driSupport32Bit = true;
     s3tcSupport = true;
   };
-
-  #services.udisks2.enable = config.services.xserver.enable;
-  #services.gnome3 = {
-  #  chrome-gnome-shell.enable = true;
-  #  gnome-disks.enable = true;
-  #  gnome-terminal-server.enable = true;
-  #  gvfs.enable = true;
-  #};
 
   # Comfort
   services.redshift = {
