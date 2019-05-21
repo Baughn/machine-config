@@ -6,14 +6,18 @@
     ./logrotate.nix
   ];
 
-  # F#&$*ng Spectre
   boot.kernelParams = [
-    "pti=off"
+    # F#&$*ng Spectre
+    "noibrs"
+    "noibpb"
+    "nopti"
     "nospectre_v1"
     "nospectre_v2"
     "l1tf=off"
     "nospec_store_bypass_disable"
     "no_stf_barrier"
+    "mds=off"
+    "mitigations=off"
     # Also, force deep sleep. This should be fine on all modern hardware.
     "mem_sleep_default=deep"
   ];
