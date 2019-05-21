@@ -60,6 +60,7 @@
     enable = true;
     driSupport32Bit = true;
     s3tcSupport = true;
+    extraPackages = [ pkgs.vaapiIntel ];
   };
 
   # Enable touchpad support.
