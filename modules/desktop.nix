@@ -10,7 +10,7 @@ lib.mkIf config.me.desktop.enable {
     steam-run firefox glxinfo mpd xlockmore xorg.xwd
     idea.idea-community virtviewer
     # Video / Photo editing
-    kdenlive frei0r gimp-with-plugins
+    kdenlive frei0r gimp-with-plugins digikam
     # Entertainment
     (mpv.override {
       openalSupport = true;
@@ -26,8 +26,6 @@ lib.mkIf config.me.desktop.enable {
         p.elpaPackages.undo-tree magit nix-mode gradle-mode lua-mode
         groovy-mode editorconfig rust-mode pabbrev expand-region
       ]))
-    # Wayland
-    kwin
   ] ++ (lib.optional config.me.desktop.wayland kwin);
 
   ## Fonts
