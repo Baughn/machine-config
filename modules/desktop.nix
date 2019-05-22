@@ -10,7 +10,7 @@ lib.mkIf config.me.desktop.enable {
     steam-run firefox glxinfo mpd xlockmore xorg.xwd
     idea.idea-community virtviewer
     # Video / Photo editing
-    kdenlive frei0r gimp-with-plugins digikam
+    kdenlive frei0r gimp-with-plugins
     # Entertainment
     (mpv.override {
       openalSupport = true;
