@@ -46,6 +46,11 @@ in
     value = "16777216";
   }];
 
+  services.bitlbee = {
+    enable = true;
+    plugins = [ pkgs.bitlbee-discord ];
+  };
+
   ## Backups ##
   services.znapzend = {
     #enable = true;

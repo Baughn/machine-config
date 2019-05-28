@@ -17,7 +17,7 @@
     ../modules/monitoring.nix
   ];
 
-  config.me = {
+  me = {
     desktop.enable = true;
   };
 
