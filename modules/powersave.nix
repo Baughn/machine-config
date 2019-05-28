@@ -3,7 +3,7 @@
 {
   # Power saving settings.
   services.tlp = {
-    enable = true;
+    #enable = true;
     extraConfig = ''
       # For testing, let's make sure we get the experience.
       TLP_DEFAULT_MODE=BAT
@@ -21,7 +21,11 @@
   powerManagement = {
     enable = true;
     powertop.enable = true;
+    scsiLinkPolicy = "min_power";
   };
+  hardware.bluetooth.powerOnBoot = false;
 
   networking.networkmanager.wifi.powersave = true;
+
+  environment.systemPackages = [ pkgs.acpi ];
 }
