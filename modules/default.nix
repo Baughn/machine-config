@@ -9,9 +9,7 @@
   ];
 
   options.me = with lib; with types; {
-    propagateNix = mkEnableOption {
-      default = true;
-    };
+    propagateNix = mkEnableOption {};
 
     desktop = {
       enable = mkEnableOption {};
@@ -21,6 +19,8 @@
 
   # Nix propagation
   config = {
+    me.propagateNix = lib.mkDefault true;
+
     environment.etc = lib.mkIf config.me.propagateNix {
       nix-system-pkgs.source = pkgs.path;
       nixos.source = builtins.filterSource
