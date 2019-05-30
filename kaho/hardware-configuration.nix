@@ -27,6 +27,11 @@
       fsType = "zfs";
     };
 
+  fileSystems."/home/svein" =
+    { device = "rpool/home/svein";
+      fsType = "zfs";
+    };
+
   fileSystems."/boot" =
     { device = "/dev/disk/by-uuid/0F1E-C3F0";
       fsType = "vfat";
