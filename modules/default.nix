@@ -25,7 +25,8 @@
       nix-system-pkgs.source = pkgs.path;
       nixos.source = builtins.filterSource
         (path: type:
-        baseNameOf path != "secrets"
+        baseNameOf Path != ".git"
+        && baseNameOf path != "secrets"
         && type != "symlink"
         && !(pkgs.lib.hasSuffix ".qcow2" path)
         && baseNameOf path != "server"
