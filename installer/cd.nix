@@ -14,7 +14,12 @@
   boot.zfs.enableUnstable = true;
   boot.zfs.requestEncryptionCredentials = true;
 
-  environment.etc.kaho-system.source = (import <nixpkgs/nixos> {
-    configuration = ../kaho;
-  }).system;
+  environment.etc.nixos-git.source = builtins.filterSource
+        (path: type:
+        baseNameOf path != ".git"
+        && baseNameOf path != "secrets"
+        && type != "symlink"
+        && !(pkgs.lib.hasSuffix ".qcow2" path)
+        && baseNameOf path != "server")
+        ../.;
 }
