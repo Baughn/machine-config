@@ -1,0 +1,3 @@
+[submodule "third_party/nixos-shell"]
+	path = third_party/nixos-shell
+	url = https://github.com/Mic92/nixos-shell
