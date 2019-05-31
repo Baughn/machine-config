@@ -21,6 +21,8 @@
     };
   };
 
+  boot.supportedFilesystems = [ "zfs" "f2fs" ];
+
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.consoleMode = "0";

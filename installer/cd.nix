@@ -5,7 +5,7 @@
     /home/svein/dev/nix/system/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix
   ];
 
-  boot.supportedFilesystems = [ "zfs" ];
+  boot.supportedFilesystems = [ "zfs" "f2fs" ];
   networking.hostId = "12345678";
 
   # For the Dell.
