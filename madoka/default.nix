@@ -47,7 +47,7 @@ in
   }];
 
   services.bitlbee = {
-    enable = true;
+    #enable = true;
     plugins = [ pkgs.bitlbee-discord ];
   };
 
