@@ -9,11 +9,13 @@ let
 
   xmonad = test "xmonad";
   gnome = test "gnome3-gdm";
+  kde = test "plasma5";
   # The 19.03 version should work with just `(test "zfs").stable`.
   zfs = (file "zfs" {}).stable {};
+  zfs2 = (file "zfs" {}).unstable {};
 
   tests = pkgs.runCommand "proof-of-tests" {
-    tests = [ xmonad gnome ];
+    tests = [ zfs zfs2 gnome kde ];
   } ''
     mkdir -p $out/share/doc/proof-of-tests
     i=1
