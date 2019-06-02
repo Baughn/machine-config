@@ -42,6 +42,16 @@
       fsType = "vfat";
     };
 
+  fileSystems."/home/svein/Anime" =
+    { device = "rpool/home/svein/Anime";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/Music" =
+    { device = "rpool/home/svein/Music";
+      fsType = "zfs";
+    };
+
   swapDevices =
     [ { device = "/dev/disk/by-uuid/ff1bb52e-cc96-48d4-b09b-d994e47c167f"; }
     ];
