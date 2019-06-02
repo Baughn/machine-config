@@ -71,9 +71,6 @@
      nox nix-prefetch-git
      # Video manipulation
      mkvtoolnix-cli ffmpeg-full
-     (libav_all.override {
-       x264Support = true;
-     }).libav_12
      # Image-manipulation tools
      fgallery pngcrush imagemagickBig povray blender
      # Monitoring, eventually to be a module.
