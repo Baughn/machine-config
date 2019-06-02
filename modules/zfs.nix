@@ -6,6 +6,7 @@
   
   boot.supportedFilesystems = [ "zfs" ];
   services.zfs.autoSnapshot.enable = true;
+  services.zfs.autoSnapshot.flags = "-k -p --utc";
   boot.postBootCommands = ''
     for hd in /sys/block/sd*; do
       cd $hd; echo noop > queue/scheduler
