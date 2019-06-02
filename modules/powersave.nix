@@ -1,9 +1,9 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   # Power saving settings.
   services.tlp = {
-    #enable = true;
+    enable = true;
     extraConfig = ''
       # For testing, let's make sure we get the experience.
       TLP_DEFAULT_MODE=BAT
@@ -21,7 +21,7 @@
   powerManagement = {
     enable = true;
     powertop.enable = true;
-    scsiLinkPolicy = "min_power";
+    scsiLinkPolicy = lib.mkIf (! config.services.tlp.enable) "min_power";
   };
   hardware.bluetooth.powerOnBoot = false;
 
