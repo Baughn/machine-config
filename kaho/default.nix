@@ -69,12 +69,6 @@
   #services.xserver.libinput.enable = true;
   services.xserver.synaptics.enable = true;
 
-  # Enable the KDE Desktop Environment.
-  services.xserver.displayManager.sddm = {
-    autoLogin.enable = true;
-    autoLogin.user = "svein";
-  };
-
   # This value determines the NixOS release with which your system is to be
   # compatible, in order to avoid breaking some software such as database
   # servers. You should change this only after NixOS release notes say you
