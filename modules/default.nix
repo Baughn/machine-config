@@ -6,6 +6,7 @@
     ./zfs.nix
     ./tests.nix
     ./desktop.nix
+    ./nginx.nix
   ];
 
   options.me = with lib; with types; {
