@@ -261,5 +261,29 @@
     environment.systemPackages = [
       (pkgs.callPackage ../zrepl {})
     ];
+
+    security.wrappers.zrepl-status.source = pkgs.stdenv.mkDerivation {
+      name = "zrepl-status";
+      unpackPhase = "true";
+      installPhase = ''
+        cat > zrepl-status.c <<'EOF'
+          #include <unistd.h>
+          #include <stdlib.h>
+          #include <string.h>
+
+          int main() {
+            char *term = strdup(getenv("TERM"));
+            clearenv();
+            setenv("TERM", term, 1);
+
+            return execl("${cfg.package}/bin/zrepl",
+              "zrepl-status",
+              "--config=/etc/zrepl.yml", "status", NULL);
+          }
+        EOF
+
+        gcc zrepl-status.c -Os -o $out
+      '';
+    };
   };
 }
