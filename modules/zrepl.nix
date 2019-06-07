@@ -289,7 +289,7 @@
 
             return execl("${cfg.package}/bin/zrepl",
               "zrepl-status",
-              "--config=/etc/zrepl.yml", "status", NULL);
+              "--config=/etc/zrepl.yml", "status", (char*)NULL);
           }
         EOF
 
