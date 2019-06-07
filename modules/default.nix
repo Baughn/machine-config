@@ -23,7 +23,10 @@
     me.propagateNix = lib.mkDefault true;
 
     environment.etc = lib.mkIf config.me.propagateNix {
-      nix-system-pkgs.source = pkgs.path;
+      nix-system-pkgs.source = builtins.filterSource
+        (path: type:
+        baseNameOf path != ".git")
+        /home/svein/dev/nix/system;
       nixos.source = builtins.filterSource
         (path: type:
         baseNameOf path != ".git"
