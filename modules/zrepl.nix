@@ -20,6 +20,12 @@
           default = "info";
         };
 
+        monitoring.port = mkOption {
+          description = "Prometheus monitoring port";
+          type = nullOr int;
+          default = 8549;
+        };
+
         sink = mkOption {
           default = {};
           type = attrsOf (submodule ({name, ...}: {
@@ -115,14 +121,19 @@
       ${pkgs.jq}/bin/jq < "$configurationPath" > "$out"
     '';
     
-    configuration = builtins.toJSON {
+    configuration = builtins.toJSON ({
       global.logging = [{
         format = "human";
         type = "stdout";
         level = cfg.logging.level;
       }];
       jobs = (lib.mapAttrsToList mkSinkJob cfg.sink) ++ (lib.mapAttrsToList mkPushJob cfg.push);
-    };
+    } // (if cfg.monitoring.port != null then {
+      global.monitoring = [{
+        type = "prometheus";
+        listen = ":${builtins.toString cfg.monitoring.port}";
+      }];
+    } else {}));
 
     mkSinkJob = name: sink: {
       name = "${name}_sink";
