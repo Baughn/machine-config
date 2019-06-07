@@ -4,21 +4,6 @@
 
 { config, pkgs, lib, ... }:
 
-let
-  znap = fs: {
-    name = "rpool/${fs}";
-    value = {
-      plan = "1d=>15min,3d=>1h";
-      destinations.tsugumi = {
-        host = "znapzend@brage.info";
-        dataset = "stash/backups/${config.networking.hostName}/${fs}";
-        plan = "1w=>1h,12w=>1d";
-      };
-    };
-  };
-  znapz = filesystems: builtins.listToAttrs (builtins.map znap filesystems);
-in
-
 {
   imports = [
     ../modules
@@ -52,34 +37,18 @@ in
   };
 
   ## Backups ##
-  services.znapzend = {
-    #enable = true;
-    autoCreation = true;
-    pure = true;
-    zetup = znapz [
-      "home"
-      "home/minecraft"
-      "home/minecraft/erisia"
-      "home/minecraft/incognito"
-      "home/minecraft/leisurely"
-      "home/minecraft/staging"
-      "home/bloxgate"
-      "home/darqen27"
-      "home/david"
-      "home/dusk"
-      "home/jmc"
-      "home/kim"
-      "home/lucca"
-      "home/luke"
-      "home/mei"
-      "home/prospector"
-      "home/simplynoire"
-      "home/svein"
-      "home/svein/win"
-      "home/vindex"
-      "home/will"
-      "home/xgas"
-    ];
+  services.zrepl = {
+    enable = true;
+    push.tsugumi = {
+      rootFs = "rpool/home";
+      exclude = [
+        "rpool/home/minecraft/erisia/dynmap"
+        "rpool/home/minecraft/incognito/dynmap"
+        "rpool/home/minecraft/leisurely/dynmap"
+        "rpool/home/minecraft/staging/dynmap"
+      ];
+      targetHost = "10.40.0.1";
+    };
   };
 
   ## Networking ##

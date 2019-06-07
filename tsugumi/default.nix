@@ -13,7 +13,21 @@
     # ../disnix/production/tsugumi-config.nix
     <nixpkgs/nixos/modules/profiles/headless.nix>
     # <nixpkgs/nixos/modules/profiles/hardened.nix>
+    ../modules/powersave.nix
   ];
+
+  me = {
+    propagateNix = true;
+  };
+
+  services.zrepl = {
+    enable = true;
+    sink.madoka = {
+      rootFs = "stash/zrepl";
+      openFirewall = true;
+    };
+  };
+
 
   # Work around #1915
   boot.kernel.sysctl."user.max_user_namespaces" = 100;
