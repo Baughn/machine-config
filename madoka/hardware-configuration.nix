@@ -31,6 +31,11 @@
       fsType = "zfs";
     };
 
+  fileSystems."/home/ahigerd" =
+    { device = "rpool/home/ahigerd";
+      fsType = "zfs";
+    };
+
   fileSystems."/home/svein" =
     { device = "rpool/home/svein";
       fsType = "zfs";
