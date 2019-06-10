@@ -117,6 +117,11 @@
     "xgas" "will" "lucca" "dusk" "ahigerd"
   ];
 
+  ## Postgresql **
+  services.postgresql = {
+    enable = true;
+  };
+
   ## Webserver ##
   services.nginx = {
     package = pkgs.nginxMainline.override {
@@ -214,6 +219,7 @@
       "quest.brage.info" = proxy 2222;
       "warmroast.brage.info" = proxy 23000;
       "hydra.brage.info" = proxy 3001;
+      "pw.brage.info" = proxy 1057;
     };
   };
 }
