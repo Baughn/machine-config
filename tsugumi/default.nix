@@ -13,7 +13,7 @@
     # ../disnix/production/tsugumi-config.nix
     <nixpkgs/nixos/modules/profiles/headless.nix>
     # <nixpkgs/nixos/modules/profiles/hardened.nix>
-    ../modules/powersave.nix
+    # ../modules/powersave.nix
   ];
 
   me = {
