@@ -53,7 +53,7 @@
      # Debug/dev tools
      tcpdump nmap gdb gradle python3Packages.virtualenv
      telnet man-pages posix_man_pages mono heaptrack
-     rustup gcc stack
+     rustup rls gcc stack
      pythonFull python3Full freeipmi binutils jq
      gitAndTools.gitFull git-lfs sqliteInteractive
      config.boot.kernelPackages.bpftrace
