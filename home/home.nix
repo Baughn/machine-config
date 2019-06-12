@@ -47,6 +47,23 @@ in
       vim-nix
       rust-vim
 
+      # LSP
+      "https://github.com/prabirshrestha/async.vim/archive/f3014550d7a799097e56b094104dd2cd66cf2612.tar.gz#0zn25qwycynagrij5rsp1x7kbfz612gn7xda0hvm4y7qr3pal77p"
+      "https://github.com/prabirshrestha/vim-lsp/archive/69f31d5bf27eac0ef4b804d0e517d6e85856b44a.tar.gz#1wic4bpddzbbnkd1jfirb4l10jynz3cj2y0d2q23xkj9f56q9l53"
+      "https://github.com/prabirshrestha/asyncomplete.vim/archive/bffa8b62dd7025f400891182136148773d42f075.tar.gz#1nl402qqp88p7zbm4k9b7fzyckrxjkh47iqwrin2lkqk6bhmc690"
+      "https://github.com/prabirshrestha/asyncomplete-lsp.vim/archive/05389e93a81aa4262355452ebdac66ae2a1939fb.tar.gz#0mnsp54p0i6x7w1zlmwhpi2hhwb787z1p69pr2lmz7qja2iqv36y"
+
+      ## Rust
+      ''
+        if executable('rls')
+          au User lsp_setup call lsp#register_server({
+            \ 'name': 'rls',
+            \ 'cmd': {server_info->['rustup', 'run', 'nightly', 'rls']},
+            \ 'whitelist': ['rust'],
+            \ })
+        endif 
+      ''
+
       # Writing
       goyo
       #limelight
