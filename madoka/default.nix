@@ -139,41 +139,6 @@
       add_header X-Clacks-Overhead "GNU Terry Pratchett";
       autoindex on;
       etag on;
-
-      # Fallback config for Erisia
-      upstream erisia {
-        server 127.0.0.1:8123;
-# server unix:/home/minecraft/erisia/staticmap.sock backup;
-      }
-      # server {
-      #   listen unix:/home/minecraft/erisia/staticmap.sock;
-      #   location / {
-      #     root /home/minecraft/erisia/dynmap/web;
-      #   }
-      # }
-      # Ditto, Incognito.
-      # TODO: Factor this. Perhaps send a PR or two.
-      upstream incognito {
-        server 127.0.0.1:8124;
-  # server unix:/home/minecraft/incognito/staticmap.sock backup;
-      }
-      # server {
-      #   listen unix:/home/minecraft/incognito/staticmap.sock;
-      #   location / {
-      #     root /home/minecraft/incognito/dynmap/web;
-      #   }
-      # }
-      upstream tppi {
-        server 127.0.0.1:8126;
-        # server unix:/home/tppi/server/staticmap.sock backup;
-      }
-      # server {
-      #   listen unix:/home/tppi/server/staticmap.sock;
-      #   location / {
-      #     root /home/tppi/server/dynmap/web;
-      #   }
-      # }
-      
     '';
     virtualHosts = let
       base = locations: {
@@ -206,9 +171,9 @@
       "grafana.brage.info" = proxy 3000;
       "tppi.brage.info" = root "/home/tppi/web";
       "alertmanager.brage.info" = proxy 9093;
-      "map.brage.info" = base { "/".proxyPass = "http://erisia"; };
-      "incognito.brage.info" = base { "/".proxyPass = "http://incognito"; };
-      "tppi-map.brage.info" = base { "/".proxyPass = "http://tppi"; };
+      "map.brage.info" = proxy 8123;
+      "incognito.brage.info" = proxy 8124;
+      "tppi-map.brage.info" = proxy 8126;
       "cache.brage.info" = root "/home/svein/web/cache";
       "znc.brage.info" = base { 
          "/" = {
