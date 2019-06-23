@@ -19,6 +19,7 @@
     "/dev/nvme0n1"
     "/dev/nvme1n1"
   ];
+  boot.zfs.enableUnstable = true;
   
   ## Boot ##
   # Start up if at all possible.
