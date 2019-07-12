@@ -20,7 +20,6 @@
         pwd
         mkdir initrd
         pushd initrd
-        cat /ssh_pubkey >> authorized_keys
         find -type f | cpio -o -H newc | gzip -9 > ../extra.gz
         popd
         cat ${image}/initrd extra.gz > final.gz

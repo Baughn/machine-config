@@ -72,6 +72,7 @@
     allowedTCPPorts = [ 
       80 443  # Web-server
       25565 25566 25567  # Minecraft
+      25523  # Minecraft testing
       4000  # ZNC
       12345  # JMC's ZNC
     ];
