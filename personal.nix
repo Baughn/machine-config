@@ -40,6 +40,14 @@ rec {
     ];
   };
 
+  homura = { config, pkgs, ... }: {
+    deployment = {
+      targetHost = "116.203.44.190";
+    };
+
+    imports = [ ./homura ];
+  };
+
   tromso = { config, pkgs, ... }: {
     deployment = {
       targetHost = "tromso.brage.info";
