@@ -124,6 +124,34 @@
     enable = true;
   };
 
+  ## ACME ##
+  security.acme = {
+    certs = {
+      "madoka.brage.info" = {
+        email = "sveina@gmail.com";
+        group = "wheel";
+        allowKeysForGroup = true;
+        postRun = "systemctl reload nginx.service";
+        webroot = "/var/lib/acme/acme-challenge";
+        extraDomains = {
+          "status.brage.info" = null;
+          "grafana.brage.info" = null;
+          "tppi.brage.info" = null;
+          "alertmanager.brage.info" = null;
+          "map.brage.info" = null;
+          "incognito.brage.info" = null;
+          "tppi-map.brage.info" = null;
+          "cache.brage.info" = null;
+          "znc.brage.info" = null;
+          "quest.brage.info" = null;
+          "warmroast.brage.info" = null;
+          "hydra.brage.info" = null;
+          "pw.brage.info" = null;
+        };
+      };
+    };
+  };
+
   ## Webserver ##
   services.nginx = {
     package = pkgs.nginxMainline.override {
@@ -145,7 +173,7 @@
     virtualHosts = let
       base = locations: {
         forceSSL = true;
-        enableACME = true;
+        useACMEHost = "madoka.brage.info";
         inherit locations;
       };
       proxy = port: base {
