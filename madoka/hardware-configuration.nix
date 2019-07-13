@@ -9,6 +9,7 @@
     ];
 
   boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" ];
+  boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
@@ -18,13 +19,9 @@
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/c6cfb300-3c97-4deb-8365-2a17432a5e72";
-      fsType = "ext4";
+    { device = "/dev/disk/by-uuid/96638115-2818-417a-9c9f-8adc81666d6a";
+      fsType = "ext2";
     };
-
-  swapDevices =
-    [ { device = "/dev/disk/by-uuid/9e4897a3-3bf1-45ea-9682-13e8185e6e93"; }
-    ];
 
   fileSystems."/home" =
     { device = "rpool/home";
@@ -33,41 +30,6 @@
 
   fileSystems."/home/ahigerd" =
     { device = "rpool/home/ahigerd";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/svein" =
-    { device = "rpool/home/svein";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/svein/win" =
-    { device = "rpool/home/svein/win";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/minecraft" =
-    { device = "rpool/home/minecraft";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/minecraft/erisia" =
-    { device = "rpool/home/minecraft/erisia";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/minecraft/erisia/dynmap" =
-    { device = "rpool/home/minecraft/erisia/dynmap";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/minecraft/incognito" =
-    { device = "rpool/home/minecraft/incognito";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/minecraft/incognito/dynmap" =
-    { device = "rpool/home/minecraft/incognito/dynmap";
       fsType = "zfs";
     };
 
@@ -116,6 +78,11 @@
       fsType = "zfs";
     };
 
+  fileSystems."/home/minecraft" =
+    { device = "rpool/home/minecraft";
+      fsType = "zfs";
+    };
+
   fileSystems."/home/prospector" =
     { device = "rpool/home/prospector";
       fsType = "zfs";
@@ -123,6 +90,11 @@
 
   fileSystems."/home/simplynoire" =
     { device = "rpool/home/simplynoire";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein" =
+    { device = "rpool/home/svein";
       fsType = "zfs";
     };
 
@@ -140,6 +112,35 @@
     { device = "rpool/home/xgas";
       fsType = "zfs";
     };
+
+  fileSystems."/home/minecraft/erisia" =
+    { device = "rpool/home/minecraft/erisia";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/incognito" =
+    { device = "rpool/home/minecraft/incognito";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/erisia/dynmap" =
+    { device = "rpool/home/minecraft/erisia/dynmap";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/incognito/dynmap" =
+    { device = "rpool/home/minecraft/incognito/dynmap";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/win" =
+    { device = "rpool/home/svein/win";
+      fsType = "zfs";
+    };
+
+  swapDevices =
+    [ { device = "/dev/rpool/swap"; }
+    ];
 
   nix.maxJobs = lib.mkDefault 12;
   powerManagement.cpuFreqGovernor = "performance";
