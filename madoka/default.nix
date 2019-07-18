@@ -47,6 +47,7 @@
         "rpool/home/minecraft/incognito/dynmap"
         "rpool/home/minecraft/leisurely/dynmap"
         "rpool/home/minecraft/staging/dynmap"
+        "rpool/home/minecraft/testing/dynmap"
       ];
       targetHost = "10.40.0.1";
     };
@@ -153,68 +154,78 @@
   };
 
   ## Webserver ##
-  services.nginx = {
-    package = pkgs.nginxMainline.override {
-#      modules = with pkgs.nginxModules; [ njs dav moreheaders ];
-    };
-    enable = true;
-    recommendedGzipSettings = true;
-    recommendedOptimisation = true;
-    recommendedProxySettings = true;
-    recommendedTlsSettings = true;
-    sslDhparam = ./nginx/dhparams.pem;
-    statusPage = true;
-    appendHttpConfig = ''
+  services.nginx = let
+    # Needed because nginx stupidly erases global headers if local headers are set.
+    headers = ''
       add_header Strict-Transport-Security "max-age=31536000; includeSubdomains";
       add_header X-Clacks-Overhead "GNU Terry Pratchett";
-      autoindex on;
-      etag on;
-    '';
-    virtualHosts = let
-      base = locations: {
-        forceSSL = true;
-        useACMEHost = "madoka.brage.info";
-        inherit locations;
+      add_header X-Frame-Options "SAMEORIGIN";
+      add_header X-XSS-Protection "1; mode=block";
+      add_header X-Content-Type-Options "nosniff";
+      add_header Referrer-Policy "no-referrer-when-downgrade";
+      add_header Content-Security-Policy "default-src https:";
+    ''; in {
+      package = pkgs.nginxMainline.override {
+#      modules = with pkgs.nginxModules; [ njs dav moreheaders ];
       };
-      proxy = port: base {
-        "/".proxyPass = "http://127.0.0.1:" + toString(port) + "/";
+      enable = true;
+      recommendedGzipSettings = true;
+      recommendedOptimisation = true;
+      recommendedProxySettings = true;
+      recommendedTlsSettings = true;
+      sslDhparam = ./nginx/dhparams.pem;
+      statusPage = true;
+      appendHttpConfig = ''
+        ${headers}
+        autoindex on;
+        etag on;
+      '';
+      virtualHosts = let
+        base = locations: {
+          forceSSL = true;
+          useACMEHost = "madoka.brage.info";
+          inherit locations;
+        };
+        proxy = port: base {
+          "/".proxyPass = "http://127.0.0.1:" + toString(port) + "/";
+        };
+        root = dir: base {
+          "/".root = dir;
+        };
+        minecraft = {
+          root = "/home/minecraft/web";
+          tryFiles = "\$uri \$uri/ =404";
+          extraConfig = ''
+            add_header Cache-Control "public";
+            ${headers}
+            expires 1h;
+          '';
+        };
+      in {
+        "madoka.brage.info" = base {
+          "/" = minecraft;
+          "/warmroast".proxyPass = "http://127.0.0.1:23000/";
+          "/baughn".extraConfig = "alias /home/svein/web;";
+          "/tppi".extraConfig = "alias /home/tppi/web;";
+        } // { default = true; };
+        "status.brage.info" = proxy 9090;
+        "grafana.brage.info" = proxy 3000;
+        "tppi.brage.info" = root "/home/tppi/web";
+        "alertmanager.brage.info" = proxy 9093;
+        "map.brage.info" = proxy 8123;
+        "incognito.brage.info" = proxy 8124;
+        "tppi-map.brage.info" = proxy 8126;
+        "cache.brage.info" = root "/home/svein/web/cache";
+        "znc.brage.info" = base { 
+           "/" = {
+             proxyPass = "https://127.0.0.1:4000";
+             extraConfig = "proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;";
+           };
+        };
+        "quest.brage.info" = proxy 2222;
+        "warmroast.brage.info" = proxy 23000;
+        "hydra.brage.info" = proxy 3001;
+        "pw.brage.info" = proxy 1057;
       };
-      root = dir: base {
-        "/".root = dir;
-      };
-      minecraft = {
-        root = "/home/minecraft/web";
-        tryFiles = "\$uri \$uri/ =404";
-        extraConfig = ''
-          add_header Cache-Control "public";
-          expires 1h;
-        '';
-      };
-    in {
-      "madoka.brage.info" = base {
-        "/" = minecraft;
-        "/warmroast".proxyPass = "http://127.0.0.1:23000/";
-        "/baughn".extraConfig = "alias /home/svein/web;";
-        "/tppi".extraConfig = "alias /home/tppi/web;";
-      } // { default = true; };
-      "status.brage.info" = proxy 9090;
-      "grafana.brage.info" = proxy 3000;
-      "tppi.brage.info" = root "/home/tppi/web";
-      "alertmanager.brage.info" = proxy 9093;
-      "map.brage.info" = proxy 8123;
-      "incognito.brage.info" = proxy 8124;
-      "tppi-map.brage.info" = proxy 8126;
-      "cache.brage.info" = root "/home/svein/web/cache";
-      "znc.brage.info" = base { 
-         "/" = {
-           proxyPass = "https://127.0.0.1:4000";
-           extraConfig = "proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;";
-         };
-      };
-      "quest.brage.info" = proxy 2222;
-      "warmroast.brage.info" = proxy 23000;
-      "hydra.brage.info" = proxy 3001;
-      "pw.brage.info" = proxy 1057;
-    };
   };
 }

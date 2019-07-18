@@ -243,7 +243,7 @@
           # The mountpoint permission is needed because zrepl sets
           # mountpoint=none. It's a little bizarre, but there you go.
           zfs unallow -ldu zrepl "$1"
-          zfs allow -ldu zrepl mount,clone,create,destroy,hold,promote,receive,release,rename,rollback,snapshot,bookmark,userprop "$1"
+          zfs allow -ldu zrepl mount,clone,create,destroy,hold,promote,receive,release,rename,rollback,snapshot,bookmark,userprop,mountpoint "$1"
         }
 
         setupPush() {
