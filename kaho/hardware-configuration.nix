@@ -13,17 +13,12 @@
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "rpool";
+    { device = "rpool/nixos";
       fsType = "zfs";
     };
 
   fileSystems."/nix" =
-    { device = "rpool/nix";
-      fsType = "zfs";
-    };
-
-  fileSystems."/var" =
-    { device = "rpool/var";
+    { device = "rpool/nixos/nix";
       fsType = "zfs";
     };
 
@@ -38,7 +33,7 @@
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/2D71-9E8F";
+    { device = "/dev/nvme0n1p5";
       fsType = "vfat";
     };
 
@@ -51,10 +46,6 @@
     { device = "rpool/home/svein/Music";
       fsType = "zfs";
     };
-
-  swapDevices =
-    [ { device = "/dev/disk/by-uuid/ff1bb52e-cc96-48d4-b09b-d994e47c167f"; }
-    ];
 
   nix.maxJobs = lib.mkDefault 8;
 }
