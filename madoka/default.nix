@@ -163,7 +163,7 @@
       add_header X-XSS-Protection "1; mode=block";
       add_header X-Content-Type-Options "nosniff";
       add_header Referrer-Policy "no-referrer-when-downgrade";
-      add_header Content-Security-Policy "default-src https:";
+      add_header Content-Security-Policy-Report-Only "default-src 'self'; report-uri /__cspreport__;";
     ''; in {
       package = pkgs.nginxMainline.override {
 #      modules = with pkgs.nginxModules; [ njs dav moreheaders ];
