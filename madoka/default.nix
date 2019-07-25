@@ -159,7 +159,7 @@
     headers = ''
       add_header Strict-Transport-Security "max-age=31536000; includeSubdomains";
       add_header X-Clacks-Overhead "GNU Terry Pratchett";
-      add_header X-Frame-Options "SAMEORIGIN";
+      add_header X-Frame-Options "allow-from https://madoka.brage.info";
       add_header X-XSS-Protection "1; mode=block";
       add_header X-Content-Type-Options "nosniff";
       add_header Referrer-Policy "no-referrer-when-downgrade";
