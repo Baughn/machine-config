@@ -10,6 +10,7 @@
       ../modules
       ../modules/desktop.nix
       ../modules/powersave.nix
+      ../nixos-hardware/dell/xps/13-9380
   ];
 
   me = {
