@@ -5,9 +5,7 @@
   services.tlp = {
     enable = true;
     extraConfig = ''
-      # For testing, let's make sure we get the experience.
       TLP_DEFAULT_MODE=BAT
-      TLP_PERSISTENT_DEFAULT=1
 
       SOUND_POWER_SAVE_ON_AC=1
       WIFI_PWR_ON_AC=on
@@ -15,8 +13,8 @@
 
       CPU_SCALING_GOVERNOR_ON_BAT=powersave
       CPU_SCALING_GOVERNOR_ON_AC=powersave
-      CPU_MAX_PERF_ON_BAT=100
-      CPU_SCALING_MAX_FREQ_ON_BAT=3000000
+      CPU_MAX_PERF_ON_BAT=200
+      CPU_SCALING_MAX_FREQ_ON_BAT=4400000
       CPU_BOOST_ON_BAT=1
 
       AHCI_RUNTIME_PM_ON_BAT=auto
