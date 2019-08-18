@@ -1,3 +1,6 @@
 [submodule "third_party/nixos-shell"]
 	path = third_party/nixos-shell
 	url = https://github.com/Mic92/nixos-shell
+[submodule "nixos-hardware"]
+	path = nixos-hardware
+	url = https://github.com/NixOS/nixos-hardware.git

@@ -18,8 +18,6 @@
     "no_stf_barrier"
     "mds=off"
     "mitigations=off"
-    # Also, force deep sleep. This should be fine on all modern hardware.
-    "mem_sleep_default=deep"
   ];
 
   # User setup
@@ -98,6 +96,7 @@
   hardware.enableKSM = true;
   hardware.enableAllFirmware = true;
   boot.loader.grub.memtest86.enable = config.boot.loader.grub.enable;
+  services.fwupd.enable = true;
   # zramSwap.enable = true;
   boot.cleanTmpDir = true;
   boot.kernel.sysctl = {
