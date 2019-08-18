@@ -34,6 +34,7 @@
   networking.hostName = "kaho"; # Define your hostname.
   networking.hostId = "a6825f89";
   networking.networkmanager.enable = true;
+  services.udev.packages = [ pkgs.crda ];
 
   zramSwap.enable = true;
 
