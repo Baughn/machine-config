@@ -4,13 +4,10 @@
 
 { config, pkgs, ... }:
 
-let
-  userLib = pkgs.callPackage ../modules/users.nix {};
-in
-
 {
   imports = [
     ./hardware-configuration.nix
+    ../modules
   ];
 
   ## Boot
@@ -20,7 +17,4 @@ in
   ## Networking
   networking.hostName = "saya";
   networking.hostId = "7a4f1297";
-
-  users = userLib.include [ "svein" ];
-  system.stateVersion = "18.03";
 }
