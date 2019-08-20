@@ -35,9 +35,17 @@ in
     userEmail = "sveina@gmail.com";
   };
 
+  home.file.".screenrc".text = ''
+    defscrollback 5000
+    defutf8 on
+    vbell off
+    maptimeout 5
+  '';
+
   programs.neovim = {
     enable = true;
     vimAlias = true;
+    extraPython3Packages = (ps: with ps; [ python-language-server ]);
     plugins = with pkgs.vimPlugins; [
       # "Defaults everyone can agree on"
       sensible
@@ -47,31 +55,48 @@ in
       vim-nix
       rust-vim
 
-      # LSP
-      "https://github.com/prabirshrestha/async.vim/archive/f3014550d7a799097e56b094104dd2cd66cf2612.tar.gz#0zn25qwycynagrij5rsp1x7kbfz612gn7xda0hvm4y7qr3pal77p"
-      "https://github.com/prabirshrestha/vim-lsp/archive/69f31d5bf27eac0ef4b804d0e517d6e85856b44a.tar.gz#1wic4bpddzbbnkd1jfirb4l10jynz3cj2y0d2q23xkj9f56q9l53"
-      "https://github.com/prabirshrestha/asyncomplete.vim/archive/bffa8b62dd7025f400891182136148773d42f075.tar.gz#1nl402qqp88p7zbm4k9b7fzyckrxjkh47iqwrin2lkqk6bhmc690"
-      "https://github.com/prabirshrestha/asyncomplete-lsp.vim/archive/05389e93a81aa4262355452ebdac66ae2a1939fb.tar.gz#0mnsp54p0i6x7w1zlmwhpi2hhwb787z1p69pr2lmz7qja2iqv36y"
-
-      ## Rust
+      ## Plugins
       ''
-        if executable('rls')
-          au User lsp_setup call lsp#register_server({
-            \ 'name': 'rls',
-            \ 'cmd': {server_info->['rustup', 'run', 'nightly', 'rls']},
-            \ 'whitelist': ['rust'],
-            \ })
-        endif 
+				call plug#begin('~/.local/share/nvim/plugged')
+				Plug 'autozimu/LanguageClient-neovim', { 'do': ':UpdateRemotePlugins' }
+        Plug 'junegunn/fzf'
+        Plug 'ncm2/ncm2'
+        Plug 'roxma/nvim-yarp'
+        Plug 'ncm2/ncm2-bufword'
+        Plug 'ncm2/ncm2-path'
+				call plug#end()
+
+        autocmd BufReadPost *.rs setlocal filetype=rust
+        autocmd BufEnter * call ncm2#enable_for_buffer()
+        " IMPORTANT: :help Ncm2PopupOpen for more information
+        set completeopt=noinsert,menuone,noselect
+
+				" Required for operations modifying multiple buffers like rename.
+				set hidden
+
+				let g:LanguageClient_serverCommands = {
+						\ 'rust': ['rustup', 'run', 'stable', 'rls'],
+						\ }
+
+				" Automatically start language servers.
+				let g:LanguageClient_autoStart = 1
+
+        let g:rustfmt_command = "rustfmt +nightly"
+        let g:rustfmt_emit_files = 1
+        let g:rustfmt_autosave = 1
+
+				" Maps K to hover, gd to goto definition, F2 to rename, F5 to context menu.
+				nnoremap <silent> K :call LanguageClient_textDocument_hover()<CR>
+				nnoremap <silent> gd :call LanguageClient_textDocument_definition()<CR>
+				nnoremap <silent> <F2> :call LanguageClient_textDocument_rename()<CR>
+        nnoremap <F5> :call LanguageClient_contextMenu()<CR>
+
+        set completeopt+=preview
       ''
 
       # Writing
       goyo
       #limelight
-      ''
-        let g:rustfmt_command = "rustfmt +nightly"
-        let g:rustfmt_emit_files = 1
-        let g:rustfmt_autosave = 1
-      ''
 
       # Personal customizations
       ''
@@ -89,6 +114,8 @@ in
         set guicursor=
 
         colorscheme desert
+
+        set timeoutlen=100 ttimeoutlen=10
       ''
     ];
   };
