@@ -11,8 +11,8 @@ let
   gnome = test "gnome3-gdm";
   kde = test "plasma5";
   # The 19.03 version should work with just `(test "zfs").stable`.
-  zfs = (file "zfs" {}).stable {};
-  zfs2 = (file "zfs" {}).unstable {};
+  zfs = (test "zfs").stable {};
+  zfs2 = (test "zfs").unstable {};
 
   tests = pkgs.runCommand "proof-of-tests" {
     tests = [ zfs zfs2 gnome kde ];

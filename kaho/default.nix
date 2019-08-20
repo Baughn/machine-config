@@ -30,7 +30,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.zfs.enableUnstable = true;
   boot.zfs.requestEncryptionCredentials = true;
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  #boot.kernelPackages = pkgs.linuxPackages_latest;
 
   networking.hostName = "kaho"; # Define your hostname.
   networking.hostId = "a6825f89";
