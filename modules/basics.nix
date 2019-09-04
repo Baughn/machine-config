@@ -93,11 +93,12 @@
   ## Misc.
   hardware.cpu.intel.updateMicrocode = true;
   hardware.cpu.amd.updateMicrocode = true;
-  hardware.enableKSM = true;
+  #hardware.enableKSM = true;
   hardware.enableAllFirmware = true;
   boot.loader.grub.memtest86.enable = config.boot.loader.grub.enable;
   services.fwupd.enable = true;
-  # zramSwap.enable = true;
+  zramSwap.enable = true;
+  zramSwap.algorithm = "zstd";
   boot.cleanTmpDir = true;
   boot.kernel.sysctl = {
     "fs.inotify.max_user_watches" = 1048576;
