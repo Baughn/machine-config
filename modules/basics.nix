@@ -141,7 +141,8 @@
   services.avahi.enable = true;
   services.avahi.nssmdns = true;
   # Add hosts for SV.
-  networking.hosts = lib.mapAttrs' (host: cfg: lib.nameValuePair cfg.publicIP [host]) (import /home/svein/sufficient/network.nix);
+  networking.hosts = lib.mapAttrs' (host: cfg: lib.nameValuePair cfg.publicIP [host]) (
+    import /home/svein/sufficient/ServerConfiguration/network.nix);
   
   ## Time & location ##
   i18n = {
