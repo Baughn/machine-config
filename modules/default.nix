@@ -3,10 +3,11 @@
 {
   imports = [
     ./basics.nix
-    ./zfs.nix
-    ./tests.nix
     ./desktop.nix
     ./nginx.nix
+    ./tests.nix
+    ./virtualisation.nix
+    ./zfs.nix
   ];
 
   options.me = with lib; with types; {

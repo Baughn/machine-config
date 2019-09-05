@@ -9,7 +9,6 @@
     ../modules
     ./hardware-configuration.nix
     ../modules/plex.nix
-    ../modules/virtualisation.nix
     # ../disnix/production/tsugumi-config.nix
     <nixpkgs/nixos/modules/profiles/headless.nix>
     # <nixpkgs/nixos/modules/profiles/hardened.nix>
@@ -18,6 +17,7 @@
 
   me = {
     propagateNix = true;
+    virtualisation.enable = true;
   };
 
   services.zrepl = {
