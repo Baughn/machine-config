@@ -121,7 +121,7 @@
   users.include = [
     "mei" "einsig" "prospector" "minecraft" "bloxgate" "buizerd"
     "darqen27" "david" "jmc" "kim" "luke" "simplynoire" "vindex"
-    "xgas" "will" "lucca" "dusk" "ahigerd"
+    "xgas" "will" "lucca" "dusk" "ahigerd" "jared"
   ];
 
   ## Postgresql **
