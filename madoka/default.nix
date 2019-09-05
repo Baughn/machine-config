@@ -60,18 +60,19 @@
   ## Networking ##
   networking.hostName = "madoka";
   networking.hostId = "8425e349";
-  # Doesn't work due to missing interface specification.
-  #networking.defaultGateway6 = "fe80::1";
-  #networking.localCommands = ''
-  #  ${pkgs.nettools}/bin/route -6 add default gw fe80::1 dev eth0 || true
-  #'';
+  networking.interfaces.enp0s31f6 = {
+    useDHCP = true;
+    ipv6.addresses = [{
+      address = "2a01:4f9:2b:808::1";
+      prefixLength = 64;
+    }];
+    ipv6.routes = [{
+      address = "::1";
+      prefixLength = 0;
+      via = "fe80::1";
+    }];
+  };
   networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
-  #networking.interfaces.eth0 = {
-  #  ipv6.addresses = [{
-  #    address = "2a01:4f9:2b:808::1";
-  #    prefixLength = 64;
-  #  }];
-  #};
   networking.firewall = {
     allowPing = true;
     allowedTCPPorts = [ 
