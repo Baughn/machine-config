@@ -44,4 +44,7 @@
   jazz27 = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPQak13p/mXwdaDzo4xTOt0F020RsArz3/eNmzbagbcj"
   ];
+  jared = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMRYKlNg7quD5BW5Yx4m1LCSsmhMdwi0aInARX21qflz jared@jtop"
+  ];
 }
