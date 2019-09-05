@@ -9,7 +9,6 @@
     ../modules
     ./hardware-configuration.nix
     ../modules/emergency-shell.nix
-    ../modules/virtualisation.nix
     ../modules/nvidia.nix
     ../modules/rsyncd.nix
     ../modules/unifi.nix
@@ -19,6 +18,7 @@
 
   me = {
     desktop.enable = true;
+    virtualisation.enable = true;
   };
 
   hardware.bluetooth.enable = true;
