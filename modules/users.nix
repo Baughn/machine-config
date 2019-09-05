@@ -45,7 +45,8 @@ let
         "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDpbzzqjOgaBCsLV5YFWynecshLYEFAvC4ztKv/v3b0SSSXs6hUnzQ8Bg/sJdlsdaeQCUy3CocS4TAAc1Iw8AI+h4HnTE4cdYMOrKoy01Q9Tim1x0+pOvBpya28YtvWRkLv3uLP/Hyi8J2nbj00ToNQ5VcXJ61PAHQ5BOoLSSJwIIzOkTbqup1Gz5CqMhYZ0fQ9Xcx55VubTnqHqm2p0Y87ZgOZKSvT0b9/m2yhUUiCy/ady4ZhUI7fP60D5fCyDUuOejjmRGkhIUmgbxgJLxg8//X0bcNQXbwl4Sw+zhkAdhBC12woP3t1KCuoOT/2+TeQ5K5wZxtnBs+otCzl8GGkbMH2kRC/K7WxIVNbXWzU7Gn1LI22w+74kLFJwMjI6vWrznrIIWoJ8Hn3s6rhaW5obt7IBj+ObkQXHedOuUPsGHYotyOUXqfyPkMgYM0Zu4vVCeol3JfXhNiqLE39zJCtBztct0YtGomHjm0gcocmxngH2Q3xticmcWc+wSq4eRLqL3NP/cpUScc80ym/xz8AUwnH/3RGbhj/GcHRLm7Gn1hsHgPi4WOxG8QTkLTf2drO54wZyl1KoQisTYBiHpNuU3F2GsUb9SDAX/+YDrbVsQTortc60eVcG/ZTApJYTjvxsmp6TvbqWew3qk0WmVb9NvYJx/krGY6JuCTkwVVikQ== adam@wherefor.com"
       ];
     };
-    # Next free ID: 1058
+    jared.uid = 1058;
+    # Next free ID: 1059
     anne.uid = 1100;
   };
   includeUser = username: ({
