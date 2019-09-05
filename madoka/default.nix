@@ -202,6 +202,9 @@
         proxy = port: base {
           "/".proxyPass = "http://127.0.0.1:" + toString(port) + "/";
         };
+        proxyJared = port: base {
+          "/".proxyPass = "http://10.211.72.90:" + toString(port) + "/";
+        };
         root = dir: base {
           "/".root = dir;
         };
@@ -239,7 +242,7 @@
         "warmroast.brage.info" = proxy 23000;
         "hydra.brage.info" = proxy 3001;
         "pw.brage.info" = proxy 1057;
-        "ll.ja13.org" = proxy 3029;
+        "ll.ja13.org" = proxyJared 3029;
       };
   };
 }
