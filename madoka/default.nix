@@ -24,7 +24,7 @@
     "/dev/nvme1n1"
   ];
   boot.zfs.enableUnstable = true;
-  
+
   ## Boot ##
   # Start up if at all possible.
   systemd.enableEmergencyMode = false;
@@ -75,7 +75,7 @@
   networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
   networking.firewall = {
     allowPing = true;
-    allowedTCPPorts = [ 
+    allowedTCPPorts = [
       80 443  # Web-server
       25565 25566 25567  # Minecraft
       25523  # Minecraft testing
@@ -87,12 +87,19 @@
       10401  # Wireguard
     ];
   };
-  #networking.nat = {
-  #  enable = true;  # For mediawiki.
-  #  externalIP = "138.201.133.39";
-  #  externalInterface = "eth0";
-  #  internalInterfaces = [ "ve-eln-wiki" ];
-  #};
+  networking.nat = {
+    forwardPorts = [
+      {
+        destination = "10.211.72.90";
+        proto = "tcp";
+        sourcePort = "3029:3031";
+      }
+    ];
+    enable = true;
+    externalIP = "95.216.71.247";
+    externalInterface = "enp0s31f6";
+    internalInterfaces = [ "lxdbr0" ];
+  };
 
   # Wireguard link between my machines
   networking.wireguard = {
@@ -153,6 +160,7 @@
           "warmroast.brage.info" = null;
           "hydra.brage.info" = null;
           "pw.brage.info" = null;
+          "ll.ja13.org" = null;
         };
       };
     };
@@ -221,7 +229,7 @@
         "incognito.brage.info" = proxy 8124;
         "tppi-map.brage.info" = proxy 8126;
         "cache.brage.info" = root "/home/svein/web/cache";
-        "znc.brage.info" = base { 
+        "znc.brage.info" = base {
            "/" = {
              proxyPass = "https://127.0.0.1:4000";
              extraConfig = "proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;";
@@ -231,6 +239,7 @@
         "warmroast.brage.info" = proxy 23000;
         "hydra.brage.info" = proxy 3001;
         "pw.brage.info" = proxy 1057;
+        "ll.ja13.org" = proxy 3029;
       };
   };
 }
