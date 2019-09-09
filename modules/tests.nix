@@ -15,7 +15,7 @@ let
   zfs2 = (test "zfs").unstable {};
 
   tests = pkgs.runCommand "proof-of-tests" {
-    tests = [ zfs zfs2 gnome kde ];
+    tests = [ gnome kde ];
   } ''
     mkdir -p $out/share/doc/proof-of-tests
     i=1
