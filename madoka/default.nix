@@ -60,10 +60,14 @@
   ## Networking ##
   networking.hostName = "madoka";
   networking.hostId = "8425e349";
+  networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
   networking.interfaces.enp0s31f6 = {
     useDHCP = true;
     ipv6.addresses = [{
-      address = "2a01:4f9:2b:808::1";
+      address = "2a01:4f9:2b:808:0::1";
+      prefixLength = 64;
+    }{
+      address = "2a01:4f9:2b:808:1::1";
       prefixLength = 64;
     }];
     ipv6.routes = [{
@@ -71,21 +75,6 @@
       prefixLength = 0;
       via = "fe80::1";
     }];
-  };
-  networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
-  networking.firewall = {
-    allowPing = true;
-    allowedTCPPorts = [
-      80 443  # Web-server
-      25565 25566 25567  # Minecraft
-      25523  # Minecraft testing
-      4000  # ZNC
-      12345  # JMC's ZNC
-    ];
-    allowedUDPPorts = [
-      34197  # Factorio
-      10401  # Wireguard
-    ];
   };
   networking.nat = {
     forwardPorts = [
@@ -99,6 +88,27 @@
     externalIP = "95.216.71.247";
     externalInterface = "enp0s31f6";
     internalInterfaces = [ "lxdbr0" ];
+    extraCommands = ''
+      # Setting up the default route still does not work reliably.
+      ${pkgs.iproute}/bin/ip -6 route replace default via fe80::1 dev enp0s31f6
+
+      # Add DNAT for jared's container.
+      ${pkgs.iptables}/bin/ip6tables -t nat -I PREROUTING -d 2a01:4f9:2b:808:1::1 -j DNAT --to fd00:56ad:9f7a:9800:216:3eff:fe11:af98
+    '';
+  };
+  networking.firewall = {
+    allowPing = true;
+    allowedTCPPorts = [
+      80 443  # Web-server
+      25565 25566 25567  # Minecraft
+      25523  # Minecraft testing
+      4000  # ZNC
+      12345  # JMC's ZNC
+    ];
+    allowedUDPPorts = [
+      34197  # Factorio
+      10401  # Wireguard
+    ];
   };
 
   # Wireguard link between my machines
