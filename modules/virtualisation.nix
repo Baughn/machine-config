@@ -7,8 +7,9 @@
   };
 
   config = lib.mkIf config.me.virtualisation.enable {
+    virtualisation.libvirtd.enable = true;
     virtualisation.lxd.enable = true;
-    users.extraUsers.svein.extraGroups = [ "docker" "lxd" ];
+    users.extraUsers.svein.extraGroups = [ "docker" "lxd" "libvirtd" ];
     networking.firewall.checkReversePath = false;
     environment.systemPackages = [ pkgs.qemu ];
   };
