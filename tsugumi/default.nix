@@ -49,15 +49,7 @@
   ## Networking ##
   networking.hostName = "tsugumi";
   networking.hostId = "3b3fc025";
-  services.udev.extraRules = ''
-      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="10:7b:44:92:17:20", NAME="eth0"
-  '';
-  networking.bridges.br0 = {
-    interfaces = [ "eth0" ];
-  };
-  networking.interfaces.br0 = {
-    useDHCP = true;
-  };
+  networking.usePredictableInterfaceNames = false;
 
   networking.firewall.allowedTCPPorts = [
     80 443   # Web-server
