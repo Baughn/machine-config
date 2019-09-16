@@ -28,6 +28,7 @@ in
     # Workaround for #599
     LOCALE_ARCHIVE = "${pkgs.glibcLocales}/lib/locale/locale-archive";
     PATH = "$PATH:$HOME/.cargo/bin";
+    LIBVIRT_DEFAULT_URI = "qemu:///system";
   };
 
   programs.git = {

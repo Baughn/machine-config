@@ -11,6 +11,6 @@
     virtualisation.lxd.enable = true;
     users.extraUsers.svein.extraGroups = [ "docker" "lxd" "libvirtd" ];
     networking.firewall.checkReversePath = false;
-    environment.systemPackages = [ pkgs.qemu ];
+    environment.systemPackages = [ pkgs.qemu pkgs.virtmanager ];
   };
 }
