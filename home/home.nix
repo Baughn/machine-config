@@ -132,13 +132,12 @@ in
     controlMaster = "auto";
     controlPersist = "10m";
     matchBlocks = {
-      "saya" = {
-        hostname = "brage.info";
-        port = 2222;
-      };
       "*.sv" = {
         identityFile = "/home/svein/sufficient/id_rsa";
         user = "baughn";
+      };
+      "saya" = {
+        proxyJump = "brage.info";
       };
     };
     extraConfig = ''
