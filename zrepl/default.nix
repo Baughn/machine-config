@@ -3,8 +3,8 @@
 
 buildGoPackage rec {
   name = "zrepl-unstable-${version}";
-  version = "2019-04-06";
-  rev = "5138681c132948db311e303d5e0467a83677dc8e";
+  version = "0.1.1";
+  rev = "v0.1.1";
 
   goPackagePath = "github.com/zrepl/zrepl";
 
