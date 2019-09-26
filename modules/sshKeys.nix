@@ -47,4 +47,7 @@
   jared = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMRYKlNg7quD5BW5Yx4m1LCSsmhMdwi0aInARX21qflz jared@jtop"
   ];
+  maxwell-lt = [
+    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCj9GfcWPMaytL62VZjvoYRpCT3wxyU6U+riB6gqy5UwozEDOY42NV/Mm2AFC5KQ9QjSC4UZB/Ws5+9q4OHCuRk7z7xCem3rUNDElqMtvmq9dfbaxEknzWucfLQZP8N7cQ/V62K01cSX0o1WwZqj2RZIjvnU5VDH49gOaep795MKOphW1aoXTUGQnhNw3mLDxnnnjjEEThLtac186pXaxDa/JgXBGvoJep2DBUiAXXaXohjMNQijVal/3txfzPOB1SPUnF5qy6qn/WvZfGiVPd3uI/ftLm9m+/O4xr0jeT1webfwyhyirnxFecS/W2pWGtxT6A8jKpiyOccTMDG847D maxwell@maxwell-gaming-mint"
+  ];
 }
