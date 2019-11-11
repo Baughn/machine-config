@@ -43,6 +43,14 @@ in
     maptimeout 5
   '';
 
+  programs.mpv = {
+    enable = true;
+    config = {
+      ontop = true;
+      alang = "jp";
+    };
+  };
+
   programs.neovim = {
     enable = true;
     vimAlias = true;
