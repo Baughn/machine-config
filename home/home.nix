@@ -15,7 +15,6 @@ in
 
 {
   imports = [
-    ./neovim-plugins.nix
   ];
 
   home.packages = with pkgs; [
@@ -57,8 +56,11 @@ in
       vim-nix
       rust-vim
 
-      ## Plugins
-      ''
+      # Writing
+      goyo
+      #limelight
+    ];
+    extraConfig = ''
         call plug#begin('~/.local/share/nvim/plugged')
         Plug 'autozimu/LanguageClient-neovim', { 'do': ':UpdateRemotePlugins' }
         Plug 'junegunn/fzf'
@@ -94,14 +96,7 @@ in
         nnoremap <F5> :call LanguageClient_contextMenu()<CR>
 
         set completeopt+=preview
-      ''
 
-      # Writing
-      goyo
-      #limelight
-
-      # Personal customizations
-      ''
         set nocompatible
         set linebreak
 
@@ -122,8 +117,7 @@ in
         set splitright
 
         set timeoutlen=100 ttimeoutlen=10
-      ''
-    ];
+    '';
   };
 
   programs.ssh = {
@@ -159,5 +153,4 @@ in
   };
 
   programs.home-manager.enable = true;
-  programs.home-manager.path = https://github.com/rycee/home-manager/archive/release-19.03.tar.gz;
 }
