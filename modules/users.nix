@@ -46,7 +46,13 @@ let
       ];
     };
     jared.uid = 1058;
-    # Next free ID: 1059
+    snowfire = {
+      uid = 1059;
+      openssh.authorizedKeys.keys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGQJY48dXt3SZd/ZVZHqX2hPoQGljrIGTQCbJbn6JtLa snowfirek@pop-os"
+      ];
+    };
+    # Next free ID: 1060
     anne.uid = 1100;
   };
   includeUser = username: ({

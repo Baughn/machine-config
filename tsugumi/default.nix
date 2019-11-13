@@ -148,5 +148,5 @@
     };
   };
 
-  users.include = ["pl" "aquagon" "will"];
+  users.include = ["pl" "aquagon" "will" "snowfire"];
 }
