@@ -94,4 +94,8 @@ update() {
   echo 'Updating home-manager.'
   git push -f madoka
   nixops ssh-for-each "sudo -su svein bash -c 'home-manager switch'" -d personal "$@"
+
+  echo
+  echo "Booted kernel:  $(readlink /run/booted-system/kernel | awk -F/ '{print $4}')"
+  echo "Current kernel: $(readlink /run/current-system/kernel | awk -F/ '{print $4}')"
 }
