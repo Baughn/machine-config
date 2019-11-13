@@ -112,7 +112,7 @@ in
     enable = true;
     compression = true;
     controlMaster = "auto";
-    controlPersist = "10m";
+    controlPersist = "2m";
     matchBlocks = {
       "*.sv" = {
         identityFile = "/home/svein/sufficient/id_rsa";
