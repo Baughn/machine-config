@@ -72,6 +72,11 @@
       ips = [ "10.40.0.1/24" ];
       listenPort = 10401;
       peers = [
+        # Kaho
+        {
+          allowedIPs = [ "10.40.0.5/32" ];
+          publicKey = "AajvMFJZQptkunsC2NYbwy6Ig7ly64QO1K94kvJyxRA=";
+        }
         # Madoka
         {
           allowedIPs = [ "10.40.0.2/32" ];
