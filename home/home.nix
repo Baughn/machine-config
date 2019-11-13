@@ -47,7 +47,8 @@ in
     enable = true;
     config = {
       ontop = true;
-      alang = "jp";
+      alang = "ja";
+      slang = "en";
     };
   };
 
@@ -59,51 +60,30 @@ in
       # "Defaults everyone can agree on"
       sensible
 
+      # Tools
+      fugitive
+      The_NERD_tree
+
       # Syntax support
       syntastic
-      vim-nix
-      rust-vim
+      #vim-nix
+      #rust-vim
 
-      # Writing
+      # Extra writing tools
+      surround
+      vim-easymotion
+
+      # Writing / appearance
+      airline
       goyo
-      #limelight
+      limelight-vim
     ];
     extraConfig = ''
         call plug#begin('~/.local/share/nvim/plugged')
-        Plug 'autozimu/LanguageClient-neovim', { 'do': ':UpdateRemotePlugins' }
-        Plug 'junegunn/fzf'
-        Plug 'ncm2/ncm2'
-        Plug 'roxma/nvim-yarp'
-        Plug 'ncm2/ncm2-bufword'
-        Plug 'ncm2/ncm2-path'
         call plug#end()
-
-        autocmd BufReadPost *.rs setlocal filetype=rust
-        autocmd BufEnter * call ncm2#enable_for_buffer()
-        " IMPORTANT: :help Ncm2PopupOpen for more information
-        set completeopt=noinsert,menuone,noselect
 
         " Required for operations modifying multiple buffers like rename.
         set hidden
-
-        let g:LanguageClient_serverCommands = {
-            \ 'rust': ['rustup', 'run', 'stable', 'rls'],
-            \ }
-
-        " Automatically start language servers.
-        let g:LanguageClient_autoStart = 1
-
-        let g:rustfmt_command = "rustfmt +nightly"
-        let g:rustfmt_emit_files = 1
-        let g:rustfmt_autosave = 1
-
-        " Maps K to hover, gd to goto definition, F2 to rename, F5 to context menu.
-        nnoremap <silent> K :call LanguageClient_textDocument_hover()<CR>
-        nnoremap <silent> gd :call LanguageClient_textDocument_definition()<CR>
-        nnoremap <silent> <F2> :call LanguageClient_textDocument_rename()<CR>
-        nnoremap <F5> :call LanguageClient_contextMenu()<CR>
-
-        set completeopt+=preview
 
         set nocompatible
         set linebreak
