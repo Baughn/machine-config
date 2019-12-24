@@ -52,7 +52,13 @@ let
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGQJY48dXt3SZd/ZVZHqX2hPoQGljrIGTQCbJbn6JtLa snowfirek@pop-os"
       ];
     };
-    # Next free ID: 1060
+    grissess = {
+      uid = 1060;
+      openssh.authorizedKeys.keys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIByY7vM2HdrHD3z9vAikiT7H3A6anjSPyT27a1GEePFe grissess@ceres"
+      ];
+    };
+    # Next free ID: 1061
     anne.uid = 1100;
   };
   includeUser = username: ({
