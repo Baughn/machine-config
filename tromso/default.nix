@@ -24,29 +24,6 @@
 
   users.include = [ "anne" "znapzend" ];
 
-  # HACK: Workaround the C6 bug.
-  #systemd.services.fix-zen-c6 = {
-  #  description = "Work around the AMD C6 bug";
-  #  path = [ pkgs.python ];
-  #  wantedBy = [ "multi-user.target" ];
-  #  script = ''
-  #    python ${./zenstates.py} --c6-disable
-  #  '';
-  #};
-
-  # Following https://bugs.launchpad.net/linux/+bug/1690085/comments/69
-  boot.kernelParams = [
-    "rcu_nocbs=0-11"
-  ];
-  boot.kernelPatches = [{
-    name = "c6-patch";
-    patch = null;
-    extraConfig = ''
-      RCU_EXPERT y
-      RCU_NOCB_CPU y
-    '';
-  }];
-
   ## Plex ##
   # services.plex.enable = true;
   services.nginx = {
