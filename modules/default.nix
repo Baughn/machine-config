@@ -5,7 +5,6 @@
     ./basics.nix
     ./desktop.nix
     ./nginx.nix
-    ./tests.nix
     ./virtualisation.nix
     ./zfs.nix
   ];
