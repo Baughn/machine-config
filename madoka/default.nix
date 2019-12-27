@@ -61,7 +61,8 @@
   networking.hostName = "madoka";
   networking.hostId = "8425e349";
   networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
-  networking.interfaces.eno1 = {
+  networking.usePredictableInterfaceNames = false;
+  networking.interfaces.eth0 = {
     useDHCP = true;
     ipv6.addresses = [{
       address = "2a01:4f9:2b:808:0::1";
@@ -86,12 +87,9 @@
     ];
     enable = true;
     externalIP = "95.216.71.247";
-    externalInterface = "eno1";
+    externalInterface = "eth0";
     internalInterfaces = [ "lxdbr0" ];
     extraCommands = ''
-      # Setting up the default route still does not work reliably.
-      ${pkgs.iproute}/bin/ip -6 route replace default via fe80::1 dev eno1
-
       # Add DNAT for jared's container.
       ${pkgs.iptables}/bin/ip6tables -t nat -I PREROUTING -d 2a01:4f9:2b:808:1::1 -j DNAT --to fd00:56ad:9f7a:9800:216:3eff:fe11:af98
     '';
@@ -152,7 +150,7 @@
     certs = {
       "madoka.brage.info" = {
         email = "sveina@gmail.com";
-        group = "wheel";
+        group = "nginx";
         allowKeysForGroup = true;
         postRun = "systemctl reload nginx.service";
         webroot = "/var/lib/acme/acme-challenge";
