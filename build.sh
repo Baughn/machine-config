@@ -5,13 +5,14 @@ set -ue -o pipefail
 cd "$(dirname "$(readlink -f "$0")")"
 
 export HERE="$(pwd)"
-export CHANNEL="19.03"
+export CHANNEL="unstable"
 export NIXPKGS="$HOME/dev/nix/system"
 export FORCE_UPDATE=0
 
 get_base() {
-  BASE="$(curl https://howoldis.herokuapp.com/api/channels | \
-          jq -r "map(select(.name == \"nixos-$CHANNEL\"))[0].commit")"
+  BASE="$(curl https://howoldis.herokuapp.com/api/channels \
+    | jq -r "map(select(.name == \"nixos-$CHANNEL\"))[0].link" \
+    | sed 's/.*\.//')"
   echo "$BASE"
 }
 
