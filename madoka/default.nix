@@ -61,7 +61,7 @@
   networking.hostName = "madoka";
   networking.hostId = "8425e349";
   networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
-  networking.interfaces.enp0s31f6 = {
+  networking.interfaces.eno1 = {
     useDHCP = true;
     ipv6.addresses = [{
       address = "2a01:4f9:2b:808:0::1";
@@ -86,11 +86,11 @@
     ];
     enable = true;
     externalIP = "95.216.71.247";
-    externalInterface = "enp0s31f6";
+    externalInterface = "eno1";
     internalInterfaces = [ "lxdbr0" ];
     extraCommands = ''
       # Setting up the default route still does not work reliably.
-      ${pkgs.iproute}/bin/ip -6 route replace default via fe80::1 dev enp0s31f6
+      ${pkgs.iproute}/bin/ip -6 route replace default via fe80::1 dev eno1
 
       # Add DNAT for jared's container.
       ${pkgs.iptables}/bin/ip6tables -t nat -I PREROUTING -d 2a01:4f9:2b:808:1::1 -j DNAT --to fd00:56ad:9f7a:9800:216:3eff:fe11:af98
@@ -139,7 +139,7 @@
   users.include = [
     "mei" "einsig" "prospector" "minecraft" "bloxgate" "buizerd"
     "darqen27" "david" "jmc" "kim" "luke" "simplynoire" "vindex"
-    "xgas" "will" "lucca" "dusk" "ahigerd" "jared"
+    "xgas" "will" "lucca" "dusk" "ahigerd" "jared" "grissess"
   ];
 
   ## Postgresql **
@@ -230,18 +230,18 @@
       in {
         "madoka.brage.info" = base {
           "/" = minecraft;
-          "/warmroast".proxyPass = "http://127.0.0.1:23000/";
-          "/baughn".extraConfig = "alias /home/svein/web;";
-          "/tppi".extraConfig = "alias /home/tppi/web;";
+          "/warmroast/".proxyPass = "http://127.0.0.1:23000/";
+          "/baughn/".extraConfig = "alias /home/svein/web/;";
+          "/tppi/".extraConfig = "alias /home/tppi/web/;";
         } // { default = true; };
         "status.brage.info" = proxy 9090;
         "grafana.brage.info" = proxy 3000;
-        "tppi.brage.info" = root "/home/tppi/web";
+        "tppi.brage.info" = root "/home/tppi/web/";
         "alertmanager.brage.info" = proxy 9093;
         "map.brage.info" = proxy 8123;
         "incognito.brage.info" = proxy 8124;
         "tppi-map.brage.info" = proxy 8126;
-        "cache.brage.info" = root "/home/svein/web/cache";
+        "cache.brage.info" = root "/home/svein/web/cache/";
         "znc.brage.info" = base {
            "/" = {
              proxyPass = "https://127.0.0.1:4000";
