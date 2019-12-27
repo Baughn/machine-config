@@ -55,7 +55,9 @@ in
   programs.neovim = {
     enable = true;
     vimAlias = true;
-    extraPython3Packages = (ps: with ps; [ python-language-server ]);
+    extraPython3Packages = (ps: with ps; [
+      python-language-server
+    ]);
     plugins = with pkgs.vimPlugins; [
       # "Defaults everyone can agree on"
       sensible
@@ -80,10 +82,42 @@ in
     ];
     extraConfig = ''
         call plug#begin('~/.local/share/nvim/plugged')
+        Plug 'rust-lang/rust.vim'
+        Plug 'ncm2/ncm2'
+        Plug 'roxma/nvim-yarp'
+        Plug 'ncm2/ncm2-bufword'
+        Plug 'ncm2/ncm2-path'
+        Plug 'autozimu/LanguageClient-neovim', {
+            \ 'branch': 'next',
+            \ 'do': 'bash install.sh',
+            \ }
         call plug#end()
+
+        " Writing stuff
+        let g:limelight_conceal_ctermfg = 'gray'
+
+        " enable ncm2 for all buffers
+        autocmd BufEnter * call ncm2#enable_for_buffer()
+        set completeopt=noinsert,menuone,noselect
+
+        " Use <TAB> to select the popup menu:
+        inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+        inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+
+        " Enable Rust
+        autocmd BufReadPost *.rs setlocal filetype=rust
+        let g:LanguageClient_serverCommands = {
+            \ 'rust': ['rustup', 'run', 'stable', 'rls'],
+            \ }
+        let g:LanguageClient_autoStart = 1
+        let g:LanguageClient_useVirtualText = 0
 
         " Required for operations modifying multiple buffers like rename.
         set hidden
+
+        nnoremap <silent> K :call LanguageClient_textDocument_hover()<CR>
+        nnoremap <silent> gd :call LanguageClient_textDocument_definition()<CR>
+        nnoremap <silent> <F2> :call LanguageClient_textDocument_rename()<CR>
 
         set nocompatible
         set linebreak
