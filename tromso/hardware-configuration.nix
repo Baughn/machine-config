@@ -37,6 +37,11 @@
       fsType = "zfs";
     };
 
+  fileSystems."/home/svein/slow" =
+    { device = "stash/home/svein-slow";
+      fsType = "zfs";
+    };
+
   swapDevices = [ ];
 
   nix.maxJobs = lib.mkDefault 12;

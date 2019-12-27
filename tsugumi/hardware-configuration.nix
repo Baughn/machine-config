@@ -42,6 +42,11 @@
       fsType = "zfs";
     };
 
+  fileSystems."/home/svein/dev" =
+    { device = "nvmpool/svein/dev";
+      fsType = "zfs";
+    };
+
   fileSystems."/home/svein/fast" =
     { device = "nvmpool/svein";
       fsType = "zfs";
@@ -79,6 +84,16 @@
 
   fileSystems."/home/svein/secure-encfs" =
     { device = "stash/home/svein/secure-encfs";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/secure" =
+    { device = "stash/home/svein/secure";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/short-term" =
+    { device = "stash/home/svein/short-term";
       fsType = "zfs";
     };
 

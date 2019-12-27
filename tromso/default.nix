@@ -69,9 +69,9 @@
 
   networking.firewall = {
     trustedInterfaces = [ "internal" ];
-    allowedTCPPorts = [ 4242 80 ];
+    allowedTCPPorts = [ 4242 80 8443 27036 27037 ];
     allowedUDPPortRanges = [{from = 60000; to = 61000;}];
-    allowedUDPPorts = [ 10401 ];
+    allowedUDPPorts = [ 10401 27031 27036 ];
   };
 
   networking.wireguard = {
