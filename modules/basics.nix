@@ -52,7 +52,7 @@
      # Debug/dev tools
      tcpdump nmap gdb gradle python3Packages.virtualenv
      telnet man-pages posix_man_pages mono heaptrack
-     rustup rls gcc stack
+     rustup gcc
      pythonFull python3Full freeipmi binutils jq
      gitAndTools.gitFull git-lfs sqliteInteractive
      config.boot.kernelPackages.bpftrace
@@ -146,9 +146,9 @@
     import /home/svein/sufficient/ServerConfiguration/network.nix);
   
   ## Time & location ##
+  console.font = lib.mkDefault "Lat2-Terminus16";
+  console.keyMap = "us";
   i18n = {
-    consoleFont = lib.mkDefault "Lat2-Terminus16";
-    consoleKeyMap = "us";
     defaultLocale = "en_US.UTF-8";
   };
   time.timeZone = "Europe/Dublin";

@@ -13,37 +13,26 @@
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "ssd/root";
+    { device = "nvme";
+      fsType = "zfs";
+    };
+
+  fileSystems."/nix" =
+    { device = "nvme/nix";
       fsType = "zfs";
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/A4C0-0C04";
+    { device = "/dev/disk/by-uuid/0783-FACE";
       fsType = "vfat";
     };
 
   fileSystems."/home" =
-    { device = "stash/home";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/anne" =
-    { device = "stash/home/anne";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/svein" =
-    { device = "ssd/home/svein";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/svein/slow" =
-    { device = "stash/home/svein-slow";
+    { device = "nvme/home";
       fsType = "zfs";
     };
 
   swapDevices = [ ];
 
   nix.maxJobs = lib.mkDefault 12;
-  powerManagement.cpuFreqGovernor = "powersave";
 }
