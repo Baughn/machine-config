@@ -20,12 +20,11 @@
   boot.loader.efi.canTouchEfiVariables = true;
   systemd.enableEmergencyMode = false;  # Start up no matter what, if at all possible.
   hardware.cpu.amd.updateMicrocode = true;
-  boot.zfs.enableUnstable = true;
 
   users.include = [ "anne" "znapzend" ];
 
   ## Plex ##
-  # services.plex.enable = true;
+  services.plex.enable = true;
   services.nginx = {
 #    enable = true;
     recommendedGzipSettings = true;
@@ -43,9 +42,10 @@
   ## Networking ##
   networking.hostName = "tromso";
   networking.hostId = "5c118177";
+  networking.usePredictableInterfaceNames = false;
+  networking.interfaces.eth0.useDHCP = true;
 
   networking.firewall = {
-    trustedInterfaces = [ "internal" ];
     allowedTCPPorts = [ 4242 80 8443 27036 27037 ];
     allowedUDPPortRanges = [{from = 60000; to = 61000;}];
     allowedUDPPorts = [ 10401 27031 27036 ];
