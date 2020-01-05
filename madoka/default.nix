@@ -82,7 +82,7 @@
       {
         destination = "10.211.72.90";
         proto = "tcp";
-        sourcePort = "3029:3031";
+        sourcePort = "3029:3035";
       }
     ];
     enable = true;
@@ -169,6 +169,7 @@
           "hydra.brage.info" = null;
           "pw.brage.info" = null;
           "ll.ja13.org" = null;
+          "ctl.ll.ja13.org" = null;
         };
       };
     };
@@ -251,6 +252,7 @@
         "hydra.brage.info" = proxy 3001;
         "pw.brage.info" = proxy 1057;
         "ll.ja13.org" = proxyJared 3029;
+        "ctl.ll.ja13.org" = proxyJared 3029;
       };
   };
 }
