@@ -51,6 +51,17 @@
     allowedUDPPorts = [ 10401 27031 27036 ];
   };
 
+  services.ddclient = {
+    enable = true;
+    verbose = true;
+    username = "Vaughn";
+    password = (import ../secrets).dyndns;
+    server = "members.dyndns.org";
+    extraConfig = ''
+      custom=yes, tromso.brage.info
+    '';
+  };
+
   networking.wireguard = {
     interfaces.wg0 = {
       ips = [ "10.40.0.4/24" ];
