@@ -50,6 +50,7 @@
   networking.hostName = "tsugumi";
   networking.hostId = "3b3fc025";
   networking.usePredictableInterfaceNames = false;
+  networking.interfaces.eth0.useDHCP = true;
 
   networking.firewall.allowedTCPPorts = [
     80 443   # Web-server
