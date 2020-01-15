@@ -104,6 +104,7 @@
   boot.kernel.sysctl = {
     "fs.inotify.max_user_watches" = 1048576;
     "net.ipv4.tcp_congestion_control" = "bbr";
+    "net.ipv4.tcp_ecn" = 1;
   };
 
   ## Nix setup
