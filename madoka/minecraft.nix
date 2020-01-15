@@ -10,10 +10,4 @@
     minecraft ALL= NOPASSWD: /run/current-system/sw/bin/mount -t zfs --target /home/minecraft/snapshot --source rpool/home/minecraft*
     minecraft ALL= NOPASSWD: /run/current-system/sw/bin/umount /home/minecraft/snapshot
   '';
-
-  # Enable Grafana for monitoring.
-  services.grafana = {
-    auth.anonymous.enable = true;
-    enable = true;
-  };
 }
