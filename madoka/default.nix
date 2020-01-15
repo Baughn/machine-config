@@ -175,6 +175,75 @@
     };
   };
 
+  # Enable Grafana for monitoring.
+  services.grafana = {
+    auth.anonymous.enable = true;
+    enable = true;
+  };
+
+  # Configure Prometheus for monitoring.
+  services.prometheus = {
+    enable = true;
+    webExternalUrl = "https://status.brage.info/";
+    alertmanager = {
+      enable = true;
+      webExternalUrl = "https://alertmanager.brage.info/";
+      port = 9093;
+      configuration = {
+        global.slack_api_url = "https://discordapp.com/api/webhooks/610612851404701726/JKRPNs3AeJzHL8w8I_SCLNtphr-BBQV8yBHJMoa6VwWCDHqOMQwu9Yjvsu5h3sDQhfMe/slack";
+        route = {
+          group_by = ["alertname"];
+          group_wait = "30s";
+          repeat_interval = "3h";
+          receiver = "discord";
+        };
+        receivers = [{
+          name = "discord";
+          slack_configs = [{
+            send_resolved = true;
+            channel = "#site-alerts";
+            text = "<!channel> \nsummary: {{ .    CommonAnnotations.summary }}\ndetails: {{ .       CommonAnnotations.details }}";
+          }];
+        }];
+      };
+    };
+    alertmanagers = [{
+      scheme = "http";
+      static_configs = [{
+        targets = ["localhost:9093"];
+      }];
+    }];
+    rules = [''
+    ''];
+    globalConfig = {
+      evaluation_interval = "20s";
+      scrape_interval = "20s";
+    };
+    exporters = {
+      node.enable = true;
+    };
+    scrapeConfigs = [
+      {
+        job_name = "alertmanager";
+        static_configs = [{
+          targets = ["localhost:9093"];
+        }];
+      }
+      {
+        job_name = "prometheus";
+        static_configs = [{
+          targets = ["localhost:9090"];
+        }];
+      }
+      {
+        job_name = "node";
+        static_configs = [{
+          targets = ["localhost:9100"];
+        }];
+      }
+    ];
+  };
+
   ## Webserver ##
   services.nginx = let
     # Needed because nginx stupidly erases global headers if local headers are set.
