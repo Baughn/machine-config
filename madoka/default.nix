@@ -241,6 +241,12 @@
           targets = ["localhost:9100"];
         }];
       }
+      {
+        job_name = "erisia";
+        static_configs = [{
+          targets = ["localhost:1223"];
+        }];
+      }
     ];
   };
 
