@@ -201,8 +201,8 @@
           name = "discord";
           slack_configs = [{
             send_resolved = true;
-            channel = "#site-alerts";
-            text = "<!channel> \nsummary: {{ .    CommonAnnotations.summary }}\ndetails: {{ .       CommonAnnotations.details }}";
+            channel = "#administrative";
+            text = "<!channel> \nsummary: {{ .CommonAnnotations.summary }}\ndescription: {{ .CommonAnnotations.description }}";
           }];
         }];
       };
