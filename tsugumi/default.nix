@@ -64,7 +64,6 @@
     34197      # Factorio
     137 138    # Samba
   ];
-  services.unifi.enable = true;
 
 
   # Wireguard link between my machines
@@ -154,5 +153,5 @@
     };
   };
 
-  users.include = ["pl" "aquagon" "will" "snowfire"];
+  users.include = ["pl" "aquagon" "will" "snowfire" "minecraft"];
 }

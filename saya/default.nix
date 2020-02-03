@@ -11,7 +11,6 @@
     ../modules/emergency-shell.nix
     ../modules/nvidia.nix
     ../modules/rsyncd.nix
-    ../modules/unifi.nix
     ../modules/znapzend.nix
     ../modules/monitoring.nix
   ];

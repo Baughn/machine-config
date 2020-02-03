@@ -54,6 +54,7 @@
      telnet man-pages posix_man_pages mono heaptrack
      rustup gcc
      pythonFull python3Full freeipmi binutils jq
+     mercurialFull
      gitAndTools.gitFull git-lfs sqliteInteractive
      config.boot.kernelPackages.bpftrace
      # System/monitoring/etc tools
@@ -62,7 +63,7 @@
      usbutils powertop w3m autossh
      # Shell tools
      file irssi links2 screen parallel moreutils neovim mutt finger_bsd
-     autojump units progress pv mc mkpasswd ripgrep zstd pixz mbuffer
+     autojump units progress pv mc mkpasswd ripgrep zstd pixz mbuffer fd
      (callPackage ../tools/up {})
      # File transfer
      rsync wget rtorrent unison znapzend sshfsFuse borgbackup
@@ -98,8 +99,6 @@
   hardware.enableAllFirmware = true;
   boot.loader.grub.memtest86.enable = config.boot.loader.grub.enable;
   services.fwupd.enable = true;
-  zramSwap.enable = true;
-  zramSwap.algorithm = "zstd";
   boot.cleanTmpDir = true;
   boot.kernel.sysctl = {
     "fs.inotify.max_user_watches" = 1048576;
