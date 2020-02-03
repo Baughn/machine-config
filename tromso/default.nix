@@ -9,7 +9,6 @@
     ../modules
     ./hardware-configuration.nix
     ../modules/amdgpu.nix
-    ../modules/unifi.nix
   ];
 
   networking.networkmanager.enable = true;

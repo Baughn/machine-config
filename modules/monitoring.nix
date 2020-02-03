@@ -42,13 +42,6 @@
       collectd.enable = true;
       nginx.enable = config.services.nginx.enable;
       postfix.enable = config.services.postfix.enable;
-      unifi = {
-        enable = config.services.unifi.enable;
-        unifiAddress = "https://localhost:8443";
-        unifiInsecure = true;
-        unifiPassword = (import ../secrets).unifiPassword;
-        unifiUsername = "svein";
-      };
     };
     scrapeConfigs = (lib.mapAttrsToList (name: val: {
       job_name = name;
