@@ -73,12 +73,6 @@
           persistentKeepalive = 30;
           publicKey = "H70HeHNGcA5HHhL2vMetsVj5CP7M3Pd/uI8yKDHN/hM=";
         }
-        # Saya
-        {
-          allowedIPs = [ "10.40.0.3/32" ];
-          persistentKeepalive = 30;
-          publicKey = "VcQ9no2+2hSTa9BO2fEpickKC50ibWp5uo0HrNBFmk8=";
-        }
       ];
       privateKeyFile = "/secrets/wg.key";
     };

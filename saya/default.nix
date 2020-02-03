@@ -88,13 +88,6 @@
     interfaces.wg0 = {
       ips = [ "10.40.0.3/24" ];
       peers = [
-        # Madoka
-        {
-          allowedIPs = [ "10.40.0.2/32" ];
-          endpoint = "madoka.brage.info:10401";
-          persistentKeepalive = 30;
-          publicKey = "kTxN9HAb73WDJXRAq704cKs/WS5VJ23oSgaAWeVrvRQ=";
-        }
         # Tsugumi
         {
           allowedIPs = [ "10.40.0.1/32" ];
