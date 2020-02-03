@@ -72,25 +72,6 @@
       ips = [ "10.40.0.1/24" ];
       listenPort = 10401;
       peers = [
-        # Kaho
-        {
-          allowedIPs = [ "10.40.0.5/32" ];
-          publicKey = "AajvMFJZQptkunsC2NYbwy6Ig7ly64QO1K94kvJyxRA=";
-        }
-        # Madoka
-        {
-          allowedIPs = [ "10.40.0.2/32" ];
-          endpoint = "madoka.brage.info:10401";
-          persistentKeepalive = 30;
-          publicKey = "kTxN9HAb73WDJXRAq704cKs/WS5VJ23oSgaAWeVrvRQ=";
-        }
-        # Saya
-        {
-          allowedIPs = [ "10.40.0.3/32" ];
-          endpoint = "saya.brage.info:10401";
-          persistentKeepalive = 30;
-          publicKey = "VcQ9no2+2hSTa9BO2fEpickKC50ibWp5uo0HrNBFmk8=";
-        }
         # Tromso
         {
           allowedIPs = [ "10.40.0.4/32" ];
