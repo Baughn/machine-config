@@ -26,13 +26,55 @@
           default = 8549;
         };
 
+        local = mkOption {
+          default = {};
+          type = attrsOf (submodule ({name, ...}: {
+            options = {
+              sourceFS = mkOption {
+                description = "Root of ZFS dataset(s) to replicate";
+                example = "replicated_pool/home";
+                type = string;
+              };
+              targetFS = mkOption {
+                description = "Root of ZFS dataset to write replication snapshots into.";
+                example = "replicated_pool/zrepl";
+                type = string;
+              };
+              exclude = mkOption {
+                description = "List of ZFS dataset(s) NOT to replicate or snapshot";
+                example = [ "replicated_pool/home/you/private" ];
+                type = listOf string;
+                default = [];
+              };
+              snapshotting = {
+                prefix = mkOption {
+                  description = "Snapshot name prefix";
+                  default = "zrepl_";
+                  type = string;
+                };
+                interval = mkOption {
+                  description = "Time in minutes between snapshots";
+                  default = 10;
+                  type = int;
+                };
+              };
+            };
+          }));
+          example = literalExample ''
+            services.zrepl.local."backup_name" = {
+              sourceFS = "fast_and_scary_pool/home";
+              targetFS = "replicated_pool/zrepl";
+            };
+          '';
+        };
+
         sink = mkOption {
           default = {};
           type = attrsOf (submodule ({name, ...}: {
             options = {
-              rootFs = mkOption {
+              targetFS = mkOption {
                 description = "Root of ZFS dataset to write replication snapshots into.";
-                example = "rpool/zrepl";
+                example = "replicated_pool/zrepl";
                 type = string;
               };
               port = mkOption {
@@ -46,7 +88,7 @@
                 default = true;
               };
               clients = mkOption {
-                description = "Client CNs to permit replication to this rootFs";
+                description = "Client CNs to permit replication to this targetFS";
                 defaultText = "[ <sink name> ]";
                 default = [ name ];
                 type = listOf string;
@@ -55,7 +97,7 @@
           }));
           example = literalExample ''
             services.zrepl.sink."pusher_name" = {
-              rootFs = "rpool/zrepl";
+              targetFS = "replicated_pool/zrepl";
             };
           '';
         };
@@ -64,14 +106,14 @@
           default = {};
           type = attrsOf (submodule {
             options = {
-              rootFs = mkOption {
+              sourceFS = mkOption {
                 description = "Root of ZFS dataset(s) to replicate";
-                example = "rpool/home";
+                example = "fast_and_scary_pool/home";
                 type = string;
               };
               exclude = mkOption {
                 description = "List of ZFS dataset(s) NOT to replicate or snapshot";
-                example = [ "rpool/home/you/private" ];
+                example = [ "fast_and_scary_pool/home/you/private" ];
                 type = listOf string;
                 default = [];
               };
@@ -101,7 +143,7 @@
           });
           example = literalExample ''
             services.zrepl.push."pusher_name" = {
-              rootFs = "rpool/home";
+              sourceFS = "replicated_pool/home";
               targetHost = "example.org";
             };
           '';
@@ -127,7 +169,10 @@
         type = "stdout";
         level = cfg.logging.level;
       }];
-      jobs = (lib.mapAttrsToList mkSinkJob cfg.sink) ++ (lib.mapAttrsToList mkPushJob cfg.push);
+      jobs = (lib.mapAttrsToList mkSinkJob cfg.sink)
+        ++ (lib.mapAttrsToList mkPushJob cfg.push)
+        ++ (lib.mapAttrsToList mkLocalPush cfg.local)
+        ++ (lib.mapAttrsToList mkLocalSink cfg.local);
     } // (if cfg.monitoring.port != null then {
       global.monitoring = [{
         type = "prometheus";
@@ -138,7 +183,7 @@
     mkSinkJob = name: sink: {
       name = "${name}_sink";
       type = "sink";
-      root_fs = sink.rootFs;
+      root_fs = sink.targetFS;
       serve = {
         type = "tls";
         listen = ":${builtins.toString sink.port}";
@@ -160,35 +205,62 @@
         key = "/var/spool/zrepl/${config.networking.hostName}.key";
         server_cn = name;
       };
-      filesystems = {
-        "${push.rootFs}<" = true;
-      } // (pkgs.lib.genAttrs push.exclude (fs: false));
+      filesystems = filesystemsConfig push;
+      snapshotting = snapshotConfig push;
+      pruning = pruningConfig push;
+    };
 
-      snapshotting = {
-        type = "periodic";
-        prefix = push.snapshotting.prefix;
-        interval = "${builtins.toString push.snapshotting.interval}m";
-      };
-
-      # TODO: Add some configurability here.
-      pruning = {
-        keep_sender = [{
-          type = "not_replicated";
-        }{
-          type = "grid";
-          grid = "1x3h(keep=all) | 24x1h | 7x1d";
-          regex = "^${push.snapshotting.prefix}";
-        }];
-        keep_receiver = [{
-          type = "grid";
-          grid = "24x1h | 30x1d | 6x14d";
-          regex = "^${push.snapshotting.prefix}";
-        }];
+    mkLocalSink = name: sink: {
+      name = "${name}_local_sink";
+      type = "sink";
+      root_fs = sink.targetFS;
+      serve = {
+        type = "local";
+        listener_name = "${name}_local_listener";
       };
     };
 
-    byRootFs = command: set: lib.concatStringsSep "\n" (lib.mapAttrsToList (name: value: ''
-      ${command} "${value.rootFs}"
+    mkLocalPush = name: push: {
+      name = "${name}_local_push";
+      type = "push";
+      connect = {
+        type = "local";
+        listener_name = "${name}_local_listener";
+        client_identity = name;
+      };
+      filesystems = filesystemsConfig push;
+      snapshotting = snapshotConfig push;
+      pruning = pruningConfig push;
+    };
+
+    filesystemsConfig = push: {
+      "${push.sourceFS}<" = true;
+    } // (pkgs.lib.genAttrs push.exclude (fs: false));
+
+    snapshotConfig = push: {
+      type = "periodic";
+      prefix = push.snapshotting.prefix;
+      interval = "${builtins.toString push.snapshotting.interval}m";
+    };
+
+    pruningConfig = push: {
+      # TODO: Add some configurability here.
+      keep_sender = [{
+        type = "not_replicated";
+      }{
+        type = "grid";
+        grid = "1x3h(keep=all) | 24x1h | 7x1d";
+        regex = "^${push.snapshotting.prefix}";
+      }];
+      keep_receiver = [{
+        type = "grid";
+        grid = "24x1h | 30x1d | 6x14d";
+        regex = "^${push.snapshotting.prefix}";
+      }];
+    };
+
+    byRootFs = { command, set, attribute}: lib.concatStringsSep "\n" (lib.mapAttrsToList (name: value: ''
+      ${command} "${value.${attribute}}"
     '') set);
   in
 
@@ -250,8 +322,10 @@
           zfs unallow -ldu zrepl "$1"
           zfs allow -ldu zrepl mount,destroy,hold,promote,send,release,snapshot,bookmark,userprop "$1"
         }
-      '' + byRootFs "setupSink" cfg.sink
-         + byRootFs "setupPush" cfg.push
+      '' + byRootFs { command = "setupSink"; set=cfg.sink; attribute="targetFS"; }
+         + byRootFs { command = "setupPush"; set=cfg.push; attribute="sourceFS"; }
+         + byRootFs { command = "setupSink"; set=cfg.local; attribute="targetFS"; }
+         + byRootFs { command = "setupPush"; set=cfg.local; attribute="sourceFS"; }
          + ''
            
         # Ensure ownership and permissions
