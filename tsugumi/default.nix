@@ -20,13 +20,21 @@
     virtualisation.enable = true;
   };
 
+  ## Backups ##
   services.zrepl = {
     enable = true;
-    sink.madoka = {
-      rootFs = "stash/zrepl";
-      openFirewall = true;
+    
+    local.minecraft = {
+      sourceFS = "minecraft";
+      targetFS = "stash/zrepl";
+      exclude = [
+        "minecraft/erisia/dynmap"
+        "minecraft/incognito/dynmap"
+        "minecraft/testing/dynmap"
+      ];
     };
   };
+
 
 
   # Work around #1915
