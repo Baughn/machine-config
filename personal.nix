@@ -1,3 +1,7 @@
+let
+  hercules-ci-agent =
+    builtins.fetchTarball "https://github.com/hercules-ci/hercules-ci-agent/archive/stable.tar.gz";
+in
 rec {
   network = {
     description = "Personal machines (pets)";
@@ -27,7 +31,15 @@ rec {
 
     imports = [
       ./tsugumi/default.nix
+      (hercules-ci-agent + "/module.nix")
     ];
+
+    services.hercules-ci-agent = {
+      enable = true;
+      concurrentTasks = 4;
+    };
+    deployment.keys."cluster-join-token.key".keyFile = ./secrets/hercules-ci/cluster-join-token.key;
+    deployment.keys."binary-caches.json".keyFile = ./secrets/hercules-ci/binary-caches.json;
   };
   
   madoka = { config, pkgs, ... }: {
