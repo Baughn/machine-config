@@ -91,10 +91,41 @@ in
             \ 'branch': 'next',
             \ 'do': 'bash install.sh',
             \ }
+
+        " Writing libs
+        Plug 'tpope/vim-markdown'
+				Plug 'kana/vim-textobj-user'
+				Plug 'reedes/vim-pencil'
+        Plug 'reedes/vim-lexical'
+        Plug 'reedes/vim-litecorrect'
+        Plug 'reedes/vim-textobj-quote'
+        Plug 'reedes/vim-textobj-sentence'
+        Plug 'reedes/vim-wordy'
         call plug#end()
 
         " Writing stuff
         let g:limelight_conceal_ctermfg = 'gray'
+				augroup pencil
+					 autocmd!
+					 autocmd filetype markdown,mkd call pencil#init()
+							 \ | call textobj#sentence#init()
+							 \ | call textobj#quote#init()
+							 \ | call lexical#init()
+							 \ | call litecorrect#init()
+               \ | Wordy weak
+							 \ | setl spell spl=en_us fdl=4 noru nonu nornu
+							 \ | setl fdo+=search
+					augroup END
+				 " Pencil / Writing Controls {{{
+					 let g:pencil#wrapModeDefault = 'soft'
+					 let g:pencil#textwidth = 74
+					 let g:pencil#joinspaces = 0
+					 let g:pencil#cursorwrap = 1
+					 let g:pencil#conceallevel = 3
+					 let g:pencil#concealcursor = 'c'
+					 let g:pencil#softDetectSample = 20
+					 let g:pencil#softDetectThreshold = 130
+				 " }}}
 
         " enable ncm2 for all buffers
         autocmd BufEnter * call ncm2#enable_for_buffer()
