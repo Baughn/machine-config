@@ -10,8 +10,7 @@
 
   # For the Dell.
   boot.loader.systemd-boot.consoleMode = "0";
-  i18n.consoleFont = "${pkgs.terminus_font}/share/consolefonts/ter-u32n.psf.gz";
-  boot.zfs.enableUnstable = true;
+  console.font = "${pkgs.terminus_font}/share/consolefonts/ter-u32n.psf.gz";
   boot.zfs.requestEncryptionCredentials = true;
 
   environment.etc.nixos-git.source = builtins.filterSource

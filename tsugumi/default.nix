@@ -35,8 +35,6 @@
     };
   };
 
-
-
   # Work around #1915
   boot.kernel.sysctl."user.max_user_namespaces" = 100;
 
