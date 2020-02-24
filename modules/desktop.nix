@@ -26,7 +26,7 @@ lib.mkIf config.me.desktop.enable {
         p.elpaPackages.undo-tree magit nix-mode gradle-mode lua-mode
         groovy-mode editorconfig rust-mode pabbrev expand-region
       ]))
-  ] ++ (lib.optional config.me.desktop.wayland kwin);
+  ];
 
   ## Fonts
   fonts = {
@@ -43,21 +43,17 @@ lib.mkIf config.me.desktop.enable {
     ];
   };
 
-  programs.sway = lib.mkIf config.me.desktop.wayland {
+  services.xserver = {
     enable = true;
-  };
-
-  services.xserver = lib.mkIf (!config.me.desktop.wayland) {
-    enable = true;
-    displayManager.sddm = {
+    layout = "us";
+    displayManager.gdm = {
       enable = true;
-      enableHidpi = true;
     };
     desktopManager = {
 #      default = "xfce";
 #      xfce.enable = true;
-#      gnome3.enable = true;
-      plasma5.enable = true;
+      gnome3.enable = true;
+#      plasma5.enable = true;
     };
     # windowManager.xmonad = {
     #   enable = true;
@@ -81,14 +77,26 @@ lib.mkIf config.me.desktop.enable {
       Option    "ZAxisMapping" "4 5 6 7"
     ''];
   };
-
+ 
+  sound.enable = true;
   hardware.pulseaudio = {
     enable = true;
     support32Bit = true;
+    package = pkgs.pulseaudioFull;
+    extraModules = [ pkgs.pulseaudio-modules-bt ];
+  };
+  hardware.bluetooth = {
+    enable = true;
+    package = pkgs.bluezFull;
+    extraConfig = ''
+      [General]
+      Enable=Source,Sink,Media,Socket
+    '';
   };
 
   hardware.opengl = {
     enable = true;
+    driSupport = true;
     driSupport32Bit = true;
     s3tcSupport = true;
   };

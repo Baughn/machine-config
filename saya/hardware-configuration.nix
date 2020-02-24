@@ -8,18 +8,19 @@
     [ <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usbhid" "sd_mod" ];
+  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usbhid" "usb_storage" "sd_mod" ];
+  boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "rpool/nixos";
+    { device = "rpool";
       fsType = "zfs";
     };
 
-  fileSystems."/nix" =
-    { device = "rpool/nixos/nix";
-      fsType = "zfs";
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-uuid/2CE6-0A91";
+      fsType = "vfat";
     };
 
   fileSystems."/home" =
@@ -32,18 +33,18 @@
       fsType = "zfs";
     };
 
-  fileSystems."/home/svein/Movies" =
-    { device = "rpool/home/svein/Movies";
-      fsType = "zfs";
-    };
-
-  fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/1B6D-446E";
-      fsType = "vfat";
-    };
+  fileSystems."/home/svein/mnt" = {
+    device = "svein@brage.info:";
+    fsType = "fuse.sshfs";
+    options = [
+      "noauto" "x-systemd.automount" "_netdev" "users" "idmap=user"
+      "IdentityFile=/home/svein/.ssh/id_ed25519"
+      "allow_other" "reconnect" "follow_symlinks" "default_permissions"
+      "uid=1000" "gid=100"
+    ];
+  };
 
   swapDevices = [ ];
 
-  nix.maxJobs = lib.mkDefault 16;
-  nix.buildCores = 8;
+  nix.maxJobs = lib.mkDefault 48;
 }

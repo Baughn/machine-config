@@ -14,7 +14,6 @@
 
     desktop = {
       enable = mkEnableOption {};
-      wayland = mkEnableOption {};
     };
   };
 
