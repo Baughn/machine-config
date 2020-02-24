@@ -9,49 +9,27 @@
     ../modules
     ./hardware-configuration.nix
     ../modules/emergency-shell.nix
-    ../modules/nvidia.nix
+    ../modules/amdgpu.nix
     ../modules/rsyncd.nix
     ../modules/znapzend.nix
-    ../modules/monitoring.nix
+#    ../modules/monitoring.nix
   ];
 
   me = {
     desktop.enable = true;
     virtualisation.enable = true;
+    propagateNix = false;
   };
 
-  hardware.bluetooth.enable = true;
-  hardware.pulseaudio.package = pkgs.pulseaudioFull.override {
-    bluetoothSupport = true;
-  };
-  environment.etc."bluetooth/audio.conf".source = pkgs.writeText "audio.conf" ''
-    [General]
-    Enable = Source,Sink,Headset,Gateway,Control,Media
-    Disable = Socket
-
-    HFP=false
-
-    [A2DP]
-    SBCSources=1
-    MPEG12Sources=0
-  '';
-
-#  ## Experimental fan control
-#  boot.kernelPatches = [
-#    { name = "it87.patch"; patch = ../third_party/it87/from-4.14.diff; }
-#  ];
-#  environment.systemPackages = [ pkgs.lm_sensors ];
-
-  ## Boot
+  ## Boot & hardware
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelParams = [
     "boot.shell_on_fail"
-    "nomodeset"
   ];
+  boot.kernelPackages = pkgs.linuxPackages_latest;
   systemd.enableEmergencyMode = true;
-#  boot.kernelPackages = pkgs.linuxPackages_4_15;
-#  boot.zfs.enableUnstable = true;
+  powerManagement.cpuFreqGovernor = "ondemand";
 
   # Development
   nix.extraOptions = ''
@@ -61,18 +39,11 @@
 
   ## Networking
   networking.hostName = "saya";
-  networking.hostId = "7a4f1297";
-  services.udev.extraRules = ''
-      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="10:7b:44:92:13:2d", DEVPATH=="/devices/pci*", NAME="eth0"
-  '';
-  networking.bridges.br0 = {
-    interfaces = [ "eth0" ];
-  };
-  networking.interfaces.br0 = {
-    useDHCP = true;
-  };
+  networking.hostId = "8425e349";
+  networking.useDHCP = false;
+  networking.interfaces.enp68s0.useDHCP = true;
 
- networking.firewall = {
+  networking.firewall = {
     allowedTCPPorts = [ 
       6987   # rtorrent
     ];

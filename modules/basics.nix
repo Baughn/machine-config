@@ -141,9 +141,12 @@
   networking.firewall.connectionTrackingModules = [ "ftp" "irc" ];
   services.avahi.enable = true;
   services.avahi.nssmdns = true;
+  
   # Add hosts for SV.
-  networking.hosts = lib.mapAttrs' (host: cfg: lib.nameValuePair cfg.publicIP [host]) (
-    import /home/svein/sufficient/ServerConfiguration/network.nix);
+  networking.hosts = if builtins.pathExists /home/svein/sufficient
+    then lib.mapAttrs' (host: cfg: lib.nameValuePair cfg.publicIP [host]) (
+      import /home/svein/sufficient/ServerConfiguration/network.nix)
+    else {};
   
   ## Time & location ##
   console.font = lib.mkDefault "Lat2-Terminus16";
