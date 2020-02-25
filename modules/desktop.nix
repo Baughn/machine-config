@@ -95,8 +95,6 @@ lib.mkIf config.me.desktop.enable {
   };
 
   hardware.opengl = {
-    enable = true;
-    driSupport = true;
     driSupport32Bit = true;
     s3tcSupport = true;
   };
