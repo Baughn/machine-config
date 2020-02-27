@@ -183,10 +183,11 @@ in
         identityFile = "/home/svein/sufficient/id_rsa";
         user = "baughn";
       };
+    } // (if builtins.readFile /etc/hostname == "tsugumi\n" then {} else {
       "saya" = {
         proxyJump = "brage.info";
       };
-    };
+    });
     extraConfig = ''
       User svein
     '';
