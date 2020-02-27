@@ -113,6 +113,7 @@
 
   # Webserver (ACME, nginx)
   security.acme = {
+    acceptTerms = true;
     certs = {
       "brage.info" = {
         email = "sveina@gmail.com";
