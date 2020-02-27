@@ -11,6 +11,8 @@ lib.mkIf config.me.desktop.enable {
     idea.idea-community virtviewer
     # Video / Photo editing
     kdenlive frei0r gimp-with-plugins
+    # Chat, etc.
+    discord syncplay
     # Entertainment
     (mpv.override {
       openalSupport = true;
