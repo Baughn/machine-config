@@ -184,6 +184,8 @@
             tryFiles = "\$uri \$uri/ =404";
             extraConfig = ''
               add_header Cache-Control "public";
+              disable_symlinks off;
+              autoindex on;
               ${headers}
               expires 1h;
             '';
