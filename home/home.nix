@@ -203,6 +203,12 @@ in
     profileExtra = ''
       if [ -e $HOME/.nix-profile/etc/profile.d/nix.sh ]; then . $HOME/.nix-profile/etc/profile.d/nix.sh; fi
       export GOPATH=$HOME/go
+
+      with() {
+        local PKG="$1"
+        shift
+        nix-shell -p "$PKG" --run "$*"
+      }
     '';
   };
 
