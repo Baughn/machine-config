@@ -90,21 +90,11 @@ lib.mkIf config.me.desktop.enable {
   hardware.bluetooth = {
     enable = true;
     package = pkgs.bluezFull;
-    extraConfig = ''
-      [General]
-      Enable=Source,Sink,Media,Socket
-    '';
+    config.General.Enable = "Source,Sink,Media,Socket";
   };
 
   hardware.opengl = {
     driSupport32Bit = true;
     s3tcSupport = true;
-  };
-
-  # Comfort
-  services.redshift = {
-    enable = true;
-    latitude = "53.319";
-    longitude = "-6.295";
   };
 }
