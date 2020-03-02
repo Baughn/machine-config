@@ -26,7 +26,7 @@ in
     EDITOR = "vim";
     # Workaround for #599
     LOCALE_ARCHIVE = "${pkgs.glibcLocales}/lib/locale/locale-archive";
-    PATH = "$PATH:$HOME/.cargo/bin";
+    PATH = "$HOME/.cargo/bin:$HOME/bin:$PATH";
     LIBVIRT_DEFAULT_URI = "qemu:///system";
   };
 
@@ -42,6 +42,12 @@ in
     vbell off
     maptimeout 5
   '';
+
+  programs.tmux = {
+    enable = true;
+    escapeTime = 10;
+    terminal = "tmux-256color";
+  };
 
   programs.mpv = {
     enable = true;
@@ -199,7 +205,7 @@ in
     enableCompletion = true;
     oh-my-zsh.enable = true;
     oh-my-zsh.plugins = [ "git" "sudo" ];
-    oh-my-zsh.theme = "af-magic";
+    oh-my-zsh.theme = "afowler";
     profileExtra = ''
       if [ -e $HOME/.nix-profile/etc/profile.d/nix.sh ]; then . $HOME/.nix-profile/etc/profile.d/nix.sh; fi
       export GOPATH=$HOME/go

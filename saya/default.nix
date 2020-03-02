@@ -11,7 +11,7 @@
     ../modules/emergency-shell.nix
     ../modules/amdgpu.nix
     ../modules/rsyncd.nix
-    ../modules/znapzend.nix
+#    ../modules/znapzend.nix
 #    ../modules/monitoring.nix
   ];
 

@@ -14,22 +14,17 @@
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "rpool";
+    { device = "stash/nixos";
       fsType = "zfs";
     };
 
-  fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/2CE6-0A91";
-      fsType = "vfat";
-    };
-
   fileSystems."/home" =
-    { device = "rpool/home";
+    { device = "stash/home";
       fsType = "zfs";
     };
 
   fileSystems."/home/svein" =
-    { device = "rpool/home/svein";
+    { device = "stash/home/svein";
       fsType = "zfs";
     };
 
@@ -44,7 +39,15 @@
     ];
   };
 
-  swapDevices = [ ];
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-uuid/BA66-5777";
+      fsType = "vfat";
+    };
 
-  nix.maxJobs = lib.mkDefault 48;
+  swapDevices =
+    [ { device = "/dev/disk/by-uuid/51a9b759-98b5-4189-ae1c-6893e1e208c9"; }
+    ];
+
+  nix.maxJobs = 24;
+  nix.buildCores = 8;
 }
