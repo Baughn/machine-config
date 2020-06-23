@@ -39,9 +39,9 @@
 
   ## Networking
   networking.hostName = "saya";
-  networking.hostId = "8425e349";
+  networking.hostId = "deafbeef";
   networking.useDHCP = false;
-  networking.interfaces.enp68s0.useDHCP = true;
+  networking.networkmanager.enable = true;
 
   networking.firewall = {
     allowedTCPPorts = [ 

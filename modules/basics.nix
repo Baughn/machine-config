@@ -29,6 +29,7 @@
   };
   users.defaultUserShell = "/run/current-system/sw/bin/zsh";
   users.include = [ "svein" ];
+  environment.variables.EDITOR = "nvim";
   
   # Software
   documentation.dev.enable = true;
@@ -48,7 +49,7 @@
 
   ## System environment
   environment.systemPackages = with pkgs; [
-     nixops
+     nixops niv
      # Debug/dev tools
      tcpdump nmap gdb gradle python3Packages.virtualenv
      telnet man-pages posix_man_pages mono heaptrack
@@ -117,6 +118,7 @@
   nix.gc.dates = "Thu 03:15";
   nix.gc.options = lib.mkDefault "--delete-older-than 14d";
   nix.useSandbox = "relaxed";
+  nix.nrBuildUsers = 48;
   nixpkgs.config.allowUnfree = true;
 
   ## Security & Login
