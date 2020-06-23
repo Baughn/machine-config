@@ -63,7 +63,9 @@
     6986     # rtorrent
     139 445  # Samba
     25565    # Minecraft
+    25566    # Minecraft (incognito)
     4000     # ZNC
+    42420    # Vintage Story
   ];
   networking.firewall.allowedUDPPorts = [
     6987 6881  # rtorrent
@@ -71,7 +73,9 @@
     27016      # Space Engineers
     34197      # Factorio
     137 138    # Samba
+    42420    # Vintage Story
   ];
+  networking.firewall.allowedUDPPortRanges = [ { from = 60000; to = 61000; } ];
 
 
   # Wireguard link between my machines
@@ -97,6 +101,9 @@
     enable = true;
     extraConfig = ''
       map to guest = bad user
+      mangled names = no
+      dos charset = UTF-8
+      unix charset = UTF-8
 
       [homes]
       read only = no
@@ -124,7 +131,7 @@
         extraDomains = {
           "madoka.brage.info" = null;
 #          "status.brage.info" = null;
-#          "grafana.brage.info" = null;
+          "grafana.brage.info" = null;
 #          "tppi.brage.info" = null;
 #          "alertmanager.brage.info" = null;
           "map.brage.info" = null;
@@ -172,6 +179,8 @@
     recommendedProxySettings = true;
     recommendedTlsSettings = true;
     sslDhparam = ./nginx/dhparams.pem;
+    sslProtocols = "TLSv1.2 TLSv1.3";
+    sslCiphers = "ALL:EECDH+aRSA+AESGCM:EDH+aRSA:EECDH+aRSA:+AES256:+AES128:+SHA1:!CAMELLIA:!SEED:!3DES:!DES:!RC4:!eNULL";
     appendHttpConfig = ''
       ${headers}
       etag on;

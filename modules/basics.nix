@@ -57,6 +57,8 @@
      mercurialFull
      gitAndTools.gitFull git-lfs sqliteInteractive
      config.boot.kernelPackages.bpftrace
+     # VSCode
+     nodejs-12_x
      # System/monitoring/etc tools
      parted psmisc atop hdparm sdparm whois sysstat htop nload iftop
      smartmontools pciutils lsof schedtool numactl dmidecode iotop
