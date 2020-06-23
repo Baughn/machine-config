@@ -97,6 +97,41 @@
       fsType = "zfs";
     };
 
+  fileSystems."/home/minecraft" =
+    { device = "minecraft";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/erisia" =
+    { device = "minecraft/erisia";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/erisia/dynmap" =
+    { device = "minecraft/erisia/dynmap";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/incognito" =
+    { device = "minecraft/incognito";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/incognito/dynmap" =
+    { device = "minecraft/incognito/dynmap";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/testing" =
+    { device = "minecraft/testing";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/testing/dynmap" =
+    { device = "minecraft/testing/dynmap";
+      fsType = "zfs";
+    };
+
   fileSystems."/var/lib/plex/mount" =
     { device = "stash/plex-media";
       fsType = "zfs";

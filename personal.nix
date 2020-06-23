@@ -37,6 +37,7 @@ rec {
     services.hercules-ci-agent = {
       enable = true;
       concurrentTasks = 4;
+      patchNix = true;
     };
     deployment.keys."cluster-join-token.key".keyFile = ./secrets/hercules-ci/cluster-join-token.key;
     deployment.keys."binary-caches.json".keyFile = ./secrets/hercules-ci/binary-caches.json;
