@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 {
   services.logrotate.enable = config.services.nginx.enable;
-  services.logrotate.config = ''
+  services.logrotate.extraConfig = ''
     compress
     compresscmd ${pkgs.zstd}/bin/zstd
     compressext zst
