@@ -10,9 +10,12 @@ export NIXPKGS="$HOME/dev/nix/system"
 export FORCE_UPDATE=0
 
 get_base() {
-  BASE="$(curl https://howoldis.herokuapp.com/api/channels \
-    | jq -r "map(select(.name == \"nixos-$CHANNEL\"))[0].link" \
-    | sed 's/.*\.//')"
+  BASE="$(curl 'https://status.nixos.org/prometheus/api/v1/query?query=channel_revision' \
+    | jq ".data.result | map(.metric) | map(select(.channel == \"nixos-${CHANNEL}\"))[0].revision" -r)"
+  if [[ $BASE = "null" ]]; then
+    echo 'Base extraction failed' > /dev/stderr
+    exit 1
+  fi
   echo "$BASE"
 }
 
@@ -33,10 +36,6 @@ update() {
         BASE="$(cat $HERE/.base)"
     fi
     WANTED="$(mktemp)"
-    if [[ $BASE = "null" ]]; then
-        BASE="origin/release-$CHANNEL"
-        (cd $NIXPKGS; git fetch)
-    fi
     echo "Building nix-system tree from base $BASE..."
     cat "$HERE/CHERRY_PICKS" | while read branch; do
         if ! [[ "$branch" =~ '^#' ]]; then
