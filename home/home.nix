@@ -88,15 +88,11 @@ in
     ];
     extraConfig = ''
         call plug#begin('~/.local/share/nvim/plugged')
-        Plug 'rust-lang/rust.vim'
         Plug 'ncm2/ncm2'
         Plug 'roxma/nvim-yarp'
         Plug 'ncm2/ncm2-bufword'
         Plug 'ncm2/ncm2-path'
-        Plug 'autozimu/LanguageClient-neovim', {
-            \ 'branch': 'next',
-            \ 'do': 'bash install.sh',
-            \ }
+        Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
         " Writing libs
         Plug 'tpope/vim-markdown'
@@ -143,11 +139,6 @@ in
 
         " Enable Rust
         autocmd BufReadPost *.rs setlocal filetype=rust
-        let g:LanguageClient_serverCommands = {
-            \ 'rust': ['rustup', 'run', 'stable', 'rls'],
-            \ }
-        let g:LanguageClient_autoStart = 1
-        let g:LanguageClient_useVirtualText = 0
 
         " Required for operations modifying multiple buffers like rename.
         set hidden
