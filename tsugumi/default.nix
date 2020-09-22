@@ -130,7 +130,6 @@
       "brage.info" = {
         email = "sveina@gmail.com";
         group = "nginx";
-        allowKeysForGroup = true;
         postRun = "systemctl reload nginx.service";
         webroot = "/var/lib/acme/acme-challenge";
         extraDomains = {
