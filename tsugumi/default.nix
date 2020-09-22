@@ -90,6 +90,11 @@
           persistentKeepalive = 30;
           publicKey = "F8V/UkXUxnb+RCF3UePpJSO1opoSORDFv+dI2HqFQW8=";
         }
+        # Kaho
+        {
+          allowedIPs = [ "10.40.0.5/32" ];
+          publicKey = "7m0CNEXrI4/n8FUmERohFWv13Mr+DQJ+BHX0Pn+C6Bk=";
+        }
       ];
       privateKeyFile = "/secrets/wg.key";
     };
