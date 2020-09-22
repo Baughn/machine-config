@@ -6,7 +6,7 @@
     compresscmd ${pkgs.zstd}/bin/zstd
     compressext zst
 
-    /var/spool/nginx/logs/*.log {
+    /var/log/nginx/*.log {
       rotate 5
       weekly
       postrotate

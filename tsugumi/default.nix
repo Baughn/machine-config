@@ -154,6 +154,9 @@
     };
   };
 
+  systemd.services.nginx = {
+    serviceConfig.ProtectHome = false;
+  };
   services.nginx = let 
     headers = ''
       add_header Strict-Transport-Security "max-age=31536000; includeSubdomains";
