@@ -58,7 +58,10 @@ let
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIByY7vM2HdrHD3z9vAikiT7H3A6anjSPyT27a1GEePFe grissess@ceres"
       ];
     };
-    # Next free ID: 1061
+    linuxgsm = {
+      uid = 1061;
+    };
+    # Next free ID: 1062
     anne.uid = 1100;
   };
   includeUser = username: ({

@@ -8,6 +8,7 @@
   imports = [
     ../modules
     ./hardware-configuration.nix
+    ./minecraft.nix
     ../modules/plex.nix
     # ../disnix/production/tsugumi-config.nix
     <nixpkgs/nixos/modules/profiles/headless.nix>
@@ -18,6 +19,38 @@
   me = {
     propagateNix = true;
     virtualisation.enable = true;
+  };
+
+  # Syncthing
+  services.syncthing = {
+    enable = true;
+    package = (import <nixos-unstable> {}).syncthing;
+    openDefaultPorts = true;
+    user = "svein";
+    configDir = "/home/svein/.config/syncthing";
+    dataDir = "/home/svein/Sync";
+  };
+
+  # Monitoring
+  services.prometheus = {
+    enable = true;
+    exporters.node = {
+      enable = true;
+      enabledCollectors = [ "systemd" "zfs" ];
+    };
+    exporters.nginx = {
+      enable = true;
+    };
+    exporters.wireguard = {
+      enable = true;
+    };
+    scrapeConfigs = [{
+      job_name = "minecraft";
+      static_configs = [{
+        labels.server = "erisia";
+        targets = ["localhost:1223"];
+      }];
+    }];
   };
 
   ## Backups ##
@@ -134,7 +167,7 @@
         webroot = "/var/lib/acme/acme-challenge";
         extraDomains = {
           "madoka.brage.info" = null;
-#          "status.brage.info" = null;
+          "status.brage.info" = null;
           "grafana.brage.info" = null;
 #          "tppi.brage.info" = null;
 #          "alertmanager.brage.info" = null;
@@ -213,6 +246,7 @@
       };
       "map.brage.info" = proxy 8123;
       "incognito.brage.info" = proxy 8124;
+      "status.brage.info" = proxy 9090;
       "znc.brage.info" = base {
          locations."/" = {
            proxyPass = "https://127.0.0.1:4000";
@@ -237,5 +271,5 @@
     };
   };
 
-  users.include = ["pl" "aquagon" "will" "snowfire" "minecraft"];
+  users.include = ["pl" "aquagon" "will" "snowfire" "minecraft" "linuxgsm"];
 }

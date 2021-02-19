@@ -55,7 +55,7 @@
      telnet man-pages posix_man_pages mono heaptrack
      rustup gcc
      pythonFull python3Full freeipmi binutils jq
-     mercurialFull
+     mercurialFull 
      gitAndTools.gitFull git-lfs sqliteInteractive
      config.boot.kernelPackages.bpftrace
      # VSCode
@@ -73,7 +73,7 @@
      # Nix tools
      nox nix-prefetch-git
      # Video manipulation
-     mkvtoolnix-cli ffmpeg-full
+     mkvtoolnix-cli ffmpeg
      # Image-manipulation tools
      fgallery pngcrush imagemagickBig povray blender
      # Monitoring, eventually to be a module.

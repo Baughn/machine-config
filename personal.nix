@@ -37,22 +37,12 @@ rec {
     services.hercules-ci-agent = {
       enable = true;
       concurrentTasks = 4;
-      patchNix = true;
+      patchNix = false;
     };
     deployment.keys."cluster-join-token.key".keyFile = ./secrets/hercules-ci/cluster-join-token.key;
     deployment.keys."binary-caches.json".keyFile = ./secrets/hercules-ci/binary-caches.json;
   };
   
-  madoka = { config, pkgs, ... }: {
-    deployment = {
-      targetHost = "madoka.brage.info";
-    };
-
-    imports = [
-      ./madoka/default.nix
-    ];
-  };
-
   tromso = { config, pkgs, ... }: {
     deployment = {
       targetHost = "tromso.brage.info";

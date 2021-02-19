@@ -5,7 +5,7 @@ set -ue -o pipefail
 cd "$(dirname "$(readlink -f "$0")")"
 
 export HERE="$(pwd)"
-export CHANNEL="unstable"
+export CHANNEL="20.09"
 export NIXPKGS="$HOME/dev/nix/system"
 export FORCE_UPDATE=0
 
@@ -92,7 +92,6 @@ update() {
   nixops deploy -d personal --check -j 8 --cores 16 -I "nixpkgs=$NIXPKGS" "$@"
 
   echo 'Updating home-manager.'
-  git push -f madoka
   nixops ssh-for-each "sudo -su svein bash -c 'home-manager switch'" -d personal "$@"
 
   echo
