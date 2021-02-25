@@ -44,12 +44,24 @@
     exporters.wireguard = {
       enable = true;
     };
+    exporters.blackbox = {
+      enable = true;
+      configFile = ../modules/monitoring/blackbox.yml;
+    };
     scrapeConfigs = [{
       job_name = "minecraft";
       static_configs = [{
         labels.server = "erisia";
         targets = ["localhost:1223"];
       }];
+    } {
+      job_name = "blackbox";
+      static_configs = [{
+        targets = ["localhost:9115"];
+      }];
+      metrics_path = "/probe";
+      params.module = ["icmp"];
+      params.target = ["google.com"];
     }];
   };
 
