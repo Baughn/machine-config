@@ -43,6 +43,7 @@
   programs.zsh.enable = true;
   programs.zsh.autosuggestions.enable = true;
   programs.zsh.syntaxHighlighting.enable = true;
+  programs.fish.enable = true;
   programs.nano.nanorc = ''
     set nowrap
   '';
@@ -82,7 +83,7 @@
      # Games
      nethack
      # Giant lump of stuff
-     zip unzip znc bsdgames shared_mime_info p7zip fortune
+     zip unzip znc shared_mime_info p7zip fortune
      gnupg unrar encfs
   ];
 
