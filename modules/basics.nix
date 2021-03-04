@@ -27,7 +27,7 @@
     ];
     inherit (import ../secrets) initialPassword;
   };
-  users.defaultUserShell = "/run/current-system/sw/bin/zsh";
+  users.defaultUserShell = "/run/current-system/sw/bin/fish";
   users.include = [ "svein" ];
   environment.variables.EDITOR = "nvim";
   
