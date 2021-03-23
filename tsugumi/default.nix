@@ -31,15 +31,27 @@
     dataDir = "/home/svein/Sync";
   };
 
+  # UPS
+  power.ups = {
+    enable = true;
+    ups.phoenix = {
+      description = "PhoenixTec VFI 2000";
+      driver = "usbhid-ups";
+      port = "auto";
+      directives = [
+        "default.battery.charge.low = 80"
+        "default.battery.runtime.low = 2500"
+        "ignorelb"
+      ];
+    };
+  };
+
   # Monitoring
   services.prometheus = {
     enable = true;
     exporters.node = {
       enable = true;
       enabledCollectors = [ "systemd" "zfs" ];
-    };
-    exporters.nginx = {
-      enable = true;
     };
     exporters.wireguard = {
       enable = true;
