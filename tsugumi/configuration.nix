@@ -8,7 +8,7 @@
   imports = [
     ../modules
     ./hardware-configuration.nix
-    #./minecraft.nix
+    ./minecraft.nix
     #../modules/plex.nix
   ];
 
@@ -236,5 +236,6 @@
     '';
   };
 
+  users.include = ["minecraft"];
   #users.include = ["pl" "aquagon" "will" "snowfire" "minecraft" "linuxgsm"];
 }

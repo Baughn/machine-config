@@ -8,7 +8,7 @@
     [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usbhid" "usb_storage" "sd_mod" ];
+  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "sd_mod" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
@@ -48,16 +48,6 @@
       fsType = "zfs";
     };
 
-  fileSystems."/home/svein/old" =
-    { device = "stash/home/svein";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/svein/old/dev" =
-    { device = "stash/nvmpool/dev";
-      fsType = "zfs";
-    };
-
   fileSystems."/home/svein/dev" =
     { device = "rpool/home/svein/dev";
       fsType = "zfs";
@@ -68,8 +58,49 @@
       fsType = "vfat";
     };
 
+  fileSystems."/home/svein/factorio" =
+    { device = "rpool/home/svein/factorio";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft" =
+    { device = "rpool/minecraft";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/erisia" =
+    { device = "rpool/minecraft/erisia";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/incognito" =
+    { device = "rpool/minecraft/incognito";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/testing" =
+    { device = "rpool/minecraft/testing";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/testing/dynmap" =
+    { device = "rpool/minecraft/testing/dynmap";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/incognito/dynmap" =
+    { device = "rpool/minecraft/incognito/dynmap";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/erisia/dynmap" =
+    { device = "rpool/minecraft/erisia/dynmap";
+      fsType = "zfs";
+    };
+
   swapDevices =
     [ { device = "/dev/disk/by-uuid/cd7e6f53-0a73-42dc-987e-7dc3e751ebfc"; }
     ];
 
+  powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
 }
