@@ -43,28 +43,8 @@
       fsType = "zfs";
     };
 
-  fileSystems."/home/minecraft" =
-    { device = "stash/minecraft";
-      fsType = "zfs";
-    };
-
   fileSystems."/home/svein" =
     { device = "rpool/home/svein";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/minecraft/erisia" =
-    { device = "rpool/minecraft/erisia";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/minecraft/incognito" =
-    { device = "rpool/minecraft/incognito";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/minecraft/testing" =
-    { device = "rpool/minecraft/testing";
       fsType = "zfs";
     };
 
@@ -78,6 +58,51 @@
       fsType = "zfs";
     };
 
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-uuid/445F-2C55";
+      fsType = "vfat";
+    };
+
+  fileSystems."/home/sh" =
+    { device = "stash/home/sh";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/aquagon" =
+    { device = "stash/home/aquagon";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/web" =
+    { device = "stash/home/svein/web";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft" =
+    { device = "stash/minecraft";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/testing" =
+    { device = "rpool/minecraft/testing";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/erisia" =
+    { device = "rpool/minecraft/erisia";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/incognito" =
+    { device = "rpool/minecraft/incognito";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/testing/dynmap" =
+    { device = "rpool/minecraft/testing/dynmap";
+      fsType = "zfs";
+    };
+
   fileSystems."/home/minecraft/erisia/dynmap" =
     { device = "rpool/minecraft/erisia/dynmap";
       fsType = "zfs";
@@ -88,28 +113,43 @@
       fsType = "zfs";
     };
 
-  fileSystems."/home/minecraft/testing/dynmap" =
-    { device = "rpool/minecraft/testing/dynmap";
+  fileSystems."/home/svein/Documents" =
+    { device = "stash/home/svein/Documents";
       fsType = "zfs";
     };
 
-  fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/445F-2C55";
-      fsType = "vfat";
-    };
-
-  fileSystems."/home/aquagon" =
-    { device = "stash/home/aquagon";
+  fileSystems."/home/svein/Games" =
+    { device = "stash/home/svein/Games";
       fsType = "zfs";
     };
 
-  fileSystems."/home/sh" =
-    { device = "stash/home/sh";
+  fileSystems."/home/svein/Media" =
+    { device = "stash/home/svein/Media";
       fsType = "zfs";
     };
 
-  fileSystems."/home/svein/web" =
-    { device = "stash/home/svein/web";
+  fileSystems."/home/svein/dcc" =
+    { device = "stash/home/svein/dcc";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/secure" =
+    { device = "stash/home/svein/secure";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/short-term" =
+    { device = "stash/home/svein/short-term";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/sv-sqldata" =
+    { device = "stash/home/svein/sv-sqldata";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/win" =
+    { device = "stash/home/svein/win";
       fsType = "zfs";
     };
 
