@@ -170,9 +170,20 @@
   #boot.kernel.sysctl."user.max_user_namespaces" = 100;
 
   # Webserver (Caddy)
-  systemd.services.caddy.serviceConfig.ProtectHome = false;
+  fileSystems."/srv/aquagon" = {
+    device = "/home/aquagon/web";
+    options = [ "bind" ];
+  };
+  fileSystems."/srv/minecraft" = {
+    device = "/home/minecraft/web";
+    options = [ "bind" ];
+  };
+  fileSystems."/srv/svein" = {
+    device = "/home/svein/web";
+    options = [ "bind" ];
+  };
   services.caddy = {
-    #enable = true;
+    enable = true;
     email = "sveina@gmail.com";
     config = ''
       (headers) {
@@ -190,7 +201,7 @@
       }
 
       madoka.brage.info {
-        root * /home/minecraft/web/
+        root * /srv/minecraft/
         import headers
         reverse_proxy /warmroast/* localhost:23000
         file_server browse
@@ -218,13 +229,13 @@
       }
 
       ar-innna.brage.info {
-        root * /home/aquagon/web/
+        root * /srv/aquagon/
         import headers
         file_server browse
       }
 
       brage.info {
-        root * /home/svein/web/
+        root * /srv/svein/
         import headers
         file_server browse
       }
@@ -236,6 +247,6 @@
     '';
   };
 
-  users.include = ["minecraft"];
+  users.include = ["minecraft" "aquagon"];
   #users.include = ["pl" "aquagon" "will" "snowfire" "minecraft" "linuxgsm"];
 }

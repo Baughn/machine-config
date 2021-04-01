@@ -43,28 +43,13 @@
       fsType = "zfs";
     };
 
-  fileSystems."/home/svein" =
-    { device = "rpool/home/svein";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/svein/dev" =
-    { device = "rpool/home/svein/dev";
-      fsType = "zfs";
-    };
-
-  fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/445F-2C55";
-      fsType = "vfat";
-    };
-
-  fileSystems."/home/svein/factorio" =
-    { device = "rpool/home/svein/factorio";
-      fsType = "zfs";
-    };
-
   fileSystems."/home/minecraft" =
     { device = "rpool/minecraft";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein" =
+    { device = "rpool/home/svein";
       fsType = "zfs";
     };
 
@@ -83,8 +68,18 @@
       fsType = "zfs";
     };
 
-  fileSystems."/home/minecraft/testing/dynmap" =
-    { device = "rpool/minecraft/testing/dynmap";
+  fileSystems."/home/svein/dev" =
+    { device = "rpool/home/svein/dev";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/factorio" =
+    { device = "rpool/home/svein/factorio";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/minecraft/erisia/dynmap" =
+    { device = "rpool/minecraft/erisia/dynmap";
       fsType = "zfs";
     };
 
@@ -93,8 +88,28 @@
       fsType = "zfs";
     };
 
-  fileSystems."/home/minecraft/erisia/dynmap" =
-    { device = "rpool/minecraft/erisia/dynmap";
+  fileSystems."/home/minecraft/testing/dynmap" =
+    { device = "rpool/minecraft/testing/dynmap";
+      fsType = "zfs";
+    };
+
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-uuid/445F-2C55";
+      fsType = "vfat";
+    };
+
+  fileSystems."/home/aquagon" =
+    { device = "stash/home/aquagon";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/sh" =
+    { device = "stash/home/sh";
+      fsType = "zfs";
+    };
+
+  fileSystems."/home/svein/web" =
+    { device = "stash/home/svein/web";
       fsType = "zfs";
     };
 
