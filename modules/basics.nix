@@ -171,5 +171,5 @@
   services.postfix.enable = true;
 
   # The NixOS release to be compatible with for stateful data such as databases.
-  system.stateVersion = "19.03";
+  system.stateVersion = "20.09";
 }

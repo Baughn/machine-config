@@ -3,7 +3,7 @@
 
 {
   options = {
-    services.zrepl = with lib; with types; {
+    services.zrepl2 = with lib; with types; {
         enable = mkEnableOption "zrepl";
 
         package = mkOption {
@@ -61,7 +61,7 @@
             };
           }));
           example = literalExample ''
-            services.zrepl.local."backup_name" = {
+            services.zrepl2.local."backup_name" = {
               sourceFS = "fast_and_scary_pool/home";
               targetFS = "replicated_pool/zrepl";
             };
@@ -96,7 +96,7 @@
             };
           }));
           example = literalExample ''
-            services.zrepl.sink."pusher_name" = {
+            services.zrepl2.sink."pusher_name" = {
               targetFS = "replicated_pool/zrepl";
             };
           '';
@@ -142,7 +142,7 @@
             };
           });
           example = literalExample ''
-            services.zrepl.push."pusher_name" = {
+            services.zrepl2.push."pusher_name" = {
               sourceFS = "replicated_pool/home";
               targetHost = "example.org";
             };
@@ -154,7 +154,7 @@
   ### Implementation ###
 
   config = let
-    cfg = config.services.zrepl;
+    cfg = config.services.zrepl2;
 
     configFile = pkgs.runCommand "zrepl.yml" {
       inherit configuration;
@@ -271,7 +271,7 @@
       lib.mapAttrsToList (name: sink: if sink.openFirewall then sink.port else null)
       cfg.sink);
 
-    systemd.services.zrepl = {
+    systemd.services.zrepl2 = {
       enable = cfg.enable;
 
       description = "ZFS Replication";
