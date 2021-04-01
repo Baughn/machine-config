@@ -121,15 +121,15 @@
 
   ## Backups ##
   services.zrepl2 = {
-    #enable = true;
+    enable = true;
     
     local.minecraft = {
-      sourceFS = "minecraft";
+      sourceFS = "rpool/minecraft";
       targetFS = "stash/zrepl";
       exclude = [
-        "minecraft/erisia/dynmap"
-        "minecraft/incognito/dynmap"
-        "minecraft/testing/dynmap"
+        "rpool/minecraft/erisia/dynmap"
+        "rpool/minecraft/incognito/dynmap"
+        "rpool/minecraft/testing/dynmap"
       ];
     };
   };

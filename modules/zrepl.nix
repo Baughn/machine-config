@@ -10,7 +10,7 @@
           description = "zrepl package";
           defaultText = "pkgs.zrepl";
           type = package;
-          default = pkgs.callPackage ../zrepl {};
+          default = pkgs.zrepl;
         };
         
         logging.level = mkOption {
@@ -25,6 +25,13 @@
           type = nullOr int;
           default = 8549;
         };
+
+	checkCertificate = mkOption {
+	  description = "Check for certificate presence during startup, and fail if missing. This defaults to true if using remote push/sink, false otherwise.";
+	  example = true;
+	  type = bool;
+	  default = false;
+	};
 
         local = mkOption {
           default = {};
@@ -271,6 +278,8 @@
       lib.mapAttrsToList (name: sink: if sink.openFirewall then sink.port else null)
       cfg.sink);
 
+    services.zrepl2.checkCertificate = lib.mkDefault (! (cfg.sink == {} && cfg.push == {}));
+
     systemd.services.zrepl2 = {
       enable = cfg.enable;
 
@@ -295,13 +304,15 @@
 
         cd $HOME
 
+        ${lib.optionalString cfg.checkCertificate ''
         if [[ ! -e ca.crt ]]; then
           echo 'You must manually create the certificate authority and host keys.'
-          echo 'Look at https://zrepl.github.io/configuration/transports.html#transport-tcp-tlsclientauth-2machineopenssl'
+          echo 'Look at https://zrepl.github.io/configuration/transports.html#certificate-authority-using-easyrsa'
           echo 'for instructions, and name them according to /etc/zrepl.yml.'
           echo 'We recommend the easyrsa package.'
           exit 1
         fi
+	''}
 
         # Setup datasets & permissions
         setupSink() {

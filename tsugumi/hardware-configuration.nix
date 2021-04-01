@@ -44,7 +44,7 @@
     };
 
   fileSystems."/home/minecraft" =
-    { device = "rpool/minecraft";
+    { device = "stash/minecraft";
       fsType = "zfs";
     };
 
