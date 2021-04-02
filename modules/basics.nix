@@ -144,8 +144,11 @@
   networking.domain = "brage.info";
   networking.firewall.allowPing = true;
   networking.firewall.connectionTrackingModules = [ "ftp" "irc" ];
-  services.avahi.enable = true;
-  services.avahi.nssmdns = true;
+  services.avahi = {
+    enable = true;
+    nssmdns = true;
+    interfaces = [ "internal" ];
+  };
   
   # Add hosts for SV.
   networking.hosts = if builtins.pathExists /home/svein/sufficient
