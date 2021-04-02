@@ -128,6 +128,11 @@
       fsType = "zfs";
     };
 
+  fileSystems."/home/svein/Sync" =
+    { device = "stash/home/svein/Sync";
+      fsType = "zfs";
+    };
+
   fileSystems."/home/svein/dcc" =
     { device = "stash/home/svein/dcc";
       fsType = "zfs";

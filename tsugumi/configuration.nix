@@ -55,10 +55,12 @@
     allowedTCPPorts = [
       139 445  # Samba
       5357     # winbindd
+      22000    # Syncthing
     ];
     allowedUDPPorts = [
       137 138  # Samba
       3702     # winbindd
+      21027    # Syncthing
     ];
   };
   # Internal
@@ -101,12 +103,21 @@
 
   # Syncthing
   services.syncthing = {
-    #enable = true;
-    #package = (import <nixos-unstable> {}).syncthing;
-    openDefaultPorts = true;
+    enable = true;
     user = "svein";
     configDir = "/home/svein/.config/syncthing";
     dataDir = "/home/svein/Sync";
+    declarative = {
+      devices.saya.id = "N3YFTMR-SU7K5WL-CLVOU6U-ND57RFT-L2ZTH4D-DIET3WH-2KIMLGJ-R7EUXAF";
+      folders."/home/svein/Sync" = {
+        id = "default";
+	devices = [ "saya" ];
+      };
+      #folders."/home/svein/Music" = {
+      # id = "Music";
+      # devices = [ "kaho" ];
+      #};
+    };
   };
 
   ## Hardware
