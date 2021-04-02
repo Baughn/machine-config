@@ -23,6 +23,7 @@
 
   ## Networking
   networking.hostName = "tsugumi";
+  networking.domain = "brage.info";
   networking.hostId = "deafbeef";
   networking.useDHCP = false;
   services.udev.extraRules = ''
@@ -50,6 +51,16 @@
     34197      # Factorio
   ];
   networking.firewall.allowedUDPPortRanges = [ { from = 60000; to = 61000; } ]; # mosh
+  networking.firewall.interfaces.internal = {
+    allowedTCPPorts = [
+      139 445  # Samba
+      5357     # winbindd
+    ];
+    allowedUDPPorts = [
+      137 138  # Samba
+      3702     # winbindd
+    ];
+  };
   # Internal
   networking.interfaces.internal = {
     ipv4.addresses = [{
@@ -74,19 +85,19 @@
     '';
     interfaces = [ "internal" ];
   };
+
   # Samba
   services.samba = {
-    #enable = true;
+    enable = true;
     extraConfig = ''
       map to guest = bad user
       mangled names = no
-      dos charset = UTF-8
-      unix charset = UTF-8
 
       [homes]
       read only = no
     '';
   };
+  services.samba-wsdd.enable = true;
 
   # Syncthing
   services.syncthing = {
