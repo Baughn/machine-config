@@ -28,7 +28,7 @@
   networking.useDHCP = false;
   services.udev.extraRules = ''
       ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="10:7b:44:92:17:20", NAME="external"
-      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="00:0e:c6:fa:18:08", NAME="internal"
+      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="internal"
   '';
   # External
   networking.interfaces.external = {
