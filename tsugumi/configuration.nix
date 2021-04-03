@@ -145,13 +145,14 @@
   services.zrepl2 = {
     enable = true;
     
-    local.minecraft = {
-      sourceFS = "rpool/minecraft";
+    local.ssd = {
+      sourceFS = "rpool";
       targetFS = "stash/zrepl";
       exclude = [
         "rpool/minecraft/erisia/dynmap"
         "rpool/minecraft/incognito/dynmap"
         "rpool/minecraft/testing/dynmap"
+	"rpool/root<"
       ];
     };
   };
