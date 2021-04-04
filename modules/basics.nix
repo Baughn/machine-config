@@ -143,6 +143,7 @@
   ## Networking & Firewall basics
   networking.domain = "brage.info";
   networking.firewall.allowPing = true;
+  networking.firewall.logRefusedConnections = false;
   networking.firewall.connectionTrackingModules = [ "ftp" "irc" ];
   services.avahi = {
     enable = true;

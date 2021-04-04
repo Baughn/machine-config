@@ -29,6 +29,7 @@
   services.udev.extraRules = ''
       ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="10:7b:44:92:17:20", NAME="external"
       ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="internal"
+      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="d8:3b:bf:b7:7d:fc", NAME="wifi"
   '';
   # External
   networking.interfaces.external = {
@@ -70,10 +71,16 @@
       prefixLength = 24;
     }];
   };
+  networking.interfaces.wifi = {
+    ipv4.addresses = [{
+      address = "10.0.1.1";
+      prefixLength = 24;
+    }];
+  };
   networking.nat = {
     enable = true;
     externalInterface = "external";
-    internalInterfaces = [ "internal" ];
+    internalInterfaces = [ "internal" "wifi" ];
   };
   services.dhcpd4 = {
     enable = true;
@@ -84,8 +91,40 @@
       subnet 10.0.0.0 netmask 255.255.255.0 {
         range 10.0.0.100 10.0.0.200;
       }
+      subnet 10.0.1.0 netmask 255.255.255.0 {
+        range 10.0.1.100 10.0.1.200;
+      }
     '';
-    interfaces = [ "internal" ];
+    interfaces = [ "internal" "wifi" ];
+  };
+  services.udev.packages = [ pkgs.crda ];
+  environment.systemPackages = [ pkgs.iw pkgs.crda ];
+  hardware.firmware = [ pkgs.wireless-regdb ];
+  services.hostapd = {
+    enable = true;
+    countryCode = "IE";
+    #hwMode = "a";  # This is required for 802.11ax.
+    #channel = 52;
+    hwMode = "g";
+    channel = 1;
+    interface = "wifi";
+    ssid = "Ragnarok";
+    wpa = true;
+    wpaPassphrase = builtins.readFile "/home/svein/nixos/secrets/wifi-pw";
+    extraConfig = ''
+      ieee80211d=1
+      ieee80211n=1
+      #ieee80211h=1
+      # ACS stuff
+      acs_num_scans=20
+      #preamble=1
+      wmm_enabled=1
+      # WPA stuff
+      auth_algs=1
+      wpa=2  # WPA2 only
+      wpa_key_mgmt=WPA-PSK
+      rsn_pairwise=CCMP
+    '';
   };
 
   # Samba
