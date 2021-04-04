@@ -209,7 +209,7 @@
     enable = true;
     exporters.node = {
       enable = true;
-      enabledCollectors = [ "systemd" "zfs" ];
+      enabledCollectors = [ "systemd" "zfs" "wifi"  ];
     };
     exporters.wireguard = {
       enable = true;
@@ -232,6 +232,11 @@
       metrics_path = "/probe";
       params.module = ["icmp"];
       params.target = ["google.com"];
+    } {
+      job_name = "node";
+      static_configs = [{
+        targets = ["localhost:9100"];
+      }];
     }];
   };
 
