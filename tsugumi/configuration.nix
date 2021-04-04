@@ -115,6 +115,7 @@
       ieee80211d=1
       ieee80211n=1
       ht_capab=[SHORT-GI-40][HT40+][HT40-][DSSS_CCK-40]
+      require_ht=1
       #ieee80211h=1
       # ACS stuff
       acs_num_scans=20
