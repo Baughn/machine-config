@@ -164,18 +164,24 @@
   ## Hardware
   # UPS
   power.ups = {
-    #enable = true;
+    enable = true;
     ups.phoenix = {
       description = "PhoenixTec VFI 2000";
       driver = "usbhid-ups";
       port = "auto";
       directives = [
         "default.battery.charge.low = 80"
-        "default.battery.runtime.low = 2500"
+        "default.battery.runtime.low = 1000"
         "ignorelb"
       ];
     };
   };
+  # TODO: Fit this into the module.
+  systemd.services.upsd.preStart = ''
+    mkdir -p /var/lib/nut -m 0700
+  '';
+  environment.etc."nut/upsd.users".source = "/home/svein/nixos/secrets/upsd.users";
+  environment.etc."nut/upsmon.conf".source = "/home/svein/nixos/secrets/upsmon.conf";
 
   # Power mgmt
   #services.thermald.enable = true;
