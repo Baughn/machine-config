@@ -114,10 +114,11 @@
     extraConfig = ''
       ieee80211d=1
       ieee80211n=1
+      ht_capab=[SHORT-GI-40][HT40+][HT40-][DSSS_CCK-40]
       #ieee80211h=1
       # ACS stuff
       acs_num_scans=20
-      #preamble=1
+      preamble=1
       wmm_enabled=1
       # WPA stuff
       auth_algs=1
