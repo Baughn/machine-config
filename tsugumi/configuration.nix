@@ -52,7 +52,7 @@
     34197      # Factorio
   ];
   networking.firewall.allowedUDPPortRanges = [ { from = 60000; to = 61000; } ]; # mosh
-  networking.firewall.interfaces.internal = {
+  networking.firewall.interfaces = let cfg = { 
     allowedTCPPorts = [
       139 445  # Samba
       5357     # winbindd
@@ -63,6 +63,9 @@
       3702     # winbindd
       21027    # Syncthing
     ];
+  }; in {
+    internal = cfg;
+    wifi = cfg;
   };
   # Internal
   networking.interfaces.internal = {
