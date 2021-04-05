@@ -17,6 +17,9 @@ in
   imports = [
   ];
 
+  home.username = "svein";
+  home.homeDirectory = "/home/svein";
+
   home.packages = with pkgs; [
     htop fortune ix mosh
     (callPackage ../tools/up {})
@@ -210,5 +213,5 @@ in
   };
 
   programs.home-manager.enable = true;
-  home.stateVersion = "19.09";
+  home.stateVersion = "21.05";
 }

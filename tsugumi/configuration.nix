@@ -150,9 +150,10 @@
     dataDir = "/home/svein/Sync";
     declarative = {
       devices.saya.id = "N3YFTMR-SU7K5WL-CLVOU6U-ND57RFT-L2ZTH4D-DIET3WH-2KIMLGJ-R7EUXAF";
+      devices.kaho.id = "CKVWFUQ-BMH5EP2-XQLPB34-M4UWQ43-MW7UKV4-UHGWTUB-M422Z2A-VCMHEQ2";
       folders."/home/svein/Sync" = {
         id = "default";
-	devices = [ "saya" ];
+	devices = [ "saya" "kaho" ];
       };
       #folders."/home/svein/Music" = {
       # id = "Music";
