@@ -10,7 +10,35 @@
           description = "zrepl package";
           defaultText = "pkgs.zrepl";
           type = package;
-          default = pkgs.zrepl;
+          default = pkgs.buildGoModule rec {
+            pname = "zrepl";
+            version = "0.4.0-rc2";
+
+            src = pkgs.fetchFromGitHub {
+              owner = "zrepl";
+              repo = "zrepl";
+              rev = "v${version}";
+              sha256 = "0rfa5aic6arp666ckin9hkzwbispc57blgh6jxlq3clfa8xp7kbz";
+            };
+
+            vendorSha256 = "02pal7ipjx98l8ijirggvr4m29lhpar5fnd0j2wr5vdkmn49h29k";
+
+            subPackages = [ "." ];
+
+            postInstall = ''
+              mkdir -p $out/lib/systemd/system
+              substitute dist/systemd/zrepl.service $out/lib/systemd/system/zrepl.service \
+              --replace /usr/local/bin/zrepl $out/bin/zrepl
+              '';
+
+            meta = with lib; {
+              homepage = "https://zrepl.github.io/";
+              description = "A one-stop, integrated solution for ZFS replication";
+              platforms = platforms.linux;
+              license = licenses.mit;
+              maintainers = with maintainers; [ cole-h danderson ];
+            };
+          };
         };
         
         logging.level = mkOption {
@@ -26,12 +54,12 @@
           default = 8549;
         };
 
-	checkCertificate = mkOption {
-	  description = "Check for certificate presence during startup, and fail if missing. This defaults to true if using remote push/sink, false otherwise.";
-	  example = true;
-	  type = bool;
-	  default = false;
-	};
+        checkCertificate = mkOption {
+          description = "Check for certificate presence during startup, and fail if missing. This defaults to true if using remote push/sink, false otherwise.";
+          example = true;
+          type = bool;
+          default = false;
+        };
 
         local = mkOption {
           default = {};
@@ -312,7 +340,7 @@
           echo 'We recommend the easyrsa package.'
           exit 1
         fi
-	''}
+      ''}
 
         # Setup datasets & permissions
         setupSink() {
