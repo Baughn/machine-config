@@ -5,7 +5,7 @@ set -ue -o pipefail
 cd "$(dirname "$(readlink -f "$0")")"
 
 export HERE="$(pwd)"
-export CHANNEL="20.09"
+export CHANNEL="unstable"
 export NIXPKGS="$HOME/dev/nix/system"
 export FORCE_UPDATE=0
 
@@ -77,6 +77,9 @@ update() {
   fi
 
   update
+
+
+  exit
 
   nixops deploy -d personal --check -j 8 --cores 16 -I "nixpkgs=$NIXPKGS" --build-only "$@"
 
