@@ -153,7 +153,7 @@
   
   # Add hosts for SV.
   networking.hosts = if builtins.pathExists /home/svein/sufficient
-    then lib.mapAttrs' (host: cfg: lib.nameValuePair cfg.publicIP [host]) (
+    then lib.mapAttrs' (host: cfg: lib.nameValuePair cfg.publicIP [(host + ".sv")]) (
       import /home/svein/sufficient/ServerConfiguration/network.nix)
     else {};
   
