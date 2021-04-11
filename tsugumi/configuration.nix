@@ -10,6 +10,7 @@
     ./hardware-configuration.nix
     ./minecraft.nix
     #../modules/plex.nix
+    ./wireless-ap.nix
   ];
 
   me = {
@@ -17,9 +18,11 @@
   };
 
   ## Boot
-  boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot = {
+    enable = true;
+    memtest86.enable = true;
+  };
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   ## Networking
   networking.hostName = "tsugumi";
@@ -28,8 +31,7 @@
   networking.useDHCP = false;
   services.udev.extraRules = ''
       ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="10:7b:44:92:17:20", NAME="external"
-      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="internal"
-      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="d8:3b:bf:b7:7d:fc", NAME="wifi"
+      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="internal-eth"
   '';
   # External
   networking.interfaces.external = {
@@ -65,25 +67,20 @@
     ];
   }; in {
     internal = cfg;
-    wifi = cfg;
+    #wifi = cfg;
   };
   # Internal
+  networking.bridges.internal.interfaces = [ "internal-eth" ];  # Also has wifi
   networking.interfaces.internal = {
     ipv4.addresses = [{
       address = "10.0.0.1";
       prefixLength = 24;
     }];
   };
-  networking.interfaces.wifi = {
-    ipv4.addresses = [{
-      address = "10.0.1.1";
-      prefixLength = 24;
-    }];
-  };
   networking.nat = {
     enable = true;
     externalInterface = "external";
-    internalInterfaces = [ "internal" "wifi" ];
+    internalInterfaces = [ "internal" ];
   };
   services.dhcpd4 = {
     enable = true;
@@ -98,38 +95,7 @@
         range 10.0.1.100 10.0.1.200;
       }
     '';
-    interfaces = [ "internal" "wifi" ];
-  };
-  services.udev.packages = [ pkgs.crda ];
-  environment.systemPackages = [ pkgs.iw pkgs.crda ];
-  hardware.firmware = [ pkgs.wireless-regdb ];
-  services.hostapd = {
-    enable = true;
-    countryCode = "IE";
-    #hwMode = "a";  # This is required for 802.11ax.
-    #channel = 52;
-    hwMode = "g";
-    channel = 1;
-    interface = "wifi";
-    ssid = "Ragnarok";
-    wpa = true;
-    wpaPassphrase = builtins.readFile "/home/svein/nixos/secrets/wifi-pw";
-    extraConfig = ''
-      ieee80211d=1
-      ieee80211n=1
-      ht_capab=[SHORT-GI-40][HT40+][HT40-][DSSS_CCK-40]
-      require_ht=1
-      #ieee80211h=1
-      # ACS stuff
-      acs_num_scans=20
-      preamble=1
-      wmm_enabled=1
-      # WPA stuff
-      auth_algs=1
-      wpa=2  # WPA2 only
-      wpa_key_mgmt=WPA-PSK
-      rsn_pairwise=CCMP
-    '';
+    interfaces = [ "internal" ];
   };
 
   # Samba
