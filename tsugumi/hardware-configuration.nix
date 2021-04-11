@@ -113,11 +113,6 @@
       fsType = "zfs";
     };
 
-  fileSystems."/home/svein/Documents" =
-    { device = "stash/home/svein/Documents";
-      fsType = "zfs";
-    };
-
   fileSystems."/home/svein/Games" =
     { device = "stash/home/svein/Games";
       fsType = "zfs";
