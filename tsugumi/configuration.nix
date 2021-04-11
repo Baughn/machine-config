@@ -122,12 +122,16 @@
       devices.kaho.id = "CKVWFUQ-BMH5EP2-XQLPB34-M4UWQ43-MW7UKV4-UHGWTUB-M422Z2A-VCMHEQ2";
       folders."/home/svein/Sync" = {
         id = "default";
-	devices = [ "saya" "kaho" ];
+        devices = [ "saya" "kaho" ];
       };
-      #folders."/home/svein/Music" = {
-      # id = "Music";
-      # devices = [ "kaho" ];
-      #};
+      folders."/home/svein/Music" = {
+       id = "Music";
+       devices = [ "kaho" ];
+      };
+      folders."/home/svein/Documents" = {
+       id = "Documents";
+       devices = [ "kaho" ];
+      };
     };
   };
 
