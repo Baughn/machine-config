@@ -12,6 +12,6 @@
     virtualisation.docker.enable = true;
     users.extraUsers.svein.extraGroups = [ "docker" "lxd" "libvirtd" ];
     networking.firewall.checkReversePath = false;
-    environment.systemPackages = [ pkgs.qemu pkgs.virtmanager ];
+    environment.systemPackages = [ pkgs.qemu pkgs.virtmanager pkgs.nixos-shell ];
   };
 }
