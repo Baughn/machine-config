@@ -5,3 +5,5 @@ result*
 /.state
 /.base
 *~
+tsugumi/pihole/etc-dnsmasq.d
+tsugumi/pihole/etc-pihole

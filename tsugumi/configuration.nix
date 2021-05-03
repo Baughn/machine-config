@@ -9,7 +9,7 @@
     ../modules
     ./hardware-configuration.nix
     ./minecraft.nix
-    #../modules/plex.nix
+    ../modules/plex.nix
     ./wireless-ap.nix
   ];
 
@@ -44,12 +44,14 @@
   networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
   # Firewall
   networking.firewall.allowedTCPPorts = [
+    53       # Pihole
     80 443   # Web-server
     25565    # Minecraft
     25566    # Minecraft (incognito)
     4000     # ZNC
   ];
   networking.firewall.allowedUDPPorts = [
+    53         # Pihole
     10401      # Wireguard
     34197      # Factorio
   ];
@@ -86,7 +88,7 @@
     enable = true;
     extraConfig = ''
       option domain-name "brage.info";
-      option domain-name-servers 8.8.8.8, 8.8.4.4;
+      option domain-name-servers 10.0.0.1;
       option routers 10.0.0.1;
       subnet 10.0.0.0 netmask 255.255.255.0 {
         range 10.0.0.100 10.0.0.200;

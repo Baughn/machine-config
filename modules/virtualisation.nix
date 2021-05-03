@@ -10,6 +10,7 @@
     virtualisation.libvirtd.enable = true;
     virtualisation.lxd.enable = true;
     virtualisation.docker.enable = true;
+    virtualisation.docker.storageDriver = "zfs";
     users.extraUsers.svein.extraGroups = [ "docker" "lxd" "libvirtd" ];
     networking.firewall.checkReversePath = false;
     environment.systemPackages = [ pkgs.qemu pkgs.virtmanager pkgs.nixos-shell ];

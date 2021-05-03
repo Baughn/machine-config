@@ -289,7 +289,7 @@
       }];
       keep_receiver = [{
         type = "grid";
-        grid = "24x1h | 30x1d | 6x14d";
+        grid = "1x3h(keep=all) | 24x1h | 30x1d | 6x14d";
         regex = "^${push.snapshotting.prefix}";
       }];
     };
