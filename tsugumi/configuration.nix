@@ -240,6 +240,10 @@
     device = "/home/svein/web";
     options = [ "bind" ];
   };
+  fileSystems."/srv/svein/Anime" = {
+    device = "/home/svein/Anime";
+    options = [ "bind" ];
+  };
   services.caddy = {
     enable = true;
     email = "sveina@gmail.com";
