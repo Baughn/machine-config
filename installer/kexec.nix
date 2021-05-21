@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 
 {
   imports = [
@@ -6,9 +6,13 @@
   ];
 
   boot.supportedFilesystems = [ "zfs" ];
-  networking.hostId = "12345678";
+  networking.hostId = "deafbeef";
 
   kexec.autoReboot = false;
+
+  environment.systemPackages = with pkgs; [
+    git
+  ];
 
   users.users.root.openssh.authorizedKeys.keys = 
     (import ../modules/sshKeys.nix).svein;
