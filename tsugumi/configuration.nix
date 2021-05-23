@@ -75,6 +75,15 @@
     internal = cfg;
     #wifi = cfg;
   };
+  # WiFi / openwrt
+  systemd.services.openwrt = {
+    requires = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      WorkingDirectory = "/home/svein/openwrt/";
+      ExecStart = "${pkgs.callPackage ../../openwrt {}}/bin/openwrt.sh";
+    };
+  };
   # Internal
   networking.bridges.internal.interfaces = [ "internal-eth" ];  # Also has wifi
   networking.interfaces.internal = {
