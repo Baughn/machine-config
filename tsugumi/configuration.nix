@@ -52,6 +52,7 @@
     25565    # Minecraft
     25566    # Minecraft (incognito)
     4000     # ZNC
+    7777     # Terraria
   ];
   networking.firewall.allowedUDPPorts = [
     53         # Pihole
