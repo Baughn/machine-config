@@ -113,6 +113,32 @@
     interfaces = [ "internal" ];
   };
 
+  # Matrix/Synapse
+  services.matrix-synapse = {
+    enable = true;
+    enable_metrics = true;
+    enable_registration = false;
+    allow_guest_access = false;
+    registration_shared_secret = builtins.readFile ../secrets/matrix-registration.key;
+    database_type = "sqlite3";
+    dynamic_thumbnails = true;
+    listeners = [{
+      port = 8448;
+      resources = [{
+        compress = false;
+        names = ["client" "webclient"];
+      } {
+        compress = true;
+        names = ["federation"];
+      }];
+      tls = false;
+      type = "http";
+      x_forwarded = false;
+    }];
+    public_baseurl = "https://matrix.brage.info/";
+    server_name = "brage.info";
+  };
+
   # Hercules CI
   services.hercules-ci-agent.enable = true;
   services.hercules-ci-agent.concurrentTasks = 4;
@@ -304,6 +330,11 @@
         root * /srv/aquagon/
         import headers
         file_server browse
+      }
+
+      matrix.brage.info {
+        import headers
+        reverse_proxy http://127.0.0.1:8448
       }
 
       brage.info {
