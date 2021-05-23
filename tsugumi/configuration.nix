@@ -114,13 +114,24 @@
   };
 
   # Matrix/Synapse
+  services.postgresql = {
+    enable = true;
+    initialScript = pkgs.writeText "synapse-init.sql" ''
+      CREATE ROLE "matrix-synapse" WITH LOGIN PASSWORD '${builtins.readFile ../secrets/matrix-sql-pw}';
+      CREATE DATABASE "matrix-synapse" WITH OWNER "matrix-synapse"
+        TEMPLATE template0
+        LC_COLLATE = "C"
+        LC_CTYPE = "C";
+    '';
+  };
+  
   services.matrix-synapse = {
     enable = true;
     enable_metrics = true;
     enable_registration = false;
     allow_guest_access = false;
     registration_shared_secret = builtins.readFile ../secrets/matrix-registration.key;
-    database_type = "sqlite3";
+
     dynamic_thumbnails = true;
     listeners = [{
       port = 8448;
