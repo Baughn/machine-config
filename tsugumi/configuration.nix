@@ -137,10 +137,7 @@
       port = 8448;
       resources = [{
         compress = false;
-        names = ["client" "webclient"];
-      } {
-        compress = true;
-        names = ["federation"];
+        names = ["client" "webclient" "federation"];
       }];
       tls = false;
       type = "http";
