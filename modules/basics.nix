@@ -120,6 +120,7 @@
   nix.useSandbox = "relaxed";
   nix.nrBuildUsers = 48;
   nixpkgs.config.allowUnfree = true;
+  nix.trustedUsers = [ "root" "svein" ];
   nix.package = pkgs.nixUnstable;
   nix.extraOptions = ''
     auto-optimise-store = true
