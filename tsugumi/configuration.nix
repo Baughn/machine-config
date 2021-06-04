@@ -11,9 +11,6 @@
     ./minecraft.nix
     ../modules/plex.nix
     ./wireless-ap.nix
-    ( builtins.fetchTarball "https://github.com/hercules-ci/hercules-ci-agent/archive/stable.tar.gz"
-      + "/module.nix"
-    )
   ];
 
   me = {
