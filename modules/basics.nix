@@ -57,7 +57,7 @@
      rustup gcc
      pythonFull python3Full freeipmi binutils jq
      mercurialFull 
-     gitAndTools.gitFull git-lfs sqliteInteractive
+     gitAndTools.gitFull git-lfs git-crypt sqliteInteractive
      config.boot.kernelPackages.bpftrace
      # VSCode
      nodejs-12_x
