@@ -2,13 +2,12 @@
   description = "Machine configs";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-  inputs.hercules-ci-agent.url = "github:hercules-ci/hercules-ci-agent/nixos-unstable";
   inputs.openwrt = {
     url = "path:../openwrt";
     inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, hercules-ci-agent, openwrt }:
+  outputs = { self, nixpkgs, openwrt }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
