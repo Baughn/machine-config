@@ -38,6 +38,9 @@
     ipv4.addresses = [{
       address = "89.101.222.210";
       prefixLength = 29;
+    } {
+      address = "89.101.222.211";
+      prefixLength = 29;
     }];
   };
   networking.defaultGateway = "89.101.222.209";
@@ -85,6 +88,7 @@
   networking.nat = {
     enable = true;
     externalInterface = "external";
+    externalIP = "89.101.222.211";
     internalInterfaces = [ "internal" ];
   };
   services.dhcpd4 = {
