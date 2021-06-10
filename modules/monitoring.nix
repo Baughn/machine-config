@@ -55,8 +55,8 @@
       }];
     }];
     globalConfig = {
-      evaluation_interval = "1m";
-      scrape_interval = "1m";
+      evaluation_interval = "10s";
+      scrape_interval = "10s";
     };
   };
 }
