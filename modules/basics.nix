@@ -27,7 +27,7 @@
     ];
     inherit (import ../secrets) initialPassword;
   };
-  users.defaultUserShell = "/run/current-system/sw/bin/fish";
+  users.defaultUserShell = pkgs.zsh;
   users.include = [ "svein" ];
   environment.variables.EDITOR = "nvim";
   
@@ -43,7 +43,6 @@
   programs.zsh.enable = true;
   programs.zsh.autosuggestions.enable = true;
   programs.zsh.syntaxHighlighting.enable = true;
-  programs.fish.enable = true;
   programs.nano.nanorc = ''
     set nowrap
   '';
