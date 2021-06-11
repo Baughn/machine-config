@@ -1,13 +1,14 @@
 {
   description = "Machine configs";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  inputs.nixpkgs.url = "flake:nixpkgs/nixos-unstable";
+  inputs.nixos-hardware.url = "flake:nixos-hardware";
   inputs.openwrt = {
     url = "path:../openwrt";
     inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, openwrt }:
+  outputs = { self, nixpkgs, openwrt, nixos-hardware }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -17,6 +18,9 @@
         inherit system;
 
         modules = [
+          nixos-hardware.nixosModules.common-pc
+          nixos-hardware.nixosModules.common-cpu-amd
+          nixos-hardware.nixosModules.common-gpu-amd
           openwrt.nixosModule
           ./tsugumi/configuration.nix
         ];
