@@ -128,6 +128,7 @@
 
     dynamic_thumbnails = true;
     listeners = [{
+      bind_address = "89.101.222.210";
       port = 8448;
       resources = [{
         compress = false;
@@ -139,6 +140,34 @@
     }];
     public_baseurl = "https://matrix.brage.info/";
     server_name = "brage.info";
+
+    logConfig = ''
+       version: 1
+
+       # In systemd's journal, loglevel is implicitly stored, so let's omit it
+       # from the message text.
+       formatters:
+           journal_fmt:
+               format: '%(name)s: [%(request)s] %(message)s'
+
+       filters:
+           context:
+               (): synapse.util.logcontext.LoggingContextFilter
+               request: ""
+
+       handlers:
+           journal:
+               class: systemd.journal.JournalHandler
+               formatter: journal_fmt
+               filters: [context]
+               SYSLOG_IDENTIFIER: synapse
+
+       root:
+           level: WARNING
+           handlers: [journal]
+
+       disable_existing_loggers: False
+     '';
   };
 
   # Hercules CI
@@ -336,7 +365,7 @@
 
       matrix.brage.info {
         import headers
-        reverse_proxy http://127.0.0.1:8448
+        reverse_proxy http://89.101.222.210:8448
       }
 
       brage.info {
