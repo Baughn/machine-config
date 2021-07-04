@@ -49,7 +49,6 @@
 
   ## System environment
   environment.systemPackages = with pkgs; [
-     nixops niv
      # Debug/dev tools
      tcpdump nmap gdb gradle python3Packages.virtualenv
      telnet man-pages posix_man_pages mono heaptrack
@@ -75,7 +74,7 @@
      # Video manipulation
      mkvtoolnix-cli ffmpeg
      # Image-manipulation tools
-     fgallery pngcrush imagemagickBig povray blender
+     fgallery pngcrush imagemagickBig povray
      # Monitoring, eventually to be a module.
      prometheus prometheus-node-exporter prometheus-alertmanager
      prometheus-nginx-exporter
