@@ -320,8 +320,8 @@
         header X-Clacks-Overhead "GNU Terry Pratchett"
         header X-Frame-Options "allow-from https://madoka.brage.info"
         header X-XSS-Protection "1; mode=block"
-        header X-Content-Type-Options "nosniff"
         header Referrer-Policy "no-referrer-when-downgrade"
+
         encode zstd gzip
         handle_errors {
           header content-type "text/plain"
