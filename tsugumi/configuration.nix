@@ -58,6 +58,7 @@
     53         # Pihole
     10401      # Wireguard
     34197      # Factorio
+    24454    # Minecraft (voice chat)
   ];
   networking.firewall.allowedUDPPortRanges = [ { from = 60000; to = 61000; } ]; # mosh
   networking.firewall.interfaces = let cfg = { 
