@@ -157,5 +157,5 @@
     [ { device = "/dev/disk/by-uuid/cd7e6f53-0a73-42dc-987e-7dc3e751ebfc"; }
     ];
 
-  powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
+  powerManagement.cpuFreqGovernor = "schedutil";
 }

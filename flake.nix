@@ -13,10 +13,6 @@
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
-      vscodeFix = fetchTarball {
-        url = "https://github.com/msteen/nixos-vscode-server/tarball/master";
-        sha256 = "0aik2bkgaqpkxdmwhzlz2ixbd5hbkg4gbv18vc54p3vd3ab60xba";
-      };
     in {
       devShell.${system} = import ./shell.nix { inherit pkgs; };
       nixosConfigurations.tsugumi = nixpkgs.lib.nixosSystem {
@@ -37,8 +33,6 @@
           }
           ./tsugumi/configuration.nix
           {
-            imports = [vscodeFix];
-            services.vscode-server.enable = true;
           }
         ];
       };
