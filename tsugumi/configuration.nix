@@ -30,7 +30,7 @@
   networking.hostId = "deafbeef";
   networking.useDHCP = false;
   services.udev.extraRules = ''
-      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="10:7b:44:92:17:20", NAME="external"
+      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="3c:7c:3f:24:99:f6", NAME="external"
       ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="internal-eth"
   '';
   # External
@@ -92,6 +92,15 @@
     externalIP = "89.101.222.211";
     internalInterfaces = [ "internal" ];
   };
+  networking.nat.forwardPorts = [{
+    destination = "10.0.0.100";
+    proto = "udp";
+    sourcePort = 5100;  # Elite
+  } {
+    destination = "10.0.0.100";
+    proto = "tcp";
+    sourcePort = 5100;
+  }];
   services.dhcpd4 = {
     enable = true;
     extraConfig = ''
