@@ -115,7 +115,9 @@ func sendWebhook(amo *alertManOut) {
 
 		if amo.CommonAnnotations.Summary != "" {
 			DO.Content = fmt.Sprintf(" === %s === \n", amo.CommonAnnotations.Summary)
-		}
+		} else {
+      DO.Content = "ALERT"
+    }
 
 		for _, alert := range alerts {
 			realname := alert.Labels["instance"]
@@ -123,9 +125,14 @@ func sendWebhook(amo *alertManOut) {
 				realname = alert.Labels["exported_instance"]
 			}
 
+      value := alert.Annotations.Description
+      if len(value) == 0 {
+        value = "undefined"
+      }
+
 			RichEmbed.Fields = append(RichEmbed.Fields, discordEmbedField{
 				Name:  fmt.Sprintf("[%s]: %s on %s", strings.ToUpper(status), alert.Labels["alertname"], realname),
-				Value: alert.Annotations.Description,
+				Value: value,
 			})
 		}
 
@@ -134,8 +141,17 @@ func sendWebhook(amo *alertManOut) {
 		DOD, _ := json.Marshal(DO)
     resp, err := http.Post(*whURL, "application/json", bytes.NewReader(DOD))
     log.Print(resp)
-    if err != nil {
-      log.Err(err)
+    if err != nil || resp.StatusCode >= 400 {
+      log.Print("= POSTED TEXT =")
+      log.Print(string(DOD))
+      log.Print("= ERROR =")
+      if err != nil {
+        log.Print(err)
+      } else {
+        buf := new(bytes.Buffer)
+        buf.ReadFrom(resp.Body)
+        log.Print(buf.String())
+      }
     }
 	}
 }
