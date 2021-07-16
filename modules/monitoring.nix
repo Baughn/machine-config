@@ -6,7 +6,7 @@
     after = [ "network-online.target" ];
     wantedBy = [ "multi-user.target" ];
     environment = {
-      DISCORD_WEBHOOK = "https://discord.com/api/webhooks/865665834420797491/1OnLAind5X33Z49pKqQNgJSOcC12SOOmRUuV1VnDT8L7fAi88UETi53-WkpjPUxd7nKh";
+      DISCORD_WEBHOOK = (import ../secrets).monitoringWebhook;
     };
     serviceConfig = {
       ExecStart = "${pkgs.callPackage monitoring/alertmanager-discord {}}/bin/alertmanager-discord --listen.address=127.0.0.1:9095";
