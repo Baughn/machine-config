@@ -68,6 +68,8 @@ in
       python-language-server
     ]);
     plugins = with pkgs.vimPlugins; [
+      vim-plug
+
       # "Defaults everyone can agree on"
       sensible
 

@@ -93,15 +93,21 @@
     externalIP = "89.101.222.211";
     internalInterfaces = [ "internal" ];
   };
-  networking.nat.forwardPorts = [{
-    destination = "10.0.0.100";
-    proto = "udp";
-    sourcePort = 5100;  # Elite
-  } {
-    destination = "10.0.0.100";
-    proto = "tcp";
-    sourcePort = 5100;
-  }];
+  networking.nat.forwardPorts =
+    let forward = port: [{
+      destination = "10.0.0.100";
+      proto = "udp";
+      sourcePort = port;
+    } {
+      destination = "10.0.0.100";
+      proto = "tcp";
+      sourcePort = port;
+    }];
+    in pkgs.lib.concatMap forward [
+      5100  # Elite
+      5200  # Stationeers
+      5201  # Stationeers
+    ];
   services.dhcpd4 = {
     enable = true;
     extraConfig = ''
@@ -205,7 +211,7 @@
     configDir = "/home/svein/.config/syncthing";
     dataDir = "/home/svein/Sync";
     declarative = {
-      devices.saya.id = "D4QNZAY-IBP53L3-GMR4DSU-6JPUMLB-5FZKFJD-S4AGRO2-5XI2TUR-YK2QHQM";
+      devices.saya.id = "WITNYHH-S7BTOYT-5FFXM5W-BKJASXO-GVCIOAF-GT7OUNI-PZDR6VL-7QWD6QY";
       devices.kaho.id = "CKVWFUQ-BMH5EP2-XQLPB34-M4UWQ43-MW7UKV4-UHGWTUB-M422Z2A-VCMHEQ2";
       folders."/home/svein/Sync" = {
         id = "default";
@@ -275,13 +281,15 @@
       enable = true;
       configFile = ../modules/monitoring/blackbox.yml;
     };
-    scrapeConfigs = [{
-      job_name = "minecraft";
-      static_configs = [{
-        labels.server = "erisia";
-        targets = ["localhost:1223"];
-      }];
-    } {
+    scrapeConfigs = [
+    #{
+    #  job_name = "minecraft";
+    #  static_configs = [{
+    #    labels.server = "erisia";
+    #    targets = ["localhost:1223"];
+    #  }];
+    #}
+    {
       job_name = "blackbox";
       static_configs = [{
         targets = ["localhost:9115"];
