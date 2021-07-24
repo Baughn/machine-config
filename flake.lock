@@ -84,7 +84,7 @@
         ]
       },
       "locked": {
-        "narHash": "sha256-PoGv30/jQiELXYK7mPN1cZBtEZOUp+EB/ZWV9EukuSs=",
+        "narHash": "sha256-etD2n0s5emLbWfxkrasvEdeGkxpjobJGCYhKSlrvCa4=",
         "path": "../openwrt",
         "type": "path"
       },
