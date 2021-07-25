@@ -13,6 +13,24 @@
       Restart = "always";
     };
   };
+  systemd.services.prometheus-zpool-exporter = {
+    wantedBy = [ "multi-user.target" ];
+    script = ''
+      DIR=/run/prometheus-node-exporter/
+      while true; do
+        echo > $DIR/zpool
+        for pool in $(${pkgs.zfs}/bin/zpool list -H | ${pkgs.gawk}/bin/awk '{print $1}'); do
+          if ${pkgs.zfs}/bin/zpool status -x | grep -q $pool; then
+            echo "zfs_pool_errors{pool=\"$pool\"} 1" >> $DIR/zpool
+          else
+            echo "zfs_pool_errors{pool=\"$pool\"} 0" >> $DIR/zpool
+          fi
+        done
+        mv $DIR/zpool $DIR/zpool.prom
+        sleep 30
+      done
+    '';
+  };
 
   services.prometheus = {
     enable = true;
@@ -52,6 +70,13 @@
           annotations:
             summary: "Monitoring process is down or unreachable"
             description: "{{ $labels.instance }} not reachable."
+      - name: zfs
+        rules:
+        - alert: PoolErrors
+          expr: zfs_pool_errors > 0
+          annotations:
+            summary: ZFS pool errors
+            description: "Pool errors detected on {{ $labels.pool }}"
       - name: machine
         rules:
         - alert: MemoryErrors
@@ -117,8 +142,9 @@
     exporters = {
       node = {
         enable = true;
-        enabledCollectors = [ "interrupts" "logind" "meminfo_numa" "mountstats" "tcpstat" "systemd" "zfs" "wifi" ] ++
+        enabledCollectors = [ "interrupts" "logind" "meminfo_numa" "mountstats" "tcpstat" "systemd" "zfs" "wifi" "textfile" ] ++
           (lib.optional config.services.ntp.enable "ntp");
+        extraFlags = ["--collector.textfile.directory=/run/prometheus-node-exporter/"];
       };
       collectd.enable = true;
       nginx.enable = config.services.nginx.enable;
