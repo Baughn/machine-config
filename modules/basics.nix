@@ -67,6 +67,8 @@
      file irssi links2 screen parallel moreutils neovim mutt finger_bsd
      autojump units progress pv mc mkpasswd ripgrep zstd pixz mbuffer fd
      (callPackage ../tools/up {})
+     # Gaming
+     steamcmd steam-run
      # File transfer
      rsync wget rtorrent unison znapzend sshfsFuse borgbackup
      # Nix tools

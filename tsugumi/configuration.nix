@@ -52,16 +52,22 @@
     80 443   # Web-server
     25565    # Minecraft
     25566    # Minecraft (incognito)
+    27500    # Stationeers
+    27015    # Stationeers
     4000     # ZNC
     7777     # Terraria
   ];
   networking.firewall.allowedUDPPorts = [
-    53         # Pihole
-    10401      # Wireguard
-    34197      # Factorio
+    53       # Pihole
+    10401    # Wireguard
+    34197    # Factorio
     24454    # Minecraft (voice chat)
+    27500    # Stationeers
   ];
-  networking.firewall.allowedUDPPortRanges = [ { from = 60000; to = 61000; } ]; # mosh
+  networking.firewall.allowedUDPPortRanges = [
+    { from = 60000; to = 61000; }  # mosh
+    { from = 27015; to = 27020; }  # Steam
+  ];
   networking.firewall.interfaces = let cfg = { 
     allowedTCPPorts = [
       139 445  # Samba
@@ -224,6 +230,10 @@
       folders."/home/svein/Documents" = {
        id = "Documents";
        devices = [ "kaho" ];
+      };
+      folders."/home/svein/secure" = {
+        id = "secure";
+        devices = [ "saya" "kaho" ];
       };
     };
   };
