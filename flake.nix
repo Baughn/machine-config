@@ -13,8 +13,24 @@
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
+      installer = modules: nixpkgs.lib.nixosSystem {
+        inherit system modules;
+      };
+
     in {
       devShell.${system} = import ./shell.nix { inherit pkgs; };
+
+      packages.${system} = {
+        install-cd = (installer [
+          "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+          ./installer/cd.nix
+        ]).config.system.build.isoImage;
+        install-kexec = (installer [
+          "${nixpkgs}/nixos/modules/installer/netboot/netboot-minimal.nix"
+          ./installer/kexec.nix
+        ]).config.system.build.kexec_tarball;
+      };
+
       nixosConfigurations.tsugumi = nixpkgs.lib.nixosSystem {
         inherit system;
 

@@ -1,17 +1,20 @@
-{ pkgs, ... }:
+{ pkgs, ...}:
 
 {
-  imports = [
-    /home/svein/dev/nix/system/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix
-  ];
-
   boot.supportedFilesystems = [ "zfs" "f2fs" ];
-  networking.hostId = "12345678";
+  networking.hostId = "deafbeef";
+  boot.zfs.requestEncryptionCredentials = true;
 
-  # For the Dell.
+  # Turn on flakes.
+  nix.package = pkgs.nixUnstable;
+  nix.extraOptions = ''
+    experimental-features = nix-command flakes
+  '';
+
+
+  # Use a high-res font.
   boot.loader.systemd-boot.consoleMode = "0";
   console.font = "${pkgs.terminus_font}/share/consolefonts/ter-u32n.psf.gz";
-  boot.zfs.requestEncryptionCredentials = true;
 
   environment.etc.nixos-git.source = builtins.filterSource
         (path: type:
