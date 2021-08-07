@@ -64,23 +64,27 @@
     };
 
   fileSystems."/home/sh" =
-    { device = "stash/home/sh";
+    { device = "stash/encrypted/bulk/sh";
       fsType = "zfs";
+      depends = ["/key"];
     };
 
   fileSystems."/home/aquagon" =
-    { device = "stash/home/aquagon";
+    { device = "stash/encrypted/backed-up/aquagon";
       fsType = "zfs";
+      depends = ["/key"];
     };
 
   fileSystems."/home/svein/web" =
-    { device = "stash/home/svein/web";
+    { device = "stash/encrypted/bulk/web";
       fsType = "zfs";
+      depends = ["/key"];
     };
 
   fileSystems."/home/minecraft" =
     { device = "stash/minecraft";
       fsType = "zfs";
+      depends = ["/key"];
     };
 
   fileSystems."/home/minecraft/testing" =
@@ -114,43 +118,51 @@
     };
 
   fileSystems."/home/svein/Games" =
-    { device = "stash/home/svein/Games";
+    { device = "stash/encrypted/bulk/Games";
       fsType = "zfs";
+      depends = ["/key"];
     };
 
   fileSystems."/home/svein/Media" =
-    { device = "stash/home/svein/Media";
+    { device = "stash/encrypted/bulk/Media";
       fsType = "zfs";
+      depends = ["/key"];
     };
 
   fileSystems."/home/svein/Sync" =
-    { device = "stash/home/svein/Sync";
+    { device = "stash/encrypted/backed-up/Sync";
       fsType = "zfs";
+      depends = ["/key"];
     };
 
   fileSystems."/home/svein/dcc" =
-    { device = "stash/home/svein/dcc";
+    { device = "stash/encrypted/bulk/incoming";
       fsType = "zfs";
+      depends = ["/key"];
     };
 
   fileSystems."/home/svein/secure" =
-    { device = "stash/home/svein/secure";
+    { device = "stash/encrypted/backed-up/core";
       fsType = "zfs";
+      depends = ["/key"];
     };
 
   fileSystems."/home/svein/short-term" =
-    { device = "stash/home/svein/short-term";
+    { device = "stash/encrypted/short-term";
       fsType = "zfs";
+      depends = ["/key"];
     };
 
-  fileSystems."/home/svein/sv-sqldata" =
-    { device = "stash/home/svein/sv-sqldata";
+  fileSystems."/home/svein/Sync/Watched" =
+    { device = "stash/encrypted/short-term/Syncwatch";
       fsType = "zfs";
+      depends = ["/key"];
     };
 
   fileSystems."/home/svein/win" =
-    { device = "stash/home/svein/win";
+    { device = "stash/encrypted/bulk/win";
       fsType = "zfs";
+      depends = ["/key"];
     };
 
   swapDevices =
