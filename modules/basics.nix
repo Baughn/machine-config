@@ -22,9 +22,7 @@
 
   # User setup
   users.users.root = {
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDFqQOHIaerfzhi0pQHZ/U1ES2yvql9NY46A01TjmgAl svein@tsugumi"
-    ];
+    openssh.authorizedKeys.keys = (import ./sshKeys.nix).svein;
     inherit (import ../secrets) initialPassword;
   };
   users.defaultUserShell = pkgs.zsh;
