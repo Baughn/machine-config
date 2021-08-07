@@ -65,7 +65,6 @@ in
     enable = true;
     vimAlias = true;
     extraPython3Packages = (ps: with ps; [
-      python-language-server
     ]);
     plugins = with pkgs.vimPlugins; [
       vim-plug
