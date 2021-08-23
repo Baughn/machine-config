@@ -219,21 +219,22 @@
     declarative = {
       devices.saya.id = "WITNYHH-S7BTOYT-5FFXM5W-BKJASXO-GVCIOAF-GT7OUNI-PZDR6VL-7QWD6QY";
       devices.kaho.id = "CKVWFUQ-BMH5EP2-XQLPB34-M4UWQ43-MW7UKV4-UHGWTUB-M422Z2A-VCMHEQ2";
+      devices.koyomi.id = "WCPI5FZ-WOPAUNY-CO6L7ZR-KXP3BYN-NNOHZZI-K4TCWXM-2SNSFHW-QSA7MQM";
       folders."/home/svein/Sync" = {
         id = "default";
-        devices = [ "saya" "kaho" ];
+        devices = [ "saya" "kaho" "koyomi" ];
       };
       folders."/home/svein/Music" = {
        id = "Music";
-       devices = [ "kaho" ];
+       devices = [ "kaho" "koyomi" ];
       };
       folders."/home/svein/Documents" = {
        id = "Documents";
-       devices = [ "kaho" ];
+       devices = [ "kaho" "koyomi" ];
       };
       folders."/home/svein/secure" = {
         id = "secure";
-        devices = [ "saya" "kaho" ];
+        devices = [ "saya" "kaho" "koyomi" ];
       };
     };
   };
