@@ -378,9 +378,11 @@
 
     users.users.zrepl = {
       uid = 316;
+      group = "zrepl";
       isSystemUser = true;
       home = "/var/spool/zrepl";
     };
+    users.groups.zrepl = {};
 
     environment.systemPackages = [
       (pkgs.callPackage ../zrepl {})
