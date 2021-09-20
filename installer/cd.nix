@@ -1,9 +1,13 @@
 { pkgs, ...}:
 
 {
+  boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.supportedFilesystems = [ "zfs" "f2fs" ];
   networking.hostId = "deafbeef";
   boot.zfs.requestEncryptionCredentials = true;
+
+  networking.networkmanager.enable = true;
+  networking.wireless.enable = false;
 
   # Turn on flakes.
   nix.package = pkgs.nixUnstable;
