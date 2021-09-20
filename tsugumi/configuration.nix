@@ -101,11 +101,11 @@
   };
   networking.nat.forwardPorts =
     let forward = port: [{
-      destination = "10.0.0.100";
+      destination = "10.0.0.191";
       proto = "udp";
       sourcePort = port;
     } {
-      destination = "10.0.0.100";
+      destination = "10.0.0.191";
       proto = "tcp";
       sourcePort = port;
     }];
@@ -217,7 +217,7 @@
     configDir = "/home/svein/.config/syncthing";
     dataDir = "/home/svein/Sync";
     declarative = {
-      devices.saya.id = "WITNYHH-S7BTOYT-5FFXM5W-BKJASXO-GVCIOAF-GT7OUNI-PZDR6VL-7QWD6QY";
+      devices.saya.id = "WU5AOBG-6BTZRCL-EDGE3IX-W6YQQHS-UE55TXD-7P3CBXH-NHM3VBI-6VULBQL";
       devices.kaho.id = "CKVWFUQ-BMH5EP2-XQLPB34-M4UWQ43-MW7UKV4-UHGWTUB-M422Z2A-VCMHEQ2";
       devices.koyomi.id = "WCPI5FZ-WOPAUNY-CO6L7ZR-KXP3BYN-NNOHZZI-K4TCWXM-2SNSFHW-QSA7MQM";
       folders."/home/svein/Sync" = {
