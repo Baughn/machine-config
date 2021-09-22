@@ -84,7 +84,11 @@
     #wifi = cfg;
   };
   # WiFi / openwrt
-  me.openwrt.enable = true;
+  services.unifi.enable = true;
+  services.unifi.unifiPackage = pkgs.unifi;
+  users.users.unifi.group = "unifi";
+  users.groups.unifi = {};
+  #me.openwrt.enable = true;
   # Internal
   networking.bridges.internal.interfaces = [ "internal-eth" ];  # Also has wifi
   networking.interfaces.internal = {
