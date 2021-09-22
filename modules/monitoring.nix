@@ -90,7 +90,7 @@
             summary: "Uncorrectable EDAC errors"
             description: "{{ $value }} uncorrectable errors detected"
         - alert: TemperatureHigh
-          expr: node_hwmon_temp_celsius > 84
+          expr: node_hwmon_temp_celsius > 86
           for: 2m
           annotations:
             summary: "CPU is literally on fire"
@@ -113,7 +113,7 @@
             description: "{{ $value }} bytes free on {{ $labels.instance }} {{ $labels.mountpoint }}"
             details: "Working around https://github.com/prometheus/node_exporter/issues/1498"
         - alert: FilesystemScrapeErrors
-          expr: node_filesystem_device_error > 0
+          expr: node_filesystem_device_error{mountpoint!~"/var/lib/unifi/.*"} > 0
           annotations:
             description: "{{ $value }} filesystem scrape errors registered on {{ $labels.instance }} {{ $labels.mountpoint }}"
         - alert: MemoryUseHigh
