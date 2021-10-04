@@ -8,35 +8,25 @@
     [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "ahci" "usb_storage" "usbhid" "sd_mod" ];
-  boot.initrd.kernelModules = [ "dm-snapshot" "dm-cache-smq" ];
+  boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
+  boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "rpool";
+    { device = "rpool/nix";
       fsType = "zfs";
+    };
+
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-uuid/455E-0E2E";
+      fsType = "vfat";
     };
 
   fileSystems."/home" =
     { device = "rpool/home";
       fsType = "zfs";
     };
-
-  fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/D71C-F84A";
-      fsType = "vfat";
-    };
-
-  fileSystems."/home/svein/.local/share/Steam/steamapps" =
-    { device = "bigpool/steam";
-      fsType = "zfs";
-    };
-
-  swapDevices =
-    [ { device = "/dev/disk/by-uuid/f1e02069-8802-4432-a84a-306a2d931df2"; }
-      { device = "/dev/disk/by-uuid/51a9b759-98b5-4189-ae1c-6893e1e208c9"; }
-    ];
 
   fileSystems."/home/svein/mnt" = {
     device = "svein@brage.info:";
@@ -48,4 +38,6 @@
       "uid=1000" "gid=100"
     ];
   };
+
+  swapDevices = [ ];
 }

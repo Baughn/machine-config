@@ -14,10 +14,8 @@ lib.mkIf config.me.desktop.enable {
     # Chat, etc.
     discord syncplay
     # Entertainment
-    (mpv.override {
-      openalSupport = true;
-    })
-    (pkgs.python37.pkgs.callPackage <nixpkgs/pkgs/applications/networking/syncplay> { })
+    mpv
+    syncplay
     (dwarf-fortress-packages.dwarf-fortress-full.override {
       enableIntro = false;
     })
@@ -34,7 +32,6 @@ lib.mkIf config.me.desktop.enable {
   ## Fonts
   fonts = {
     enableDefaultFonts = true;
-    enableFontDir = true;
     enableGhostscriptFonts = true;
     fonts = with pkgs; [
       corefonts  # Microsoft free fonts.
@@ -49,14 +46,14 @@ lib.mkIf config.me.desktop.enable {
   services.xserver = {
     enable = true;
     layout = "us";
-    displayManager.sddm = {
-      enable = true;
-    };
+    displayManager.gdm.enable = true;
+    displayManager.gdm.nvidiaWayland = true;
+    displayManager.gdm.wayland = true;
     desktopManager = {
 #      default = "xfce";
 #      xfce.enable = true;
-#      gnome3.enable = true;
-      plasma5.enable = true;
+      gnome.enable = true;
+#      plasma5.enable = true;
     };
     # windowManager.xmonad = {
     #   enable = true;
@@ -70,12 +67,13 @@ lib.mkIf config.me.desktop.enable {
     exportConfiguration = true;
   };
  
-  sound.enable = true;
-  hardware.pulseaudio = {
+  hardware.pulseaudio.enable = false;
+  services.pipewire = {
     enable = true;
-    support32Bit = true;
-    package = pkgs.pulseaudioFull;
-    extraModules = [ pkgs.pulseaudio-modules-bt ];
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    jack.enable = true;
+    pulse.enable = true;
   };
   hardware.bluetooth = {
     enable = true;
@@ -84,6 +82,5 @@ lib.mkIf config.me.desktop.enable {
 
   hardware.opengl = {
     driSupport32Bit = true;
-    s3tcSupport = true;
   };
 }
