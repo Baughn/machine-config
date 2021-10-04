@@ -54,7 +54,6 @@
      pythonFull python3Full freeipmi binutils jq
      mercurialFull 
      gitAndTools.gitFull git-lfs git-crypt sqliteInteractive
-     config.boot.kernelPackages.bpftrace
      # VSCode
      nodejs-12_x
      # System/monitoring/etc tools
@@ -150,7 +149,10 @@
   services.avahi = {
     enable = true;
     nssmdns = true;
-    interfaces = [ "internal" ];
+    interfaces = [ "internal" "enp10s0" ];
+    publish.enable = true;
+    publish.addresses = true;
+    publish.workstation = true;
   };
   
   # Add hosts for SV.
@@ -158,7 +160,6 @@
       import ../secrets/sv-network.nix);
   
   ## Time & location ##
-  console.font = lib.mkDefault "Lat2-Terminus16";
   console.keyMap = "us";
   i18n = {
     defaultLocale = "en_US.UTF-8";

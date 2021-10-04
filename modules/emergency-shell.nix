@@ -13,7 +13,7 @@
       enable = true;
       authorizedKeys = (import ./sshKeys.nix).svein;
       # Use a fixed host key, but--
-      hostRSAKey = (import ../secrets).hostRSAKey.${config.deployment.targetHost};
+#      hostRSAKey = (import ../secrets).hostRSAKey.${config.deployment.targetHost};
       # Don't run on the standard port, so nixops won't get confused.
       port = 2222;
     };
