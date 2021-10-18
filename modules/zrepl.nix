@@ -388,6 +388,8 @@
       (pkgs.callPackage ../zrepl {})
     ];
 
+    security.wrappers.zrepl-status.owner = "root";
+    security.wrappers.zrepl-status.group = "root";
     security.wrappers.zrepl-status.source = pkgs.stdenv.mkDerivation {
       name = "zrepl-status";
       unpackPhase = "true";
