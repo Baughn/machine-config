@@ -4,6 +4,7 @@
   inputs.nixpkgs.url = "flake:nixpkgs/nixos-unstable";
   inputs.nixos-hardware.url = "flake:nixos-hardware";
   inputs.home-manager.url = "github:nix-community/home-manager";
+  inputs.home-manager.inputs.nixpkgs.follows = "nixpkgs";
   #inputs.openwrt = {
   #  url = "path:../openwrt";
   #  inputs.nixpkgs.follows = "nixpkgs";
