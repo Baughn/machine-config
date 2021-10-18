@@ -32,6 +32,8 @@
     '';
   };
 
+  systemd.services.prometheus-node-exporter.serviceConfig.ProtectHome = lib.mkForce false;
+
   services.prometheus = {
     enable = true;
     alertmanager = {
