@@ -90,7 +90,7 @@
             summary: "Uncorrectable EDAC errors"
             description: "{{ $value }} uncorrectable errors detected"
         - alert: TemperatureHigh
-          expr: node_hwmon_temp_celsius > 90
+          expr: node_hwmon_temp_celsius > 92
           for: 2m
           annotations:
             summary: "CPU is literally on fire"
