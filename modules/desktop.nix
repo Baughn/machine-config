@@ -47,7 +47,7 @@ lib.mkIf config.me.desktop.enable {
     enable = true;
     layout = "us";
     displayManager.gdm.enable = true;
-    displayManager.gdm.nvidiaWayland = true;
+    #displayManager.gdm.nvidiaWayland = true;
     displayManager.gdm.wayland = true;
     desktopManager = {
 #      default = "xfce";
