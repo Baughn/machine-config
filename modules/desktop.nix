@@ -4,7 +4,7 @@ lib.mkIf config.me.desktop.enable {
 
   ## Packages
   environment.systemPackages = with pkgs; [
-    google-chrome steam pavucontrol youtube-dl wineFull
+    google-chrome steam pavucontrol youtube-dl wineFull winetricks
     gnome3.gnome_terminal compton blender
     ncmpcpp xorg.xdpyinfo xorg.xev xorg.xkill # maim
     steam-run firefox glxinfo mpd xlockmore xorg.xwd
