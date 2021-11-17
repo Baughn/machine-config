@@ -63,6 +63,9 @@
     34197    # Factorio
     24454    # Minecraft (voice chat)
     27500    # Stationeers
+    15777    # Satisfactory query
+    15000    # Satisfactory beacon
+    7777     # Satisfactory game
   ];
   networking.firewall.allowedUDPPortRanges = [
     { from = 60000; to = 61000; }  # mosh
@@ -113,11 +116,11 @@
       proto = "tcp";
       sourcePort = port;
     }];
-    in pkgs.lib.concatMap forward [
+    in pkgs.lib.concatMap forward ([
       5100  # Elite
       5200  # Stationeers
       5201  # Stationeers
-    ];
+    ]);
   services.dhcpd4 = {
     enable = true;
     extraConfig = ''
