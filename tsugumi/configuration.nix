@@ -9,6 +9,7 @@
     ../modules
     ./hardware-configuration.nix
     ./minecraft.nix
+    ./satisfactory.nix
     ../modules/plex.nix
     ./wireless-ap.nix
     ../modules/monitoring.nix
@@ -63,9 +64,6 @@
     34197    # Factorio
     24454    # Minecraft (voice chat)
     27500    # Stationeers
-    15777    # Satisfactory query
-    15000    # Satisfactory beacon
-    7777     # Satisfactory game
   ];
   networking.firewall.allowedUDPPortRanges = [
     { from = 60000; to = 61000; }  # mosh
