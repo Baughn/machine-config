@@ -9,6 +9,7 @@
     ../modules
     ./hardware-configuration.nix
     ./minecraft.nix
+    ./satisfactory.nix
     ../modules/plex.nix
     ./wireless-ap.nix
     ../modules/monitoring.nix
@@ -113,11 +114,11 @@
       proto = "tcp";
       sourcePort = port;
     }];
-    in pkgs.lib.concatMap forward [
+    in pkgs.lib.concatMap forward ([
       5100  # Elite
       5200  # Stationeers
       5201  # Stationeers
-    ];
+    ]);
   services.dhcpd4 = {
     enable = true;
     extraConfig = ''
@@ -222,7 +223,7 @@
     dataDir = "/home/svein/Sync";
     declarative = {
       devices.saya.id = "WU5AOBG-6BTZRCL-EDGE3IX-W6YQQHS-UE55TXD-7P3CBXH-NHM3VBI-6VULBQL";
-      devices.kaho.id = "CKVWFUQ-BMH5EP2-XQLPB34-M4UWQ43-MW7UKV4-UHGWTUB-M422Z2A-VCMHEQ2";
+      devices.kaho.id = "WO5QPPE-S37P4KO-L4KWQ23-SEV6VHB-ABTJ3JX-BB7ST2A-VCOBUMM-DEZKVAN";
       devices.koyomi.id = "WCPI5FZ-WOPAUNY-CO6L7ZR-KXP3BYN-NNOHZZI-K4TCWXM-2SNSFHW-QSA7MQM";
       folders."/home/svein/Sync" = {
         id = "default";

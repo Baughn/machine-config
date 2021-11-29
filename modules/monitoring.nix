@@ -32,6 +32,8 @@
     '';
   };
 
+  systemd.services.prometheus-node-exporter.serviceConfig.ProtectHome = lib.mkForce false;
+
   services.prometheus = {
     enable = true;
     alertmanager = {
@@ -90,7 +92,7 @@
             summary: "Uncorrectable EDAC errors"
             description: "{{ $value }} uncorrectable errors detected"
         - alert: TemperatureHigh
-          expr: node_hwmon_temp_celsius > 86
+          expr: node_hwmon_temp_celsius > 92
           for: 2m
           annotations:
             summary: "CPU is literally on fire"

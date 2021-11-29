@@ -109,8 +109,6 @@
 
   ## Nix setup
   nix.buildCores = lib.mkDefault 0;
-  nix.daemonIONiceLevel = 7;
-  nix.daemonNiceLevel = 19;
   nix.gc.automatic = true;
   nix.gc.dates = "Thu 03:15";
   nix.gc.options = lib.mkDefault "--delete-older-than 14d";
