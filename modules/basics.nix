@@ -61,27 +61,31 @@
      smartmontools pciutils lsof schedtool numactl dmidecode iotop
      usbutils powertop w3m autossh
      # Shell tools
-     file irssi links2 screen parallel moreutils neovim mutt finger_bsd
-     autojump units progress pv mc mkpasswd ripgrep zstd pixz mbuffer fd
+     file weechat parallel moreutils neovim finger_bsd
+     autojump ripgrep zstd fd
      (callPackage ../tools/up {})
-     # Gaming
-     steamcmd steam-run
      # File transfer
-     rsync wget rtorrent unison znapzend sshfsFuse borgbackup
+     rsync wget rtorrent sshfsFuse 
      # Nix tools
      nox nix-prefetch-git
-     # Video manipulation
-     mkvtoolnix-cli ffmpeg
-     # Image-manipulation tools
-     fgallery pngcrush imagemagickBig povray
      # Monitoring, eventually to be a module.
      prometheus prometheus-node-exporter prometheus-alertmanager
      prometheus-nginx-exporter
+     # Giant lump of stuff
+     shared_mime_info p7zip fortune
+  ];
+
+  environment.launchable.systemPackages = with pkgs; [
      # Games
      nethack
-     # Giant lump of stuff
-     zip unzip znc shared_mime_info p7zip fortune
-     gnupg unrar encfs
+     steamcmd steam-run
+     # Tools
+     unrar znc progress pv pixz mbuffer mc mkpasswd units gnupg encfs btop links2 
+     unison borgbackup imagemagickBig zip unzip
+     # Image-manipulation tools
+     fgallery pngcrush povray
+     # Video manipulation
+     mkvtoolnix-cli ffmpeg
   ];
 
   environment.loginShellInit = ''
