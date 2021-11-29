@@ -50,7 +50,7 @@
   boot.kernelParams = [
     "boot.shell_on_fail"
   ];
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  #boot.kernelPackages = pkgs.linuxPackages_latest;
   #boot.kernelPackages = pkgs.linuxPackages_zen;
   systemd.enableEmergencyMode = true;
   #powerManagement.cpuFreqGovernor = "ondemand";
@@ -66,6 +66,8 @@
   networking.hostId = "deafbeef";
   networking.useDHCP = false;
   networking.networkmanager.enable = true;
+  networking.interfaces.enp10s0.wakeOnLan.enable = true;
+
 
   networking.firewall = {
     allowedTCPPorts = [ 
