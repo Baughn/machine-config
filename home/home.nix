@@ -58,6 +58,7 @@ in
       ontop = true;
       alang = "ja";
       slang = "en";
+      vo = "wlshm";
     };
   };
 

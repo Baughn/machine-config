@@ -45,17 +45,23 @@ lib.mkIf config.me.desktop.enable {
     ];
   };
 
+  programs.sway = {
+    enable = true;
+  };
+
   services.xserver = {
     enable = true;
     layout = "us";
+    #displayManager.lightdm.enable = true;
     displayManager.gdm.enable = true;
-    #displayManager.gdm.nvidiaWayland = true;
+    displayManager.gdm.nvidiaWayland = true;
     displayManager.gdm.wayland = true;
     desktopManager = {
 #      default = "xfce";
 #      xfce.enable = true;
       gnome.enable = true;
-#      plasma5.enable = true;
+    #  cinnamon.enable = true;
+    #  plasma5.enable = true;
     };
     # windowManager.xmonad = {
     #   enable = true;
@@ -68,6 +74,8 @@ lib.mkIf config.me.desktop.enable {
     enableCtrlAltBackspace = true;
     exportConfiguration = true;
   };
+
+  programs.xwayland.enable = true;
  
   hardware.pulseaudio.enable = false;
   services.pipewire = {
