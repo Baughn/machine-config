@@ -59,14 +59,6 @@
           nixos-hardware.nixosModules.common-cpu-amd
           nixos-hardware.nixosModules.common-gpu-amd
           #openwrt.nixosModule
-          home-manager.nixosModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              users.svein = import ./home/home.nix;
-            };
-          }
           ./tsugumi/configuration.nix
         ] ++ homeConfig;
       };
