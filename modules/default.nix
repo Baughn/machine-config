@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./launchable.nix
     ./basics.nix
     ./desktop.nix
     ./nginx.nix

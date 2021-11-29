@@ -4,18 +4,25 @@ lib.mkIf config.me.desktop.enable {
 
   ## Packages
   environment.systemPackages = with pkgs; [
-    google-chrome pavucontrol youtube-dl wineFull winetricks
-    gnome3.gnome_terminal compton blender
-    ncmpcpp xorg.xdpyinfo xorg.xev xorg.xkill # maim
-    steam-run firefox glxinfo mpd xlockmore xorg.xwd
-    idea.idea-community virtviewer
-    # Video / Photo editing
-    kdenlive frei0r gimp-with-plugins
+    google-chrome youtube-dl
+    gnome3.gnome_terminal
+    steam-run firefox
+    idea.idea-community
     # Chat, etc.
     discord syncplay
     # Entertainment
     mpv
     syncplay
+  ];
+
+  environment.launchable.systemPackages = with pkgs; [
+    # Applications I rarely use
+    wineFull winetricks blender pavucontrol
+    ncmpcpp mpd xlockmore xorg.xwd xorg.xdpyinfo xorg.xev xorg.xkill
+    glxinfo virtviewer
+    # Video / Photo editing
+    kdenlive frei0r gimp-with-plugins
+    # One day I'll get back to this
     (dwarf-fortress-packages.dwarf-fortress-full.override {
       enableIntro = false;
     })
@@ -28,6 +35,7 @@ lib.mkIf config.me.desktop.enable {
         groovy-mode editorconfig rust-mode pabbrev expand-region
       ]))
   ];
+
 
   programs.steam.enable = true;
 
