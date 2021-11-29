@@ -26,8 +26,7 @@
 
       # This is needed to avoid pulling down every build-time dependency.
       # The .drv file itself will still be in the closure.
-      drv = builtins.unsafeDiscardStringContext
-        (builtins.toJSON p.drvPath);
+      drv = builtins.unsafeDiscardStringContext p.drvPath;
 
     in pkgs.writeTextFile {
         name = "${name}-launcher";
