@@ -22,15 +22,21 @@
     propagateNix = false;
   };
 
-  environment.etc."egl/egl_external_platform.d/nvidia_wayland.json".text = ''
-  {
-    "file_format_version" : "1.0.0",
-    "ICD" : {
-        "library_path" : "/run/opengl-driver/lib/libnvidia-egl-wayland.so"
-    }
-  }
-  '';
-
+  # https://github.com/NixOS/nixpkgs/pull/138180
+  environment.variables.GBM_BACKENDS_PATH = "/run/opengl-driver/lib/gbm";
+  environment.variables.MOZ_ENABLE_WAYLAND = "1";
+  nixpkgs.overlays = let
+    nixpkgs-tars = "https://github.com/NixOS/nixpkgs/archive";
+    pr138180 = import (fetchTarball {
+      url = "${nixpkgs-tars}/49a2d9ba22d78fc60917fed918c8ebc97ed458ea.tar.gz";
+      sha256 = "06frgm7a1j5d4hdxqqcjwr0dcr8a3c38pzb572smmhwfb7k07sxd";
+    }) {
+      config = config.nixpkgs.config; 
+      system = config.nixpkgs.system;
+    };
+  in [(self: super: {
+    egl-wayland = pr138180.egl-wayland;
+  })];
 
   ## Boot & hardware
   boot.loader.efi.canTouchEfiVariables = true;
