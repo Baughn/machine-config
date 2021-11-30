@@ -3,13 +3,16 @@
 {
   options.environment.launchable = with lib; with types; {
     systemPackages = mkOption {
-      type = listOf package;
+      type = functionTo (listOf package);
       default = [];
       description = ''
         Packages which should be downloaded & installed on first use.
 
         This requires either that the main binary has the same name as the package,
         or else that meta.mainProgram is set.
+      '';
+      example = ''
+        pkgs: with pkgs; [ btop nethack ]
       '';
     };
 
@@ -20,13 +23,19 @@
   };
 
   config = let
-    mkLaunchable = p: let
-      name = p.pname or (builtins.head (builtins.split "-" p.name));
-      executable = p.meta.mainProgram or "${name}";
+    deferPackageTree = subTree: path: builtins.mapAttrs (name: value:
+      let nextPath = path ++ [ name ];
+          attrPath = lib.concatStringsSep "." nextPath;
+      in
+      if lib.isDerivation value then mkLaunchable value attrPath
+      else throw "Subsets not implemented."
+    ) subTree;
 
-      # This is needed to avoid pulling down every build-time dependency.
-      # The .drv file itself will still be in the closure.
-      drv = builtins.unsafeDiscardStringContext p.drvPath;
+    deferredPackageTree = deferPackageTree pkgs [];
+
+    mkLaunchable = pkg: path: let
+      name = pkg.pname or (builtins.head (builtins.split "-" pkg.name));
+      executable = pkg.meta.mainProgram or "${name}";
 
     in pkgs.writeTextFile {
         name = "${name}-launcher";
@@ -40,11 +49,17 @@
           set -o nounset
           set -o pipefail
 
-          exec "$(nix-store -r "${drv}" 2>/dev/null)/bin/${executable}" "$@"
+          GCDIR="$(mktemp -d)"
+          trap "rm -r $GCDIR" EXIT
+
+          DRV="$(nix-instantiate -E "((import ${pkgs.path} {}).${path})" --add-root "$GCDIR/drv")"
+          EXE="$(nix-store -r "$DRV" --add-root "$GCDIR/exe")"
+
+          "$EXE/bin/${executable}" "$@"
         '';
       };
 
   in {
-    environment.systemPackages = map mkLaunchable config.environment.launchable.systemPackages;
+    environment.systemPackages = config.environment.launchable.systemPackages deferredPackageTree;
   };
 }

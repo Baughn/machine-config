@@ -75,7 +75,7 @@
      shared_mime_info p7zip fortune
   ];
 
-  environment.launchable.systemPackages = with pkgs; [
+  environment.launchable.systemPackages = pkgs: with pkgs; [
      # Games
      nethack
      steamcmd steam-run
