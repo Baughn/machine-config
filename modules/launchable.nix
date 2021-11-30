@@ -50,19 +50,23 @@
           set -o nounset
           set -o pipefail
 
-          GCDIR="$(mktemp -d)"
-          trap "rm -r $GCDIR" EXIT
+          EXE="${substitutable}/bin/${executable}"
 
-          # Attempt to just run it. This will work if it already exists,
-          # or if it can be substituted.
-          EXE="$(nix-store -r "${substitutable}" --add-root "$GCDIR/exe")" || {
-            # Otherwise, evaluate from nixpkgs.
-            DRV="$(nix-instantiate -E "((import ${pkgs.path} {}).${path})" --add-root "$GCDIR/drv")"
-            EXE="$(nix-store -r "$DRV" --add-root "$GCDIR/exe")"
-          }
+          # If it already exists, just use it.
+          if [[ ! -e "${substitutable}" ]]; then
+            # Otherwise, try to download it.
+            GCDIR="$(mktemp -d)"
+            trap "rm -r $GCDIR" EXIT
+            nix-store -r "${substitutable}" --add-root "$GCDIR/exe" || true
+            # If all else fails, evaluate from nixpkgs.
+            if [[ ! -e "$GCDIR/exe" ]]; then
+              DRV="$(nix-instantiate -E "((import ${pkgs.path} {}).${path})" --add-root "$GCDIR/drv")"
+              nix-store -r "$DRV" --add-root "$GCDIR/exe"
+            fi
+          fi
 
-          if [[ ! -e "$EXE/bin/${executable}" ]]; then
-            echo "$(readlink -f "$EXE/bin")/bin/${executable} was not found." >/dev/stderr
+          if [[ ! -e "$EXE" ]]; then
+            echo "$EXE was not found." >/dev/stderr
             echo "This may be due to a missing or incorrect meta.mainProgram attribute for ${path}." >/dev/stderr
             echo >/dev/stderr
             echo "To launch nix-shell with the requested package, run:" >/dev/stderr
@@ -70,7 +74,7 @@
             exit 100
           fi
 
-          "$EXE/bin/${executable}" "$@"
+          "$EXE" "$@"
         '';
       };
 
