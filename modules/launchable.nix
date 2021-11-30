@@ -61,6 +61,15 @@
             EXE="$(nix-store -r "$DRV" --add-root "$GCDIR/exe")"
           }
 
+          if [[ ! -e "$EXE/bin/${executable}" ]]; then
+            echo "$(readlink -f "$EXE/bin")/bin/${executable} was not found." >/dev/stderr
+            echo "This may be due to a missing or incorrect meta.mainProgram attribute for ${path}." >/dev/stderr
+            echo >/dev/stderr
+            echo "To launch nix-shell with the requested package, run:" >/dev/stderr
+            echo "  nix-shell ${pkgs.path} -A ${path}" >/dev/stderr
+            exit 100
+          fi
+
           "$EXE/bin/${executable}" "$@"
         '';
       };
