@@ -36,6 +36,7 @@
     mkLaunchable = pkg: path: let
       name = pkg.pname or (builtins.head (builtins.split "-" pkg.name));
       executable = pkg.meta.mainProgram or "${name}";
+      substitutable = builtins.unsafeDiscardStringContext pkg.outPath;
 
     in pkgs.writeTextFile {
         name = "${name}-launcher";
@@ -52,8 +53,13 @@
           GCDIR="$(mktemp -d)"
           trap "rm -r $GCDIR" EXIT
 
-          DRV="$(nix-instantiate -E "((import ${pkgs.path} {}).${path})" --add-root "$GCDIR/drv")"
-          EXE="$(nix-store -r "$DRV" --add-root "$GCDIR/exe")"
+          # Attempt to just run it. This will work if it already exists,
+          # or if it can be substituted.
+          EXE="$(nix-store -r "${substitutable}" --add-root "$GCDIR/exe")" || {
+            # Otherwise, evaluate from nixpkgs.
+            DRV="$(nix-instantiate -E "((import ${pkgs.path} {}).${path})" --add-root "$GCDIR/drv")"
+            EXE="$(nix-store -r "$DRV" --add-root "$GCDIR/exe")"
+          }
 
           "$EXE/bin/${executable}" "$@"
         '';
