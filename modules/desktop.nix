@@ -15,7 +15,7 @@ lib.mkIf config.me.desktop.enable {
     syncplay
   ];
 
-  environment.launchable.systemPackages = with pkgs; [
+  environment.launchable.systemPackages = pkgs: with pkgs; [
     # Applications I rarely use
     wineFull winetricks blender pavucontrol
     ncmpcpp mpd xlockmore xorg.xwd xorg.xdpyinfo xorg.xev xorg.xkill
