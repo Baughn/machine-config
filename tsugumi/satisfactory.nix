@@ -54,7 +54,7 @@
       export HOME="$STATE_DIRECTORY"
       cd "$HOME"
       ${pkgs.steamcmd}/bin/steamcmd +force_install_dir "$STATE_DIRECTORY" +login anonymous +app_update 1690800 validate +quit
-      ${pkgs.steam-run}/bin/steam-run ./FactoryServer.sh -multihome=89.101.222.210
+      ${pkgs.steam-run}/bin/steam-run ./FactoryServer.sh
     '';
   };
 }
