@@ -26,6 +26,12 @@
   };
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # Enable THP
+  boot.postBootCommands = ''
+    echo always > /sys/kernel/mm/transparent_hugepage/enabled
+    echo defer > /sys/kernel/mm/transparent_hugepage/defrag
+  '';
+
   ## Networking
   networking.hostName = "tsugumi";
   networking.domain = "brage.info";
