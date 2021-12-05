@@ -271,6 +271,7 @@
   '';
   environment.etc."nut/upsd.users".source = "/home/svein/nixos/secrets/upsd.users";
   environment.etc."nut/upsmon.conf".source = "/home/svein/nixos/secrets/upsmon.conf";
+  environment.etc."nut/upsd.conf".text = "";
 
   # Power mgmt
   #services.thermald.enable = true;
