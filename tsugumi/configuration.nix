@@ -421,18 +421,22 @@
   # Webserver (Caddy)
   fileSystems."/srv/aquagon" = {
     device = "/home/aquagon/web";
+    depends = ["/home/aquagon/web"];
     options = [ "bind" ];
   };
   fileSystems."/srv/minecraft" = {
     device = "/home/minecraft/web";
+    depends = ["/home/minecraft/web"];
     options = [ "bind" ];
   };
   fileSystems."/srv/svein" = {
     device = "/home/svein/web";
+    depends = ["/home/svein/web"];
     options = [ "bind" ];
   };
   fileSystems."/srv/svein/Anime" = {
     device = "/home/svein/Anime";
+    depends = ["/home/svein/Anime"];
     options = [ "bind" ];
   };
   services.caddy = {
