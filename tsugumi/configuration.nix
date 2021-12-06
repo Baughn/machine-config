@@ -368,8 +368,44 @@
       params.module = ["icmp"];
       params.target = ["google.com"];
     }];
+    rules = [''
+      - name: UPS
+        rules:
+        - alert: UPSLoadHigh
+          expr: nut_load * 100 > 75
+          for: 1m
+          annotations:
+            summary: "UPS power draw is above 75%"
+            description: "Power draw is {{ $value}}%"
+        - alert: UPSBadOutputVoltage
+          expr: nut_output_volt > 232 or nut_output_volt < 228
+          annotations:
+            summary: "UPS is outputting bad voltage!"
+            description: "UPS reports {{ $value }}V"
+        - alert: UPSBadFrequency
+          expr: nut_input_frequency_hertz < 49.5 or nut_input_frequency_hertz > 50.5
+          annotations:
+            summary: "UPS is reporting bad input frequency!"
+            description: "UPS reports {{ $value }}Hz"
+        - alert: UPSBadVoltage
+          expr: nut_input_volts > 235 or nut_input_volts < 225
+          annotations:
+            summary: "UPS is reporting bad input voltage!"
+            description: "UPS reports {{ $value }}V"
+        - alert: UPSMissing
+          expr: absent(nut_status) > 0
+          for: 1m
+          annotations:
+            summary: "UPS appears to be missing!"
+            description: "No data found by prometheus-nut-exporter"
+        - alert: UPSOnBattery
+          expr: nut_status != 1
+          for: 1m
+          annotations:
+            summary: "UPS is running off battery"
+            description: "nut_status is {{ $value }}"
+    ''];
   };
-
 
   # Work around #1915
   #boot.kernel.sysctl."user.max_user_namespaces" = 100;
