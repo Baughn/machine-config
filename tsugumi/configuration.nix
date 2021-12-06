@@ -407,6 +407,11 @@
           annotations:
             summary: "UPS is running off battery"
             description: "nut_status is {{ $value }}"
+        - alert: UPSChargeLow
+          expr: nut_battery_charge * 100 < 80
+          annotations:
+            summary: "UPS charge state is low; shutdown imminent"
+            description: "Charge: {{ $value }}%"
     ''];
   };
 
