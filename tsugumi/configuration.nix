@@ -259,8 +259,11 @@
       driver = "nutdrv_qx";
       port = "/dev/ttyUSB0";
       directives = [
-        "default.battery.charge.low = 80"
-        "default.battery.runtime.low = 1000"
+        "default.battery.packs = 24"
+        "default.battery.type = PbAc"
+        "default.battery.voltage.low = 46"
+        "default.battery.voltage.high = 55.4"
+        "runtimecal = 180,100,600,50"
       ];
     };
   };
