@@ -264,6 +264,8 @@
         "default.battery.voltage.low = 46"
         "default.battery.voltage.high = 55.4"
         "runtimecal = 180,100,600,50"
+        "default.battery.charge.low = 75"
+        "default.battery.runtime.low = 1000"
       ];
     };
   };
