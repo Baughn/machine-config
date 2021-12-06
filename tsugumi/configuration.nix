@@ -256,12 +256,11 @@
     enable = true;
     ups.phoenix = {
       description = "PhoenixTec VFI 2000";
-      driver = "usbhid-ups";
-      port = "auto";
+      driver = "nutdrv_qx";
+      port = "/dev/ttyUSB0";
       directives = [
         "default.battery.charge.low = 80"
         "default.battery.runtime.low = 1000"
-        "ignorelb"
       ];
     };
   };
@@ -272,6 +271,18 @@
   environment.etc."nut/upsd.users".source = "/home/svein/nixos/secrets/upsd.users";
   environment.etc."nut/upsmon.conf".source = "/home/svein/nixos/secrets/upsmon.conf";
   environment.etc."nut/upsd.conf".text = "";
+  environment.etc."nut/do_shutdown.sh" = {
+    mode = "0555";
+    text = ''
+      /run/current-system/sw/bin/systemctl poweroff
+      sleep 300
+      /run/current-system/sw/bin/systemctl --force
+      sleep 20
+      /run/current-system/sw/bin/systemctl --force --force
+      sleep 20
+      /run/current-system/sw/bin/poweroff -f
+    '';
+  };
 
   # Power mgmt
   #services.thermald.enable = true;
