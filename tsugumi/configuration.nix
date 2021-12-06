@@ -279,13 +279,10 @@
   environment.etc."nut/do_shutdown.sh" = {
     mode = "0555";
     text = ''
-      /run/current-system/sw/bin/systemctl poweroff
-      sleep 300
-      /run/current-system/sw/bin/systemctl --force
+      /run/current-system/sw/bin/upscmd -u admin -p ${builtins.readFile ../secrets/ups.pw} phoenix shutdown.return
+      /run/current-system/sw/bin/systemctl halt
       sleep 20
-      /run/current-system/sw/bin/systemctl --force --force
-      sleep 20
-      /run/current-system/sw/bin/poweroff -f
+      /run/current-system/sw/bin/systemctl halt --force
     '';
   };
   # UPS monitoring
