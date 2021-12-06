@@ -266,6 +266,7 @@
         "runtimecal = 180,100,600,50"
         "default.battery.charge.low = 75"
         "default.battery.runtime.low = 1000"
+        "ignorelb"
       ];
     };
   };
