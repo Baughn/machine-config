@@ -283,6 +283,34 @@
       /run/current-system/sw/bin/poweroff -f
     '';
   };
+  # UPS monitoring
+  systemd.services.prometheus-nut-exporter = let
+    prometheus-nut-exporter = pkgs.rustPlatform.buildRustPackage rec {
+      pname = "prometheus-nut-exporter";
+      version = "0aedb7911e3019f9f137e99aa87bc5fa1936084c";
+
+      src = pkgs.fetchFromGitHub {
+        owner = "HON95";
+        repo = pname;
+        rev = version;
+        sha256 = "sha256-iVXCdDcePGugVZT3wSLhd4RvLCMAFfiTKmLJmmn9FWA";
+      };
+
+      cargoSha256 = "sha256-5tvn7ahHTGqvwcAzVczwmYBX6bSvJNQWcESKJrP0SEc=";
+    };
+  in {
+    description = "UPS status exporter";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "upsd.service" "upsdrv.service" ];
+    wants = [ "upsd.service" "upsdrv.service" ];
+    serviceConfig = {
+      Restart = "always";
+      DynamicUser = true;
+    };
+    script = ''
+      ${prometheus-nut-exporter}/bin/prometheus-nut-exporter
+    '';
+  };
 
   # Power mgmt
   #services.thermald.enable = true;
@@ -323,6 +351,14 @@
     #    targets = ["localhost:1223"];
     #  }];
     #}
+    {
+      job_name = "nut";
+      static_configs = [{
+        targets = ["localhost:9995"];
+      }];
+      metrics_path = "/nut";
+      params.target = ["localhost:3493"];
+    }
     {
       job_name = "blackbox";
       static_configs = [{
