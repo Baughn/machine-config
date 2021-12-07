@@ -28,7 +28,8 @@
           attrPath = lib.concatStringsSep "." nextPath;
       in
       if lib.isDerivation value then mkLaunchable value attrPath
-      else throw "Subsets not implemented."
+      else if builtins.isAttrs value then deferPackageTree value nextPath
+      else throw "${attrPath} is not a package"
     ) subTree;
 
     deferredPackageTree = deferPackageTree pkgs [];
