@@ -11,12 +11,11 @@
     ./minecraft.nix
     ./satisfactory.nix
     ../modules/plex.nix
-    ./wireless-ap.nix
     ../modules/monitoring.nix
   ];
 
   me = {
-    virtualisation.enable = true;
+    virtualisation.enable = false;
   };
 
   ## Boot
@@ -55,7 +54,6 @@
   networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
   # Firewall
   networking.firewall.allowedTCPPorts = [
-    53       # Pihole
     80 443   # Web-server
     25565    # Minecraft
     25566    # Minecraft (incognito)
@@ -65,7 +63,6 @@
     7777     # Terraria
   ];
   networking.firewall.allowedUDPPorts = [
-    53       # Pihole
     10401    # Wireguard
     34197    # Factorio
     24454    # Minecraft (voice chat)
