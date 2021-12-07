@@ -2,9 +2,9 @@
 
 {
   imports = [
-    ./launchable.nix
     ./basics.nix
     ./desktop.nix
+    ./launchable.nix
     ./nginx.nix
     ./virtualisation.nix
     ./zfs.nix
