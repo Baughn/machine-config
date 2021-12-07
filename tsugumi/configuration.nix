@@ -129,7 +129,7 @@
     enable = true;
     extraConfig = ''
       option domain-name "brage.info";
-      option domain-name-servers 10.0.0.1;
+      option domain-name-servers 8.8.8.8, 8.8.4.4;
       option routers 10.0.0.1;
       subnet 10.0.0.0 netmask 255.255.255.0 {
         range 10.0.0.100 10.0.0.200;
