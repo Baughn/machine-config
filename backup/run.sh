@@ -5,7 +5,7 @@ set -eu
 
 cd "$(dirname "$(readlink -f "$0")")"
 
-export REPOSITORY="svein@brage.info:backups/borg"
+export REPOSITORY="svein@brage.info:short-term/backups/borg"
 source ../secrets/borg.sh
 
 set -x
