@@ -13,6 +13,11 @@ lib.mkIf config.me.desktop.enable {
     # Entertainment
     mpv
     syncplay
+    # Needed for gnome in general
+    gnomeExtensions.appindicator
+    gnome3.adwaita-icon-theme
+    # Needed for gnome to have a mouse cursor?!
+    kdenlive
   ];
 
   environment.launchable.systemPackages = pkgs: with pkgs; [
@@ -54,6 +59,8 @@ lib.mkIf config.me.desktop.enable {
   programs.sway = {
     enable = true;
   };
+
+  services.udev.packages = with pkgs; [ gnome3.gnome-settings-daemon ];
 
   services.xserver = {
     enable = true;
