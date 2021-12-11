@@ -12,7 +12,7 @@ source ../secrets/borg.sh
 set -x
 
 borg create -vxp --stats \
-  --compression lz4 \
+  --compression zstd \
   $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
   $HOME \
   --exclude '/home/*/.cache' \
