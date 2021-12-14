@@ -39,7 +39,7 @@
   networking.useDHCP = false;
   services.udev.extraRules = ''
       ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="3c:7c:3f:24:99:f6", NAME="external"
-      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="internal-eth"
+      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="internal"
   '';
   # External
   networking.interfaces.external = {
@@ -94,7 +94,6 @@
   users.groups.unifi = {};
   #me.openwrt.enable = true;
   # Internal
-  networking.bridges.internal.interfaces = [ "internal-eth" ];  # Also has wifi
   networking.interfaces.internal = {
     ipv4.addresses = [{
       address = "10.0.0.1";
