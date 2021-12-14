@@ -12,6 +12,7 @@
     ./satisfactory.nix
     ../modules/plex.nix
     ../modules/monitoring.nix
+    ./znc.nix
   ];
 
   me = {
@@ -59,7 +60,6 @@
     25566    # Minecraft (incognito)
     27500    # Stationeers
     27015    # Stationeers
-    4000     # ZNC
     7777     # Terraria
   ];
   networking.firewall.allowedUDPPorts = [
