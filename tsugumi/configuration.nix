@@ -387,7 +387,7 @@
             summary: "UPS is reporting bad input frequency!"
             description: "UPS reports {{ $value }}Hz"
         - alert: UPSBadVoltage
-          expr: nut_input_volts > 240 or nut_input_volts < 210
+          expr: nut_input_volts > 250 or nut_input_volts < 210
           annotations:
             summary: "UPS is reporting bad input voltage!"
             description: "UPS reports {{ $value }}V"
