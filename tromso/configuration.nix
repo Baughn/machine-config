@@ -31,7 +31,7 @@
     enable = true;
     verbose = true;
     username = "Vaughn";
-    password = (import ../secrets).dyndns;
+    passwordFile = "/home/svein/nixos/secrets/dyndns";
     server = "members.dyndns.org";
     extraConfig = ''
       custom=yes, tromso.brage.info
