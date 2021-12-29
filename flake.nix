@@ -62,5 +62,16 @@
           ./tsugumi/configuration.nix
         ] ++ homeConfig;
       };
+
+      nixosConfigurations.tromso = nixpkgs.lib.nixosSystem {
+        inherit system;
+
+	modules = [
+	  nixos-hardware.nixosModules.common-pc
+	  nixos-hardware.nixosModules.common-cpu-amd
+	  nixos-hardware.nixosModules.common-gpu-amd
+	  ./tromso/configuration.nix
+	] ++ homeConfig;
+      };
     };
 }
