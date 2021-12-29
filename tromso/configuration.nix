@@ -8,7 +8,6 @@
   imports = [
     ../modules
     ./hardware-configuration.nix
-    ../modules/amdgpu.nix
   ];
 
   networking.networkmanager.enable = true;
@@ -20,35 +19,13 @@
   systemd.enableEmergencyMode = false;  # Start up no matter what, if at all possible.
   hardware.cpu.amd.updateMicrocode = true;
 
-  users.include = [ "anne" "znapzend" ];
-
-  ## Plex ##
-  services.plex.enable = true;
-  services.nginx = {
-#    enable = true;
-    recommendedGzipSettings = true;
-    recommendedOptimisation = true;
-    recommendedProxySettings = true;
-    recommendedTlsSettings = true;
-    sslDhparam = ./nginx/dhparams.pem;
-    virtualHosts."tromso.brage.info" = {
-      forceSSL = true;
-      enableACME = true;
-      locations."/".proxyPass = "http://localhost:32400";
-    };
-  };
+  users.include = [];
 
   ## Networking ##
   networking.hostName = "tromso";
   networking.hostId = "5c118177";
   networking.usePredictableInterfaceNames = false;
   networking.interfaces.eth0.useDHCP = true;
-
-  networking.firewall = {
-    allowedTCPPorts = [ 4242 80 8443 27036 27037 ];
-    allowedUDPPortRanges = [{from = 60000; to = 61000;}];
-    allowedUDPPorts = [ 10401 27031 27036 ];
-  };
 
   services.ddclient = {
     enable = true;
