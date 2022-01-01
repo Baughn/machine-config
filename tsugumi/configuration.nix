@@ -7,6 +7,7 @@
 {
   imports = [
     ../modules
+    ../modules/emergency-shell.nix
     ./hardware-configuration.nix
     ./minecraft.nix
     ./satisfactory.nix

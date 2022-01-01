@@ -2,10 +2,12 @@
 
 {
   boot.initrd.availableKernelModules = [
-    "igb"  # Intel Gigabit (saya, tsugumi)
-    "e1000e"  # Intel Gigabit (madoka)
+    "igb"  # Intel Gigabit (saya, tsugumi, tromso)
   ];
-  systemd.enableEmergencyMode = lib.mkDefault false;
+  # Run SSHD even in emergency mode.
+  systemd.services.sshd.wantedBy = [ "emergency.target" "rescue.target" ];
+  systemd.services.dhcpcd.wantedBy = [ "emergency.target" "rescue.target" ];
+
   boot.initrd.network = {
     # Not until the device naming is fixed!
     enable = false;
