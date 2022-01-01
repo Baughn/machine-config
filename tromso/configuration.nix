@@ -10,8 +10,6 @@
     ./hardware-configuration.nix
   ];
 
-  networking.networkmanager.enable = true;
-
   # Use the gummiboot efi boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.timeout = 3;
@@ -24,8 +22,10 @@
   ## Networking ##
   networking.hostName = "tromso";
   networking.hostId = "5c118177";
-  networking.usePredictableInterfaceNames = false;
-  networking.interfaces.eth0.useDHCP = true;
+  networking.interfaces.internal.useDHCP = true;
+  services.udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="04:92:26:d8:4a:e3", NAME="internal"
+  '';
 
   services.ddclient = {
     enable = true;

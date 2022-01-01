@@ -34,7 +34,6 @@
 
   ## Networking
   networking.hostName = "tsugumi";
-  networking.domain = "brage.info";
   networking.hostId = "deafbeef";
   networking.useDHCP = false;
   services.udev.extraRules = ''
