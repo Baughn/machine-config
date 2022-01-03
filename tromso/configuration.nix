@@ -8,8 +8,11 @@
   imports = [
     ../modules
     ../modules/emergency-shell.nix
+    ../modules/amdgpu.nix
     ./hardware-configuration.nix
   ];
+
+  me.desktop.enable = true;
 
   # Use the gummiboot efi boot loader.
   boot.loader.systemd-boot.enable = true;
