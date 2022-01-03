@@ -168,12 +168,6 @@
   };
   time.timeZone = "Europe/Dublin";
 
-  ## Common services
-  services.locate.enable = true;
-  services.cron = {
-    enable = true;
-    mailto = "svein";
-  };
   # Enable postfix, but local only by default - no ports open.
   services.postfix.enable = true;
 
