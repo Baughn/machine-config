@@ -20,6 +20,9 @@
 
   users.include = [];
 
+  services.plex.enable = true;
+  services.plex.openFirewall = true;
+
   ## Networking ##
   networking.hostName = "tromso";
   networking.hostId = "5c118177";
