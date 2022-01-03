@@ -1,7 +1,8 @@
-#!/usr/bin/env bash
+#!/usr/bin/env nix-shell
+#!nix-shell -i bash -p
 
 set -eu -o pipefail
-cd "$(readlink -f "$(dirname "$0")")"
+cd "$(dirname "$(readlink -f "$0")")"
 set -x
 
 HOST="${1:-}"
