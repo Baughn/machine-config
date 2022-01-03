@@ -90,6 +90,7 @@
   # WiFi / openwrt
   services.unifi.enable = true;
   services.unifi.unifiPackage = pkgs.unifi;
+  services.unifi.openFirewall = true;
   users.users.unifi.group = "unifi";
   users.groups.unifi = {};
   #me.openwrt.enable = true;
@@ -202,7 +203,7 @@
 
   # Hercules CI
   services.hercules-ci-agent.enable = true;
-  services.hercules-ci-agent.concurrentTasks = 4;
+  services.hercules-ci-agent.settings.concurrentTasks = 4;
 
   # Samba
   services.samba = {
@@ -223,26 +224,24 @@
     user = "svein";
     configDir = "/home/svein/.config/syncthing";
     dataDir = "/home/svein/Sync";
-    declarative = {
-      devices.saya.id = "WU5AOBG-6BTZRCL-EDGE3IX-W6YQQHS-UE55TXD-7P3CBXH-NHM3VBI-6VULBQL";
-      devices.kaho.id = "WO5QPPE-S37P4KO-L4KWQ23-SEV6VHB-ABTJ3JX-BB7ST2A-VCOBUMM-DEZKVAN";
-      devices.koyomi.id = "WCPI5FZ-WOPAUNY-CO6L7ZR-KXP3BYN-NNOHZZI-K4TCWXM-2SNSFHW-QSA7MQM";
-      folders."/home/svein/Sync" = {
-        id = "default";
-        devices = [ "saya" "kaho" "koyomi" ];
-      };
-      folders."/home/svein/Music" = {
-       id = "Music";
-       devices = [ "kaho" "koyomi" ];
-      };
-      folders."/home/svein/Documents" = {
-       id = "Documents";
-       devices = [ "kaho" "koyomi" ];
-      };
-      folders."/home/svein/secure" = {
-        id = "secure";
-        devices = [ "saya" "kaho" "koyomi" ];
-      };
+    devices.saya.id = "WU5AOBG-6BTZRCL-EDGE3IX-W6YQQHS-UE55TXD-7P3CBXH-NHM3VBI-6VULBQL";
+    devices.kaho.id = "WO5QPPE-S37P4KO-L4KWQ23-SEV6VHB-ABTJ3JX-BB7ST2A-VCOBUMM-DEZKVAN";
+    devices.koyomi.id = "WCPI5FZ-WOPAUNY-CO6L7ZR-KXP3BYN-NNOHZZI-K4TCWXM-2SNSFHW-QSA7MQM";
+    folders."/home/svein/Sync" = {
+      id = "default";
+      devices = [ "saya" "kaho" "koyomi" ];
+    };
+    folders."/home/svein/Music" = {
+     id = "Music";
+     devices = [ "kaho" "koyomi" ];
+    };
+    folders."/home/svein/Documents" = {
+     id = "Documents";
+     devices = [ "kaho" "koyomi" ];
+    };
+    folders."/home/svein/secure" = {
+      id = "secure";
+      devices = [ "saya" "kaho" "koyomi" ];
     };
   };
 
@@ -438,7 +437,7 @@
   services.caddy = {
     enable = true;
     email = "sveina@gmail.com";
-    config = ''
+    extraConfig = ''
       (headers) {
         header Strict-Transport-Security "max-age=31536000; includeSubdomains"
         header X-Clacks-Overhead "GNU Terry Pratchett"
