@@ -1,10 +1,11 @@
-{ ... }:
+{ lib, ... }:
 {
   imports = [
     ./zrepl.nix
   ];
   
   boot.supportedFilesystems = [ "zfs" ];
+  networking.hostId = lib.mkDefault "deafbeef";
   services.zfs.autoSnapshot.enable = true;
   services.zfs.autoSnapshot.flags = "-k -p --utc";
   boot.postBootCommands = ''

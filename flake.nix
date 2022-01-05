@@ -61,9 +61,22 @@
         modules = [
           nixos-hardware.nixosModules.common-pc
           nixos-hardware.nixosModules.common-cpu-amd
-    ./saya/configuration.nix
-  ] ++ homeConfig;
+         ./saya/configuration.nix
+        ] ++ homeConfig;
       };
+
+      nixosConfigurations.kaho = nixpkgs.lib.nixosSystem {
+        inherit system;
+
+        modules = [
+          nixos-hardware.nixosModules.asus-zephyrus-ga401
+          nixos-hardware.nixosModules.asus-battery {
+            hardware.asus.battery.chargeUpto = 70;
+          }
+          ./kaho/configuration.nix
+        ] ++ homeConfig;
+      };
+
 
       nixosConfigurations.tsugumi = nixpkgs.lib.nixosSystem {
         inherit system;
