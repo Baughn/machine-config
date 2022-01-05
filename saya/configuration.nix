@@ -47,7 +47,6 @@
 
   ## Networking
   networking.hostName = "saya";
-  networking.hostId = "deafbeef";
   networking.useDHCP = false;
   networking.networkmanager.enable = true;
   networking.interfaces.enp10s0.wakeOnLan.enable = true;
