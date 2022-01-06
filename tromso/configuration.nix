@@ -32,7 +32,6 @@
     ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="04:92:26:d8:4a:e3", NAME="internal"
   '';
 
-  age.secrets.dyndns.file = ../secrets/dyndns.age;
   services.ddclient = {
     enable = true;
     verbose = true;

@@ -9,15 +9,12 @@
   systemd.services.dhcpcd.wantedBy = [ "emergency.target" "rescue.target" ];
 
   boot.initrd.network = {
-    # Not until the device naming is fixed!
-    enable = false;
+    enable = true;
     ssh = {
       enable = true;
       authorizedKeys = (import ./sshKeys.nix).svein;
-      # Use a fixed host key, but--
-#      hostRSAKey = (import ../secrets).hostRSAKey.${config.deployment.targetHost};
-      # Don't run on the standard port, so nixops won't get confused.
-      port = 2222;
+      # Use a fixed host key. The same one as for the main host, thanks.
+      hostKeys = [ "/etc/ssh/ssh_host_ed25519_key" ];
     };
   };
 }

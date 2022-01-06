@@ -21,9 +21,10 @@
   ];
 
   # User setup
+  users.mutableUsers = false;
   users.users.root = {
     openssh.authorizedKeys.keys = (import ./sshKeys.nix).svein;
-    inherit (import ../secrets) initialPassword;
+    passwordFile = config.age.secrets.userPassword.path;
   };
   users.defaultUserShell = pkgs.zsh;
   users.include = [ "svein" ];
