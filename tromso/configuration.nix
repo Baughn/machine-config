@@ -34,11 +34,12 @@
     ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="04:92:26:d8:4a:e3", NAME="internal"
   '';
 
+  age.secrets.dyndns.file = ../secrets/dyndns.age;
   services.ddclient = {
     enable = true;
     verbose = true;
     username = "Vaughn";
-    passwordFile = "/home/svein/nixos/secrets/dyndns";
+    passwordFile = config.age.secrets.dyndns.path;
     server = "members.dyndns.org";
     extraConfig = ''
       custom=yes, tromso.brage.info
