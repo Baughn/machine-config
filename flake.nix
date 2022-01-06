@@ -70,7 +70,17 @@
         ];
       };
 
-      nixosConfigurations.tsugumi = node {
+      nixosConfigurations.kaho = node {
+        modules = [
+          nixos-hardware.nixosModules.asus-zephyrus-ga401
+          nixos-hardware.nixosModules.asus-battery {
+            hardware.asus.battery.chargeUpto = 70;
+          }
+          ./kaho/configuration.nix
+        ];
+      };
+
+      nixosConfigurations.tsugumi = nixpkgs.lib.nixosSystem {
         modules = [
           nixos-hardware.nixosModules.common-pc
           nixos-hardware.nixosModules.common-cpu-amd
