@@ -1,7 +1,6 @@
 { config, pkgs, lib, ...}:
 
-lib.mkIf config.me.desktop.enable {
-
+{
   ## Packages
   environment.systemPackages = with pkgs; [
     google-chrome youtube-dl
