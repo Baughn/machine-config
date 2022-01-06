@@ -3,10 +3,10 @@
 
 set -eu -o pipefail
 cd "$(dirname "$(readlink -f "$0")")"
-set -x
 
 HOST="${1:-}"
 if [[ ! -z "$HOST" ]]; then
   shift
 fi
+set -x
 nix run github:serokell/deploy-rs "path:.#$HOST" "$@"
