@@ -37,6 +37,13 @@
           path = deploy-rs.lib.${system}.activate.nixos self.nixosConfigurations.${host};
         };
       }) hosts);
+      node = { modules }: nixpkgs.lib.nixosSystem ({
+        inherit system;
+        modules = [{
+          nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
+          environment.etc."nixpkgs".source = nixpkgs;
+        }] ++ homeConfig ++ modules;
+      });
     in {
       devShell.${system} = import ./shell.nix { inherit pkgs; };
 
@@ -55,37 +62,31 @@
 
       deploy.nodes = deployNodes [ "tromso" "saya" "tsugumi" ];
 
-      nixosConfigurations.saya = nixpkgs.lib.nixosSystem {
-        inherit system;
-
+      nixosConfigurations.saya = node {
         modules = [
           nixos-hardware.nixosModules.common-pc
           nixos-hardware.nixosModules.common-cpu-amd
-    ./saya/configuration.nix
-  ] ++ homeConfig;
+          ./saya/configuration.nix
+        ];
       };
 
-      nixosConfigurations.tsugumi = nixpkgs.lib.nixosSystem {
-        inherit system;
-
+      nixosConfigurations.tsugumi = node {
         modules = [
           nixos-hardware.nixosModules.common-pc
           nixos-hardware.nixosModules.common-cpu-amd
           nixos-hardware.nixosModules.common-gpu-amd
           #openwrt.nixosModule
           ./tsugumi/configuration.nix
-        ] ++ homeConfig;
+        ];
       };
 
-      nixosConfigurations.tromso = nixpkgs.lib.nixosSystem {
-        inherit system;
-
+      nixosConfigurations.tromso = node {
         modules = [
           nixos-hardware.nixosModules.common-pc
           nixos-hardware.nixosModules.common-cpu-amd
           nixos-hardware.nixosModules.common-gpu-amd
           ./tromso/configuration.nix
-        ] ++ homeConfig;
+        ];
       };
     };
 }
