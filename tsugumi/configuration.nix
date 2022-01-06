@@ -35,7 +35,6 @@
 
   ## Networking
   networking.hostName = "tsugumi";
-  networking.hostId = "deafbeef";
   networking.useDHCP = false;
   services.udev.extraRules = ''
       ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="3c:7c:3f:24:99:f6", NAME="external"
