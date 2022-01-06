@@ -6,13 +6,15 @@
   inputs.home-manager.url = "github:nix-community/home-manager";
   inputs.home-manager.inputs.nixpkgs.follows = "nixpkgs";
   inputs.deploy-rs.url = "github:serokell/deploy-rs";
+  inputs.agenix.url = "github:ryantm/agenix";
+  inputs.agenix.inputs.nixpkgs.follows = "nixpkgs";
 
   #inputs.openwrt = {
   #  url = "path:../openwrt";
   #  inputs.nixpkgs.follows = "nixpkgs";
   #};
 
-  outputs = { self, nixpkgs, nixos-hardware, home-manager, deploy-rs }:
+  outputs = { self, nixpkgs, nixos-hardware, home-manager, deploy-rs, agenix }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -40,9 +42,16 @@
       node = { modules }: nixpkgs.lib.nixosSystem ({
         inherit system;
         modules = [{
+          # Propagate nixpkgs
           nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
           environment.etc."nixpkgs".source = nixpkgs;
-        }] ++ homeConfig ++ modules;
+        }
+        # Add agenix
+        agenix.nixosModules.age
+        {
+          environment.systemPackages = [ agenix.defaultPackage.${system} ];
+        }
+        ] ++ homeConfig ++ modules;
       });
     in {
       devShell.${system} = import ./shell.nix { inherit pkgs; };
@@ -80,7 +89,7 @@
         ];
       };
 
-      nixosConfigurations.tsugumi = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.tsugumi = node {
         modules = [
           nixos-hardware.nixosModules.common-pc
           nixos-hardware.nixosModules.common-cpu-amd
