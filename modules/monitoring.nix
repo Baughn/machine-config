@@ -5,11 +5,11 @@
     requires = [ "network-online.target" ];
     after = [ "network-online.target" ];
     wantedBy = [ "multi-user.target" ];
-    environment = {
-      DISCORD_WEBHOOK = (import ../secrets).monitoringWebhook;
-    };
+    script = ''
+      source ${config.age.secrets.monitoringWebhook.path}
+      ${pkgs.callPackage monitoring/alertmanager-discord {}}/bin/alertmanager-discord --listen.address=127.0.0.1:9095
+    '';
     serviceConfig = {
-      ExecStart = "${pkgs.callPackage monitoring/alertmanager-discord {}}/bin/alertmanager-discord --listen.address=127.0.0.1:9095";
       Restart = "always";
     };
   };

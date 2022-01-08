@@ -6,13 +6,15 @@
   inputs.home-manager.url = "github:nix-community/home-manager";
   inputs.home-manager.inputs.nixpkgs.follows = "nixpkgs";
   inputs.deploy-rs.url = "github:serokell/deploy-rs";
+  inputs.agenix.url = "github:ryantm/agenix";
+  inputs.agenix.inputs.nixpkgs.follows = "nixpkgs";
 
   #inputs.openwrt = {
   #  url = "path:../openwrt";
   #  inputs.nixpkgs.follows = "nixpkgs";
   #};
 
-  outputs = { self, nixpkgs, nixos-hardware, home-manager, deploy-rs }:
+  outputs = { self, nixpkgs, nixos-hardware, home-manager, deploy-rs, agenix }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -37,6 +39,20 @@
           path = deploy-rs.lib.${system}.activate.nixos self.nixosConfigurations.${host};
         };
       }) hosts);
+      node = { modules }: nixpkgs.lib.nixosSystem ({
+        inherit system;
+        modules = [{
+          # Propagate nixpkgs
+          nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
+          environment.etc."nixpkgs".source = nixpkgs;
+        }
+        # Add agenix
+        agenix.nixosModules.age
+        {
+          environment.systemPackages = [ agenix.defaultPackage.${system} ];
+        }
+        ] ++ homeConfig ++ modules;
+      });
     in {
       devShell.${system} = import ./shell.nix { inherit pkgs; };
 
@@ -55,50 +71,41 @@
 
       deploy.nodes = deployNodes [ "tromso" "saya" "tsugumi" ];
 
-      nixosConfigurations.saya = nixpkgs.lib.nixosSystem {
-        inherit system;
-
+      nixosConfigurations.saya = node {
         modules = [
           nixos-hardware.nixosModules.common-pc
           nixos-hardware.nixosModules.common-cpu-amd
-         ./saya/configuration.nix
-        ] ++ homeConfig;
+          ./saya/configuration.nix
+        ];
       };
 
-      nixosConfigurations.kaho = nixpkgs.lib.nixosSystem {
-        inherit system;
-
+      nixosConfigurations.kaho = node {
         modules = [
           nixos-hardware.nixosModules.asus-zephyrus-ga401
           nixos-hardware.nixosModules.asus-battery {
             hardware.asus.battery.chargeUpto = 70;
           }
           ./kaho/configuration.nix
-        ] ++ homeConfig;
+        ];
       };
 
-
-      nixosConfigurations.tsugumi = nixpkgs.lib.nixosSystem {
-        inherit system;
-
+      nixosConfigurations.tsugumi = node {
         modules = [
           nixos-hardware.nixosModules.common-pc
           nixos-hardware.nixosModules.common-cpu-amd
           nixos-hardware.nixosModules.common-gpu-amd
           #openwrt.nixosModule
           ./tsugumi/configuration.nix
-        ] ++ homeConfig;
+        ];
       };
 
-      nixosConfigurations.tromso = nixpkgs.lib.nixosSystem {
-        inherit system;
-
+      nixosConfigurations.tromso = node {
         modules = [
           nixos-hardware.nixosModules.common-pc
           nixos-hardware.nixosModules.common-cpu-amd
           nixos-hardware.nixosModules.common-gpu-amd
           ./tromso/configuration.nix
-        ] ++ homeConfig;
+        ];
       };
     };
 }

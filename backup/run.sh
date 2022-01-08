@@ -7,7 +7,7 @@ cd "$(dirname "$(readlink -f "$0")")"
 
 export REPOSITORY='svein@brage.info:short-term/backups/borg'
 export BORG_REMOTE_PATH='bin/borg'
-source ../secrets/borg.sh
+source /run/agenix/borgbackup
 
 set -x
 

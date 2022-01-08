@@ -268,17 +268,12 @@
   systemd.services.upsd.preStart = ''
     mkdir -p /var/lib/nut -m 0700
   '';
-  environment.etc."nut/upsd.users".source = "/home/svein/nixos/secrets/upsd.users";
-  environment.etc."nut/upsmon.conf".source = "/home/svein/nixos/secrets/upsmon.conf";
+  environment.etc."nut/upsd.users".source = config.age.secrets."nut/upsd.users".path;
+  environment.etc."nut/upsmon.conf".source = config.age.secrets."nut/upsmon.conf".path;
   environment.etc."nut/upsd.conf".text = "";
   environment.etc."nut/do_shutdown.sh" = {
     mode = "0555";
-    text = ''
-      /run/current-system/sw/bin/upscmd -u admin -p ${builtins.readFile ../secrets/ups.pw} phoenix shutdown.return
-      /run/current-system/sw/bin/systemctl halt
-      sleep 20
-      /run/current-system/sw/bin/systemctl halt --force
-    '';
+    source = config.age.secrets."nut/do_shutdown.sh".path;
   };
   # UPS monitoring
   systemd.services.prometheus-nut-exporter = let
