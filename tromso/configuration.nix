@@ -12,8 +12,6 @@
     ./hardware-configuration.nix
   ];
 
-  me.desktop.enable = true;
-
   # Use the gummiboot efi boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.timeout = 3;
@@ -38,7 +36,7 @@
     enable = true;
     verbose = true;
     username = "Vaughn";
-    passwordFile = "/home/svein/nixos/secrets/dyndns";
+    passwordFile = config.age.secrets.dyndns.path;
     server = "members.dyndns.org";
     extraConfig = ''
       custom=yes, tromso.brage.info

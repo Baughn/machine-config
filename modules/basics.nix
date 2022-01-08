@@ -21,9 +21,10 @@
   ];
 
   # User setup
+  users.mutableUsers = false;
   users.users.root = {
     openssh.authorizedKeys.keys = (import ./sshKeys.nix).svein;
-    inherit (import ../secrets) initialPassword;
+    passwordFile = config.age.secrets.userPassword.path;
   };
   users.defaultUserShell = pkgs.zsh;
   users.include = [ "svein" ];
@@ -31,7 +32,7 @@
   
   # Software
   documentation.dev.enable = true;
-  environment.extraOutputsToInstall = [ "info" "man" "devman" ];
+  environment.extraOutputsToInstall = [ "man" "devman" ];
   programs.dconf.enable = true; # Needed for settings by various apps
   programs.java.enable = true;
   programs.mosh.enable = true;

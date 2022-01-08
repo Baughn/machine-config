@@ -10,6 +10,7 @@
     ./hardware-configuration.nix
     ../modules/emergency-shell.nix
     ../modules/nvidia.nix
+    ../modules/desktop.nix
 #    ../modules/amdgpu.nix
 #    ../modules/rsyncd.nix
 #    ../modules/znapzend.nix
@@ -17,9 +18,7 @@
   ];
 
   me = {
-    desktop.enable = true;
     virtualisation.enable = true;
-    propagateNix = false;
   };
 
   ## Boot & hardware

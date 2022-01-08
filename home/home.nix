@@ -46,6 +46,18 @@ in
     maptimeout 5
   '';
 
+  programs.rtorrent = {
+    enable = true;
+    settings = ''
+      upload_rate = 1000
+      directory = /home/svein/incoming
+      session = /home/svein/incoming/.rtorrent
+      port_range = 6900-6999
+      encryption = allow_incoming,try_outgoing,enable_retry
+      dht = on
+    '';
+  };
+
   programs.tmux = {
     enable = true;
     escapeTime = 10;
