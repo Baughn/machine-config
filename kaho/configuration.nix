@@ -22,9 +22,9 @@
   networking.hostName = "kaho";
 
   # Get some decent power management
-  powerManagement.cpuFreqGovernor = "schedutil";
+  powerManagement.cpuFreqGovernor = "ondemand";
   hardware.nvidia.powerManagement.finegrained = true;
-  #powerManagement.powertop.enable = true;
+  powerManagement.powertop.enable = true;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
