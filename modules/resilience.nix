@@ -19,6 +19,6 @@
     };
   };
 
-  # Systemd has a default 10 minute reboot watchdog, but it requires a hw watchdog device.
-
+  # Systemd has a default 10 minute reboot watchdog, but it requires a watchdog device.
+  boot.kernelModules = [ "softdog" ];
 }
