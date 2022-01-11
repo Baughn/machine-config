@@ -7,7 +7,7 @@
 {
   imports = [
     ../modules
-    ../modules/emergency-shell.nix
+    ../modules/resilience.nix
     ../modules/amdgpu.nix
     ./hardware-configuration.nix
   ];

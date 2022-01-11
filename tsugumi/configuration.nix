@@ -7,7 +7,7 @@
 {
   imports = [
     ../modules
-    ../modules/emergency-shell.nix
+    ../modules/resilience.nix
     ./hardware-configuration.nix
     ./minecraft.nix
     ./satisfactory.nix
@@ -26,6 +26,7 @@
     memtest86.enable = true;
   };
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # Enable THP
   boot.postBootCommands = ''

@@ -8,6 +8,7 @@
   systemd.services.sshd.wantedBy = [ "emergency.target" "rescue.target" ];
   systemd.services.dhcpcd.wantedBy = [ "emergency.target" "rescue.target" ];
 
+  # Allow login during initrd, in case it hangs.
   boot.initrd.network = {
     enable = true;
     ssh = {
@@ -17,4 +18,7 @@
       hostKeys = [ "/etc/ssh/ssh_host_ed25519_key" ];
     };
   };
+
+  # Systemd has a default 10 minute reboot watchdog, but it requires a hw watchdog device.
+
 }
