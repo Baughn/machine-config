@@ -52,7 +52,7 @@
      tcpdump nmap gdb gradle python3Packages.virtualenv
      telnet man-pages posix_man_pages mono heaptrack
      rustup gcc
-     pythonFull python3Full freeipmi binutils jq
+     python3Full freeipmi binutils jq
      mercurialFull 
      gitAndTools.gitFull git-lfs git-crypt sqliteInteractive
      # VSCode
