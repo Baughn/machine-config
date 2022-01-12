@@ -80,6 +80,7 @@
       };
 
   in {
-    environment.systemPackages = config.environment.launchable.systemPackages deferredPackageTree;
+    #environment.systemPackages = config.environment.launchable.systemPackages deferredPackageTree;
+    environment.systemPackages = config.environment.launchable.systemPackages pkgs;
   };
 }
