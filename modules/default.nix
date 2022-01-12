@@ -8,5 +8,6 @@
     ./nginx.nix
     ./virtualisation.nix
     ./zfs.nix
+    ./resilience.nix
   ];
 }

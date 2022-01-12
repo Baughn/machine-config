@@ -8,7 +8,6 @@
   imports = [
     ../modules
     ./hardware-configuration.nix
-    ../modules/resilience.nix
     ../modules/nvidia.nix
     ../modules/desktop.nix
 #    ../modules/amdgpu.nix

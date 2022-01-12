@@ -7,7 +7,6 @@
 {
   imports = [
     ../modules
-    ../modules/resilience.nix
     ./hardware-configuration.nix
     ./minecraft.nix
     ./satisfactory.nix
