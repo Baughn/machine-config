@@ -1,6 +1,9 @@
 { config, pkgs, lib, ...}:
 
 {
+  boot.kernelPackages = lib.mkForce pkgs.linuxPackages_zen;
+  powerManagement.cpuFreqGovernor = lib.mkForce "performance";
+
   ## Packages
   environment.systemPackages = with pkgs; [
     google-chrome youtube-dl

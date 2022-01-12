@@ -6,6 +6,9 @@
     ./logrotate.nix
   ];
 
+  # Use the latest kernel, unless on desktop.
+  boot.kernelPackages = lib.mkOverride 60 pkgs.linuxPackages_latest;
+
   boot.kernelParams = [
     # F#&$*ng Spectre
     "noibrs"

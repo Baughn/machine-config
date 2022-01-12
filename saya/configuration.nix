@@ -33,8 +33,6 @@
   boot.kernelParams = [
     "boot.shell_on_fail"
   ];
-  #boot.kernelPackages = pkgs.linuxPackages_latest;
-  #boot.kernelPackages = pkgs.linuxPackages_zen;
   systemd.enableEmergencyMode = true;
   #powerManagement.cpuFreqGovernor = "ondemand";
 
