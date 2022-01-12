@@ -60,6 +60,7 @@
 
   programs.sway = {
     enable = true;
+    extraOptions = ["--my-next-gpu-wont-be-nvidia"];
   };
 
   services.udev.packages = with pkgs; [ gnome3.gnome-settings-daemon ];
@@ -74,9 +75,9 @@
     desktopManager = {
 #      default = "xfce";
 #      xfce.enable = true;
-      gnome.enable = true;
-    #  cinnamon.enable = true;
-    #  plasma5.enable = true;
+    #  gnome.enable = true;
+      cinnamon.enable = true;
+      plasma5.enable = true;
     };
     # windowManager.xmonad = {
     #   enable = true;
