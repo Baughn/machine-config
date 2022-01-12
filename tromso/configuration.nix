@@ -7,7 +7,6 @@
 {
   imports = [
     ../modules
-    ../modules/resilience.nix
     ../modules/amdgpu.nix
     ./hardware-configuration.nix
   ];
