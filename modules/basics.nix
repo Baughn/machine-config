@@ -51,7 +51,7 @@
      # Debug/dev tools
      tcpdump nmap gdb gradle python3Packages.virtualenv
      telnet man-pages posix_man_pages mono heaptrack
-     rustup gcc
+     gcc rustup cargo-edit rust-analyzer
      python3Full freeipmi binutils jq
      mercurialFull 
      gitAndTools.gitFull git-lfs git-crypt sqliteInteractive
