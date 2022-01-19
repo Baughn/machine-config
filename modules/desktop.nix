@@ -6,6 +6,7 @@
 
   ## Packages
   environment.systemPackages = with pkgs; [
+    multimc
     google-chrome youtube-dl
     gnome3.gnome-terminal
     steam-run firefox
@@ -76,7 +77,7 @@
 #      default = "xfce";
 #      xfce.enable = true;
     #  gnome.enable = true;
-      cinnamon.enable = true;
+#      cinnamon.enable = true;
       plasma5.enable = true;
     };
     # windowManager.xmonad = {
