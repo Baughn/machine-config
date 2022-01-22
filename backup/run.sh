@@ -13,7 +13,7 @@ set -x
 
 borg create -vxp --stats \
   --compression zstd \
-  $REPOSITORY::'{hostname}-{now:%Y-%m-%d}' \
+  $REPOSITORY::'{hostname}-{now:%Y-%m-%dT%H:%M:%S}' \
   $HOME \
   --exclude '/home/*/.cache' \
   --exclude '/home/*/.gradle' \
