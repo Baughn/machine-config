@@ -14,6 +14,7 @@
     ../modules/plex.nix
     ../modules/monitoring.nix
     ./znc.nix
+    #./unifi.nix
   ];
 
   me = {
@@ -87,13 +88,6 @@
     internal = cfg;
     #wifi = cfg;
   };
-  # WiFi / openwrt
-  services.unifi.enable = true;
-  services.unifi.unifiPackage = pkgs.unifi;
-  services.unifi.openFirewall = true;
-  users.users.unifi.group = "unifi";
-  users.groups.unifi = {};
-  #me.openwrt.enable = true;
   # Internal
   networking.interfaces.internal = {
     ipv4.addresses = [{
