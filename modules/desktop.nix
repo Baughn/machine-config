@@ -4,7 +4,7 @@
   ## Packages
   environment.systemPackages = with pkgs; [
     google-chrome youtube-dl
-    gnome3.gnome_terminal
+    gnome3.gnome-terminal
     steam-run firefox
     idea.idea-community
     # Chat, etc.
