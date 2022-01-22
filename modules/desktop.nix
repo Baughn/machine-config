@@ -72,7 +72,7 @@
     #displayManager.lightdm.enable = true;
     displayManager.gdm.enable = true;
     displayManager.gdm.nvidiaWayland = true;
-    displayManager.gdm.wayland = true;
+    displayManager.gdm.wayland = config.services.xserver.desktopManager.gnome.enable;
     desktopManager = {
 #      default = "xfce";
 #      xfce.enable = true;

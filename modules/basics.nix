@@ -124,7 +124,7 @@
   nix.nrBuildUsers = 48;
   nixpkgs.config.allowUnfree = true;
   nix.trustedUsers = [ "root" "svein" ];
-  nix.package = pkgs.nixUnstable;
+  nix.package = pkgs.nixFlakes;
   nix.extraOptions = ''
     auto-optimise-store = true
     experimental-features = nix-command flakes
