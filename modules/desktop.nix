@@ -6,6 +6,8 @@
 
   ## Packages
   environment.systemPackages = with pkgs; [
+    # Dev
+    vscode
     google-chrome youtube-dl
     gnome3.gnome-terminal
     steam-run firefox
@@ -13,6 +15,7 @@
     # Chat, etc.
     discord syncplay
     # Entertainment
+    polymc
     mpv
     syncplay
     # Needed for gnome in general
