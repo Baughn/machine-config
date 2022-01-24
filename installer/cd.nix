@@ -1,7 +1,6 @@
 { pkgs, ...}:
 
 {
-  boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.supportedFilesystems = [ "zfs" "f2fs" ];
   networking.hostId = "deafbeef";
   boot.zfs.requestEncryptionCredentials = true;
