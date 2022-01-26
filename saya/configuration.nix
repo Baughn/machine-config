@@ -45,7 +45,10 @@
   networking.hostName = "saya";
   networking.useDHCP = false;
   networking.networkmanager.enable = true;
-  networking.interfaces.enp10s0.wakeOnLan.enable = true;
+  services.udev.extraRules = ''
+      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="f0:2f:74:8c:54:2d", NAME="internal"
+  '';
+  networking.interfaces.internal.wakeOnLan.enable = true;
 
 
   networking.firewall = {
