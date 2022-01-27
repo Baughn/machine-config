@@ -139,7 +139,7 @@
   services.openssh = {
     enable = true;
     passwordAuthentication = true;
-    challengeResponseAuthentication = true;
+    kbdInteractiveAuthentication = true;
     gatewayPorts = "yes";
     forwardX11 = true;
   };
