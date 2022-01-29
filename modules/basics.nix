@@ -116,14 +116,16 @@
   };
 
   ## Nix setup
-  nix.buildCores = lib.mkDefault 0;
   nix.gc.automatic = true;
   nix.gc.dates = "Thu 03:15";
   nix.gc.options = lib.mkDefault "--delete-older-than 14d";
-  nix.useSandbox = "relaxed";
+  nix.settings = {
+    cores = lib.mkDefault 0;
+    sandbox = "relaxed";
+    trusted-users = [ "root" "svein" ];
+  };
   nix.nrBuildUsers = 48;
   nixpkgs.config.allowUnfree = true;
-  nix.trustedUsers = [ "root" "svein" ];
   nix.package = pkgs.nixFlakes;
   nix.extraOptions = ''
     auto-optimise-store = true
