@@ -62,22 +62,5 @@
     ];
   };
 
-  # Wireguard link between my machines
-  networking.wireguard = {
-    interfaces.wg0 = {
-      ips = [ "10.40.0.3/24" ];
-      peers = [
-        # Tsugumi
-        {
-          allowedIPs = [ "10.40.0.1/32" ];
-          endpoint = "10.19.2.2:10401";
-          persistentKeepalive = 30;
-          publicKey = "H70HeHNGcA5HHhL2vMetsVj5CP7M3Pd/uI8yKDHN/hM=";
-        }
-      ];
-      privateKeyFile = "/secrets/wg.key";
-    };
-  };
-
   users.include = [ "will" ];
 }
