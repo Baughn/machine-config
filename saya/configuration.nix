@@ -22,18 +22,11 @@
 
   ## Boot & hardware
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.grub = {
-    enable = true;
-    default = "saved";
-    efiSupport = true;
-    useOSProber = true;
-    device = "nodev";
-  };
+  boot.loader.systemd-boot.enable = true;
   boot.kernelParams = [
     "boot.shell_on_fail"
   ];
   systemd.enableEmergencyMode = true;
-  #powerManagement.cpuFreqGovernor = "ondemand";
 
   # Development
   nix.extraOptions = ''
