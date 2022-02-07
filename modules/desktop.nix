@@ -73,7 +73,6 @@
     layout = "us";
     #displayManager.lightdm.enable = true;
     displayManager.gdm.enable = true;
-    displayManager.gdm.nvidiaWayland = true;
     displayManager.gdm.wayland = config.services.xserver.desktopManager.gnome.enable;
     desktopManager = {
 #      default = "xfce";
@@ -96,6 +95,7 @@
 
   programs.xwayland.enable = true;
  
+  programs.noisetorch.enable = true;
   hardware.pulseaudio.enable = false;
   services.pipewire = {
     enable = true;
