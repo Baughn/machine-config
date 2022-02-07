@@ -1,6 +1,8 @@
 { config, pkgs, lib, ...}:
 
 {
+  imports = [ ./mcupdater.nix ];
+
   boot.kernelPackages = lib.mkForce pkgs.linuxPackages_zen;
   powerManagement.cpuFreqGovernor = lib.mkForce "performance";
 
