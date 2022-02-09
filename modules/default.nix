@@ -6,8 +6,9 @@
     ./basics.nix
     ./launchable.nix
     ./nginx.nix
-    ./virtualisation.nix
-    ./zfs.nix
     ./resilience.nix
+    ./virtualisation.nix
+    ./wireguard.nix
+    ./zfs.nix
   ];
 }
