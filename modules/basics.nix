@@ -23,6 +23,10 @@
     "mitigations=off"
   ];
 
+  # Performance stuff
+  nix.daemonCPUSchedPolicy = "idle";
+  security.rtkit.enable = true;
+
   # User setup
   users.mutableUsers = false;
   users.users.root = {
