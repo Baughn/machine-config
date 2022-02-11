@@ -5,7 +5,7 @@ let
   guarded = {
     tsugumi.address = "10.40.0.1";
     saya.address = "10.40.0.2";
-  ];
+  };
 in
 
 {

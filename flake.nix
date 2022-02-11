@@ -1,6 +1,7 @@
 {
   description = "Machine configs";
 
+  inputs.nixpkgs-stable.url = "flake:nixpkgs/nixos-21.11";
   inputs.nixpkgs.url = "flake:nixpkgs/nixos-unstable";
   inputs.nixos-hardware.url = "flake:nixos-hardware";
   inputs.home-manager.url = "github:nix-community/home-manager";
@@ -14,10 +15,11 @@
   #  inputs.nixpkgs.follows = "nixpkgs";
   #};
 
-  outputs = { self, nixpkgs, nixos-hardware, home-manager, deploy-rs, agenix }:
+  outputs = { self, nixpkgs, nixpkgs-stable, nixos-hardware, home-manager, deploy-rs, agenix }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
+      pkgs-stable = nixpkgs-stable.legacyPackages.${system};
       installer = modules: nixpkgs.lib.nixosSystem {
         inherit system modules;
       };

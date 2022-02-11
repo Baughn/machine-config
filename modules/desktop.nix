@@ -3,7 +3,7 @@
 {
   imports = [ ./mcupdater.nix ];
 
-  boot.kernelPackages = lib.mkForce pkgs.linuxPackages_zen;
+  boot.kernelPackages = lib.mkForce pkgs.linuxPackages_lqx;
   powerManagement.cpuFreqGovernor = lib.mkForce "performance";
 
   ## Packages
@@ -78,10 +78,10 @@
     displayManager.gdm.wayland = config.services.xserver.desktopManager.gnome.enable;
     desktopManager = {
 #      default = "xfce";
-#      xfce.enable = true;
-    #  gnome.enable = true;
+      xfce.enable = true;
+      gnome.enable = true;
 #      cinnamon.enable = true;
-      plasma5.enable = true;
+#      plasma5.enable = true;
     };
     # windowManager.xmonad = {
     #   enable = true;
