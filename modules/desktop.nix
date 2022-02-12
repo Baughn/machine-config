@@ -31,7 +31,7 @@
     # Applications I rarely use
     wineFull winetricks blender pavucontrol
     ncmpcpp mpd xlockmore xorg.xwd xorg.xdpyinfo xorg.xev xorg.xkill
-    glxinfo virtviewer
+    glxinfo
     # Video / Photo editing
     kdenlive frei0r gimp-with-plugins
     # One day I'll get back to this

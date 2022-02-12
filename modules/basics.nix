@@ -26,6 +26,7 @@
   # Performance stuff
   nix.daemonCPUSchedPolicy = "idle";
   security.rtkit.enable = true;
+  services.ananicy.enable = true;
 
   # User setup
   users.mutableUsers = false;
