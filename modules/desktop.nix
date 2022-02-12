@@ -35,6 +35,8 @@
     gnome3.adwaita-icon-theme
     # Needed for gnome to have a mouse cursor?!
     kdenlive
+    # Sound stuff
+    helvum
   ];
 
   environment.launchable.systemPackages = pkgs: with pkgs; [
@@ -115,6 +117,8 @@
     #alsa.support32Bit = true;
     #jack.enable = true;
     pulse.enable = true;
+    media-session.enable = false;
+    wireplumber.enable = true;
   };
   hardware.bluetooth = {
     enable = true;
