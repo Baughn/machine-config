@@ -15,7 +15,17 @@
     steam-run firefox
     idea.idea-community
     # Chat, etc.
-    discord syncplay
+    syncplay
+    # Work around #159267
+    (pkgs.writeShellApplication {
+      name = "discord";
+      text = "${pkgs.discord}/bin/discord --use-gl=desktop";
+    })
+    (pkgs.makeDesktopItem {
+      name = "discord";
+      exec = "discord";
+      desktopName = "Discord";
+    })
     # Entertainment
     polymc
     mpv
