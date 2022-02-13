@@ -15,6 +15,9 @@ borg create -vxp --stats \
   --compression zstd \
   $REPOSITORY::'{hostname}-{now:%Y-%m-%dT%H:%M:%S}' \
   $HOME \
+  --exclude '*/steamapps' \
+  --exclude '*/target' \
+  --exclude '*/Cache' \
   --exclude '/home/*/.cache' \
   --exclude '/home/*/.gradle' \
   --exclude '/home/*/.MCUpdater/cache' \
