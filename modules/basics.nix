@@ -8,7 +8,6 @@
 
   # Use the latest kernel, unless on desktop.
   boot.kernelPackages = lib.mkOverride 60 pkgs.linuxPackages_5_15;
-
   boot.kernelParams = [
     # F#&$*ng Spectre
     "noibrs"
@@ -22,6 +21,8 @@
     "mds=off"
     "mitigations=off"
   ];
+
+  boot.loader.timeout = 15;
 
   # Performance stuff
   nix.daemonCPUSchedPolicy = "idle";

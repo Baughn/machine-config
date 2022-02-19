@@ -22,7 +22,14 @@
 
   ## Boot & hardware
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.systemd-boot.enable = true;
+  boot.loader.grub = {
+    enable = true;
+    default = "4";
+    efiSupport = true;
+    useOSProber = true;
+    device = "nodev";
+  };
+
   boot.kernelParams = [
     "boot.shell_on_fail"
   ];

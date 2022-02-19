@@ -34,8 +34,9 @@
     options = [
       "noauto" "x-systemd.automount" "_netdev" "users" "idmap=user"
       "IdentityFile=/home/svein/.ssh/id_ed25519"
-      "allow_other" "reconnect" "default_permissions"
+      "allow_other" "default_permissions"
       "uid=1000" "gid=100"
+      "reconnect" "ServerAliveInterval=15" "ServerAliveCountMax=3"
     ];
   };
 
