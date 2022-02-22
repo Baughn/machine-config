@@ -87,7 +87,7 @@
     layout = "us";
     #displayManager.lightdm.enable = true;
     displayManager.gdm.enable = true;
-    displayManager.gdm.wayland = config.services.xserver.desktopManager.gnome.enable;
+    displayManager.gdm.wayland = lib.mkForce config.services.xserver.desktopManager.gnome.enable;
     desktopManager = {
 #      default = "xfce";
       xfce.enable = true;
