@@ -12,6 +12,22 @@ nix flake update
 if nix flake check; then
   nixos-rebuild --flake . build
   nvd diff /run/current-system result
+  PS3='Deploy? '
+  select opt in exit switch boot; do
+    case $opt in
+      exit)
+        break
+        ;;
+      switch)
+        sudo result/bin/switch-to-configuration switch
+        break
+        ;;
+      boot)
+        sudo result/bin/switch-to-configuration boot
+        break
+        ;;
+    esac
+  done
 else
   cat $OLDLOCK > flake.lock
 fi
