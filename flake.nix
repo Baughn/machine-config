@@ -2,7 +2,9 @@
   description = "Machine configs";
 
   inputs.nixpkgs-stable.url = "flake:nixpkgs/nixos-21.11";
-  inputs.nixpkgs.url = "flake:nixpkgs/nixos-unstable";
+  #inputs.nixpkgs.url = "flake:nixpkgs/nixos-unstable";
+  #inputs.nixpkgs.url = "/home/svein/dev/nix/pkgs";
+  inputs.nixpkgs.url = "flake:nixpkgs/nixos-unstable-small";
   inputs.nixos-hardware.url = "flake:nixos-hardware";
   inputs.home-manager.url = "github:nix-community/home-manager";
   inputs.home-manager.inputs.nixpkgs.follows = "nixpkgs";
