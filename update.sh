@@ -13,7 +13,7 @@ if cmp -s flake.lock $OLDLOCK; then
   echo 'Nothing changed'
   exit 0
 fi
-if nix flake check; then
+if nix flake check --no-build; then
   nixos-rebuild --flake . build
   nvd diff /run/current-system result
   PS3='Deploy? '
