@@ -9,10 +9,10 @@
     ../modules
     ./hardware-configuration.nix
     ./minecraft.nix
-    ./satisfactory.nix
-    ../modules/plex.nix
+#    ./satisfactory.nix
+#    ../modules/plex.nix
     ../modules/monitoring.nix
-    ./znc.nix
+#    ./znc.nix
     #./unifi.nix
   ];
 
@@ -55,21 +55,21 @@
   # Firewall
   networking.firewall.allowedTCPPorts = [
     80 443   # Web-server
-    25565    # Minecraft
-    25566    # Minecraft (incognito)
-    27500    # Stationeers
-    27015    # Stationeers
-    7777     # Terraria
+#    25565    # Minecraft
+#    25566    # Minecraft (incognito)
+#    27500    # Stationeers
+#    27015    # Stationeers
+#    7777     # Terraria
   ];
   networking.firewall.allowedUDPPorts = [
-    10401    # Wireguard
-    34197    # Factorio
-    24454    # Minecraft (voice chat)
-    27500    # Stationeers
+#    10401    # Wireguard
+#    34197    # Factorio
+#    24454    # Minecraft (voice chat)
+#    27500    # Stationeers
   ];
   networking.firewall.allowedUDPPortRanges = [
-    { from = 60000; to = 61000; }  # mosh
-    { from = 27015; to = 27020; }  # Steam
+#    { from = 60000; to = 61000; }  # mosh
+#    { from = 27015; to = 27020; }  # Steam
   ];
   networking.firewall.interfaces = let cfg = { 
     allowedTCPPorts = [
