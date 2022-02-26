@@ -13,7 +13,6 @@
     google-chrome youtube-dl
     gnome3.gnome-terminal
     steam-run firefox
-    idea.idea-community
     # Chat, etc.
     syncplay
     # Work around #159267
@@ -41,7 +40,7 @@
 
   environment.launchable.systemPackages = pkgs: with pkgs; [
     # Applications I rarely use
-    wineFull winetricks blender pavucontrol
+    winePackages.full winetricks blender pavucontrol
     ncmpcpp mpd xlockmore xorg.xwd xorg.xdpyinfo xorg.xev xorg.xkill
     glxinfo
     # Video / Photo editing
