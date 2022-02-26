@@ -161,7 +161,7 @@
   networking.firewall.allowPing = true;
   networking.firewall.logRefusedConnections = false;
   services.avahi = {
-    enable = true;
+    enable = lib.mkDefault true;
     nssmdns = true;
     interfaces = [ "internal" ];
     publish.enable = true;
