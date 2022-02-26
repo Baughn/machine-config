@@ -59,11 +59,11 @@
   environment.systemPackages = with pkgs; [
      # Debug/dev tools
      tcpdump nmap gdb gradle python3Packages.virtualenv
-     telnet man-pages posix_man_pages mono heaptrack
+     inetutils  man-pages posix_man_pages mono heaptrack
      gcc rustup cargo-edit rust-analyzer
      python3Full freeipmi binutils jq
      mercurialFull 
-     gitAndTools.gitFull git-lfs git-crypt sqliteInteractive
+     gitAndTools.gitFull git-lfs git-crypt sqlite-interactive
      # VSCode
      nodejs-12_x
      # System/monitoring/etc tools
@@ -75,14 +75,14 @@
      autojump ripgrep zstd fd
      (callPackage ../tools/up {})
      # File transfer
-     rsync wget rtorrent sshfsFuse 
+     rsync wget rtorrent sshfs-fuse 
      # Nix tools
      nox nix-prefetch-git
      # Monitoring, eventually to be a module.
      prometheus prometheus-node-exporter prometheus-alertmanager
      prometheus-nginx-exporter
      # Giant lump of stuff
-     shared_mime_info p7zip fortune
+     shared-mime-info p7zip fortune
   ];
 
   environment.launchable.systemPackages = pkgs: with pkgs; [
