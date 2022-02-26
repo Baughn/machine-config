@@ -2,13 +2,13 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   imports = [
     ../modules
     ./hardware-configuration.nix
-    ./minecraft.nix
+#    ./minecraft.nix
 #    ./satisfactory.nix
 #    ../modules/plex.nix
     ../modules/monitoring.nix
@@ -34,6 +34,9 @@
   '';
 
   ## Networking
+  services.openssh.openFirewall = false;
+  services.avahi.enable = false;
+  programs.mosh.enable = lib.mkForce false;
   networking.hostName = "tsugumi";
   networking.useDHCP = false;
   services.udev.extraRules = ''
@@ -73,13 +76,14 @@
   ];
   networking.firewall.interfaces = let cfg = { 
     allowedTCPPorts = [
-      139 445  # Samba
-      5357     # winbindd
+#      139 445  # Samba
+#      5357     # winbindd
+      22
       22000    # Syncthing
     ];
     allowedUDPPorts = [
-      137 138  # Samba
-      3702     # winbindd
+#      137 138  # Samba
+#      3702     # winbindd
       21027    # Syncthing
     ];
   }; in {
@@ -110,9 +114,9 @@
       sourcePort = port;
     }];
     in pkgs.lib.concatMap forward ([
-      5100  # Elite
-      5200  # Stationeers
-      5201  # Stationeers
+#      5100  # Elite
+#      5200  # Stationeers
+#      5201  # Stationeers
     ]);
   services.dhcpd4 = {
     enable = true;
@@ -132,7 +136,7 @@
 
   # Matrix/Synapse
   services.postgresql = {
-    enable = true;
+    #enable = true;
     initialScript = pkgs.writeText "synapse-init.sql" ''
       CREATE ROLE "matrix-synapse" WITH LOGIN PASSWORD '${builtins.readFile ../secrets/matrix-sql-pw}';
       CREATE DATABASE "matrix-synapse" WITH OWNER "matrix-synapse"
@@ -143,7 +147,7 @@
   };
   
   services.matrix-synapse = {
-    enable = true;
+    #enable = true;
     enable_metrics = true;
     enable_registration = false;
     allow_guest_access = false;
@@ -194,12 +198,12 @@
   };
 
   # Hercules CI
-  services.hercules-ci-agent.enable = true;
+  #services.hercules-ci-agent.enable = true;
   services.hercules-ci-agent.settings.concurrentTasks = 4;
 
   # Samba
   services.samba = {
-    enable = true;
+    #enable = true;
     extraConfig = ''
       map to guest = bad user
       mangled names = no
@@ -208,7 +212,7 @@
       read only = no
     '';
   };
-  services.samba-wsdd.enable = true;
+  #services.samba-wsdd.enable = true;
 
   # Syncthing
   services.syncthing = {
