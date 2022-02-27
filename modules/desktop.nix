@@ -107,6 +107,8 @@
   };
 
   programs.xwayland.enable = true;
+
+  services.ratbagd.enable = true;
  
   programs.noisetorch.enable = true;
   hardware.pulseaudio.enable = false;
