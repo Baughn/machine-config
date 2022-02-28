@@ -20,6 +20,16 @@
     virtualisation.enable = true;
   };
 
+  # Workaround the steam bug
+  hardware.opengl.extraPackages = [
+    (pkgs.runCommand "nvidia-icd" { } ''
+      mkdir -p $out/share/vulkan/icd.d
+      cp ${config.boot.kernelPackages.nvidia_x11}/share/vulkan/icd.d/nvidia_icd.x86_64.json $out/share/vulkan/icd.d/nvidia_icd.json
+    '')
+  ];
+
+  services.flatpak.enable = true;
+
   ## Boot & hardware
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.grub = {

@@ -2,6 +2,7 @@
 #!nix-shell -i bash -p nvd
 
 set -eo pipefail
+set -x
 
 cd "$(dirname "$(readlink -f "$0")")"
 
@@ -13,7 +14,7 @@ if cmp -s flake.lock $OLDLOCK; then
   echo 'Nothing changed'
   exit 0
 fi
-if nix flake check --no-build; then
+if nix flake check; then
   nixos-rebuild --flake . build
   nvd diff /run/current-system result
   PS3='Deploy? '
