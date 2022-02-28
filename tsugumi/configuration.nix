@@ -120,6 +120,12 @@
     ]);
   services.dhcpd4 = {
     enable = true;
+    authoritative = true;
+    machines = [{
+      hostName = "saya";
+      ethernetAddress = "f0:2f:74:8c:54:2d";
+      ipAddress = "10.0.0.2";
+    }];
     extraConfig = ''
       option domain-name "brage.info";
       option domain-name-servers 8.8.8.8, 8.8.4.4;
