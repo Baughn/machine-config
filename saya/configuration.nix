@@ -53,13 +53,18 @@
 
   ## Networking
   networking.hostName = "saya";
-  networking.useDHCP = false;
-  networking.networkmanager.enable = true;
-  services.udev.extraRules = ''
-      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="f0:2f:74:8c:54:2d", NAME="internal"
-  '';
-  networking.interfaces.internal.wakeOnLan.enable = true;
-
+  systemd.network = {
+    enable = true;
+    links."00-internal" = {
+      linkConfig.Name = "internal";
+      linkConfig.WakeOnLan = "magic";
+      matchConfig.MACAddress = "f0:2f:74:8c:54:2d";
+    };
+    networks."20-internal" = {
+      matchConfig.Name = "internal";
+      DHCP = "ipv4";
+    };
+  };
 
   networking.firewall = {
     allowedTCPPorts = [ 
