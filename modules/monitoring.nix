@@ -13,20 +13,22 @@
       Restart = "always";
     };
   };
+
   systemd.services.prometheus-zpool-exporter = {
+    description = "Export current pool error status, for alerting";
     wantedBy = [ "multi-user.target" ];
     script = ''
-      DIR=/run/prometheus-node-exporter/
+      cd /run/prometheus-node-exporter
       while true; do
-        echo > $DIR/zpool
+        echo -n > zpool
         for pool in $(${pkgs.zfs}/bin/zpool list -H | ${pkgs.gawk}/bin/awk '{print $1}'); do
           if ${pkgs.zfs}/bin/zpool status -x | grep -q $pool; then
-            echo "zfs_pool_errors{pool=\"$pool\"} 1" >> $DIR/zpool
+            echo "zfs_pool_errors{pool=\"$pool\"} 1" >> zpool
           else
-            echo "zfs_pool_errors{pool=\"$pool\"} 0" >> $DIR/zpool
+            echo "zfs_pool_errors{pool=\"$pool\"} 0" >> zpool
           fi
         done
-        mv $DIR/zpool $DIR/zpool.prom
+        mv zpool zpool.prom
         sleep 30
       done
     '';
