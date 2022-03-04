@@ -8,6 +8,7 @@
   imports = [
     ../modules
     ./hardware-configuration.nix
+    ../modules/nvidia.nix
 #    ./minecraft.nix
 #    ./satisfactory.nix
 #    ../modules/plex.nix
