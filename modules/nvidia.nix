@@ -10,4 +10,5 @@
   '';
   environment.systemPackages = [ pkgs.nvtop ];
   services.xserver.displayManager.gdm.wayland = false;
+  hardware.opengl.enable = true;
 }
