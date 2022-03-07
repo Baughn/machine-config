@@ -62,7 +62,6 @@
      inetutils  man-pages posix_man_pages mono heaptrack
      gcc rustup cargo-edit rust-analyzer
      python3Full freeipmi binutils jq
-     mercurialFull 
      gitAndTools.gitFull git-lfs git-crypt sqlite-interactive
      # VSCode
      nodejs-12_x
