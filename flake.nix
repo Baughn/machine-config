@@ -11,13 +11,15 @@
   inputs.deploy-rs.url = "github:serokell/deploy-rs";
   inputs.agenix.url = "github:ryantm/agenix";
   inputs.agenix.inputs.nixpkgs.follows = "nixpkgs";
+  inputs.nixos-vscode-server.url ="github:mudrii/nixos-vscode-ssh-fix/main";
+  inputs.nixos-vscode-server.inputs.nixpkgs.follows = "nixpkgs";
 
   #inputs.openwrt = {
   #  url = "path:../openwrt";
   #  inputs.nixpkgs.follows = "nixpkgs";
   #};
 
-  outputs = { self, nixpkgs, nixpkgs-stable, nixos-hardware, home-manager, deploy-rs, agenix }:
+  outputs = { self, nixpkgs, nixpkgs-stable, nixos-hardware, home-manager, deploy-rs, agenix, nixos-vscode-server }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -49,6 +51,14 @@
           # Propagate nixpkgs
           nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
           environment.etc."nixpkgs".source = nixpkgs;
+        }
+        # Fix vscode-server.
+        nixos-vscode-server.nixosModules.system {
+          services.nixos-vscode-server.enable = true;
+          systemd.user.services.nixos-vscode-server = {
+            enable = true;
+            wantedBy = [ "default.target" ];
+          };
         }
         # Add agenix
         agenix.nixosModules.age

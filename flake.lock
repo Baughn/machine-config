@@ -90,6 +90,27 @@
         "type": "indirect"
       }
     },
+    "nixos-vscode-server": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1631782689,
+        "narHash": "sha256-/E2kuaU7IPtF2Wf1wWazjWmhmKyfpr/7h6gXZ1UCVY0=",
+        "owner": "mudrii",
+        "repo": "nixos-vscode-ssh-fix",
+        "rev": "b7886e9c046d52a1be8e907a8bdb182b60677acb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mudrii",
+        "ref": "main",
+        "repo": "nixos-vscode-ssh-fix",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1643472818,
@@ -142,6 +163,7 @@
         "deploy-rs": "deploy-rs",
         "home-manager": "home-manager",
         "nixos-hardware": "nixos-hardware",
+        "nixos-vscode-server": "nixos-vscode-server",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-stable": "nixpkgs-stable"
       }
