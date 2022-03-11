@@ -8,7 +8,8 @@
   imports = [
     ../modules
     ./hardware-configuration.nix
-    ../modules/nvidia.nix
+#    ../modules/nvidia.nix
+    ../modules/amdgpu.nix
     ../modules/desktop.nix
 #    ../modules/amdgpu.nix
 #    ../modules/rsyncd.nix
