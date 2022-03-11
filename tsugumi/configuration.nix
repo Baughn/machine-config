@@ -106,15 +106,16 @@
   };
   networking.nat.forwardPorts =
     let forward = port: [{
-      destination = "10.0.0.191";
+      destination = "10.0.0.2";
       proto = "udp";
       sourcePort = port;
     } {
-      destination = "10.0.0.191";
+      destination = "10.0.0.2";
       proto = "tcp";
       sourcePort = port;
     }];
     in pkgs.lib.concatMap forward ([
+      27016  # Space Engineers
 #      5100  # Elite
 #      5200  # Stationeers
 #      5201  # Stationeers
