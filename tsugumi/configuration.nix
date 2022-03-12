@@ -15,6 +15,7 @@
     ../modules/monitoring.nix
 #    ./znc.nix
     #./unifi.nix
+    ../modules/netboot-server.nix
   ];
 
   me = {
