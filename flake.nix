@@ -51,6 +51,7 @@
           # Propagate nixpkgs
           nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
           environment.etc."nixpkgs".source = nixpkgs;
+          nix.registry.nixpkgs.flake = nixpkgs;
         }
         # Fix vscode-server.
         nixos-vscode-server.nixosModules.system {
