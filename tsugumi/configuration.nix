@@ -11,7 +11,7 @@
     ../modules/nvidia.nix
 #    ./minecraft.nix
 #    ./satisfactory.nix
-#    ../modules/plex.nix
+    ../modules/plex.nix
     ../modules/monitoring.nix
 #    ./znc.nix
     #./unifi.nix
@@ -118,8 +118,8 @@
     in pkgs.lib.concatMap forward ([
       27016  # Space Engineers
 #      5100  # Elite
-#      5200  # Stationeers
-#      5201  # Stationeers
+      5200  # Stationeers
+      5201  # Stationeers
     ]);
   services.dhcpd4 = {
     enable = true;
