@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ../modules/nixos-vscode-server/modules/vscode-server/home.nix
   ];
 
   home.username = "svein";
