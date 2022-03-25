@@ -33,6 +33,9 @@
     maptimeout 5
   '';
 
+  programs.vscode.enable = true;
+  services.vscode-server.enable = true;
+
   programs.rtorrent = {
     enable = true;
     settings = ''
