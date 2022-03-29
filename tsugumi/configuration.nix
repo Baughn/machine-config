@@ -36,7 +36,6 @@
   '';
 
   ## Networking
-  services.openssh.openFirewall = false;
   services.avahi.enable = false;
   programs.mosh.enable = lib.mkForce false;
   networking.hostName = "tsugumi";
@@ -80,7 +79,6 @@
     allowedTCPPorts = [
 #      139 445  # Samba
 #      5357     # winbindd
-      22
       22000    # Syncthing
     ];
     allowedUDPPorts = [
