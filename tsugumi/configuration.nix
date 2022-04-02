@@ -33,6 +33,7 @@
   boot.postBootCommands = ''
     echo always > /sys/kernel/mm/transparent_hugepage/enabled
     echo defer > /sys/kernel/mm/transparent_hugepage/defrag
+    echo 0 > /sys/devices/system/cpu/cpufreq/boost
   '';
 
   ## Networking
@@ -367,6 +368,16 @@
   fileSystems."/srv/svein/Anime" = {
     device = "/home/svein/Anime";
     depends = ["/home/svein/Anime"];
+    options = [ "bind" ];
+  };
+  fileSystems."/srv/svein/Movies" = {
+    device = "/home/svein/Movies";
+    depends = ["/home/svein/Movies"];
+    options = [ "bind" ];
+  };
+  fileSystems."/srv/svein/TV" = {
+    device = "/home/svein/TV";
+    depends = ["/home/svein/TV"];
     options = [ "bind" ];
   };
   services.caddy = {
