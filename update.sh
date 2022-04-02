@@ -17,6 +17,7 @@ fi
 if nix flake check; then
   nixos-rebuild --flake . build
   nvd diff /run/current-system result
+  printf '\a'
   PS3='Deploy? '
   select opt in exit switch boot; do
     case $opt in
@@ -34,5 +35,6 @@ if nix flake check; then
     esac
   done
 else
+  printf '\a'
   cat $OLDLOCK > flake.lock
 fi
