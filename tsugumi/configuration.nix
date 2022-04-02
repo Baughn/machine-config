@@ -11,6 +11,7 @@
     ../modules/nvidia.nix
 #    ./minecraft.nix
 #    ./satisfactory.nix
+    ./factorio.nix
     ../modules/plex.nix
     ../modules/monitoring.nix
 #    ./znc.nix
@@ -68,7 +69,6 @@
   ];
   networking.firewall.allowedUDPPorts = [
 #    10401    # Wireguard
-#    34197    # Factorio
 #    24454    # Minecraft (voice chat)
 #    27500    # Stationeers
   ];
