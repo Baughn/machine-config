@@ -29,6 +29,21 @@
   services.udev.extraRules = ''
     ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="04:92:26:d8:4a:e3", NAME="internal"
   '';
+  # Wireguard
+  networking.wg-quick = {
+    interfaces.wg0 = {
+      address = ["10.0.2.2"];
+      peers = [{
+        allowedIPs = [ "10.0.2.1/32" ];
+        endpoint = "brage.info:51820";
+        publicKey = (import ../secrets/wireguard/pubkeys.nix).tsugumi;
+        persistentKeepalive = 30;
+        presharedKeyFile = config.age.secrets."wireguard/common.psk".path;
+      }];
+      listenPort = 51820;
+      privateKeyFile = config.age.secrets."wireguard/tromso.pk".path;
+    };
+  };
 
   services.ddclient = {
     enable = true;
