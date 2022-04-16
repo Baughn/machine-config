@@ -55,21 +55,4 @@
       custom=yes, tromso.brage.info
     '';
   };
-
-  networking.wireguard = {
-    interfaces.wg0 = {
-      ips = [ "10.40.0.4/24" ];
-      listenPort = 10401;
-      peers = [
-        # Tsugumi
-        {
-          allowedIPs = [ "10.40.0.1/32" ];
-          endpoint = "brage.info:10401";
-          persistentKeepalive = 30;
-          publicKey = "H70HeHNGcA5HHhL2vMetsVj5CP7M3Pd/uI8yKDHN/hM=";
-        }
-      ];
-      privateKeyFile = "/secrets/wg.key";
-    };
-  };
 }
