@@ -9,7 +9,7 @@
   config = lib.mkIf config.me.virtualisation.enable {
     virtualisation.libvirtd.enable = false;
     virtualisation.lxd.enable = false;
-    virtualisation.docker.enable = false;
+    virtualisation.docker.enable = true;
     virtualisation.docker.storageDriver = "zfs";
     users.extraUsers.svein.extraGroups = [ "docker" "lxd" "libvirtd" ];
     networking.firewall.checkReversePath = false;
