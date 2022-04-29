@@ -8,7 +8,6 @@
   imports = [
     ../modules
     ./hardware-configuration.nix
-    ../modules/nvidia.nix
 #    ./minecraft.nix
 #    ./satisfactory.nix
     ./factorio.nix
@@ -20,7 +19,7 @@
   ];
 
   me = {
-    virtualisation.enable = false;
+    virtualisation.enable = true;
   };
 
   ## Boot
@@ -96,6 +95,7 @@
 #      139 445  # Samba
 #      5357     # winbindd
       22000    # Syncthing
+      3000  # NodeODM
     ];
     allowedUDPPorts = [
 #      137 138  # Samba
