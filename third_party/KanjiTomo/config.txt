@@ -1,0 +1,173 @@
+﻿# Configuration file for KanjiTomo program
+#
+# If you are updating from previous version, you can use Settings -> Import settings
+# menu option to import modified values
+#
+# 1 = Enable
+# 0 = Disable 
+
+
+## Hotkey assignments ##
+
+# If set to 1, hotkeys are enabled
+# Hotkeys might override keys defined in other programs, so check the definitions 
+# below to make sure they don't cause conflicts
+ENABLE_HOTKEYS=0
+
+# Hotkeys are defined by syntax: "shift|ctrl|meta|alt <key>", for example: alt A
+# In a typical keyboard, <meta> is the "Windows key" (between Ctrl and Alt)
+# <key> is optional if you want to only use the modifier key (not supported for meta key)
+#
+# Alternatively, Java KeyEvent field names can be used, for example: VK_NUMPAD1
+# https://docs.oracle.com/javase/7/docs/api/java/awt/event/KeyEvent.html
+
+# Changes the text orientation between vertical and horizontal
+CHANGE_TEXT_ORIENTATION_HOTKEY=alt A
+
+# Changes the text color between "black on white" and "white on black"
+CHANGE_TEXT_COLOR_HOTKEY=alt S
+
+# Changes the dictionary to names dictionary
+CHANGE_DICTIONARY_HOTKEY=alt D
+
+# Copies results to clipboard
+COPY_TO_CLIPBOARD_HOTKEY=alt Z
+
+# Hotkey for changing between automatic and manual OCR mode
+TOGGLE_AUTO_OCR_HOTKEY=alt X
+
+# Removes one character from the list of matched characters
+CONTRACT_MATCH_HOTKEY=alt Q
+
+# Adds one character to the list of matched characters
+EXPAND_MATCH_HOTKEY=alt W
+
+# Runs OCR for the point under cursor when a file is not open
+MANUAL_OCR_NOFILE_HOTKEY=alt E
+
+# Opens a zoom frame centered on mouse cursor location
+ZOOM_HOTKEY=alt R
+
+# Hotkey for adding word to list
+ADD_WORD_TO_LIST_HOTKEY=alt 1
+
+# Sets target character color from pixel under mouse cursor. 
+# This can be used if automatic character detection fails with colored characters or backgrounds.
+SET_CHARACTER_COLOR=alt 2
+
+# Resets the character color back to automatic detection 
+RESET_CHARACTER_COLOR=alt 3
+
+# Range of pixel RGB values around the selected color that is considered to be part of character. 
+# Other pixels beyond this value belong to the background. Decreasing this value may help to
+# separate background from characters but may miss light bushstrokes.
+CHARACTER_COLOR_RANGE=50
+
+# Increase or decrease the character color range 
+INCREASE_CHARACTER_COLOR_RANGE=VK_PLUS	# VK_ADD for numpad +
+DECREASE_CHARACTER_COLOR_RANGE=VK_MINUS	# VK_SUBTRACT for numpad -
+
+
+## Other settings ##
+
+# If set to 1, dictionary for Japanese names is enabled
+ENABLE_NAMES_DICTIONARY=1
+
+# Default text orientation (auto, vertical or horizontal)
+TEXT_ORIENTATION_DEFAULT=auto
+
+# Default text color (auto, black or white)
+TEXT_COLOR_DEFAULT=auto
+
+# RGB values used to detect text from background (range: 0..255)
+# Lower black value might improve text detection over complex backgrounds
+# but can cause problems with gray text
+TEXT_COLOR_BLACK_LEVEL=200
+TEXT_COLOR_WHITE_LEVEL=225
+
+# Starts the program in automatic OCR mode
+# If enabled, OCR is run for any character under mouse cursor
+# If disabled, OCR is run only after left click (a file must be open)
+AUTO_OCR=1
+
+# Starts the program in fullscreen mode (a file must be open)
+FULLSCREEN=0
+
+# If set to 1, results are copied to clipboard automatically
+COPY_TO_CLIPBOARD_AUTOMATIC=0
+
+# Components included when copying results to clipboard
+CLIPBOARD_INCLUDE_KANJI=1
+CLIPBOARD_INCLUDE_KANA=0
+CLIPBOARD_INCLUDE_DESCRIPTION=0
+
+# Format used when saving word list to file
+#
+# The following strings will be replaced with corresponding values: 
+# <kanji>
+# <kana>
+# <description>
+# <tab>
+# <newline>  
+WORD_LIST_SAVE_FORMAT=<kanji><tab><kana><tab><description>
+
+# Maximum number of characters matched. Valid values are 1-4.
+MAX_CHARACTERS=4
+
+# Number of recent files shown in history menu
+# Only the most recently opened file in each directory is added to history
+# Set to 0 to disable history
+FILE_HISTORY_SIZE=8
+
+# If set, uses the specified java executable
+# For example: c:\Program Files (x86)\Java\jdk1.6.0_35\bin\java.exe
+#
+# If not set, detects the Java installation automatically
+JAVA_EXE=
+
+# If set, launches the program in high-performance server mode.
+# Java JDK must be installed and set in JAVA_EXE
+#
+# If empty, the program determines if server mode can be enabled. 
+# You can see the current mode in Help -> About dialog. 
+SERVER_MODE=
+
+# Default interface window size (in pixels)
+INTERFACE_WIDTH=500
+INTERFACE_HEIGHT=800
+
+# Default interface window position (top-left corner)
+INTERFACE_POSITION_X=1390
+INTERFACE_POSITION_Y=30
+
+# Height of upper and lower dividers (OCR results panel and word list panel)
+INTERFACE_UPPER_DIVIDER=208
+INTERFACE_LOWER_DIVIDER=250
+
+# Font sizes
+INTERFACE_CHARACTER_LIST_FONT_SIZE=19
+INTERFACE_SEARCH_BOX_FONT_SIZE=19
+INTERFACE_WORD_LIST_FONT_SIZE=15
+INTERFACE_WORD_DETAIL_FONT_SIZE=18
+INTERFACE_ADD_WORD_FONT_SIZE=13
+
+# If set, prevents the window from staying on top of other windows 
+# when automatic OCR mode is used 
+DISABLE_KEEP_ON_TOP=0
+
+# If set, Chinese dictionary is used instead of Japanese dictionary
+CHINESE_DICTIONARY=0
+
+# If set, traditional Chinese characters are used
+# If not set, simplified characters are used
+CHINESE_TRADITIONAL=1
+
+# If set, tone marks are used with pinyin
+# If not set, numerals are used
+CHINESE_TONE_MARKS=1
+
+# Memory limit when using 32 bit Java environment
+MEMORY_LIMIT_MB_32BIT=1000
+
+# Memory limit when using 64 bit Java environment
+MEMORY_LIMIT_MB_64BIT=2000

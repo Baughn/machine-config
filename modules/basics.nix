@@ -118,7 +118,9 @@
     "fs.inotify.max_user_watches" = 1048576;
     "net.ipv4.tcp_congestion_control" = "bbr";
     "net.ipv4.tcp_ecn" = 1;
+    "vm.swappiness" = 100;
   };
+  zramSwap.enable = true;
 
   ## Nix setup
   nix.gc.automatic = true;
