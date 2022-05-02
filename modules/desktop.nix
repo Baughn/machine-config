@@ -15,6 +15,12 @@
     steam-run firefox
     # Chat, etc.
     syncplay
+    # Kanjitomo
+    (pkgs.makeDesktopItem {
+      name = "kanjitomo";
+      exec = "${pkgs.jre}/bin/java -jar ${../third_party/KanjiTomo}/KanjiTomo.jar";
+      desktopName = "KanjiTomo";
+    })
     # Work around #159267
     (pkgs.writeShellApplication {
       name = "discord";
