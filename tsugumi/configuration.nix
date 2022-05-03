@@ -186,7 +186,7 @@
     devices.koyomi.id = "WCPI5FZ-WOPAUNY-CO6L7ZR-KXP3BYN-NNOHZZI-K4TCWXM-2SNSFHW-QSA7MQM";
     folders."/home/svein/Sync" = {
       id = "default";
-      devices = [ "saya" "kaho" "koyomi" ];
+      devices = [ "saya" "kaho" "koyomi" "sayanix" ];
     };
     folders."/home/svein/Music" = {
      id = "Music";
@@ -194,11 +194,11 @@
     };
     folders."/home/svein/Documents" = {
      id = "Documents";
-     devices = [ "kaho" "koyomi" ];
+     devices = [ "kaho" "koyomi" "sayanix" ];
     };
     folders."/home/svein/secure" = {
       id = "secure";
-      devices = [ "saya" "kaho" "koyomi" ];
+      devices = [ "saya" "kaho" "koyomi" "sayanix" ];
     };
   };
 
