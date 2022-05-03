@@ -136,7 +136,7 @@
       5201  # Stationeers
     ]);
   services.dhcpd4 = {
-    enable = true;
+    enable = false;
     authoritative = true;
     machines = [{
       hostName = "saya";
