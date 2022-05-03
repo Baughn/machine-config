@@ -43,6 +43,14 @@
     gc-keep-derivations = true
   '';
 
+  # Syncthing
+  services.syncthing = {
+    enable = true;
+    user = "svein";
+    configDir = "/home/svein/.config/syncthing";
+    dataDir = "/home/svein/Sync";
+  };
+
   ## Networking
   networking.hostName = "saya";
   systemd.network = {

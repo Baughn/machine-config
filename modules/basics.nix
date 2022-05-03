@@ -4,6 +4,7 @@
   imports = [
     ./users.nix
     ./logrotate.nix
+    ./naming.nix
   ];
 
   # Use the latest kernel, unless on desktop.

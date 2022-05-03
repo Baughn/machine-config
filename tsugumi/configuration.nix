@@ -181,6 +181,7 @@
     configDir = "/home/svein/.config/syncthing";
     dataDir = "/home/svein/Sync";
     devices.saya.id = "4YR3ALE-55UONK6-ABXCSXM-OKBZNIT-HAJKCXQ-DV2LXKH-TFWVLZV-HKHB6Q3";
+    devices.sayanix.id = "AWYR3YS-GQORA3W-MSRLQGB-MC6X3K4-FIBGBKF-IRJPM3P-QKCNRFP-M3CYNAN";
     devices.kaho.id = "WO5QPPE-S37P4KO-L4KWQ23-SEV6VHB-ABTJ3JX-BB7ST2A-VCOBUMM-DEZKVAN";
     devices.koyomi.id = "WCPI5FZ-WOPAUNY-CO6L7ZR-KXP3BYN-NNOHZZI-K4TCWXM-2SNSFHW-QSA7MQM";
     folders."/home/svein/Sync" = {
