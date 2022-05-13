@@ -10,6 +10,7 @@
     ./hardware-configuration.nix
 #    ./minecraft.nix
 #    ./satisfactory.nix
+    ./vintagestory.nix
     ./factorio.nix
     ../modules/plex.nix
     ../modules/monitoring.nix
