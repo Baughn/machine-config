@@ -43,8 +43,8 @@
   networking.hostName = "tsugumi";
   networking.useDHCP = false;
   services.udev.extraRules = ''
-      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="3c:7c:3f:24:99:f6", NAME="external"
-      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="internal"
+      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="3c:7c:3f:24:99:f6", NAME="external", RUN+="${pkgs.ethtool}/bin/ethtool --change external autoneg off"
+      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="internal", RUN+="${pkgs.ethtool}/bin/ethtool --change internal autoneg off"
   '';
   # External
   networking.interfaces.external = {
@@ -443,6 +443,11 @@
         }
       }
 
+      obico.brage.info {
+        import headers
+        reverse_proxy http://localhost:3334
+      }
+
       ar-innna.brage.info {
         root * /srv/aquagon/
         import headers
@@ -469,4 +474,6 @@
 
   users.include = ["minecraft" "aquagon"];
   #users.include = ["pl" "aquagon" "will" "snowfire" "minecraft" "linuxgsm"];
+
+  system.stateVersion = "21.11";
 }

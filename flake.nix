@@ -3,8 +3,6 @@
 
   inputs.nixpkgs-stable.url = "flake:nixpkgs/nixos-21.11";
   inputs.nixpkgs.url = "flake:nixpkgs/nixos-unstable";
-  #inputs.nixpkgs.url = "/home/svein/dev/nix/pkgs";
-  #inputs.nixpkgs.url = "flake:nixpkgs/nixos-unstable-small";
   inputs.nixos-hardware.url = "flake:nixos-hardware";
   inputs.home-manager.url = "github:nix-community/home-manager";
   inputs.home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -12,19 +10,26 @@
   inputs.agenix.url = "github:ryantm/agenix";
   inputs.agenix.inputs.nixpkgs.follows = "nixpkgs";
 
-  #inputs.openwrt = {
-  #  url = "path:../openwrt";
-  #  inputs.nixpkgs.follows = "nixpkgs";
-  #};
-
+  # Flake outputs:
+  # - One machine config for each of my machines.
+  # - Packages:
+  #  - install-kexec, which is a custom installer that loads through kexec.
+  #  - install-cd, which is a customized version of the regular installer.
+  # - deploy and checks, which are used by deploy-rs. Which I don't use anymore. Yeah.
+  # - devShell, aka. ./shell.nix.
+  #
+  # Each machine config also includes the home-manager config for my normal user.
+  #
   outputs = { self, nixpkgs, nixpkgs-stable, nixos-hardware, home-manager, deploy-rs, agenix }:
     let
       system = "x86_64-linux";
+      stateVersion = "21.11";
       pkgs = nixpkgs.legacyPackages.${system};
       pkgs-stable = nixpkgs-stable.legacyPackages.${system};
       installer = modules: nixpkgs.lib.nixosSystem {
         inherit system modules;
       };
+      # Imported by each machine config.
       homeConfig = [
           home-manager.nixosModules.home-manager
           {
@@ -46,12 +51,13 @@
       node = { modules }: nixpkgs.lib.nixosSystem ({
         inherit system;
         modules = [{
+          system.stateVersion = stateVersion;
           # Propagate nixpkgs
           nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
           environment.etc."nixpkgs".source = nixpkgs;
           nix.registry.nixpkgs.flake = nixpkgs;
         }
-        # Add agenix
+        # Add agenix for secret management.
         agenix.nixosModules.age
         {
           environment.systemPackages = [ agenix.defaultPackage.${system} ];
