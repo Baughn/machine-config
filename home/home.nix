@@ -9,7 +9,7 @@
   home.homeDirectory = "/home/svein";
 
   home.packages = with pkgs; [
-    htop fortune mosh
+    htop fortune mosh openai
     (callPackage ../tools/up {})
   ];
 
@@ -190,8 +190,8 @@
             ['<C-p>'] = cmp.mapping.select_prev_item(),
             ['<C-n>'] = cmp.mapping.select_next_item(),
             -- Add tab support
-            -- ['<S-Tab>'] = cmp.mapping.select_prev_item(),
-            -- ['<Tab>'] = cmp.mapping.select_next_item(),
+            ['<S-Tab>'] = cmp.mapping.select_prev_item(),
+            ['<Tab>'] = cmp.mapping.select_next_item(),
             ['<C-d>'] = cmp.mapping.scroll_docs(-4),
             ['<C-f>'] = cmp.mapping.scroll_docs(4),
             ['<C-Space>'] = cmp.mapping.complete(),
@@ -240,6 +240,10 @@
 
         " Keybindings
         nnoremap <silent> <Space> <cmd>lua vim.lsp.buf.code_action()<CR>
+
+        " Copilot
+        imap <silent><script><expr> <C-J> copilot#Accept("\<CR>")
+        let g:copilot_no_tab_map = v:true
     '';
   };
 
@@ -265,9 +269,11 @@
     enableCompletion = true;
     oh-my-zsh.enable = true;
     oh-my-zsh.plugins = [ "git" "sudo" ];
+
     oh-my-zsh.theme = "afowler";
     profileExtra = ''
       if [ -e $HOME/.nix-profile/etc/profile.d/nix.sh ]; then . $HOME/.nix-profile/etc/profile.d/nix.sh; fi
+
       export GOPATH=$HOME/go
 
       with() {
