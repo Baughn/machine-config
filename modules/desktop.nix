@@ -116,7 +116,6 @@
 
   services.ratbagd.enable = true;
  
-  programs.noisetorch.enable = true;
   hardware.pulseaudio.enable = false;
   services.pipewire = {
     enable = true;

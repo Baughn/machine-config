@@ -64,8 +64,6 @@
      gcc rustup cargo-edit rust-analyzer
      python3Full freeipmi binutils jq
      gitAndTools.gitFull git-lfs git-crypt sqlite-interactive
-     # VSCode
-     nodejs-12_x
      # System/monitoring/etc tools
      parted psmisc atop hdparm sdparm whois sysstat htop nload iftop
      smartmontools pciutils lsof schedtool numactl dmidecode iotop
