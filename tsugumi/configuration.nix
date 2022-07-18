@@ -11,7 +11,7 @@
 #    ./minecraft.nix
 #    ./satisfactory.nix
     ./vintagestory.nix
-    ./factorio.nix
+#    ./factorio.nix
     ../modules/plex.nix
     ../modules/monitoring.nix
 #    ./znc.nix
@@ -43,8 +43,11 @@
   networking.hostName = "tsugumi";
   networking.useDHCP = false;
   services.udev.extraRules = ''
+      # Attempt to fix the bloody realtek drivers.
       ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="3c:7c:3f:24:99:f6", NAME="external", RUN+="${pkgs.ethtool}/bin/ethtool --change external autoneg off"
       ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="internal", RUN+="${pkgs.ethtool}/bin/ethtool --change internal autoneg off"
+      # Set an appropriate usb device name for the FLSUN Super Racer serial port.
+      ACTION=="add", SUBSYSTEM=="tty", ATTRS{serial}=="208734504D34", SYMLINK+="ttyFLSUNRacer"
   '';
   # External
   networking.interfaces.external = {
@@ -415,6 +418,15 @@
         }
       }
 
+      (password) {
+        @denied not remote_ip 89.101.222.210/29
+        abort @denied
+
+        #basicauth {
+        #  svein JDJhJDE0JGEvMmIyM3o2Ty94b1dNdXNlNmFtYmVvUFJ5UmVaOExEU2tOdTlsNi9KSEZYVHZlbXFMYTBp
+        #}
+      }
+
       madoka.brage.info {
         root * /srv/minecraft/
         import headers
@@ -446,6 +458,31 @@
       obico.brage.info {
         import headers
         reverse_proxy http://localhost:3334
+      }
+
+      klipper.brage.info {
+        import headers
+        reverse_proxy /* http://10.92.71.49
+        reverse_proxy /server/* http://10.92.71.49:7125 {
+          header_up -Authorization
+        }
+        reverse_proxy /access/* http://10.92.71.49:7125 {
+          header_up -Authorization
+        }
+        reverse_proxy /websocket http://10.92.71.49:7125 {
+          header_up -Authorization
+        }
+        handle_path /moonraker/* {
+          reverse_proxy http://10.92.71.49:7125 {
+            header_up -Authorization
+          }
+        }
+        import password
+      }
+
+      racer.brage.info {
+        reverse_proxy http://localhost:5000
+        import password
       }
 
       ar-innna.brage.info {
