@@ -13,6 +13,8 @@
     virtualisation.docker.storageDriver = "zfs";
     users.extraUsers.svein.extraGroups = [ "docker" "lxd" "libvirtd" ];
     networking.firewall.checkReversePath = false;
-    environment.systemPackages = [ pkgs.qemu pkgs.nixos-shell pkgs.docker-compose ];
+    environment.systemPackages = [
+      pkgs.qemu pkgs.nixos-shell pkgs.docker-compose pkgs.lxd
+    ];
   };
 }
