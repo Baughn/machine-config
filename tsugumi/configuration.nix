@@ -8,6 +8,7 @@
   imports = [
     ../modules
     ./hardware-configuration.nix
+    ./sonarr.nix
 #    ./minecraft.nix
 #    ./satisfactory.nix
     ./vintagestory.nix
@@ -419,12 +420,12 @@
       }
 
       (password) {
-        @denied not remote_ip 89.101.222.210/29
-        abort @denied
+        #@denied not remote_ip 89.101.222.210/29
+        #abort @denied
 
-        #basicauth {
-        #  svein JDJhJDE0JGEvMmIyM3o2Ty94b1dNdXNlNmFtYmVvUFJ5UmVaOExEU2tOdTlsNi9KSEZYVHZlbXFMYTBp
-        #}
+        basicauth {
+          svein JDJhJDE0JGEvMmIyM3o2Ty94b1dNdXNlNmFtYmVvUFJ5UmVaOExEU2tOdTlsNi9KSEZYVHZlbXFMYTBp
+        }
       }
 
       madoka.brage.info {
@@ -494,6 +495,17 @@
       matrix.brage.info {
         import headers
         reverse_proxy http://89.101.222.210:8448
+      }
+
+      qbt.brage.info {
+        import headers
+        reverse_proxy http://localhost:8080
+      }
+
+      sonarr.brage.info {
+        import headers
+        import password
+        reverse_proxy http://localhost:8989
       }
 
       brage.info {

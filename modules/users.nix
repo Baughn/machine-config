@@ -5,7 +5,7 @@ let
   users = {
     svein = {
       uid = 1000;
-      extraGroups = [ "wheel" "wireshark" "systemd-journal" "disnix" "networkmanager" "dialout" ];
+      extraGroups = [ "wheel" "wireshark" "systemd-journal" "disnix" "networkmanager" "dialout" "sonarr" ];
       passwordFile = config.age.secrets.userPassword.path;
       createHome = false;
     };
