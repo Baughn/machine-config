@@ -23,7 +23,11 @@
         echo -n > zpool
         for pool in $(${pkgs.zfs}/bin/zpool list -H | ${pkgs.gawk}/bin/awk '{print $1}'); do
           if ${pkgs.zfs}/bin/zpool status -x | grep -q $pool; then
-            echo "zfs_pool_errors{pool=\"$pool\"} 1" >> zpool
+            if ${pkgs.zfs}/bin/zpool status | grep -A1 $pool | grep -q ONLINE; then
+              echo "zfs_pool_errors{pool=\"$pool\"} 0" >> zpool
+            else
+              echo "zfs_pool_errors{pool=\"$pool\"} 1" >> zpool
+            fi
           else
             echo "zfs_pool_errors{pool=\"$pool\"} 0" >> zpool
           fi
