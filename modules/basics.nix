@@ -160,6 +160,10 @@
   networking.domain = "brage.info";
   networking.firewall.allowPing = true;
   networking.firewall.logRefusedConnections = false;
+  ### Open ports for mosh.
+  networking.firewall.allowedUDPPortRanges = [
+    { from = 60000; to = 61000; }
+  ];
   services.avahi = {
     enable = lib.mkDefault true;
     nssmdns = true;
