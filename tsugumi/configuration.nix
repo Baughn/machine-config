@@ -508,6 +508,11 @@
         reverse_proxy http://localhost:8989
       }
 
+      jellyfin.brage.info {
+        import headers
+        reverse_proxy http://localhost:8096
+      }
+
       brage.info {
         root * /srv/svein/
         import headers
