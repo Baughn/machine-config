@@ -178,10 +178,11 @@
       import ../secrets/sv-network.nix);
   
   ## Time & location ##
-  console.keyMap = "us";
-  i18n = {
-    defaultLocale = "en_US.UTF-8";
+  console = {
+    font = "Lat2-Terminus16";
+    useXkbConfig = true; # use xkbOptions in tty.
   };
+  i18n.defaultLocale = "en_US.UTF-8";
   time.timeZone = "Europe/Dublin";
 
   # Enable postfix, but local only by default - no ports open.
