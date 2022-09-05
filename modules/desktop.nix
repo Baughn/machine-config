@@ -3,7 +3,7 @@
 {
   imports = [ ./mcupdater.nix ];
 
-  boot.kernelPackages = lib.mkForce pkgs.linuxPackages_lqx;
+  #boot.kernelPackages = lib.mkForce pkgs.linuxPackages_lqx;
   powerManagement.cpuFreqGovernor = lib.mkForce "performance";
 
   ## Packages
