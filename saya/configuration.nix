@@ -9,11 +9,7 @@
     ../modules
     ./hardware-configuration.nix
     ../modules/nvidia.nix
-#    ../modules/amdgpu.nix
     ../modules/desktop.nix
-#    ../modules/rsyncd.nix
-#    ../modules/znapzend.nix
-#    ../modules/monitoring.nix
   ];
 
   me = {
@@ -23,14 +19,8 @@
   services.flatpak.enable = true;
 
   ## Boot & hardware
+  boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.grub = {
-    enable = true;
-    default = "4";
-    efiSupport = true;
-    useOSProber = true;
-    device = "nodev";
-  };
 
   boot.kernelParams = [
     "boot.shell_on_fail"
