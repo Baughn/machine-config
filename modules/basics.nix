@@ -7,8 +7,8 @@
     ./naming.nix
   ];
 
-  # Use the latest kernel, unless on desktop.
-  boot.kernelPackages = lib.mkOverride 60 pkgs.linuxPackages_5_15;
+  # Use whatever kernel package is compatible.
+  boot.kernelPackages = config.boot.zfs.package.latestCompatibleLinuxPackages;
   boot.kernelParams = [
     # F#&$*ng Spectre
     "noibrs"
