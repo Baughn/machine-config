@@ -26,7 +26,7 @@
   boot.loader.timeout = 15;
 
   # Performance stuff
-  nix.daemonCPUSchedPolicy = "idle";
+  #nix.daemonCPUSchedPolicy = "idle";
   security.rtkit.enable = true;
   services.ananicy.enable = true;
 
@@ -70,7 +70,7 @@
      usbutils powertop w3m autossh
      # Shell tools
      file weechat parallel moreutils neovim finger_bsd
-     autojump ripgrep zstd fd
+     autojump ripgrep zstd fd rlwrap
      (callPackage ../tools/up {})
      # File transfer
      rsync wget rtorrent sshfs-fuse 

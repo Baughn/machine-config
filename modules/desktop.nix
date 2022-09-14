@@ -22,26 +22,44 @@
       desktopName = "KanjiTomo";
     })
     # Work around #159267
-    (pkgs.writeShellApplication {
-      name = "discord";
-      text = "${pkgs.discord}/bin/discord --use-gl=desktop";
-    })
-    (pkgs.makeDesktopItem {
-      name = "discord";
-      exec = "discord";
-      desktopName = "Discord";
-    })
+    discord
+    #(pkgs.writeShellApplication {
+    #  name = "discord";
+    #  text = "${pkgs.discord}/bin/discord --use-gl=desktop";
+    #})
+    #(pkgs.makeDesktopItem {
+    #  name = "discord";
+    #  exec = "discord";
+    #  desktopName = "Discord";
+    #})
     # Entertainment
     polymc
     mpv
     syncplay
-    # Needed for gnome in general
-    gnomeExtensions.appindicator
-    gnome3.adwaita-icon-theme
-    # Needed for gnome to have a mouse cursor?!
-    kdenlive
+    # KDE utilities
+    ark
     # Sound stuff
     helvum
+    # 3D printing
+    (prusa-slicer.overrideAttrs (old: {
+      src = fetchFromGitHub {
+        owner = "prusa3d";
+        repo = "PrusaSlicer";
+        sha256 = "sha256-wLe+5TFdkgQ1mlGYgp8HBzugeONSne17dsBbwblILJ4=";
+        rev = "version_2.5.0";
+      };
+      buildInputs = old.buildInputs ++ [(
+        pkgs.opencascade-occt.overrideAttrs (old: rec {
+          version = "7.6.2";
+          commit = "V${builtins.replaceStrings ["."] ["_"] version}";
+          src = fetchurl {
+            name = "occt-${commit}.tar.gz";
+            url = "https://git.dev.opencascade.org/gitweb/?p=occt.git;a=snapshot;h=${commit};sf=tgz";
+            sha256 = "sha256-n3KFrN/mN1SVXfuhEUAQ1fJzrCvhiclxfEIouyj9Z18=";
+          };
+        })
+      )];
+    }))
   ];
 
   environment.launchable.systemPackages = pkgs: with pkgs; [
@@ -50,7 +68,7 @@
     ncmpcpp mpd xlockmore xorg.xwd xorg.xdpyinfo xorg.xev xorg.xkill
     glxinfo
     # Video / Photo editing
-    kdenlive frei0r gimp-with-plugins
+    kdenlive frei0r gimp-with-plugins #krita
     # One day I'll get back to this
     dwarf-fortress-packages.dwarf-fortress-full
     # Emacs
@@ -95,9 +113,9 @@
     desktopManager = {
 #      default = "xfce";
       xfce.enable = true;
-      gnome.enable = true;
-#      cinnamon.enable = true;
-#      plasma5.enable = true;
+#      gnome.enable = true;
+      cinnamon.enable = true;
+      plasma5.enable = true;
     };
     # windowManager.xmonad = {
     #   enable = true;
@@ -118,12 +136,12 @@
   hardware.pulseaudio.enable = false;
   services.pipewire = {
     enable = true;
-    #alsa.enable = true;
+    alsa.enable = true;
     #alsa.support32Bit = true;
     #jack.enable = true;
     pulse.enable = true;
-    media-session.enable = false;
-    wireplumber.enable = true;
+    #media-session.enable = false;
+    #wireplumber.enable = true;
   };
   hardware.bluetooth = {
     enable = true;
