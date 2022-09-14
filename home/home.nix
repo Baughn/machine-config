@@ -68,7 +68,7 @@
   programs.neovim = {
     enable = true;
     vimAlias = true;
-    withNodeJs = true;
+    extraPackages = [ pkgs.nodejs-16_x ];
     plugins = with pkgs.vimPlugins; [
       # "Defaults everyone can agree on"
       sensible
@@ -83,6 +83,7 @@
       # Syntax/language support
       syntastic
       vim-nix
+      copilot-vim
 
       # Rust
       nvim-lspconfig
@@ -145,7 +146,8 @@
         local opts = {
             tools = { -- rust-tools options
                 autoSetHints = true,
-                hover_with_actions = true,
+                -- TODO update this
+                -- hover_with_actions = true,
                 inlay_hints = {
                     show_parameter_hints = false,
                     parameter_hints_prefix = "",
