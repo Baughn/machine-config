@@ -274,7 +274,7 @@
 
   ## Backups ##
   services.zrepl2 = {
-    enable = true;
+  #  enable = true;
     
     local.ssd = {
       sourceFS = "rpool";
