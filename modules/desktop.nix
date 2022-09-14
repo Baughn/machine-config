@@ -41,25 +41,7 @@
     # Sound stuff
     helvum
     # 3D printing
-    (prusa-slicer.overrideAttrs (old: {
-      src = fetchFromGitHub {
-        owner = "prusa3d";
-        repo = "PrusaSlicer";
-        sha256 = "sha256-wLe+5TFdkgQ1mlGYgp8HBzugeONSne17dsBbwblILJ4=";
-        rev = "version_2.5.0";
-      };
-      buildInputs = old.buildInputs ++ [(
-        pkgs.opencascade-occt.overrideAttrs (old: rec {
-          version = "7.6.2";
-          commit = "V${builtins.replaceStrings ["."] ["_"] version}";
-          src = fetchurl {
-            name = "occt-${commit}.tar.gz";
-            url = "https://git.dev.opencascade.org/gitweb/?p=occt.git;a=snapshot;h=${commit};sf=tgz";
-            sha256 = "sha256-n3KFrN/mN1SVXfuhEUAQ1fJzrCvhiclxfEIouyj9Z18=";
-          };
-        })
-      )];
-    }))
+    prusa-slicer cura
   ];
 
   environment.launchable.systemPackages = pkgs: with pkgs; [
