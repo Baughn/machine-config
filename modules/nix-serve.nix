@@ -8,10 +8,10 @@
   };
 
   # Otherwise, add tsugumi as a binary cache.
-  nix.binaryCaches = lib.mkIf (config.networking.hostName != "tsugumi") (lib.mkFront [
-    "http://tsugumi:5000"
-  ]);
-  nix.settings.trusted-public-keys = lib.mkIf (config.networking.hostName != "tsugumi") [
-    (builtins.readFile ../secrets/nix-store/public-key)
-  ];
+  nix.settings = lib.mkIf (config.networking.hostName != "tsugumi") {
+    substituters = lib.mkBefore [ "https://store.brage.info" ];
+    trusted-public-keys = [ 
+      (builtins.readFile ../secrets/nix-store/public-key)
+    ];
+  };
 }
