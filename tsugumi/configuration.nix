@@ -429,6 +429,11 @@
         }
       }
 
+      (localonly) {
+        @denied not remote_ip 89.101.222.210/29
+        abort @denied
+      }
+
       madoka.brage.info {
         root * /srv/minecraft/
         import headers
@@ -526,6 +531,7 @@
       }
 
       store.brage.info {
+        import localonly
         reverse_proxy http://localhost:5000
       }
     '';
