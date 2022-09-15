@@ -20,103 +20,132 @@
   #
   # Each machine config also includes the home-manager config for my normal user.
   #
-  outputs = { self, nixpkgs, nixpkgs-stable, nixos-hardware, home-manager, deploy-rs, agenix }:
-    let
-      system = "x86_64-linux";
-      stateVersion = "21.11";
-      pkgs = nixpkgs.legacyPackages.${system};
-      pkgs-stable = nixpkgs-stable.legacyPackages.${system};
-      installer = modules: nixpkgs.lib.nixosSystem {
+  outputs = {
+    self,
+    nixpkgs,
+    nixpkgs-stable,
+    nixos-hardware,
+    home-manager,
+    deploy-rs,
+    agenix,
+  }: let
+    system = "x86_64-linux";
+    stateVersion = "21.11";
+    pkgs = nixpkgs.legacyPackages.${system};
+    pkgs-stable = nixpkgs-stable.legacyPackages.${system};
+    installer = modules:
+      nixpkgs.lib.nixosSystem {
         inherit system modules;
       };
-      # Imported by each machine config.
-      homeConfig = [
-          home-manager.nixosModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              users.svein = import ./home/home.nix;
-            };
-          }
-      ];
-      deployNodes = hosts: pkgs.lib.listToAttrs (map (host: pkgs.lib.nameValuePair host
+    # Imported by each machine config.
+    homeConfig = [
+      home-manager.nixosModules.home-manager
       {
-        hostname = "${host}.brage.info";
-        profiles.system = {
-          user = "root";
-          path = deploy-rs.lib.${system}.activate.nixos self.nixosConfigurations.${host};
+        home-manager = {
+          useGlobalPkgs = true;
+          useUserPackages = true;
+          users.svein = import ./home/home.nix;
         };
-      }) hosts);
-      node = { modules }: nixpkgs.lib.nixosSystem ({
-        inherit system;
-        modules = [{
-          system.stateVersion = stateVersion;
-          # Propagate nixpkgs
-          nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
-          environment.etc."nixpkgs".source = nixpkgs;
-          nix.registry.nixpkgs.flake = nixpkgs;
-        }
-        # Add agenix for secret management.
-        agenix.nixosModules.age
+      }
+    ];
+    deployNodes = hosts:
+      pkgs.lib.listToAttrs (map (host:
+        pkgs.lib.nameValuePair host
         {
-          environment.systemPackages = [ agenix.defaultPackage.${system} ];
-        }
-        ] ++ homeConfig ++ modules;
-      });
-    in {
-      devShell.${system} = import ./shell.nix { inherit pkgs; };
+          hostname = "${host}.brage.info";
+          profiles.system = {
+            user = "root";
+            path = deploy-rs.lib.${system}.activate.nixos self.nixosConfigurations.${host};
+          };
+        })
+      hosts);
+    node = {modules}:
+      nixpkgs.lib.nixosSystem {
+        inherit system;
+        modules =
+          [
+            {
+              system.stateVersion = stateVersion;
+              # Propagate nixpkgs
+              nix.nixPath = ["nixpkgs=/etc/nixpkgs"];
+              environment.etc."nixpkgs".source = nixpkgs;
+              nix.registry.nixpkgs.flake = nixpkgs;
+            }
+            # Add agenix for secret management.
+            agenix.nixosModules.age
+            {
+              environment.systemPackages = [agenix.defaultPackage.${system}];
+            }
+          ]
+          ++ homeConfig
+          ++ modules;
+      };
+  in {
+    formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
 
-      checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
+    devShell.${system} = import ./shell.nix {inherit pkgs;};
 
-      packages.${system} = {
-        install-cd = (installer [
+    checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
+
+    packages.${system} = {
+      install-cd =
+        (installer [
           "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
           ./installer/cd.nix
-        ]).config.system.build.isoImage;
-        install-kexec = (installer [
+        ])
+        .config
+        .system
+        .build
+        .isoImage;
+      install-kexec =
+        (installer [
           "${nixpkgs}/nixos/modules/installer/netboot/netboot-minimal.nix"
           ./installer/kexec.nix
-        ]).config.system.build.kexec_tarball;
-      };
-
-      deploy.nodes = deployNodes [ "tromso" "saya" "tsugumi" ];
-
-      nixosConfigurations.saya = node {
-        modules = [
-          nixos-hardware.nixosModules.common-pc
-          nixos-hardware.nixosModules.common-cpu-amd
-          ./saya/configuration.nix
-        ];
-      };
-
-      nixosConfigurations.kaho = node {
-        modules = [
-          nixos-hardware.nixosModules.asus-zephyrus-ga401
-          nixos-hardware.nixosModules.asus-battery {
-            hardware.asus.battery.chargeUpto = 70;
-          }
-          ./kaho/configuration.nix
-        ];
-      };
-
-      nixosConfigurations.tsugumi = node {
-        modules = [
-          nixos-hardware.nixosModules.common-pc
-          nixos-hardware.nixosModules.common-cpu-amd
-          nixos-hardware.nixosModules.common-gpu-amd
-          #openwrt.nixosModule
-          ./tsugumi/configuration.nix
-        ];
-      };
-
-      nixosConfigurations.tromso = node {
-        modules = [
-          nixos-hardware.nixosModules.common-pc
-          nixos-hardware.nixosModules.common-cpu-amd
-          nixos-hardware.nixosModules.common-gpu-amd
-          ./tromso/configuration.nix
-        ];
-      };
+        ])
+        .config
+        .system
+        .build
+        .kexec_tarball;
     };
+
+    deploy.nodes = deployNodes ["tromso" "saya" "tsugumi"];
+
+    nixosConfigurations.saya = node {
+      modules = [
+        nixos-hardware.nixosModules.common-pc
+        nixos-hardware.nixosModules.common-cpu-amd
+        ./saya/configuration.nix
+      ];
+    };
+
+    nixosConfigurations.kaho = node {
+      modules = [
+        nixos-hardware.nixosModules.asus-zephyrus-ga401
+        nixos-hardware.nixosModules.asus-battery
+        {
+          hardware.asus.battery.chargeUpto = 70;
+        }
+        ./kaho/configuration.nix
+      ];
+    };
+
+    nixosConfigurations.tsugumi = node {
+      modules = [
+        nixos-hardware.nixosModules.common-pc
+        nixos-hardware.nixosModules.common-cpu-amd
+        nixos-hardware.nixosModules.common-gpu-amd
+        #openwrt.nixosModule
+        ./tsugumi/configuration.nix
+      ];
+    };
+
+    nixosConfigurations.tromso = node {
+      modules = [
+        nixos-hardware.nixosModules.common-pc
+        nixos-hardware.nixosModules.common-cpu-amd
+        nixos-hardware.nixosModules.common-gpu-amd
+        ./tromso/configuration.nix
+      ];
+    };
+  };
 }
