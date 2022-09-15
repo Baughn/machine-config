@@ -1,10 +1,11 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-
-{ config, pkgs, ... }:
-
 {
+  config,
+  pkgs,
+  ...
+}: {
   imports = [
     ../modules
     ../modules/amdgpu.nix
@@ -14,7 +15,7 @@
   # Use the gummiboot efi boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  systemd.enableEmergencyMode = false;  # Start up no matter what, if at all possible.
+  systemd.enableEmergencyMode = false; # Start up no matter what, if at all possible.
   hardware.cpu.amd.updateMicrocode = true;
 
   users.include = [];
@@ -33,13 +34,15 @@
   networking.wg-quick = {
     interfaces.wg0 = {
       address = ["10.0.2.2"];
-      peers = [{
-        allowedIPs = [ "10.0.2.1/32" ];
-        endpoint = "brage.info:51820";
-        publicKey = (import ../secrets/wireguard/pubkeys.nix).tsugumi;
-        persistentKeepalive = 30;
-        presharedKeyFile = config.age.secrets."wireguard/common.psk".path;
-      }];
+      peers = [
+        {
+          allowedIPs = ["10.0.2.1/32"];
+          endpoint = "brage.info:51820";
+          publicKey = (import ../secrets/wireguard/pubkeys.nix).tsugumi;
+          persistentKeepalive = 30;
+          presharedKeyFile = config.age.secrets."wireguard/common.psk".path;
+        }
+      ];
       listenPort = 51820;
       privateKeyFile = config.age.secrets."wireguard/tromso.pk".path;
     };

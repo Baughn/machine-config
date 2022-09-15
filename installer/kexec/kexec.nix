@@ -1,8 +1,10 @@
-{ pkgs, config, ... }:
-
 {
+  pkgs,
+  config,
+  ...
+}: {
   system.build = rec {
-    image = pkgs.runCommand "image" { buildInputs = [ pkgs.nukeReferences ]; } ''
+    image = pkgs.runCommand "image" {buildInputs = [pkgs.nukeReferences];} ''
       mkdir $out
       cp ${config.system.build.kernel}/bzImage $out/kernel
       cp ${config.system.build.netbootRamdisk}/initrd $out/initrd
@@ -28,7 +30,7 @@
         sync
         echo "executing kernel, filesystems will be improperly umounted"
         kexec -e
-        '';
+      '';
     };
   };
   boot.initrd.postMountCommands = ''
@@ -37,7 +39,10 @@
   '';
   system.build.kexec_tarball = pkgs.callPackage "${pkgs.path}/nixos/lib/make-system-tarball.nix" {
     storeContents = [
-      { object = config.system.build.kexec_script; symlink = "/kexec_nixos"; }
+      {
+        object = config.system.build.kexec_script;
+        symlink = "/kexec_nixos";
+      }
     ];
     contents = [];
   };

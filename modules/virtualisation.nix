@@ -1,8 +1,11 @@
-{ config, pkgs, lib, ... }:
-
 {
-
-  options.me = with lib; with types; {
+  config,
+  pkgs,
+  lib,
+  ...
+}: {
+  options.me = with lib;
+  with types; {
     virtualisation.enable = mkEnableOption {};
   };
 
@@ -11,10 +14,13 @@
     virtualisation.lxd.enable = false;
     virtualisation.docker.enable = true;
     virtualisation.docker.storageDriver = "zfs";
-    users.extraUsers.svein.extraGroups = [ "docker" "lxd" "libvirtd" ];
+    users.extraUsers.svein.extraGroups = ["docker" "lxd" "libvirtd"];
     networking.firewall.checkReversePath = false;
     environment.systemPackages = [
-      pkgs.qemu pkgs.nixos-shell pkgs.docker-compose pkgs.lxd
+      pkgs.qemu
+      pkgs.nixos-shell
+      pkgs.docker-compose
+      pkgs.lxd
     ];
   };
 }

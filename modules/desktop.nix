@@ -1,7 +1,10 @@
-{ config, pkgs, lib, ...}:
-
 {
-  imports = [ ./mcupdater.nix ];
+  config,
+  pkgs,
+  lib,
+  ...
+}: {
+  imports = [./mcupdater.nix];
 
   #boot.kernelPackages = lib.mkForce pkgs.linuxPackages_lqx;
   powerManagement.cpuFreqGovernor = lib.mkForce "performance";
@@ -10,9 +13,11 @@
   environment.systemPackages = with pkgs; [
     # Dev
     vscode
-    google-chrome youtube-dl
+    google-chrome
+    youtube-dl
     gnome3.gnome-terminal
-    steam-run firefox
+    steam-run
+    firefox
     # Chat, etc.
     syncplay
     # Kanjitomo
@@ -41,27 +46,40 @@
     # Sound stuff
     helvum
     # 3D printing
-    prusa-slicer cura
+    prusa-slicer
+    cura
   ];
 
-  environment.launchable.systemPackages = pkgs: with pkgs; [
-    # Applications I rarely use
-    winePackages.full winetricks blender pavucontrol
-    ncmpcpp mpd xlockmore xorg.xwd xorg.xdpyinfo xorg.xev xorg.xkill
-    glxinfo
-    # Video / Photo editing
-    kdenlive frei0r gimp-with-plugins #krita
-    # One day I'll get back to this
-    dwarf-fortress-packages.dwarf-fortress-full
-    # Emacs
-    #((emacsPackagesNgGen pkgs.emacs).emacsWithPackages (p: with p.melpaStablePackages; [
-    #    solarized-theme indent-guide
-    #    nyan-mode smex ein js2-mode js3-mode
-    #    multiple-cursors flyspell-lazy yasnippet buffer-move counsel
-    #    p.elpaPackages.undo-tree magit nix-mode gradle-mode lua-mode
-    #    groovy-mode editorconfig rust-mode pabbrev expand-region
-    #  ]))
-  ];
+  environment.launchable.systemPackages = pkgs:
+    with pkgs; [
+      # Applications I rarely use
+      winePackages.full
+      winetricks
+      blender
+      pavucontrol
+      ncmpcpp
+      mpd
+      xlockmore
+      xorg.xwd
+      xorg.xdpyinfo
+      xorg.xev
+      xorg.xkill
+      glxinfo
+      # Video / Photo editing
+      kdenlive
+      frei0r
+      gimp-with-plugins #krita
+      # One day I'll get back to this
+      dwarf-fortress-packages.dwarf-fortress-full
+      # Emacs
+      #((emacsPackagesNgGen pkgs.emacs).emacsWithPackages (p: with p.melpaStablePackages; [
+      #    solarized-theme indent-guide
+      #    nyan-mode smex ein js2-mode js3-mode
+      #    multiple-cursors flyspell-lazy yasnippet buffer-move counsel
+      #    p.elpaPackages.undo-tree magit nix-mode gradle-mode lua-mode
+      #    groovy-mode editorconfig rust-mode pabbrev expand-region
+      #  ]))
+    ];
 
   programs.steam.enable = true;
 
@@ -70,9 +88,9 @@
     enableDefaultFonts = true;
     enableGhostscriptFonts = true;
     fonts = with pkgs; [
-      corefonts  # Microsoft free fonts.
-      inconsolata  # Monospaced.
-      ubuntu_font_family  # Ubuntu fonts.
+      corefonts # Microsoft free fonts.
+      inconsolata # Monospaced.
+      ubuntu_font_family # Ubuntu fonts.
       unifont # some international languages.
       ipafont # Japanese.
       roboto # Android? Eh, it's a nice font.
@@ -84,7 +102,7 @@
     extraOptions = ["--my-next-gpu-wont-be-nvidia"];
   };
 
-  services.udev.packages = with pkgs; [ gnome3.gnome-settings-daemon ];
+  services.udev.packages = with pkgs; [gnome3.gnome-settings-daemon];
 
   services.xserver = {
     enable = true;
@@ -93,9 +111,9 @@
     displayManager.gdm.enable = true;
     displayManager.gdm.wayland = lib.mkForce config.services.xserver.desktopManager.gnome.enable;
     desktopManager = {
-#      default = "xfce";
+      #      default = "xfce";
       xfce.enable = true;
-#      gnome.enable = true;
+      #      gnome.enable = true;
       cinnamon.enable = true;
       plasma5.enable = true;
     };
@@ -114,7 +132,7 @@
   programs.xwayland.enable = true;
 
   services.ratbagd.enable = true;
- 
+
   hardware.pulseaudio.enable = false;
   services.pipewire = {
     enable = true;

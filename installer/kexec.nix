@@ -1,11 +1,9 @@
-{ pkgs, ... }:
-
-{
+{pkgs, ...}: {
   imports = [
     kexec/configuration.nix
   ];
 
-  boot.supportedFilesystems = [ "zfs" ];
+  boot.supportedFilesystems = ["zfs"];
   networking.hostId = "deafbeef";
 
   kexec.autoReboot = false;
@@ -14,6 +12,6 @@
     git
   ];
 
-  users.users.root.openssh.authorizedKeys.keys = 
+  users.users.root.openssh.authorizedKeys.keys =
     (import ../modules/sshKeys.nix).svein;
 }

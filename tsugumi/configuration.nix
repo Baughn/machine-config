@@ -1,21 +1,23 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-
-{ config, pkgs, lib, ... }:
-
 {
+  config,
+  pkgs,
+  lib,
+  ...
+}: {
   imports = [
     ../modules
     ./hardware-configuration.nix
     ./sonarr.nix
-#    ./minecraft.nix
-#    ./satisfactory.nix
+    #    ./minecraft.nix
+    #    ./satisfactory.nix
     ./vintagestory.nix
-#    ./factorio.nix
+    #    ./factorio.nix
     ../modules/plex.nix
     ../modules/monitoring.nix
-#    ./znc.nix
+    #    ./znc.nix
     #./unifi.nix
     ../modules/netboot-server.nix
     ../modules/nix-serve.nix
@@ -45,110 +47,126 @@
   networking.hostName = "tsugumi";
   networking.useDHCP = false;
   services.udev.extraRules = ''
-      # Attempt to fix the bloody realtek drivers.
-      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="3c:7c:3f:24:99:f6", NAME="external", RUN+="${pkgs.ethtool}/bin/ethtool --change external autoneg off"
-      ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="internal", RUN+="${pkgs.ethtool}/bin/ethtool --change internal autoneg off"
-      # Set an appropriate usb device name for the FLSUN Super Racer serial port.
-      ACTION=="add", SUBSYSTEM=="tty", ATTRS{serial}=="208734504D34", SYMLINK+="ttyFLSUNRacer"
+    # Attempt to fix the bloody realtek drivers.
+    ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="3c:7c:3f:24:99:f6", NAME="external", RUN+="${pkgs.ethtool}/bin/ethtool --change external autoneg off"
+    ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="internal", RUN+="${pkgs.ethtool}/bin/ethtool --change internal autoneg off"
+    # Set an appropriate usb device name for the FLSUN Super Racer serial port.
+    ACTION=="add", SUBSYSTEM=="tty", ATTRS{serial}=="208734504D34", SYMLINK+="ttyFLSUNRacer"
   '';
   # External
   networking.interfaces.external = {
-    ipv4.addresses = [{
-      address = "89.101.222.210";
-      prefixLength = 29;
-    } {
-      address = "89.101.222.211";
-      prefixLength = 29;
-    }];
+    ipv4.addresses = [
+      {
+        address = "89.101.222.210";
+        prefixLength = 29;
+      }
+      {
+        address = "89.101.222.211";
+        prefixLength = 29;
+      }
+    ];
   };
   networking.defaultGateway = "89.101.222.209";
-  networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
+  networking.nameservers = ["8.8.8.8" "8.8.4.4"];
   # Wireguard
   networking.wg-quick = {
     interfaces.wg0 = {
       address = ["10.0.2.1"];
-      peers = [{
-        allowedIPs = [ "10.0.2.2/32" ];
-        endpoint = "tromso.brage.info:51820";
-        publicKey = (import ../secrets/wireguard/pubkeys.nix).tromso;
-        persistentKeepalive = 30;
-        presharedKeyFile = config.age.secrets."wireguard/common.psk".path;
-      }];
+      peers = [
+        {
+          allowedIPs = ["10.0.2.2/32"];
+          endpoint = "tromso.brage.info:51820";
+          publicKey = (import ../secrets/wireguard/pubkeys.nix).tromso;
+          persistentKeepalive = 30;
+          presharedKeyFile = config.age.secrets."wireguard/common.psk".path;
+        }
+      ];
       listenPort = 51820;
       privateKeyFile = config.age.secrets."wireguard/tsugumi.pk".path;
     };
   };
   # Firewall
   networking.firewall.allowedTCPPorts = [
-    80 443   # Web-server
-#    25565    # Minecraft
-#    25566    # Minecraft (incognito)
-#    27500    # Stationeers
-#    27015    # Stationeers
-#    7777     # Terraria
+    80
+    443 # Web-server
+    #    25565    # Minecraft
+    #    25566    # Minecraft (incognito)
+    #    27500    # Stationeers
+    #    27015    # Stationeers
+    #    7777     # Terraria
   ];
   networking.firewall.allowedUDPPorts = [
-#    10401    # Wireguard
-#    24454    # Minecraft (voice chat)
-#    27500    # Stationeers
+    #    10401    # Wireguard
+    #    24454    # Minecraft (voice chat)
+    #    27500    # Stationeers
   ];
   networking.firewall.allowedUDPPortRanges = [
-#    { from = 60000; to = 61000; }  # mosh
-#    { from = 27015; to = 27020; }  # Steam
+    #    { from = 60000; to = 61000; }  # mosh
+    #    { from = 27015; to = 27020; }  # Steam
   ];
-  networking.firewall.interfaces = let cfg = { 
-    allowedTCPPorts = [
-#      139 445  # Samba
-#      5357     # winbindd
-      22000    # Syncthing
-      3000  # NodeODM
-    ];
-    allowedUDPPorts = [
-#      137 138  # Samba
-#      3702     # winbindd
-      21027    # Syncthing
-    ];
-  }; in {
+  networking.firewall.interfaces = let
+    cfg = {
+      allowedTCPPorts = [
+        #      139 445  # Samba
+        #      5357     # winbindd
+        22000 # Syncthing
+        3000 # NodeODM
+      ];
+      allowedUDPPorts = [
+        #      137 138  # Samba
+        #      3702     # winbindd
+        21027 # Syncthing
+      ];
+    };
+  in {
     internal = cfg;
     #wifi = cfg;
   };
   # Internal
   networking.interfaces.internal = {
-    ipv4.addresses = [{
-      address = "10.0.0.1";
-      prefixLength = 24;
-    }];
+    ipv4.addresses = [
+      {
+        address = "10.0.0.1";
+        prefixLength = 24;
+      }
+    ];
   };
   networking.nat = {
     enable = true;
     externalInterface = "external";
     externalIP = "89.101.222.211";
-    internalInterfaces = [ "internal" ];
+    internalInterfaces = ["internal"];
   };
-  networking.nat.forwardPorts =
-    let forward = port: [{
-      destination = "10.0.0.2";
-      proto = "udp";
-      sourcePort = port;
-    } {
-      destination = "10.0.0.2";
-      proto = "tcp";
-      sourcePort = port;
-    }];
-    in pkgs.lib.concatMap forward ([
-      27016  # Space Engineers
-#      5100  # Elite
-      5200  # Stationeers
-      5201  # Stationeers
-    ]);
+  networking.nat.forwardPorts = let
+    forward = port: [
+      {
+        destination = "10.0.0.2";
+        proto = "udp";
+        sourcePort = port;
+      }
+      {
+        destination = "10.0.0.2";
+        proto = "tcp";
+        sourcePort = port;
+      }
+    ];
+  in
+    pkgs.lib.concatMap forward [
+      27016 # Space Engineers
+      #      5100  # Elite
+      5200 # Stationeers
+      5201 # Stationeers
+    ];
   services.dhcpd4 = {
     enable = false;
     authoritative = true;
-    machines = [{
-      hostName = "saya";
-      ethernetAddress = "f0:2f:74:8c:54:2d";
-      ipAddress = "10.0.0.2";
-    }];
+    machines = [
+      {
+        hostName = "saya";
+        ethernetAddress = "f0:2f:74:8c:54:2d";
+        ipAddress = "10.0.0.2";
+      }
+    ];
     extraConfig = ''
       option domain-name "brage.info";
       option domain-name-servers 8.8.8.8, 8.8.4.4;
@@ -160,7 +178,7 @@
         range 10.0.1.100 10.0.1.200;
       }
     '';
-    interfaces = [ "internal" ];
+    interfaces = ["internal"];
   };
 
   # Hercules CI
@@ -192,19 +210,19 @@
     devices.koyomi.id = "WCPI5FZ-WOPAUNY-CO6L7ZR-KXP3BYN-NNOHZZI-K4TCWXM-2SNSFHW-QSA7MQM";
     folders."/home/svein/Sync" = {
       id = "default";
-      devices = [ "saya" "kaho" "koyomi" "sayanix" ];
+      devices = ["saya" "kaho" "koyomi" "sayanix"];
     };
     folders."/home/svein/Music" = {
-     id = "Music";
-     devices = [ "kaho" "koyomi" ];
+      id = "Music";
+      devices = ["kaho" "koyomi"];
     };
     folders."/home/svein/Documents" = {
-     id = "Documents";
-     devices = [ "kaho" "koyomi" "sayanix" ];
+      id = "Documents";
+      devices = ["kaho" "koyomi" "sayanix"];
     };
     folders."/home/svein/secure" = {
       id = "secure";
-      devices = [ "saya" "kaho" "koyomi" "sayanix" ];
+      devices = ["saya" "kaho" "koyomi" "sayanix"];
     };
   };
 
@@ -256,9 +274,9 @@
     };
   in {
     description = "UPS status exporter";
-    wantedBy = [ "multi-user.target" ];
-    after = [ "upsd.service" "upsdrv.service" ];
-    wants = [ "upsd.service" "upsdrv.service" ];
+    wantedBy = ["multi-user.target"];
+    after = ["upsd.service" "upsdrv.service"];
+    wants = ["upsd.service" "upsdrv.service"];
     serviceConfig = {
       Restart = "always";
       DynamicUser = true;
@@ -275,8 +293,8 @@
 
   ## Backups ##
   services.zrepl2 = {
-  #  enable = true;
-    
+    #  enable = true;
+
     local.ssd = {
       sourceFS = "rpool";
       targetFS = "stash/zrepl";
@@ -300,72 +318,79 @@
       configFile = ../modules/monitoring/blackbox.yml;
     };
     scrapeConfigs = [
-    #{
-    #  job_name = "minecraft";
-    #  static_configs = [{
-    #    labels.server = "erisia";
-    #    targets = ["localhost:1223"];
-    #  }];
-    #}
-    {
-      job_name = "nut";
-      static_configs = [{
-        targets = ["localhost:9995"];
-      }];
-      metrics_path = "/nut";
-      params.target = ["localhost:3493"];
-    }
-    {
-      job_name = "blackbox";
-      static_configs = [{
-        targets = ["localhost:9115"];
-      }];
-      metrics_path = "/probe";
-      params.module = ["icmp"];
-      params.target = ["google.com"];
-    }];
-    rules = [''
-      - name: UPS
-        rules:
-        - alert: UPSLoadHigh
-          expr: nut_load * 100 > 75
-          for: 1m
-          annotations:
-            summary: "UPS power draw is above 75%"
-            description: "Power draw is {{ $value}}%"
-        - alert: UPSBadOutputVoltage
-          expr: nut_output_volt > 232 or nut_output_volt < 228
-          annotations:
-            summary: "UPS is outputting bad voltage!"
-            description: "UPS reports {{ $value }}V"
-        - alert: UPSBadFrequency
-          expr: nut_input_frequency_hertz < 49.5 or nut_input_frequency_hertz > 50.5
-          annotations:
-            summary: "UPS is reporting bad input frequency!"
-            description: "UPS reports {{ $value }}Hz"
-        - alert: UPSBadVoltage
-          expr: nut_input_volts > 250 or nut_input_volts < 210
-          annotations:
-            summary: "UPS is reporting bad input voltage!"
-            description: "UPS reports {{ $value }}V"
-        - alert: UPSMissing
-          expr: absent(nut_status) > 0
-          for: 1m
-          annotations:
-            summary: "UPS appears to be missing!"
-            description: "No data found by prometheus-nut-exporter"
-        - alert: UPSOnBattery
-          expr: nut_status != 1
-          for: 1m
-          annotations:
-            summary: "UPS is running off battery"
-            description: "nut_status is {{ $value }}"
-        - alert: UPSChargeLow
-          expr: nut_battery_charge * 100 < 80
-          annotations:
-            summary: "UPS charge state is low; shutdown imminent"
-            description: "Charge: {{ $value }}%"
-    ''];
+      #{
+      #  job_name = "minecraft";
+      #  static_configs = [{
+      #    labels.server = "erisia";
+      #    targets = ["localhost:1223"];
+      #  }];
+      #}
+      {
+        job_name = "nut";
+        static_configs = [
+          {
+            targets = ["localhost:9995"];
+          }
+        ];
+        metrics_path = "/nut";
+        params.target = ["localhost:3493"];
+      }
+      {
+        job_name = "blackbox";
+        static_configs = [
+          {
+            targets = ["localhost:9115"];
+          }
+        ];
+        metrics_path = "/probe";
+        params.module = ["icmp"];
+        params.target = ["google.com"];
+      }
+    ];
+    rules = [
+      ''
+        - name: UPS
+          rules:
+          - alert: UPSLoadHigh
+            expr: nut_load * 100 > 75
+            for: 1m
+            annotations:
+              summary: "UPS power draw is above 75%"
+              description: "Power draw is {{ $value}}%"
+          - alert: UPSBadOutputVoltage
+            expr: nut_output_volt > 232 or nut_output_volt < 228
+            annotations:
+              summary: "UPS is outputting bad voltage!"
+              description: "UPS reports {{ $value }}V"
+          - alert: UPSBadFrequency
+            expr: nut_input_frequency_hertz < 49.5 or nut_input_frequency_hertz > 50.5
+            annotations:
+              summary: "UPS is reporting bad input frequency!"
+              description: "UPS reports {{ $value }}Hz"
+          - alert: UPSBadVoltage
+            expr: nut_input_volts > 250 or nut_input_volts < 210
+            annotations:
+              summary: "UPS is reporting bad input voltage!"
+              description: "UPS reports {{ $value }}V"
+          - alert: UPSMissing
+            expr: absent(nut_status) > 0
+            for: 1m
+            annotations:
+              summary: "UPS appears to be missing!"
+              description: "No data found by prometheus-nut-exporter"
+          - alert: UPSOnBattery
+            expr: nut_status != 1
+            for: 1m
+            annotations:
+              summary: "UPS is running off battery"
+              description: "nut_status is {{ $value }}"
+          - alert: UPSChargeLow
+            expr: nut_battery_charge * 100 < 80
+            annotations:
+              summary: "UPS charge state is low; shutdown imminent"
+              description: "Charge: {{ $value }}%"
+      ''
+    ];
   };
 
   # Work around #1915
@@ -375,32 +400,32 @@
   fileSystems."/srv/aquagon" = {
     device = "/home/aquagon/web";
     depends = ["/home/aquagon/web"];
-    options = [ "bind" ];
+    options = ["bind"];
   };
   fileSystems."/srv/minecraft" = {
     device = "/home/minecraft/web";
     depends = ["/home/minecraft/web"];
-    options = [ "bind" ];
+    options = ["bind"];
   };
   fileSystems."/srv/svein" = {
     device = "/home/svein/web";
     depends = ["/home/svein/web"];
-    options = [ "bind" ];
+    options = ["bind"];
   };
   fileSystems."/srv/svein/Anime" = {
     device = "/home/svein/Anime";
     depends = ["/home/svein/Anime"];
-    options = [ "bind" ];
+    options = ["bind"];
   };
   fileSystems."/srv/svein/Movies" = {
     device = "/home/svein/Movies";
     depends = ["/home/svein/Movies"];
-    options = [ "bind" ];
+    options = ["bind"];
   };
   fileSystems."/srv/svein/TV" = {
     device = "/home/svein/TV";
     depends = ["/home/svein/TV"];
-    options = [ "bind" ];
+    options = ["bind"];
   };
   services.caddy = {
     enable = true;

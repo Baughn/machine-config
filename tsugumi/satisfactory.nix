@@ -1,15 +1,17 @@
-{ config, pkgs, ... }:
-
 {
+  config,
+  pkgs,
+  ...
+}: {
   networking.firewall.allowedUDPPorts = [
-    15777    # Satisfactory query
-    15000    # Satisfactory beacon
-    7777     # Satisfactory game
+    15777 # Satisfactory query
+    15000 # Satisfactory beacon
+    7777 # Satisfactory game
   ];
 
   systemd.services.satisfactory-autopdater = {
     description = "Check for updates of the Satisfactory dedicated server";
-    after = [ "satisfactory.service" ];
+    after = ["satisfactory.service"];
     startAt = "*-*-* *:3/15";
     serviceConfig = {
       StateDirectory = "satisfactory-updater";
@@ -58,4 +60,3 @@
     '';
   };
 }
-

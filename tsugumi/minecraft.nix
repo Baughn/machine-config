@@ -1,6 +1,9 @@
-{ config, pkgs, lib, ... }:
-
 {
+  config,
+  pkgs,
+  lib,
+  ...
+}: {
   security.sudo.extraConfig = ''
     minecraft ALL= NOPASSWD: /run/current-system/sw/bin/zpool status*
     minecraft ALL= NOPASSWD: /run/current-system/sw/bin/zpool list*

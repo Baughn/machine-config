@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
 {
+  config,
+  pkgs,
+  ...
+}: {
   services.logrotate.enable = config.services.nginx.enable;
   services.logrotate.extraConfig = ''
     compress
