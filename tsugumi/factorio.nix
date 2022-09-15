@@ -1,10 +1,10 @@
-{ config, pkgs, ... }:
-
-let
-  version = "1.1.59";
-in
-
 {
+  config,
+  pkgs,
+  ...
+}: let
+  version = "1.1.59";
+in {
   services.factorio = {
     enable = true;
     admins = ["Baughn"];

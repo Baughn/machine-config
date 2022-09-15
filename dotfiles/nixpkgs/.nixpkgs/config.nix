@@ -3,13 +3,22 @@ let
   #minecraft-pkgs = import /home/svein/dev/nix-mcupdater {};
   minecraft-pkgs = import <nixpkgs> {};
 
-  minecraft = with minecraft-pkgs; with stdenv; rec {
+  minecraft = with minecraft-pkgs;
+  with stdenv; rec {
+    libraries = with xlibs;
+      lib.makeLibraryPath [
+        stdenv.cc.cc
+        libX11
+        libXext
+        libXcursor
+        libXrandr
+        libXxf86vm
+        mesa
+        openal
+        libpulseaudio
+      ];
 
-    libraries = with xlibs; lib.makeLibraryPath [
-      stdenv.cc.cc libX11 libXext libXcursor libXrandr libXxf86vm mesa openal libpulseaudio
-    ];
-
-    openalLib = lib.makeLibraryPath [ openal ];
+    openalLib = lib.makeLibraryPath [openal];
 
     mcenv = mkDerivation {
       name = "mcenv-2";
@@ -31,19 +40,21 @@ let
       '';
     };
 
-    mkMCDerivation = self: mkDerivation ({
-      phases = "installPhase";
+    mkMCDerivation = self:
+      mkDerivation ({
+          phases = "installPhase";
 
-      installPhase = ''
-        mkdir -p $out/bin
-        cat > $out/bin/$name << EOF
-          #!${stdenv.shell}
-          source ${mcenv}/bin/mcenv
-          ${jdk}/bin/java -jar $src "\$@"
-        EOF
-        chmod a+x $out/bin/$name
-      '';
-    } // self);
+          installPhase = ''
+            mkdir -p $out/bin
+            cat > $out/bin/$name << EOF
+              #!${stdenv.shell}
+              source ${mcenv}/bin/mcenv
+              ${jdk}/bin/java -jar $src "\$@"
+            EOF
+            chmod a+x $out/bin/$name
+          '';
+        }
+        // self);
 
     mcupdater = mkMCDerivation {
       name = "mcupdater";
@@ -67,9 +78,21 @@ let
     mc-fhs = buildFHSUserEnv {
       name = "mc-fhs";
 
-      targetPkgs = pkgs: with pkgs; with xlibs; [
-        firefox xdg_utils zsh jdk libX11 libXext libXcursor libXrandr libXxf86vm mesa openal
-      ];
+      targetPkgs = pkgs:
+        with pkgs;
+        with xlibs; [
+          firefox
+          xdg_utils
+          zsh
+          jdk
+          libX11
+          libXext
+          libXcursor
+          libXrandr
+          libXxf86vm
+          mesa
+          openal
+        ];
 
       runScript = "zsh";
 
@@ -77,10 +100,8 @@ let
       '';
     };
   };
-in
-
-{ 
-  allowUnfree = true; 
+in {
+  allowUnfree = true;
 
   packageOverrides = pkgs: rec {
     mcenv = minecraft.mcenv;
@@ -94,16 +115,28 @@ in
 
     idea-fhs = pkgs.buildFHSUserEnv {
       name = "idea";
-      targetPkgs = pkgs: with pkgs; with xlibs; [
-        stdenv.cc.cc libX11 libXext libXcursor libXrandr libXxf86vm mesa openal libpulseaudio
-        idea.idea-ultimate jdk go gradle
-      ];
+      targetPkgs = pkgs:
+        with pkgs;
+        with xlibs; [
+          stdenv.cc.cc
+          libX11
+          libXext
+          libXcursor
+          libXrandr
+          libXxf86vm
+          mesa
+          openal
+          libpulseaudio
+          idea.idea-ultimate
+          jdk
+          go
+          gradle
+        ];
       runScript = "idea-ultimate";
       profile = ''
         export JAVA_HOME=/usr/lib64/openjdk
         export GOROOT=/usr/share/go
       '';
     };
-
   };
 }

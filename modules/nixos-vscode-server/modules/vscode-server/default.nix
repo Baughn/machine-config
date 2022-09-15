@@ -1,8 +1,10 @@
-import ./module.nix ({ name, description, serviceConfig }:
-
-{
+import ./module.nix ({
+  name,
+  description,
+  serviceConfig,
+}: {
   systemd.user.services.${name} = {
     inherit description serviceConfig;
-    wantedBy = [ "default.target" ];
+    wantedBy = ["default.target"];
   };
 })

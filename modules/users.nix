@@ -1,11 +1,13 @@
-{ lib, config, ... }:
-
-let
+{
+  lib,
+  config,
+  ...
+}: let
   sshKeys = import ./sshKeys.nix;
   users = {
     svein = {
       uid = 1000;
-      extraGroups = [ "wheel" "wireshark" "systemd-journal" "disnix" "networkmanager" "dialout" "sonarr" ];
+      extraGroups = ["wheel" "wireshark" "systemd-journal" "disnix" "networkmanager" "dialout" "sonarr"];
       passwordFile = config.age.secrets.userPassword.path;
       createHome = false;
     };
@@ -35,9 +37,11 @@ let
     aquagon.uid = 1052;
     znapzend = {
       uid = 1054;
-      openssh.authorizedKeys.keys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAW37vjjfhK1hBwHO6Ja4TRuonXchlLVIYnA4Px9hTYD svein@madoka.brage.info"
-      ] ++ sshKeys.svein;
+      openssh.authorizedKeys.keys =
+        [
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAW37vjjfhK1hBwHO6Ja4TRuonXchlLVIYnA4Px9hTYD svein@madoka.brage.info"
+        ]
+        ++ sshKeys.svein;
     };
     lucca.uid = 1055;
     dusk.uid = 1056;
@@ -67,21 +71,21 @@ let
     anne.uid = 1100;
   };
   includeUser = username: ({
-    isNormalUser = true;
-    openssh.authorizedKeys.keys = sshKeys.${username} or [];
-  } // users.${username});
+      isNormalUser = true;
+      openssh.authorizedKeys.keys = sshKeys.${username} or [];
+    }
+    // users.${username});
 in
-
-with lib; {
-  options = {
-    users.include = mkOption {
-      type = types.listOf types.str;
-      description = "Users to include on this system";
-      default = [];
+  with lib; {
+    options = {
+      users.include = mkOption {
+        type = types.listOf types.str;
+        description = "Users to include on this system";
+        default = [];
+      };
     };
-  };
 
-  config = {
-    users.users = lib.genAttrs config.users.include includeUser;
-  };
-}
+    config = {
+      users.users = lib.genAttrs config.users.include includeUser;
+    };
+  }

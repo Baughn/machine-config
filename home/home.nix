@@ -1,6 +1,4 @@
-{ pkgs, ... }:
-
-{
+{pkgs, ...}: {
   imports = [
     ../modules/nixos-vscode-server/modules/vscode-server/home.nix
   ];
@@ -9,7 +7,10 @@
   home.homeDirectory = "/home/svein";
 
   home.packages = with pkgs; [
-    htop fortune mosh openai
+    htop
+    fortune
+    mosh
+    openai
     (callPackage ../tools/up {})
   ];
 
@@ -68,7 +69,7 @@
   programs.neovim = {
     enable = true;
     vimAlias = true;
-    extraPackages = [ pkgs.nodejs-16_x ];
+    extraPackages = [pkgs.nodejs-16_x];
     plugins = with pkgs.vimPlugins; [
       # "Defaults everyone can agree on"
       sensible
@@ -126,7 +127,8 @@
              let g:pencil#softDetectThreshold = 130
            " }}}
         '';
-      } {
+      }
+      {
         plugin = limelight-vim;
         config = ''
           let g:limelight_conceal_ctermfg = 'gray'
@@ -136,116 +138,116 @@
       goyo
     ];
     extraConfig = ''
-        " Enable Rust
-        autocmd BufReadPost *.rs setlocal filetype=rust
+      " Enable Rust
+      autocmd BufReadPost *.rs setlocal filetype=rust
 
-        " Setup LSP
-        lua<<EOF
-        local nvim_lsp = require'lspconfig'
+      " Setup LSP
+      lua<<EOF
+      local nvim_lsp = require'lspconfig'
 
-        local opts = {
-            tools = { -- rust-tools options
-                autoSetHints = true,
-                -- TODO update this
-                -- hover_with_actions = true,
-                inlay_hints = {
-                    show_parameter_hints = false,
-                    parameter_hints_prefix = "",
-                    other_hints_prefix = "",
-                },
-            },
-
-            -- all the opts to send to nvim-lspconfig
-            -- these override the defaults set by rust-tools.nvim
-            -- see https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#rust_analyzer
-            server = {
-                -- on_attach is a callback called when the language server attachs to the buffer
-                -- on_attach = on_attach,
-                settings = {
-                    -- to enable rust-analyzer settings visit:
-                    -- https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/user/generated_config.adoc
-                    ["rust-analyzer"] = {
-                        -- enable clippy on save
-                        checkOnSave = {
-                            command = "clippy"
-                        },
-                    }
-                }
-            },
-        }
-        require('rust-tools').setup(opts)
-        EOF
-
-
-        " Setup Completion
-        " See https://github.com/hrsh7th/nvim-cmp#basic-configuration
-        lua <<EOF
-        local cmp = require'cmp'
-        cmp.setup({
-          -- Enable LSP snippets
-          snippet = {
-            expand = function(args)
-                vim.fn["vsnip#anonymous"](args.body)
-            end,
-          },
-          mapping = {
-            ['<C-p>'] = cmp.mapping.select_prev_item(),
-            ['<C-n>'] = cmp.mapping.select_next_item(),
-            -- Add tab support
-            ['<S-Tab>'] = cmp.mapping.select_prev_item(),
-            ['<Tab>'] = cmp.mapping.select_next_item(),
-            ['<C-d>'] = cmp.mapping.scroll_docs(-4),
-            ['<C-f>'] = cmp.mapping.scroll_docs(4),
-            ['<C-Space>'] = cmp.mapping.complete(),
-            ['<C-e>'] = cmp.mapping.close(),
-            ['<CR>'] = cmp.mapping.confirm({
-              behavior = cmp.ConfirmBehavior.Insert,
-              select = true,
-            })
+      local opts = {
+          tools = { -- rust-tools options
+              autoSetHints = true,
+              -- TODO update this
+              -- hover_with_actions = true,
+              inlay_hints = {
+                  show_parameter_hints = false,
+                  parameter_hints_prefix = "",
+                  other_hints_prefix = "",
+              },
           },
 
-          -- Installed sources
-          sources = {
-            { name = 'nvim_lsp' },
-            { name = 'vsnip' },
-            { name = 'path' },
-            { name = 'buffer' },
+          -- all the opts to send to nvim-lspconfig
+          -- these override the defaults set by rust-tools.nvim
+          -- see https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#rust_analyzer
+          server = {
+              -- on_attach is a callback called when the language server attachs to the buffer
+              -- on_attach = on_attach,
+              settings = {
+                  -- to enable rust-analyzer settings visit:
+                  -- https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/user/generated_config.adoc
+                  ["rust-analyzer"] = {
+                      -- enable clippy on save
+                      checkOnSave = {
+                          command = "clippy"
+                      },
+                  }
+              }
           },
-        })
-        EOF
+      }
+      require('rust-tools').setup(opts)
+      EOF
 
-        " Required for operations modifying multiple buffers like rename.
-        set hidden
 
-        set nocompatible
-        set linebreak
+      " Setup Completion
+      " See https://github.com/hrsh7th/nvim-cmp#basic-configuration
+      lua <<EOF
+      local cmp = require'cmp'
+      cmp.setup({
+        -- Enable LSP snippets
+        snippet = {
+          expand = function(args)
+              vim.fn["vsnip#anonymous"](args.body)
+          end,
+        },
+        mapping = {
+          ['<C-p>'] = cmp.mapping.select_prev_item(),
+          ['<C-n>'] = cmp.mapping.select_next_item(),
+          -- Add tab support
+          ['<S-Tab>'] = cmp.mapping.select_prev_item(),
+          ['<Tab>'] = cmp.mapping.select_next_item(),
+          ['<C-d>'] = cmp.mapping.scroll_docs(-4),
+          ['<C-f>'] = cmp.mapping.scroll_docs(4),
+          ['<C-Space>'] = cmp.mapping.complete(),
+          ['<C-e>'] = cmp.mapping.close(),
+          ['<CR>'] = cmp.mapping.confirm({
+            behavior = cmp.ConfirmBehavior.Insert,
+            select = true,
+          })
+        },
 
-        set tabstop=2
-        set shiftwidth=2
-        set expandtab
-        set smartindent
-        set autoindent
+        -- Installed sources
+        sources = {
+          { name = 'nvim_lsp' },
+          { name = 'vsnip' },
+          { name = 'path' },
+          { name = 'buffer' },
+        },
+      })
+      EOF
 
-        set hlsearch
+      " Required for operations modifying multiple buffers like rename.
+      set hidden
 
-        set guicursor=
+      set nocompatible
+      set linebreak
 
-        colorscheme desert
+      set tabstop=2
+      set shiftwidth=2
+      set expandtab
+      set smartindent
+      set autoindent
 
-        " Splits
-        set splitbelow
-        set splitright
+      set hlsearch
 
-        set timeoutlen=100 ttimeoutlen=10
+      set guicursor=
 
-        set signcolumn=yes
+      colorscheme desert
 
-        " Keybindings
-        nnoremap <silent> <Space> <cmd>lua vim.lsp.buf.code_action()<CR>
+      " Splits
+      set splitbelow
+      set splitright
 
-        " Copilot
-        imap <silent><script><expr> <C-J> copilot#Accept("\<CR>")
-        let g:copilot_no_tab_map = v:true
+      set timeoutlen=100 ttimeoutlen=10
+
+      set signcolumn=yes
+
+      " Keybindings
+      nnoremap <silent> <Space> <cmd>lua vim.lsp.buf.code_action()<CR>
+
+      " Copilot
+      imap <silent><script><expr> <C-J> copilot#Accept("\<CR>")
+      let g:copilot_no_tab_map = v:true
     '';
   };
 
@@ -259,7 +261,7 @@
         identityFile = "/home/svein/sufficient/id_rsa";
         user = "baughn";
       };
-    }; 
+    };
     extraConfig = ''
       User svein
     '';
@@ -270,7 +272,7 @@
     enableAutosuggestions = true;
     enableCompletion = true;
     oh-my-zsh.enable = true;
-    oh-my-zsh.plugins = [ "git" "sudo" ];
+    oh-my-zsh.plugins = ["git" "sudo"];
 
     oh-my-zsh.theme = "afowler";
     profileExtra = ''

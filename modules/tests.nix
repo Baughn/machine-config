@@ -1,6 +1,8 @@
-{ config, pkgs, ... }:
-
-let
+{
+  config,
+  pkgs,
+  ...
+}: let
   file = f: (import (pkgs.path + "/nixos/tests/${f}.nix"));
 
   test = f: (file f {
@@ -14,15 +16,16 @@ let
   zfs = (test "zfs").stable {};
   zfs2 = (test "zfs").unstable {};
 
-  tests = pkgs.runCommand "proof-of-tests" {
-    tests = [ gnome kde ];
-  } ''
-    mkdir -p $out/share/doc/proof-of-tests
-    i=1
-    for test in $tests; do
-      ln -s $test $out/share/doc/proof-of-tests/$i
-      i=$(($i + 1))
-    done
+  tests =
+    pkgs.runCommand "proof-of-tests" {
+      tests = [gnome kde];
+    } ''
+      mkdir -p $out/share/doc/proof-of-tests
+      i=1
+      for test in $tests; do
+        ln -s $test $out/share/doc/proof-of-tests/$i
+        i=$(($i + 1))
+      done
     '';
 in {
   environment.systemPackages = [

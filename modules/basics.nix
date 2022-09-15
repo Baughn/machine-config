@@ -1,6 +1,9 @@
-{ config, pkgs, lib, ...}:
-
 {
+  config,
+  pkgs,
+  lib,
+  ...
+}: {
   imports = [
     ./users.nix
     ./logrotate.nix
@@ -37,12 +40,12 @@
     passwordFile = config.age.secrets.userPassword.path;
   };
   users.defaultUserShell = pkgs.zsh;
-  users.include = [ "svein" ];
+  users.include = ["svein"];
   environment.variables.EDITOR = "nvim";
-  
+
   # Software
   documentation.dev.enable = true;
-  environment.extraOutputsToInstall = [ "man" "devman" ];
+  environment.extraOutputsToInstall = ["man" "devman"];
   programs.dconf.enable = true; # Needed for settings by various apps
   programs.java.enable = true;
   programs.mosh.enable = true;
@@ -58,43 +61,116 @@
 
   ## System environment
   environment.systemPackages = with pkgs; [
-     # Debug/dev tools
-     tcpdump nmap gdb gradle python3Packages.virtualenv
-     inetutils  man-pages posix_man_pages mono heaptrack
-     gcc rustup cargo-edit rust-analyzer
-     python3Full freeipmi binutils jq
-     gitAndTools.gitFull git-lfs git-crypt sqlite-interactive
-     # System/monitoring/etc tools
-     parted psmisc atop hdparm sdparm whois sysstat htop nload iftop
-     smartmontools pciutils lsof schedtool numactl dmidecode iotop
-     usbutils powertop w3m autossh
-     # Shell tools
-     file weechat parallel moreutils neovim finger_bsd
-     autojump ripgrep zstd fd rlwrap
-     (callPackage ../tools/up {})
-     # File transfer
-     rsync wget rtorrent sshfs-fuse 
-     # Nix tools
-     nox nix-prefetch-git
-     # Monitoring, eventually to be a module.
-     prometheus prometheus-node-exporter prometheus-alertmanager
-     prometheus-nginx-exporter
-     # Giant lump of stuff
-     shared-mime-info p7zip fortune
+    # Debug/dev tools
+    tcpdump
+    nmap
+    gdb
+    gradle
+    python3Packages.virtualenv
+    inetutils
+    man-pages
+    posix_man_pages
+    mono
+    heaptrack
+    gcc
+    rustup
+    cargo-edit
+    rust-analyzer
+    python3Full
+    freeipmi
+    binutils
+    jq
+    gitAndTools.gitFull
+    git-lfs
+    git-crypt
+    sqlite-interactive
+    # System/monitoring/etc tools
+    parted
+    psmisc
+    atop
+    hdparm
+    sdparm
+    whois
+    sysstat
+    htop
+    nload
+    iftop
+    smartmontools
+    pciutils
+    lsof
+    schedtool
+    numactl
+    dmidecode
+    iotop
+    usbutils
+    powertop
+    w3m
+    autossh
+    # Shell tools
+    file
+    weechat
+    parallel
+    moreutils
+    neovim
+    finger_bsd
+    autojump
+    ripgrep
+    zstd
+    fd
+    rlwrap
+    (callPackage ../tools/up {})
+    # File transfer
+    rsync
+    wget
+    rtorrent
+    sshfs-fuse
+    # Nix tools
+    nox
+    nix-prefetch-git
+    # Monitoring, eventually to be a module.
+    prometheus
+    prometheus-node-exporter
+    prometheus-alertmanager
+    prometheus-nginx-exporter
+    # Giant lump of stuff
+    shared-mime-info
+    p7zip
+    fortune
   ];
 
-  environment.launchable.systemPackages = pkgs: with pkgs; [
-     # Games
-     nethack
-     steamcmd steam-run
-     # Tools
-     unrar znc progress pv pixz mbuffer mc mkpasswd units gnupg encfs btop links2 
-     unison borgbackup imagemagickBig zip unzip
-     # Image-manipulation tools
-     fgallery pngcrush povray
-     # Video manipulation
-     mkvtoolnix-cli ffmpeg
-  ];
+  environment.launchable.systemPackages = pkgs:
+    with pkgs; [
+      # Games
+      nethack
+      steamcmd
+      steam-run
+      # Tools
+      unrar
+      znc
+      progress
+      pv
+      pixz
+      mbuffer
+      mc
+      mkpasswd
+      units
+      gnupg
+      encfs
+      btop
+      links2
+      unison
+      borgbackup
+      imagemagickBig
+      zip
+      unzip
+      # Image-manipulation tools
+      fgallery
+      pngcrush
+      povray
+      # Video manipulation
+      mkvtoolnix-cli
+      ffmpeg
+    ];
 
   environment.loginShellInit = ''
     # Makes touchscreens work in Firefox. Ish.
@@ -128,7 +204,7 @@
   nix.settings = {
     cores = lib.mkDefault 0;
     sandbox = "relaxed";
-    trusted-users = [ "root" "svein" ];
+    trusted-users = ["root" "svein"];
   };
   nix.nrBuildUsers = 48;
   nixpkgs.config.allowUnfree = true;
@@ -162,21 +238,25 @@
   networking.firewall.logRefusedConnections = false;
   ### Open ports for mosh.
   networking.firewall.allowedUDPPortRanges = [
-    { from = 60000; to = 61000; }
+    {
+      from = 60000;
+      to = 61000;
+    }
   ];
   services.avahi = {
     enable = lib.mkDefault true;
     nssmdns = true;
-    interfaces = [ "internal" ];
+    interfaces = ["internal"];
     publish.enable = true;
     publish.addresses = true;
     publish.workstation = true;
   };
-  
+
   # Add hosts for SV.
   networking.hosts = lib.mapAttrs' (host: cfg: lib.nameValuePair cfg.publicIP [(host + ".sv")]) (
-      import ../secrets/sv-network.nix);
-  
+    import ../secrets/sv-network.nix
+  );
+
   ## Time & location ##
   console = {
     font = "Lat2-Terminus16";

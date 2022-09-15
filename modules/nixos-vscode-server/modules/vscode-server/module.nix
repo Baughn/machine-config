@@ -1,9 +1,9 @@
-moduleConfig:
-{ lib, pkgs, ... }:
-
-with lib;
-
-{
+moduleConfig: {
+  lib,
+  pkgs,
+  ...
+}:
+with lib; {
   options.services.vscode-server.enable = with types; mkEnableOption "VS Code Server";
 
   config = moduleConfig rec {
@@ -18,7 +18,7 @@ with lib;
       RestartSec = 0;
       ExecStart = "${pkgs.writeShellScript "${name}.sh" ''
         set -euo pipefail
-        PATH=${makeBinPath (with pkgs; [ coreutils findutils inotify-tools ])}
+        PATH=${makeBinPath (with pkgs; [coreutils findutils inotify-tools])}
         TARGET=${pkgs.nodejs-16_x}/bin/node
         bin_dir=~/.vscode-server/bin
 

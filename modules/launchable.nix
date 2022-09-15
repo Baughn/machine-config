@@ -1,7 +1,11 @@
-{ config, lib, pkgs, ... }:
-
 {
-  options.environment.launchable = with lib; with types; {
+  config,
+  lib,
+  pkgs,
+  ...
+}: {
+  options.environment.launchable = with lib;
+  with types; {
     systemPackages = mkOption {
       type = functionTo (listOf package);
       default = [];
@@ -23,14 +27,19 @@
   };
 
   config = let
-    deferPackageTree = subTree: path: builtins.mapAttrs (name: value:
-      let nextPath = path ++ [ name ];
+    deferPackageTree = subTree: path:
+      builtins.mapAttrs (
+        name: value: let
+          nextPath = path ++ [name];
           attrPath = lib.concatStringsSep "." nextPath;
-      in
-      if lib.isDerivation value then mkLaunchable value attrPath
-      else if builtins.isAttrs value then deferPackageTree value nextPath
-      else throw "${attrPath} is not a package"
-    ) subTree;
+        in
+          if lib.isDerivation value
+          then mkLaunchable value attrPath
+          else if builtins.isAttrs value
+          then deferPackageTree value nextPath
+          else throw "${attrPath} is not a package"
+      )
+      subTree;
 
     deferredPackageTree = deferPackageTree pkgs [];
 
@@ -38,8 +47,8 @@
       name = pkg.pname or (builtins.head (builtins.split "-" pkg.name));
       executable = pkg.meta.mainProgram or "${name}";
       substitutable = builtins.unsafeDiscardStringContext pkg.outPath;
-
-    in pkgs.writeTextFile {
+    in
+      pkgs.writeTextFile {
         name = "${name}-launcher";
         executable = true;
         destination = "/bin/${executable}";
@@ -78,7 +87,6 @@
           "$EXE" "$@"
         '';
       };
-
   in {
     #environment.systemPackages = config.environment.launchable.systemPackages deferredPackageTree;
     environment.systemPackages = config.environment.launchable.systemPackages pkgs;

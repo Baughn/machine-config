@@ -1,6 +1,8 @@
-{ config, pkgs, ... }:
-
 {
+  config,
+  pkgs,
+  ...
+}: {
   networking.firewall.allowedTCPPorts = [
     4000
   ];
@@ -17,4 +19,3 @@
     };
   };
 }
-

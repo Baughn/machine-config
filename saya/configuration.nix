@@ -1,10 +1,11 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-
-{ config, pkgs, ... }:
-
 {
+  config,
+  pkgs,
+  ...
+}: {
   imports = [
     ../modules
     ./hardware-configuration.nix
@@ -58,15 +59,15 @@
   };
 
   networking.firewall = {
-    allowedTCPPorts = [ 
-      6987   # rtorrent
+    allowedTCPPorts = [
+      6987 # rtorrent
     ];
     allowedUDPPorts = [
-      6987   # rtorrent
-      34197  # factorio
-      10401  # Wireguard
+      6987 # rtorrent
+      34197 # factorio
+      10401 # Wireguard
     ];
   };
 
-  users.include = [ "will" ];
+  users.include = ["will"];
 }
