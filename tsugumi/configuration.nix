@@ -18,6 +18,7 @@
 #    ./znc.nix
     #./unifi.nix
     ../modules/netboot-server.nix
+    ../modules/nix-serve.nix
   ];
 
   me = {
@@ -522,6 +523,10 @@
       www.brage.info, tsugumi.brage.info {
         import headers
         redir https://brage.info/
+      }
+
+      store.brage.info {
+        reverse_proxy http://localhost:5000
       }
     '';
   };
