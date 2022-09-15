@@ -10,6 +10,7 @@
     ./hardware-configuration.nix
     ../modules/nvidia.nix
     ../modules/desktop.nix
+    ../modules/nix-serve.nix
   ];
 
   me = {
