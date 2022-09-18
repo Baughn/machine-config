@@ -10,7 +10,6 @@
     htop
     fortune
     mosh
-    openai
     (callPackage ../tools/up {})
   ];
 
