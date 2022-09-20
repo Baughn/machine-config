@@ -99,6 +99,7 @@
     #    10401    # Wireguard
     #    24454    # Minecraft (voice chat)
     #    27500    # Stationeers
+    34197  # Factorio
   ];
   networking.firewall.allowedUDPPortRanges = [
     #    { from = 60000; to = 61000; }  # mosh
