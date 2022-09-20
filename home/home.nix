@@ -39,7 +39,7 @@
 
   programs.rtorrent = {
     enable = true;
-    settings = ''
+    extraConfig = ''
       upload_rate = 1000
       directory = /home/svein/incoming
       session = /home/svein/incoming/.rtorrent
