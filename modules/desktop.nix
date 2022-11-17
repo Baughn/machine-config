@@ -38,7 +38,6 @@
     #  desktopName = "Discord";
     #})
     # Entertainment
-    polymc
     mpv
     syncplay
     # KDE utilities
