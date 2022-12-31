@@ -13,4 +13,8 @@
     minecraft ALL= NOPASSWD: /run/current-system/sw/bin/mount -t zfs --target /home/minecraft/snapshot --source rpool/minecraft*
     minecraft ALL= NOPASSWD: /run/current-system/sw/bin/umount /home/minecraft/snapshot
   '';
+  networking.firewall.allowedTCPPorts = [ 
+    25565
+    25566
+  ];
 }

@@ -11,7 +11,7 @@
     ../modules
     ./hardware-configuration.nix
     ./sonarr.nix
-    #    ./minecraft.nix
+    ./minecraft.nix
     #    ./satisfactory.nix
     ./vintagestory.nix
     #    ./factorio.nix
