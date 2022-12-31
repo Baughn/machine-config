@@ -3,13 +3,9 @@
   lib,
   ...
 }: {
-  imports = [
-    ./zrepl.nix
-  ];
-
   boot.supportedFilesystems = ["zfs"];
   networking.hostId = lib.mkDefault "deafbeef";
-  services.zfs.autoSnapshot.enable = true;
+  services.zfs.autoSnapshot.enable = lib.mkDefault true;
   services.zfs.autoSnapshot.flags = "-k -p --utc";
   boot.postBootCommands = ''
     for hd in /sys/block/sd*; do
