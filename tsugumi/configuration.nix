@@ -293,18 +293,49 @@
   powerManagement.powertop.enable = true;
 
   ## Backups ##
-  services.zrepl2 = {
-    #  enable = true;
+  services.zrepl = {
+    enable = true;
 
-    local.ssd = {
-      sourceFS = "rpool";
-      targetFS = "stash/zrepl";
-      exclude = [
-        "rpool/minecraft/erisia/dynmap"
-        "rpool/minecraft/incognito/dynmap"
-        "rpool/minecraft/testing/dynmap"
-        "rpool/root<"
-      ];
+    settings = {
+      jobs = [{
+        name = "backup-sink";
+        type = "sink";
+        serve = {
+          type = "local";
+          listener_name = "backup-sink";
+        };
+        root_fs = "stash/zrepl";
+      }
+      {
+        name = "rpool";
+        type = "push";
+        connect = {
+          type = "local";
+          listener_name = "backup-sink";
+          client_identity = "rpool";
+        };
+        snapshotting = {
+          type = "periodic";
+          prefix = "zrepl_";
+          interval = "15m";
+        };
+        filesystems = {
+          "rpool/minecraft/erisia/dynmap" = false;
+          "rpool/minecraft/incognito/dynmap" = false;
+          "rpool/minecraft/testing/dynmap" = false;
+          "rpool/root<" = false;
+          "rpool<" = true;
+        };
+        pruning = {
+          keep_sender = [
+            { type = "last_n"; count = 4; }
+            { type = "grid"; grid = "1x1h(keep=all) | 24x1h | 7x1d"; regex = "^zrepl_"; }
+          ];
+          keep_receiver = [
+            { type = "grid"; grid = "1x1h(keep=all) | 24x1h | 14x1d | 4x30d"; regex = "^zrepl_"; }
+          ];
+        };
+      }];
     };
   };
 
