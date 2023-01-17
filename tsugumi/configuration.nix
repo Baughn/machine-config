@@ -314,6 +314,7 @@
           listener_name = "backup-sink";
           client_identity = "rpool";
         };
+        replication.protection.incremental = "guarantee_incremental";
         snapshotting = {
           type = "periodic";
           prefix = "zrepl_";
