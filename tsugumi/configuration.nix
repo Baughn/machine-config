@@ -21,6 +21,7 @@
     #./unifi.nix
     ../modules/netboot-server.nix
     ../modules/nix-serve.nix
+    ../modules/amdgpu.nix
   ];
 
   me = {
