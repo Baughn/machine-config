@@ -12,6 +12,7 @@
     ./hardware-configuration.nix
     ./sonarr.nix
     ./minecraft.nix
+    ./syncplay.nix
     #    ./satisfactory.nix
     ./vintagestory.nix
     #    ./factorio.nix
@@ -513,6 +514,12 @@
       status.brage.info {
         import headers
         reverse_proxy http://127.0.0.1:9090
+      }
+
+      alertmanager.brage.info {
+        import headers
+        import password
+        reverse_proxy http://127.0.0.1:9093
       }
 
       znc.brage.info {
