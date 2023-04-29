@@ -14,5 +14,5 @@ buildGoModule rec {
   #  };
   src = ./src;
 
-  vendorSha256 = "pQpattmS9VmO3ZIQUFn66az8GSmB4IvYhTTCFn6SUmo=";
+  vendorSha256 = null;
 }

@@ -20,7 +20,7 @@
     ../modules/monitoring.nix
     #    ./znc.nix
     #./unifi.nix
-    ../modules/netboot-server.nix
+    #../modules/netboot-server.nix
     ../modules/nix-serve.nix
     ../modules/amdgpu.nix
   ];
@@ -91,98 +91,12 @@
   networking.firewall.allowedTCPPorts = [
     80
     443 # Web-server
-    #    25565    # Minecraft
-    #    25566    # Minecraft (incognito)
-    #    27500    # Stationeers
-    #    27015    # Stationeers
-    #    7777     # Terraria
   ];
   networking.firewall.allowedUDPPorts = [
-    #    10401    # Wireguard
-    #    24454    # Minecraft (voice chat)
-    #    27500    # Stationeers
     34197  # Factorio
   ];
   networking.firewall.allowedUDPPortRanges = [
-    #    { from = 60000; to = 61000; }  # mosh
-    #    { from = 27015; to = 27020; }  # Steam
   ];
-  networking.firewall.interfaces = let
-    cfg = {
-      allowedTCPPorts = [
-        #      139 445  # Samba
-        #      5357     # winbindd
-        22000 # Syncthing
-        3000 # NodeODM
-      ];
-      allowedUDPPorts = [
-        #      137 138  # Samba
-        #      3702     # winbindd
-        21027 # Syncthing
-      ];
-    };
-  in {
-    internal = cfg;
-    #wifi = cfg;
-  };
-  # Internal
-  networking.interfaces.internal = {
-    ipv4.addresses = [
-      {
-        address = "10.0.0.1";
-        prefixLength = 24;
-      }
-    ];
-  };
-  networking.nat = {
-    enable = true;
-    externalInterface = "external";
-    externalIP = "89.101.222.211";
-    internalInterfaces = ["internal"];
-  };
-  networking.nat.forwardPorts = let
-    forward = port: [
-      {
-        destination = "10.0.0.2";
-        proto = "udp";
-        sourcePort = port;
-      }
-      {
-        destination = "10.0.0.2";
-        proto = "tcp";
-        sourcePort = port;
-      }
-    ];
-  in
-    pkgs.lib.concatMap forward [
-      27016 # Space Engineers
-      #      5100  # Elite
-      5200 # Stationeers
-      5201 # Stationeers
-    ];
-  services.dhcpd4 = {
-    enable = false;
-    authoritative = true;
-    machines = [
-      {
-        hostName = "saya";
-        ethernetAddress = "f0:2f:74:8c:54:2d";
-        ipAddress = "10.0.0.2";
-      }
-    ];
-    extraConfig = ''
-      option domain-name "brage.info";
-      option domain-name-servers 8.8.8.8, 8.8.4.4;
-      option routers 10.0.0.1;
-      subnet 10.0.0.0 netmask 255.255.255.0 {
-        range 10.0.0.100 10.0.0.200;
-      }
-      subnet 10.0.1.0 netmask 255.255.255.0 {
-        range 10.0.1.100 10.0.1.200;
-      }
-    '';
-    interfaces = ["internal"];
-  };
 
   # Hercules CI
   #services.hercules-ci-agent.enable = true;

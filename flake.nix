@@ -74,7 +74,7 @@
             # Add agenix for secret management.
             agenix.nixosModules.age
             {
-              environment.systemPackages = [agenix.defaultPackage.${system}];
+              environment.systemPackages = [agenix.packages.${system}.default];
             }
           ]
           ++ homeConfig
