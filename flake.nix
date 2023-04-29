@@ -3,12 +3,20 @@
 
   inputs.nixpkgs-stable.url = "flake:nixpkgs/nixos-21.11";
   inputs.nixpkgs.url = "flake:nixpkgs/nixos-unstable";
+
   inputs.nixos-hardware.url = "flake:nixos-hardware";
+
   inputs.home-manager.url = "github:nix-community/home-manager";
   inputs.home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
   inputs.deploy-rs.url = "github:serokell/deploy-rs";
+  inputs.deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
+
   inputs.agenix.url = "github:ryantm/agenix";
   inputs.agenix.inputs.nixpkgs.follows = "nixpkgs";
+
+  inputs.vscode.url = "github:nix-community/nixos-vscode-server";
+  inputs.vscode.inputs.nixpkgs.follows = "nixpkgs";
 
   # Flake outputs:
   # - One machine config for each of my machines.
@@ -28,6 +36,7 @@
     home-manager,
     deploy-rs,
     agenix,
+    vscode,
   }: let
     system = "x86_64-linux";
     stateVersion = "21.11";
@@ -73,6 +82,8 @@
             }
             # Add agenix for secret management.
             agenix.nixosModules.age
+            # Add vscode for vscode-server.
+            vscode.nixosModule
             {
               environment.systemPackages = [agenix.packages.${system}.default];
             }
