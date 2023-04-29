@@ -4,7 +4,12 @@
   lib,
   ...
 }: {
-  imports = [./mcupdater.nix];
+  imports = [
+    ./mcupdater.nix
+    (fetchTarball "https://github.com/msteen/nixos-vscode-server/tarball/master")
+  ];
+
+  services.vscode-server.enable = true;
 
   #boot.kernelPackages = lib.mkForce pkgs.linuxPackages_lqx;
   powerManagement.cpuFreqGovernor = lib.mkForce "performance";
@@ -108,11 +113,7 @@
     layout = "us";
     #displayManager.lightdm.enable = true;
     displayManager.gdm.enable = true;
-    displayManager.gdm.wayland = lib.mkForce config.services.xserver.desktopManager.gnome.enable;
     desktopManager = {
-      #      default = "xfce";
-      xfce.enable = true;
-      #      gnome.enable = true;
       cinnamon.enable = true;
       plasma5.enable = true;
     };
@@ -127,8 +128,6 @@
     enableCtrlAltBackspace = true;
     exportConfiguration = true;
   };
-
-  programs.xwayland.enable = true;
 
   services.ratbagd.enable = true;
 

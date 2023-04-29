@@ -12,6 +12,7 @@
     ../modules/nvidia.nix
     ../modules/desktop.nix
     ../modules/nix-serve.nix
+    ./sdbot.nix
   ];
 
   me = {
@@ -34,14 +35,6 @@
     gc-keep-outputs = true
     gc-keep-derivations = true
   '';
-
-  # Syncthing
-  services.syncthing = {
-    enable = true;
-    user = "svein";
-    configDir = "/home/svein/.config/syncthing";
-    dataDir = "/home/svein/Sync";
-  };
 
   ## Networking
   networking.hostName = "saya";
@@ -69,5 +62,5 @@
     ];
   };
 
-  users.include = ["will"];
+  users.include = [];
 }
