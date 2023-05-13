@@ -72,8 +72,6 @@
       kdenlive
       frei0r
       gimp-with-plugins #krita
-      # One day I'll get back to this
-      dwarf-fortress-packages.dwarf-fortress-full
       # Emacs
       #((emacsPackagesNgGen pkgs.emacs).emacsWithPackages (p: with p.melpaStablePackages; [
       #    solarized-theme indent-guide
@@ -112,8 +110,10 @@
     layout = "us";
     #displayManager.lightdm.enable = true;
     displayManager.gdm.enable = true;
+    displayManager.gdm.autoSuspend = false;
+    #displayManager.gdm.autoLogin.user = "svein";
     desktopManager = {
-      cinnamon.enable = true;
+      #cinnamon.enable = true;
       plasma5.enable = true;
     };
     # windowManager.xmonad = {

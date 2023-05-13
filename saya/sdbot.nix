@@ -21,14 +21,15 @@ let
       WorkingDirectory = BOT_DIR + personality;
       Type = "simple";
       Restart = "on-failure";
-      Environment = "LD_LIBRARY_PATH=${cudaLibPath}";
+      Environment = "LD_LIBRARY_PATH=${cudaLibPath} LD_PRELOAD=${pkgs.gperftools}/lib/libtcmalloc.so";
       ExecStart = BOT_DIR + personality + "/webui.sh";
+      MemoryLimit = "8G";
     };
   };
 in
 {
   systemd.services.sd-bot = bot "sd-bot";
-  systemd.services.sd-personal = bot "sd-personal";
+  #systemd.services.sd-personal = bot "sd-personal";
 
   networking.firewall.allowedTCPPorts = [ 7860 7861 ];
 }

@@ -520,6 +520,4 @@
 
   users.include = ["minecraft" "aquagon"];
   #users.include = ["pl" "aquagon" "will" "snowfire" "minecraft" "linuxgsm"];
-
-  system.stateVersion = "21.11";
 }
