@@ -14,8 +14,7 @@ if cmp -s flake.lock $OLDLOCK; then
   echo 'Nothing changed'
   exit 0
 fi
-if nix flake check; then
-  nixos-rebuild --flake . build
+if nixos-rebuild --flake . build; then
   nvd diff /run/current-system result
   printf '\a'
   PS3='Deploy? '
@@ -25,11 +24,11 @@ if nix flake check; then
         break
         ;;
       switch)
-        sudo result/bin/switch-to-configuration switch
+        sudo nixos-rebuild --flake . switch
         break
         ;;
       boot)
-        sudo result/bin/switch-to-configuration boot
+        sudo nixos-rebuild --flake . boot
         break
         ;;
     esac

@@ -268,7 +268,4 @@
 
   # Enable postfix, but local only by default - no ports open.
   services.postfix.enable = true;
-
-  # The NixOS release to be compatible with for stateful data such as databases.
-  system.stateVersion = "21.11";
 }
