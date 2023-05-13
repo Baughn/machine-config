@@ -276,7 +276,8 @@
     oh-my-zsh.theme = "afowler";
     profileExtra = ''
       if [ -e $HOME/.nix-profile/etc/profile.d/nix.sh ]; then . $HOME/.nix-profile/etc/profile.d/nix.sh; fi
-
+    '';
+    initExtra = ''
       export GOPATH=$HOME/go
 
       with() {
