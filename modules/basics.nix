@@ -119,6 +119,8 @@
     fd
     rlwrap
     (callPackage ../tools/up {})
+    # AI support
+    shell_gpt
     # File transfer
     rsync
     wget
