@@ -256,9 +256,9 @@
     controlMaster = "auto";
     controlPersist = "2m";
     matchBlocks = {
-      "*.sv" = {
-        identityFile = "/home/svein/sufficient/id_rsa";
-        user = "baughn";
+      "sv" = {
+        user = "minecraft";
+        hostname = "173.231.55.228";
       };
     };
     extraConfig = ''
