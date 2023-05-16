@@ -226,6 +226,7 @@
     kbdInteractiveAuthentication = true;
     gatewayPorts = "yes";
     forwardX11 = true;
+    sftpServerExecutable = "internal-sftp";
   };
   programs.ssh.setXAuthLocation = true;
 
