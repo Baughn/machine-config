@@ -1,7 +1,7 @@
 {
   description = "Machine configs";
 
-  inputs.nixpkgs-stable.url = "flake:nixpkgs/nixos-21.11";
+  inputs.nixpkgs-stable.url = "flake:nixpkgs/nixos-23.05";
   inputs.nixpkgs.url = "flake:nixpkgs/nixos-unstable";
 
   inputs.nixos-hardware.url = "flake:nixos-hardware";
@@ -39,7 +39,7 @@
     vscode,
   }: let
     system = "x86_64-linux";
-    stateVersion = "21.11";
+    stateVersion = "23.05";
     pkgs = nixpkgs.legacyPackages.${system};
     pkgs-stable = nixpkgs-stable.legacyPackages.${system};
     installer = modules:

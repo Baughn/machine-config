@@ -68,7 +68,7 @@
   programs.neovim = {
     enable = true;
     vimAlias = true;
-    extraPackages = [pkgs.nodejs-16_x];
+    extraPackages = [pkgs.nodejs-18_x];
     plugins = with pkgs.vimPlugins; [
       # "Defaults everyone can agree on"
       sensible

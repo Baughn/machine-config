@@ -19,7 +19,7 @@ with lib; {
       ExecStart = "${pkgs.writeShellScript "${name}.sh" ''
         set -euo pipefail
         PATH=${makeBinPath (with pkgs; [coreutils findutils inotify-tools])}
-        TARGET=${pkgs.nodejs-16_x}/bin/node
+        TARGET=${pkgs.nodejs-18_x}/bin/node
         bin_dir=~/.vscode-server/bin
 
         # Fix any existing symlinks before we enter the inotify loop.
