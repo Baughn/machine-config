@@ -40,7 +40,8 @@
   boot.postBootCommands = ''
     echo always > /sys/kernel/mm/transparent_hugepage/enabled
     echo defer > /sys/kernel/mm/transparent_hugepage/defrag
-    echo 0 > /sys/devices/system/cpu/cpufreq/boost
+    # Disable boost
+    #echo 0 > /sys/devices/system/cpu/cpufreq/boost
   '';
 
   ## Networking
