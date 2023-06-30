@@ -17,6 +17,7 @@
 
   me = {
     virtualisation.enable = true;
+    monitoring.zfs = false;
   };
 
   services.flatpak.enable = true;
