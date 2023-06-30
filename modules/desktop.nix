@@ -16,18 +16,19 @@
   ## Packages
   environment.systemPackages = with pkgs; [
     # Dev
-    ((pkgs.vscode.override { isInsiders = true; }).overrideAttrs (oldAttrs: rec {
-      src = (builtins.fetchTarball {
-        url = "https://code.visualstudio.com/sha/download?build=insider&os=linux-x64";
-        sha256 = "sha256:1b8lf6qqq6868kqzc35482ksfvzfxfhdpn2lisksjrji1qyiz06l";
-      });
-      version = "latest";
-    }))
+    #((pkgs.vscode.override { isInsiders = true; }).overrideAttrs (oldAttrs: rec {
+    #  src = (builtins.fetchTarball {
+    #    url = "https://code.visualstudio.com/sha/download?build=insider&os=linux-x64";
+    #    sha256 = "sha256:1b8lf6qqq6868kqzc35482ksfvzfxfhdpn2lisksjrji1qyiz06l";
+    #  });
+    #  version = "latest";
+    #}))
     google-chrome
     youtube-dl
     gnome3.gnome-terminal
     steam-run
     firefox
+    xclip
     # Chat, etc.
     syncplay
     # Kanjitomo
@@ -36,22 +37,12 @@
       exec = "${pkgs.jre}/bin/java -jar ${../third_party/KanjiTomo}/KanjiTomo.jar";
       desktopName = "KanjiTomo";
     })
-    # Work around #159267
     discord
-    #(pkgs.writeShellApplication {
-    #  name = "discord";
-    #  text = "${pkgs.discord}/bin/discord --use-gl=desktop";
-    #})
-    #(pkgs.makeDesktopItem {
-    #  name = "discord";
-    #  exec = "discord";
-    #  desktopName = "Discord";
-    #})
     # Entertainment
     mpv
     syncplay
     # KDE utilities
-    ark
+    ark discover
     # Sound stuff
     helvum
     # 3D printing

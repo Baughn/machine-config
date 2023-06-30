@@ -3,7 +3,6 @@
   lib,
   ...
 }: {
-  boot.supportedFilesystems = ["zfs"];
   networking.hostId = lib.mkDefault "deafbeef";
   services.zfs.autoSnapshot.enable = lib.mkDefault true;
   services.zfs.autoSnapshot.flags = "-k -p --utc";

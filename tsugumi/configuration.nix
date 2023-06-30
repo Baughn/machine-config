@@ -17,7 +17,6 @@
     ./vintagestory.nix
     #    ./factorio.nix
     ../modules/plex.nix
-    ../modules/monitoring.nix
     #    ./znc.nix
     #./unifi.nix
     #../modules/netboot-server.nix

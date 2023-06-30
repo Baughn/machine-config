@@ -9,7 +9,7 @@ let
     libGL
     glib
   ]);
-  BOT_DIR = "/home/svein/AI/";
+  BOT_DIR = "/home/svein/AI/image-generation/";
 
   bot = personality: {
     description = personality;
@@ -23,7 +23,7 @@ let
       Restart = "on-failure";
       Environment = "LD_LIBRARY_PATH=${cudaLibPath} LD_PRELOAD=${pkgs.gperftools}/lib/libtcmalloc.so";
       ExecStart = BOT_DIR + personality + "/webui.sh";
-      MemoryLimit = "8G";
+      MemoryMax = "9G";
     };
   };
 in

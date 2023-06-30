@@ -252,7 +252,7 @@
 
   programs.ssh = {
     enable = true;
-    compression = true;
+    compression = false;
     controlMaster = "auto";
     controlPersist = "2m";
     matchBlocks = {

@@ -85,7 +85,11 @@
             # Add vscode for vscode-server.
             vscode.nixosModule
             {
+              # Agenix
               environment.systemPackages = [agenix.packages.${system}.default];
+              age.identityPaths = [
+                "/home/svein/.ssh/id_ed25519"
+              ];
             }
           ]
           ++ homeConfig
