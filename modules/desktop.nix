@@ -27,6 +27,7 @@
     youtube-dl
     gnome3.gnome-terminal
     steam-run
+    heroic
     firefox
     xclip
     # Chat, etc.
