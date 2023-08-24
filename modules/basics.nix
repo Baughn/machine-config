@@ -127,6 +127,7 @@
     rtorrent
     sshfs-fuse
     # Nix tools
+    cached-nix-shell
     nox
     nix-prefetch-git
     # Monitoring, eventually to be a module.
