@@ -162,7 +162,7 @@
       btop
       links2
       unison
-      borgbackup
+      restic
       imagemagickBig
       zip
       unzip
