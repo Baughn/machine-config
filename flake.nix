@@ -2,7 +2,7 @@
   description = "Machine configs";
 
   inputs.nixpkgs-stable.url = "flake:nixpkgs/nixos-23.05";
-  inputs.nixpkgs.url = "flake:nixpkgs/nixos-unstable";
+  inputs.nixpkgs.url = "flake:nixpkgs/nixos-unstable-small";
 
   inputs.nixos-hardware.url = "flake:nixos-hardware";
 
@@ -80,10 +80,17 @@
               environment.etc."nixpkgs".source = nixpkgs;
               nix.registry.nixpkgs.flake = nixpkgs;
             }
+            # Add vscode for vscode-server.
+            vscode.nixosModules.default
+            {
+              services.vscode-server.enable = true;
+              services.vscode-server.enableFHS = true;
+              nixpkgs.config.permittedInsecurePackages = [
+                "nodejs-16.20.2"
+              ];
+            }
             # Add agenix for secret management.
             agenix.nixosModules.age
-            # Add vscode for vscode-server.
-            vscode.nixosModule
             {
               # Agenix
               environment.systemPackages = [agenix.packages.${system}.default];
