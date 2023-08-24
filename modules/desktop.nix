@@ -12,6 +12,7 @@
 
   #boot.kernelPackages = lib.mkForce pkgs.linuxPackages_lqx;
   powerManagement.cpuFreqGovernor = lib.mkForce "performance";
+  services.system76-scheduler.enable = true;
 
   ## Packages
   environment.systemPackages = with pkgs; [

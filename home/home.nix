@@ -25,6 +25,7 @@
     enable = true;
     userName = "Svein Ove Aas";
     userEmail = "sveina@gmail.com";
+    lfs.enable = true;
   };
 
   home.file.".screenrc".text = ''

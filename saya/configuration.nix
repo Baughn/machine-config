@@ -11,13 +11,13 @@
     ./hardware-configuration.nix
     ../modules/nvidia.nix
     ../modules/desktop.nix
-    ../modules/nix-serve.nix
-    ./sdbot.nix
+    ../modules/bcachefs.nix
+    #../modules/nix-serve.nix
+    #./sdbot.nix
   ];
 
   me = {
     virtualisation.enable = true;
-    monitoring.zfs = false;
   };
 
   services.flatpak.enable = true;

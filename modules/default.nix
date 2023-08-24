@@ -12,12 +12,11 @@
     ./resilience.nix
     ./virtualisation.nix
     ./wireguard.nix
-    ./zfs.nix
     ./monitoring.nix
   ];
 
   me.monitoring.enable = lib.mkDefault true;
-  me.monitoring.zfs = lib.mkDefault true;
+  me.monitoring.zfs = lib.mkDefault false;
 
   # Setup cachix
   nix.binaryCaches = [

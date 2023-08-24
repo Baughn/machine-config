@@ -1,7 +1,7 @@
 {pkgs, ...}: {
-  boot.supportedFilesystems = ["zfs" "f2fs"];
-  networking.hostId = "deafbeef";
-  boot.zfs.requestEncryptionCredentials = true;
+  imports = [
+    ../modules/bcachefs.nix
+  ];
 
   networking.networkmanager.enable = true;
   networking.wireless.enable = false;
