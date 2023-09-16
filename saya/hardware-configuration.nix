@@ -14,7 +14,7 @@
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "/dev/nvme1n1p4:/dev/sda1:/dev/sdb1";
+    { device = "/dev/disk/by-id/nvme-eui.0025385611903c89-part4:/dev/sda1:/dev/sdb1";
       fsType = "bcachefs";
     };
 

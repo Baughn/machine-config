@@ -85,9 +85,8 @@
 
   ## Fonts
   fonts = {
-    enableDefaultFonts = true;
-    enableGhostscriptFonts = true;
-    fonts = with pkgs; [
+    enableDefaultPackages = true;
+    packages = with pkgs; [
       corefonts # Microsoft free fonts.
       inconsolata # Monospaced.
       ubuntu_font_family # Ubuntu fonts.
@@ -99,8 +98,11 @@
 
   programs.sway = {
     enable = true;
-    extraOptions = ["--my-next-gpu-wont-be-nvidia"];
+    extraOptions = ["--unsupported-gpu"];
   };
+
+  # Work around #224332
+  environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
   services.udev.packages = with pkgs; [gnome3.gnome-settings-daemon];
 
@@ -141,7 +143,6 @@
   };
   hardware.bluetooth = {
     enable = true;
-    package = pkgs.bluezFull;
   };
 
   hardware.opengl = {

@@ -13,7 +13,7 @@
     ../modules/desktop.nix
     ../modules/bcachefs.nix
     #../modules/nix-serve.nix
-    #./sdbot.nix
+    ./sdbot.nix
   ];
 
   me = {
@@ -44,7 +44,7 @@
     links."00-internal" = {
       linkConfig.Name = "internal";
       linkConfig.WakeOnLan = "magic";
-      matchConfig.MACAddress = "f0:2f:74:8c:54:2d";
+      matchConfig.MACAddress = "74:56:3c:4d:81:45";
     };
     networks."20-internal" = {
       matchConfig.Name = "internal";
@@ -55,11 +55,13 @@
   networking.firewall = {
     allowedTCPPorts = [
       6987 # rtorrent
+      3000 # Textchat-ui
     ];
     allowedUDPPorts = [
       6987 # rtorrent
       34197 # factorio
       10401 # Wireguard
+      5200 5201 # Stationeers
     ];
   };
 

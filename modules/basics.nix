@@ -28,6 +28,8 @@
 
   boot.loader.timeout = 15;
 
+  boot.swraid.enable = false;
+
   # Performance stuff
   #nix.daemonCPUSchedPolicy = "idle";
   security.rtkit.enable = true;
@@ -37,7 +39,7 @@
   users.mutableUsers = false;
   users.users.root = {
     openssh.authorizedKeys.keys = (import ./sshKeys.nix).svein;
-    passwordFile = config.age.secrets.userPassword.path;
+    hashedPasswordFile = config.age.secrets.userPassword.path;
   };
   users.defaultUserShell = pkgs.zsh;
   users.include = ["svein"];
@@ -191,7 +193,7 @@
   hardware.enableAllFirmware = true;
   boot.loader.grub.memtest86.enable = config.boot.loader.grub.enable;
   services.fwupd.enable = true;
-  boot.cleanTmpDir = true;
+  boot.tmp.cleanOnBoot = true;
   boot.kernel.sysctl = {
     "fs.inotify.max_user_watches" = 1048576;
     "net.ipv4.tcp_congestion_control" = "bbr";
@@ -225,10 +227,12 @@
   security.pam.services.sshd.googleAuthenticator.enable = true;
   services.openssh = {
     enable = true;
-    passwordAuthentication = true;
-    kbdInteractiveAuthentication = true;
-    gatewayPorts = "yes";
-    forwardX11 = true;
+    settings = {
+      GatewayPorts = "yes";
+      KbdInteractiveAuthentication = true;
+      PasswordAuthentication = true;
+      X11Forwarding = true;
+    };
     sftpServerExecutable = "internal-sftp";
   };
   programs.ssh.setXAuthLocation = true;
@@ -250,7 +254,7 @@
   services.avahi = {
     enable = lib.mkDefault true;
     nssmdns = true;
-    interfaces = ["internal"];
+    allowInterfaces = ["internal"];
     publish.enable = true;
     publish.addresses = true;
     publish.workstation = true;

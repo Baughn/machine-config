@@ -9,27 +9,44 @@ let
     libGL
     glib
   ]);
-  BOT_DIR = "/home/svein/AI/image-generation/";
+  COMFYUI_DIR = "/home/svein/AI/image-generation/ComfyUI";
+  BOT_DIR = "/home/svein/AI/image-generation/sd-bot-2";
 
-  bot = personality: {
-    description = personality;
+  comfyui = {
+    description = "ComfyUI";
     wantedBy = [ "multi-user.target" ];
     after = [ "network.target" ];
-    path = [ python pkgs.bash pkgs.git pkgs.openssh ];
+    path = [ pkgs.bash python pkgs.git ];
     serviceConfig = {
       User = "svein";
-      WorkingDirectory = BOT_DIR + personality;
+      WorkingDirectory = COMFYUI_DIR;
       Type = "simple";
       Restart = "on-failure";
       Environment = "LD_LIBRARY_PATH=${cudaLibPath} LD_PRELOAD=${pkgs.gperftools}/lib/libtcmalloc.so";
-      ExecStart = BOT_DIR + personality + "/webui.sh";
-      MemoryMax = "9G";
+      ExecStart = COMFYUI_DIR + "/load.sh";
+      MemoryMax = "16G";
+    };
+  };
+
+  # The bot's a simple rust app.
+  bot = {
+    description = "sd-bot";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "network.target" ];
+    path = [ pkgs.nix pkgs.cached-nix-shell ];
+    serviceConfig = {
+      User = "svein";
+      WorkingDirectory = BOT_DIR;
+      Type = "simple";
+      Restart = "on-failure";
+      Environment = "NIX_PATH=nixpkgs=/etc/nixpkgs";
+      ExecStart = "${BOT_DIR}/start.sh";
     };
   };
 in
 {
-  systemd.services.sd-bot = bot "sd-bot";
-  #systemd.services.sd-personal = bot "sd-personal";
+  systemd.services.comfyui = comfyui;
+  systemd.services.sd-bot = bot;
 
-  networking.firewall.allowedTCPPorts = [ 7860 7861 ];
+  networking.firewall.allowedTCPPorts = [ 8188 ];
 }
