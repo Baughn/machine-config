@@ -1,3 +1,5 @@
+{ lib, pkgs, ... }:
+
 {
   boot.supportedFilesystems = ["bcachefs"];
   boot.initrd.supportedFilesystems = ["bcachefs"];
@@ -26,4 +28,9 @@
         FTRACE y
       '';
   } ];
+
+  boot.kernelPackages = lib.mkForce (pkgs.linuxPackages_testing_bcachefs // ({ kernel = pkgs.linuxPackages_testing_bcachefs.override {
+    currentCommit = "b930140";
+    diffHash = "sha256-RaBWBU7rXjJFb1euFAFBHWCBQAG7npaCodjp/vMYayw=";
+  }; }));
 }

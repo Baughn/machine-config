@@ -13,6 +13,6 @@
     Option "metamodes" "nvidia-auto-select +0+0 { ForceCompositionPipeline = On, ForceFullCompositionPipeline=On, AllowGSYNCCompatible=On }"
   '';
   environment.systemPackages = [pkgs.nvtop];
-  services.xserver.displayManager.gdm.wayland = false;
+  services.xserver.displayManager.gdm.wayland = true;
   hardware.opengl.enable = true;
 }
