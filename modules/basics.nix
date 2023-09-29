@@ -223,6 +223,8 @@
   security.sudo.wheelNeedsPassword = false;
   security.apparmor.enable = true;
   services.fail2ban.enable = true;
+  services.fail2ban.ignoreIP = [ "89.101.222.214/29" ];
+
   ### SSH
   security.pam.services.sshd.googleAuthenticator.enable = true;
   services.openssh = {
