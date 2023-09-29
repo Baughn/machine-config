@@ -72,23 +72,6 @@
   };
   networking.defaultGateway = "89.101.222.209";
   networking.nameservers = ["8.8.8.8" "8.8.4.4"];
-  # Wireguard
-  networking.wg-quick = {
-    interfaces.wg0 = {
-      address = ["10.0.2.1"];
-      peers = [
-        {
-          allowedIPs = ["10.0.2.2/32"];
-          endpoint = "tromso.brage.info:51820";
-          publicKey = (import ../secrets/wireguard/pubkeys.nix).tromso;
-          persistentKeepalive = 30;
-          presharedKeyFile = config.age.secrets."wireguard/common.psk".path;
-        }
-      ];
-      listenPort = 51820;
-      privateKeyFile = config.age.secrets."wireguard/tsugumi.pk".path;
-    };
-  };
   # Firewall
   networking.firewall.allowedTCPPorts = [
     80
@@ -261,9 +244,6 @@
   ## Monitoring
   services.prometheus = {
     enable = true;
-    exporters.wireguard = {
-      enable = true;
-    };
     exporters.blackbox = {
       enable = true;
       configFile = ../modules/monitoring/blackbox.yml;
