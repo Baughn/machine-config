@@ -22,10 +22,12 @@
     #../modules/netboot-server.nix
     ../modules/nix-serve.nix
     ../modules/amdgpu.nix
+    ../modules/zfs.nix
   ];
 
   me = {
     virtualisation.enable = true;
+    monitoring.zfs = true;
   };
 
   ## Boot
