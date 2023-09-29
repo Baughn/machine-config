@@ -11,7 +11,6 @@
     ./nginx.nix
     ./resilience.nix
     ./virtualisation.nix
-    ./wireguard.nix
     ./monitoring.nix
   ];
 
