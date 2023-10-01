@@ -11,7 +11,7 @@
     ./hardware-configuration.nix
     ../modules/nvidia.nix
     ../modules/desktop.nix
-    ../modules/bcachefs.nix
+    ../modules/zfs.nix
     #../modules/nix-serve.nix
     ./sdbot.nix
   ];
