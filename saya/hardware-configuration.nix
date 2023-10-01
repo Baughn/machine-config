@@ -23,7 +23,7 @@
       fsType = "vfat";
     };
 
-  fileSystems."/home/svein/mnt" = {
+  fileSystems."/tsugumi" = {
     device = "svein@brage.info:";
     fsType = "fuse.sshfs";
     options = [
