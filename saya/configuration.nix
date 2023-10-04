@@ -26,6 +26,11 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  environment.sessionVariables = {
+    # Because X3D.
+    WINE_CPU_TOPOLOGY = "16:0,1,2,3,4,5,6,7,16,17,18,19,20,21,22,23";
+  };
+
   boot.kernelParams = [
     "boot.shell_on_fail"
   ];
@@ -37,20 +42,11 @@
     gc-keep-derivations = true
   '';
 
+  environment.systemPackages = [ config.boot.kernelPackages.perf ];
+
   ## Networking
   networking.hostName = "saya";
-  systemd.network = {
-    enable = true;
-    links."00-internal" = {
-      linkConfig.Name = "internal";
-      linkConfig.WakeOnLan = "magic";
-      matchConfig.MACAddress = "74:56:3c:4d:81:45";
-    };
-    networks."20-internal" = {
-      matchConfig.Name = "internal";
-      DHCP = "ipv4";
-    };
-  };
+  networking.networkmanager.enable = true;
 
   networking.firewall = {
     allowedTCPPorts = [

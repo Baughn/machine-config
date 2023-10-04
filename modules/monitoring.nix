@@ -149,7 +149,7 @@
                 description: "{{ $value }} bytes free on {{ $labels.instance }} {{ $labels.mountpoint }}"
                 details: "Working around https://github.com/prometheus/node_exporter/issues/1498"
             - alert: FilesystemScrapeErrors
-              expr: node_filesystem_device_error{fstype!~"tmpfs|fuse.portal|ramfs|fuse.sshfs"} > 0
+              expr: node_filesystem_device_error{fstype!~"tmpfs|fuse.*|ramfs"} > 0
               annotations:
                 description: "{{ $value }} filesystem scrape errors registered on {{ $labels.instance }} {{ $labels.mountpoint }}"
             - alert: MemoryUseHigh
