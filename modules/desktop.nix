@@ -11,7 +11,7 @@
   services.vscode-server.enable = true;
 
   #boot.kernelPackages = lib.mkForce pkgs.linuxPackages_lqx;
-  powerManagement.cpuFreqGovernor = lib.mkForce "performance";
+  powerManagement.cpuFreqGovernor = lib.mkForce "schedutil";
   services.system76-scheduler.enable = true;
 
   ## Packages
@@ -96,6 +96,7 @@
     ];
   };
 
+  programs.xwayland.enable = true;
   programs.sway = {
     enable = true;
     extraOptions = ["--unsupported-gpu"];
@@ -109,12 +110,12 @@
   services.xserver = {
     enable = true;
     layout = "us";
+    displayManager.sddm.enable = true;
     #displayManager.lightdm.enable = true;
-    displayManager.gdm.enable = true;
-    displayManager.gdm.autoSuspend = false;
+    #displayManager.gdm.enable = true;
+    #displayManager.gdm.autoSuspend = false;
     #displayManager.gdm.autoLogin.user = "svein";
     desktopManager = {
-      #cinnamon.enable = true;
       plasma5.enable = true;
     };
     # windowManager.xmonad = {
