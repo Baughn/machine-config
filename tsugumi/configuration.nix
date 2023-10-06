@@ -12,11 +12,11 @@
     ./hardware-configuration.nix
     ./sonarr.nix
     ./minecraft.nix
-    ./syncplay.nix
+    #./syncplay.nix
     #    ./satisfactory.nix
-    ./vintagestory.nix
+    #./vintagestory.nix
     #    ./factorio.nix
-    ../modules/plex.nix
+    #../modules/plex.nix
     #    ./znc.nix
     #./unifi.nix
     #../modules/netboot-server.nix
