@@ -95,6 +95,7 @@
               # Agenix
               environment.systemPackages = [agenix.packages.${system}.default];
               age.identityPaths = [
+                "/etc/ssh/ssh_host_ed25519_key"
                 "/home/svein/.ssh/id_ed25519"
               ];
             }

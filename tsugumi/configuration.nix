@@ -46,32 +46,21 @@
   '';
 
   ## Networking
-  services.avahi.enable = false;
   programs.mosh.enable = lib.mkForce false;
   networking.hostName = "tsugumi";
-  networking.useDHCP = false;
   services.udev.extraRules = ''
     # Attempt to fix the bloody realtek drivers.
-    ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="3c:7c:3f:24:99:f6", NAME="external", RUN+="${pkgs.ethtool}/bin/ethtool --change external autoneg off"
-    ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="internal", RUN+="${pkgs.ethtool}/bin/ethtool --change internal autoneg off"
+    #ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="3c:7c:3f:24:99:f6", NAME="external", RUN+="${pkgs.ethtool}/bin/ethtool --change external autoneg off"
+    #ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="internal", RUN+="${pkgs.ethtool}/bin/ethtool --change internal autoneg off"
+
+    # Define the DMZ interface
+    ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="dmz"
+
     # Set an appropriate usb device name for the FLSUN Super Racer serial port.
     ACTION=="add", SUBSYSTEM=="tty", ATTRS{serial}=="208734504D34", SYMLINK+="ttyFLSUNRacer"
   '';
-  # External
-  networking.interfaces.external = {
-    ipv4.addresses = [
-      {
-        address = "89.101.222.210";
-        prefixLength = 29;
-      }
-      {
-        address = "89.101.222.211";
-        prefixLength = 29;
-      }
-    ];
-  };
-  networking.defaultGateway = "89.101.222.209";
-  networking.nameservers = ["8.8.8.8" "8.8.4.4"];
+  networking.networkmanager.enable = true;
+
   # Firewall
   networking.firewall.allowedTCPPorts = [
     80
@@ -345,17 +334,17 @@
   };
   fileSystems."/srv/svein/Anime" = {
     device = "/home/svein/Anime";
-    depends = ["/home/svein/Anime"];
+    depends = ["/home/svein/Media"];
     options = ["bind"];
   };
   fileSystems."/srv/svein/Movies" = {
     device = "/home/svein/Movies";
-    depends = ["/home/svein/Movies"];
+    depends = ["/home/svein/Media"];
     options = ["bind"];
   };
   fileSystems."/srv/svein/TV" = {
     device = "/home/svein/TV";
-    depends = ["/home/svein/TV"];
+    depends = ["/home/svein/Media"];
     options = ["bind"];
   };
   services.caddy = {
