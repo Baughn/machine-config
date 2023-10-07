@@ -1,6 +1,7 @@
 {pkgs, ...}: {
   imports = [
     kexec/configuration.nix
+    ../modules/zfs.nix
   ];
 
   boot.supportedFilesystems = ["zfs"];

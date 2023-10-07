@@ -2,7 +2,7 @@
   description = "Machine configs";
 
   inputs.nixpkgs-stable.url = "flake:nixpkgs/nixos-23.05";
-  inputs.nixpkgs.url = "flake:nixpkgs/nixos-unstable-small";
+  inputs.nixpkgs.url = "flake:nixpkgs/nixos-unstable";
 
   inputs.nixos-hardware.url = "flake:nixos-hardware";
 
