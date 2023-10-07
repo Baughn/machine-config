@@ -36,6 +36,28 @@
   ];
   systemd.enableEmergencyMode = true;
 
+  # Run backup script on a timer, every 30 minutes.
+  services.restic.backups.home = {
+    user = "svein";
+    passwordFile = "/home/svein/nixos/secrets/restic.pw";
+    repository = "sftp:svein@brage.info:short-term/backups/saya";
+    paths = [ "/home/svein" ];
+    exclude = [
+      "/home/*/.cache/*"
+      "!/home/*/.cache/huggingface"
+    ];
+    extraBackupArgs = ["--exclude-caches" "--compression=max"];
+    timerConfig = {
+      OnCalendar = "*:0/30";
+    };
+    pruneOpts = [
+      "--keep-hourly 36"
+      "--keep-daily 7"
+      "--keep-weekly 4"
+      "--keep-monthly 3"
+    ];
+  };
+
   # Development
   nix.extraOptions = ''
     gc-keep-outputs = true

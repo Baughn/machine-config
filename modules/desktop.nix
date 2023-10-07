@@ -31,8 +31,6 @@
     heroic
     firefox
     xclip
-    # Chat, etc.
-    syncplay
     # Kanjitomo
     (pkgs.makeDesktopItem {
       name = "kanjitomo";
@@ -42,7 +40,6 @@
     discord
     # Entertainment
     mpv
-    syncplay
     # KDE utilities
     ark discover
     # Sound stuff

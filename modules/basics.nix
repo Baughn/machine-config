@@ -11,7 +11,6 @@
   ];
 
   # Use whatever kernel package is compatible.
-  boot.kernelPackages = lib.mkDefault config.boot.zfs.package.latestCompatibleLinuxPackages;
   boot.kernelParams = [
     # F#&$*ng Spectre
     "noibrs"
