@@ -12,6 +12,7 @@
     ./resilience.nix
     ./virtualisation.nix
     ./monitoring.nix
+    ./nix-serve.nix
   ];
 
   me.monitoring.enable = lib.mkDefault true;
