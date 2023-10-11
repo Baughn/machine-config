@@ -17,4 +17,7 @@
     25565
     25566
   ];
+  networking.firewall.allowedUDPPorts = [
+    24454  # Simple voice chat
+  ];
 }
