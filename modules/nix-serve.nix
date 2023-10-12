@@ -12,7 +12,7 @@ lib.mkIf (config.networking.hostName == "tsugumi" || config.networking.hostName 
 
   # And add whichever machine we *aren't* on as a binary cache.
   nix.settings = {
-    substituters = lib.mkBefore [(if config.networking.hostName == "tsugumi" then "saya:5000" else "tsugumi:5000")];
+    substituters = lib.mkBefore [(if config.networking.hostName == "tsugumi" then "http://saya:5000" else "http://tsugumi:5000")];
   };
 
   networking.firewall.allowedTCPPorts = [ 5000 ];
