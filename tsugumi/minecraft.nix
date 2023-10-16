@@ -20,4 +20,14 @@
   networking.firewall.allowedUDPPorts = [
     24454  # Simple voice chat
   ];
+  services.prometheus.scrapeConfigs = [
+    {
+      job_name = "erisia";
+      static_configs = [
+        {
+          targets = [ "localhost:1224" ];
+        }
+      ];
+    }
+  ];
 }
