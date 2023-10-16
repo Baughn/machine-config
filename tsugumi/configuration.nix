@@ -230,7 +230,16 @@
     };
   };
 
-  ## Monitoring
+  ## monitoring
+  services.grafana = {
+    enable = true;
+    settings.server = {
+      enable_gzip = true;
+      domain = "grafana.brage.info";
+      http_port = 1230;
+    };
+  };
+
   services.prometheus = {
     enable = true;
     exporters.blackbox = {
@@ -238,13 +247,6 @@
       configFile = ../modules/monitoring/blackbox.yml;
     };
     scrapeConfigs = [
-      #{
-      #  job_name = "minecraft";
-      #  static_configs = [{
-      #    labels.server = "erisia";
-      #    targets = ["localhost:1223"];
-      #  }];
-      #}
       {
         job_name = "nut";
         static_configs = [
@@ -384,6 +386,11 @@
         import headers
         reverse_proxy /warmroast/* localhost:23000
         file_server browse
+      }
+
+      grafana.brage.info {
+        import headers
+        reverse_proxy http://localhost:1230
       }
 
       map.brage.info {
