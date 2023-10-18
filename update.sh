@@ -10,10 +10,6 @@ OLDLOCK=$(mktemp)
 trap "rm $OLDLOCK" EXIT
 cat flake.lock > $OLDLOCK
 nix flake update
-if cmp -s flake.lock $OLDLOCK; then
-  echo 'Nothing changed'
-  exit 0
-fi
 if nixos-rebuild --flake . build; then
   nvd diff /run/current-system result
   printf '\a'
