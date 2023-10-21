@@ -84,6 +84,7 @@
     gitAndTools.gitFull
     git-lfs
     git-crypt
+    gh
     sqlite-interactive
     # System/monitoring/etc tools
     parted
