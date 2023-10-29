@@ -108,11 +108,6 @@
           augroup pencil
              autocmd!
              autocmd filetype markdown,mkd call pencil#init()
-                 \ | call textobj#sentence#init()
-                 \ | call textobj#quote#init()
-                 \ | call lexical#init()
-                 \ | call litecorrect#init()
-                 \ | Wordy weak
                  \ | setl spell spl=en_us fdl=4 noru nonu nornu
                  \ | setl fdo+=search
             augroup END
