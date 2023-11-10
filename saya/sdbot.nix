@@ -24,7 +24,7 @@ let
       Restart = "on-failure";
       Environment = "LD_LIBRARY_PATH=${cudaLibPath} LD_PRELOAD=${pkgs.gperftools}/lib/libtcmalloc.so";
       ExecStart = COMFYUI_DIR + "/load.sh";
-      MemoryMax = "16G";
+      MemoryMax = "32G";
     };
   };
 

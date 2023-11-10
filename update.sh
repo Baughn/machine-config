@@ -10,7 +10,7 @@ OLDLOCK=$(mktemp)
 trap "rm $OLDLOCK" EXIT
 cat flake.lock > $OLDLOCK
 nix flake update
-if nixos-rebuild --flake . build; then
+if nixos-rebuild --flake . build --show-trace "$@"; then
   nvd diff /run/current-system result
   printf '\a'
   PS3='Deploy? '
