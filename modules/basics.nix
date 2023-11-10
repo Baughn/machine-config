@@ -220,7 +220,11 @@
   '';
 
   ## Security & Login
-  security.sudo.wheelNeedsPassword = false;
+  security.sudo.enable = false;
+  security.sudo-rs = {
+    enable = true;
+    wheelNeedsPassword = false;
+  };
   security.apparmor.enable = true;
   services.fail2ban.enable = true;
   services.fail2ban.ignoreIP = [ "89.101.222.214/29" ];
