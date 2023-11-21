@@ -13,6 +13,7 @@
     ./virtualisation.nix
     ./monitoring.nix
     ./nix-serve.nix
+    ./exceptions.nix
   ];
 
   me.monitoring.enable = lib.mkDefault true;

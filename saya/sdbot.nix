@@ -16,14 +16,14 @@ let
     description = "ComfyUI";
     wantedBy = [ "multi-user.target" ];
     after = [ "network.target" ];
-    path = [ pkgs.bash python pkgs.git ];
+    path = [];
     serviceConfig = {
       User = "svein";
       WorkingDirectory = COMFYUI_DIR;
       Type = "simple";
       Restart = "on-failure";
-      Environment = "LD_LIBRARY_PATH=${cudaLibPath} LD_PRELOAD=${pkgs.gperftools}/lib/libtcmalloc.so";
-      ExecStart = COMFYUI_DIR + "/load.sh";
+      Environment = "";
+      ExecStart = "${pkgs.steam-run}/bin/steam-run " + COMFYUI_DIR + "/load.sh";
       MemoryMax = "32G";
     };
   };

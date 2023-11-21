@@ -8,8 +8,6 @@
     ./mcupdater.nix
   ];
 
-  services.vscode-server.enable = true;
-
   #boot.kernelPackages = lib.mkForce pkgs.linuxPackages_lqx;
   powerManagement.cpuFreqGovernor = lib.mkForce "schedutil";
   services.system76-scheduler.enable = true;
@@ -24,11 +22,12 @@
     #  });
     #  version = "latest";
     #}))
+    krita
     google-chrome
     youtube-dl
     gnome3.gnome-terminal
     steam-run
-    heroic
+    #heroic
     firefox
     xclip
     # Kanjitomo

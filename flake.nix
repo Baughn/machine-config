@@ -81,14 +81,13 @@
               nix.registry.nixpkgs.flake = nixpkgs;
             }
             # Add vscode for vscode-server.
-            vscode.nixosModules.default
-            {
-              services.vscode-server.enable = true;
-              services.vscode-server.enableFHS = true;
-              nixpkgs.config.permittedInsecurePackages = [
-                "nodejs-16.20.2"
-              ];
-            }
+            #vscode.nixosModules.default
+            #{
+            #  services.vscode-server.enable = true;
+            #  services.vscode-server.enableFHS = true;
+            #  nixpkgs.config.permittedInsecurePackages = [
+            #  ];
+            #}
             # Add agenix for secret management.
             agenix.nixosModules.age
             {
