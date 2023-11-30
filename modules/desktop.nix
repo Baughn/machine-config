@@ -66,7 +66,7 @@
       # Video / Photo editing
       kdenlive
       frei0r
-      gimp-with-plugins #krita
+      gimp-with-plugins
       # Emacs
       #((emacsPackagesNgGen pkgs.emacs).emacsWithPackages (p: with p.melpaStablePackages; [
       #    solarized-theme indent-guide
