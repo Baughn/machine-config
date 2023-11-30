@@ -12,8 +12,8 @@ lib.mkIf (config.networking.hostName == "tsugumi" || config.networking.hostName 
   };
 
   # And add whichever machine we *aren't* on as a binary cache.
-  nix.settings = {
-    substituters = lib.mkBefore [(if config.networking.hostName == "tsugumi" then "http://saya:5000" else "http://tsugumi:5000")];
-    trusted-public-keys = [ (builtins.readFile ../secrets/nix-store/public-key) ];
-  };
+  #nix.settings = {
+  #  substituters = lib.mkBefore [(if config.networking.hostName == "tsugumi" then "http://saya:5000" else "http://tsugumi:5000")];
+  #  trusted-public-keys = [ (builtins.readFile ../secrets/nix-store/public-key) ];
+  #};
 }
