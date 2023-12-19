@@ -136,17 +136,19 @@
         "ignorelb"
       ];
     };
-  };
-  # TODO: Fit this into the module.
-  systemd.services.upsd.preStart = ''
-    mkdir -p /var/lib/nut -m 0700
-  '';
-  environment.etc."nut/upsd.users".source = config.age.secrets."nut/upsd.users".path;
-  environment.etc."nut/upsmon.conf".source = config.age.secrets."nut/upsmon.conf".path;
-  environment.etc."nut/upsd.conf".text = "";
-  environment.etc."nut/do_shutdown.sh" = {
-    mode = "0555";
-    source = config.age.secrets."nut/do_shutdown.sh".path;
+    upsmon = {
+      enable = true;
+      monitor.phoenix = {
+        user = "admin";
+        passwordFile = config.age.secrets."nut/upspw".path;
+      };
+      settings.SHUTDOWNCMD = config.age.secrets."nut/do_shutdown.sh".path;
+    };
+    users.admin = {
+      actions = ["ALL"];
+      instcmds = ["ALL"];
+      passwordFile = config.age.secrets."nut/upspw".path;
+    };
   };
   # UPS monitoring
   systemd.services.prometheus-nut-exporter = let
