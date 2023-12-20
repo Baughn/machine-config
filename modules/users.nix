@@ -31,6 +31,7 @@
       uid = 1018;
       openssh.authorizedKeys.keys = builtins.concatLists (lib.attrValues sshKeys);
       createHome = false;
+      linger = true;
     };
     will.uid = 1050;
     pl.uid = 1051;
