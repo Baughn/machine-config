@@ -16,7 +16,7 @@
     #    ./satisfactory.nix
     #./vintagestory.nix
     #    ./factorio.nix
-    #../modules/plex.nix
+    ../modules/plex.nix
     #    ./znc.nix
     #./unifi.nix
     #../modules/netboot-server.nix
@@ -366,6 +366,11 @@
         handle_errors {
           header content-type "text/plain"
           respond "{http.error.status_code} {http.error.status_text}"
+        }
+
+        log {
+          output stderr
+          format console
         }
       }
 
