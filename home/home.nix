@@ -251,6 +251,7 @@
     compression = false;
     controlMaster = "auto";
     controlPersist = "2m";
+    hashKnownHosts = false;
     matchBlocks = {
       "sv" = {
         user = "minecraft";
