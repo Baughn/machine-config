@@ -16,7 +16,7 @@ let
     description = "ComfyUI";
     wantedBy = [ "multi-user.target" ];
     after = [ "network.target" ];
-    path = [];
+    path = [ pkgs.git ];
     serviceConfig = {
       User = "svein";
       WorkingDirectory = COMFYUI_DIR;

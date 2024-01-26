@@ -59,6 +59,12 @@
       fsType = "zfs";
     };
 
+  fileSystems."/srv/web" =
+    { device = "/home/svein/web";
+      depends = [ "/home" ];
+      options = [ "bind" ];
+    };
+
   swapDevices =
     [ { device = "/dev/disk/by-uuid/a67d0984-cc9c-4751-97e7-95fe1e9daf24"; }
     ];

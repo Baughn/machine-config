@@ -36,6 +36,33 @@
   ];
   systemd.enableEmergencyMode = true;
 
+  # Run Caddy (for now?)
+  services.caddy = {
+    enable = true;
+    email = "sveina@gmail.com";
+    extraConfig = ''
+     (headers) {   
+        header Strict-Transport-Security "max-age=31536000; includeSubdomains"
+        header X-Clacks-Overhead "GNU Terry Pratchett"
+        header X-Frame-Options "allow-from https://madoka.brage.info"
+        header X-XSS-Protection "1; mode=block"
+        header Referrer-Policy "no-referrer-when-downgrade"                   
+                                                      
+        encode zstd gzip                                             
+        handle_errors {                        
+          header content-type "text/plain"                 
+          respond "{http.error.status_code} {http.error.status_text}"
+        }                                     
+      }                
+  
+      saya.brage.info {
+        import headers
+        root * /srv/web
+        file_server browse
+      }
+    '';
+  };
+
   # Run backup script on a timer, every 30 minutes.
   services.restic.backups.home = {
     user = "svein";
@@ -72,8 +99,10 @@
 
   networking.firewall = {
     allowedTCPPorts = [
+      80 443  # HTTP(S)
       6987 # rtorrent
       3000 # Textchat-ui
+      25565  # Minecraft
     ];
     allowedUDPPorts = [
       6987 # rtorrent

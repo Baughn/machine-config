@@ -40,7 +40,7 @@
     openssh.authorizedKeys.keys = (import ./sshKeys.nix).svein;
     hashedPasswordFile = config.age.secrets.userPassword.path;
   };
-  users.defaultUserShell = pkgs.zsh;
+  users.defaultUserShell = pkgs.fish;
   users.include = ["svein"];
   environment.variables.EDITOR = "nvim";
 
@@ -56,6 +56,7 @@
   programs.zsh.enable = true;
   programs.zsh.autosuggestions.enable = true;
   programs.zsh.syntaxHighlighting.enable = true;
+  programs.fish.enable = true;
   programs.nano.nanorc = ''
     set nowrap
   '';
