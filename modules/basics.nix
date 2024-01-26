@@ -260,7 +260,7 @@
   ];
   services.avahi = {
     enable = lib.mkDefault true;
-    nssmdns = true;
+    nssmdns4 = true;
     allowInterfaces = ["internal"];
     publish.enable = true;
     publish.addresses = true;
