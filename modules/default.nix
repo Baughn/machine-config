@@ -14,6 +14,7 @@
     ./monitoring.nix
     ./nix-serve.nix
     ./exceptions.nix
+    ./caddy.nix
   ];
 
   me.monitoring.enable = lib.mkDefault true;
