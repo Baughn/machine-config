@@ -351,9 +351,42 @@
     depends = ["/home/svein/Media"];
     options = ["bind"];
   };
+
   services.caddy = {
     enable = true;
     email = "sveina@gmail.com";
+    globalConfig = ''
+      order authenticate before respond
+      order authorize before basicauth
+
+      security {
+        local identity store localdb {
+          realm local
+          path /var/lib/caddy/users.json
+        }
+
+        authentication portal myportal {
+          enable identity store localdb
+          crypto default token lifetime 86400
+          cookie domain brage.info
+        }
+
+        authorization policy users_policy {
+          set auth url https://auth.brage.info/auth/login
+          allow roles authp/admin authp/user
+          acl rule {
+            comment allow users
+            match role authp/user
+            allow stop log info
+          }
+          acl rule {
+            comment default deny
+            match any
+            deny log warn
+          }
+        }
+      }
+    '';
     extraConfig = ''
       (headers) {
         header Strict-Transport-Security "max-age=31536000; includeSubdomains"
@@ -375,17 +408,24 @@
       }
 
       (password) {
-        #@denied not remote_ip 89.101.222.210/29
-        #abort @denied
-
-        basicauth {
-          svein JDJhJDE0JGEvMmIyM3o2Ty94b1dNdXNlNmFtYmVvUFJ5UmVaOExEU2tOdTlsNi9KSEZYVHZlbXFMYTBp
-        }
+        authorize with users_policy
       }
 
       (localonly) {
         @denied not remote_ip 89.101.222.210/29
         abort @denied
+      }
+
+      auth.brage.info {
+        route {
+          authenticate with myportal
+        }
+      }
+
+      brage.info {
+        root * /srv/svein/
+        import headers
+        file_server browse
       }
 
       madoka.brage.info {
@@ -482,12 +522,6 @@
       jellyfin.brage.info {
         import headers
         reverse_proxy http://localhost:8096
-      }
-
-      brage.info {
-        root * /srv/svein/
-        import headers
-        file_server browse
       }
 
       www.brage.info, tsugumi.brage.info {
