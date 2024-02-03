@@ -63,6 +63,11 @@
     '';
   };
 
+  # Work around https://unix.stackexchange.com/questions/743820/what-could-cause-a-missing-mouse-scroll-event-just-after-reversing-scroll-direct
+  services.xserver.libinput.mouse.additionalOptions = ''
+    Option "HighResolutionWheelScrolling" "off"
+  '';
+
   # Run backup script on a timer, every 30 minutes.
   services.restic.backups.home = {
     user = "svein";
