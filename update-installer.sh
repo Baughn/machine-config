@@ -6,6 +6,8 @@ set -euo pipefail
 
 shellcheck "$0"
 
+set -x
+
 # Find Ventoy disk
 device_info=$(lsblk -J | jq -r '.blockdevices[] | select(.children != null) | .children[] | select(.size == "465.7G")')
 

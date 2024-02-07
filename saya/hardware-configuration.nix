@@ -9,22 +9,17 @@
     ];
 
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "uas" "sd_mod" ];
-  boot.initrd.kernelModules = [ "dm-snapshot" ];
-  boot.kernelModules = [ "kvm-amd" ];
+  boot.initrd.kernelModules = [ ];
+  boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "rpool/root";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home" =
-    { device = "rpool/home";
-      fsType = "zfs";
+    { device = "UUID=0747ff0a-69a5-424c-8f36-8d4b78af4d3e";
+      fsType = "bcachefs";
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/2151-9965";
+    { device = "/dev/disk/by-uuid/4FEB-0817";
       fsType = "vfat";
     };
 
@@ -49,16 +44,6 @@
     ];
   };
 
-  fileSystems."/home/svein/AI" =
-    { device = "bulk/AI";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/svein/Movies" =
-    { device = "bulk/Movies";
-      fsType = "zfs";
-    };
-
   fileSystems."/srv/web" =
     { device = "/home/svein/web";
       depends = [ "/home" ];
@@ -66,8 +51,16 @@
     };
 
   swapDevices =
-    [ { device = "/dev/disk/by-uuid/a67d0984-cc9c-4751-97e7-95fe1e9daf24"; }
+    [ { device = "/dev/disk/by-uuid/92967c33-3af0-47e3-bc40-ddfb6d09b2e9"; }
     ];
+
+  # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
+  # (the default) this is the recommended approach. When using systemd-networkd it's
+  # still possible to use this option, but it's recommended to use it in conjunction
+  # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
+  networking.useDHCP = lib.mkDefault true;
+  # networking.interfaces.enp12s0.useDHCP = lib.mkDefault true;
+  # networking.interfaces.wlp13s0.useDHCP = lib.mkDefault true;
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;

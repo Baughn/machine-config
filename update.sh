@@ -9,7 +9,7 @@ cd "$(dirname "$(readlink -f "$0")")"
 OLDLOCK=$(mktemp)
 trap "rm $OLDLOCK" EXIT
 cat flake.lock > $OLDLOCK
-nix flake update
+nix --extra-experimental-features 'nix-command flakes' flake update
 if nixos-rebuild --flake . build --show-trace "$@"; then
   nvd diff /run/current-system result
   printf '\a'

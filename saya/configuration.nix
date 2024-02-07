@@ -11,7 +11,7 @@
     ./hardware-configuration.nix
     ../modules/nvidia.nix
     ../modules/desktop.nix
-    ../modules/zfs.nix
+    ../modules/bcachefs.nix
     #../modules/nix-serve.nix
     ./sdbot.nix
   ];
@@ -69,10 +69,11 @@
   '';
 
   # Run backup script on a timer, every 30 minutes.
-  services.restic.backups.home = {
+  services.restic.backups.home = rec {
     user = "svein";
     passwordFile = "/home/svein/nixos/secrets/restic.pw";
     repository = "sftp:svein@brage.info:short-term/backups/saya";
+    backupPrepareCommand = "${pkgs.restic}/bin/restic -r ${repository} unlock";
     paths = [ "/home/svein" ];
     exclude = [
       "/home/*/.cache/*"
