@@ -45,6 +45,7 @@
     helvum
     # 3D printing
     prusa-slicer
+    orca-slicer
     cura
   ];
 
