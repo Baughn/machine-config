@@ -18,7 +18,24 @@
     '';
   }];
 
+  boot.kernelPackages = let
+    kernel_pkg = { buildLinux, ... } @ args:
+      buildLinux (args // rec {
+        version = "6.7.3";
+        modDirVersion = version;
+        src = /home/svein/linux/patched;
+        extraMeta.branch = "6.7";
+        kernelPatches = [];
+      } // (args.argsOverride or {}));
+    kernel = pkgs.callPackage kernel_pkg{};
+  in
+    pkgs.recurseIntoAttrs (pkgs.linuxPackagesFor kernel);
+
+  # Add delayacct to the kernel command line to actually turn it on.
+  boot.kernelParams = [ "delayacct" ];
+  # Unnecessary if you have a bcachefs filesystem in hardware-configuration.nix.
   boot.supportedFilesystems = ["bcachefs"];
   boot.initrd.supportedFilesystems = ["bcachefs"];
-  boot.kernelPackages = lib.mkForce pkgs.linuxPackages_latest;
+  # Use the latest kernel, since bcachefs is still in development.
+  #boot.kernelPackages = lib.mkForce pkgs.linuxPackages_latest;
 }

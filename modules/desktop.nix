@@ -106,7 +106,7 @@
 
   services.xserver = {
     enable = true;
-    layout = "us";
+    xkb.layout = "us";
     displayManager.sddm.enable = true;
     #displayManager.lightdm.enable = true;
     #displayManager.gdm.enable = true;
