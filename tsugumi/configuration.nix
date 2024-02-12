@@ -16,12 +16,13 @@
     #    ./satisfactory.nix
     #./vintagestory.nix
     #    ./factorio.nix
-    ../modules/plex.nix
+    #../modules/plex.nix
     #    ./znc.nix
     #./unifi.nix
     #../modules/netboot-server.nix
     ../modules/nix-serve.nix
     ../modules/amdgpu.nix
+    ../modules/nvidia.nix
     ../modules/zfs.nix
   ];
 
@@ -44,6 +45,9 @@
     # Disable boost
     #echo 0 > /sys/devices/system/cpu/cpufreq/boost
   '';
+
+  ## GPU
+  hardware.nvidia.nvidiaPersistenced = true;
 
   ## Networking
   programs.mosh.enable = lib.mkForce false;
