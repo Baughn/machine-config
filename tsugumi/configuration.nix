@@ -12,6 +12,7 @@
     ./hardware-configuration.nix
     ./sonarr.nix
     ./minecraft.nix
+    ./rolebot.nix
     #./syncplay.nix
     #    ./satisfactory.nix
     #./vintagestory.nix
