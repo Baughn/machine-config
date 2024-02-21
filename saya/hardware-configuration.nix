@@ -14,13 +14,13 @@
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "/dev/sda:/dev/sdb:/dev/nvme0n1p3:/dev/nvme1n1p3";
-      fsType = "bcachefs";
+    { device = "/dev/disk/by-uuid/1d9b697e-c76a-4b69-87b0-52f0e923127d";
+      fsType = "ext4";
     };
 
-  fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/4FEB-0817";
-      fsType = "vfat";
+  fileSystems."/home/svein/AI" =
+    { device = "bulk/AI";
+      fsType = "zfs";
     };
 
   fileSystems."/tsugumi" = {
@@ -48,10 +48,14 @@
     { device = "/home/svein/web";
       depends = [ "/home" ];
       options = [ "bind" ];
+
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-uuid/48DE-02A2";
+      fsType = "vfat";
     };
 
   swapDevices =
-    [ { device = "/dev/disk/by-uuid/92967c33-3af0-47e3-bc40-ddfb6d09b2e9"; }
+    [ { device = "/dev/disk/by-uuid/881b9caa-9c10-4d5e-8f86-33eecaa3fff8"; }
     ];
 
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
