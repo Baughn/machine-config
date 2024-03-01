@@ -75,7 +75,6 @@
     };
     nix.settings.trusted-users = [ "nixremote" ];
     # Next free ID: 1062
-    anne.uid = 1100;
   };
   includeUser = username: ({
       isNormalUser = true;

@@ -93,6 +93,37 @@
     ];
   };
 
+  # Patch in explicit-sync.
+  #nixpkgs.overlays = [
+  #  (self: super: {
+  #    # https://gitlab.freedesktop.org/xorg/xserver/-/merge_requests/967
+  #    xwayland = super.xwayland.overrideAttrs (oldAttrs: {
+  #      src = builtins.fetchGit {
+  #        url = "https://gitlab.freedesktop.org/ekurzinger/xserver.git";
+  #        ref = "explicit-sync";
+  #        rev = "feed851d6947423a8a4af21ee3cc63d3ff41891f";
+  #      };
+  #      buildInputs = oldAttrs.buildInputs ++ (with super; [ udev xorg.libpciaccess ]);
+  #    });
+  #    # https://gitlab.freedesktop.org/wayland/wayland-protocols/-/merge_requests/90
+  #    wayland-protocols = super.wayland-protocols.overrideAttrs (oldAttrs: {
+  #      src = builtins.fetchGit {
+  #        url = "https://gitlab.freedesktop.org/emersion/wayland-protocols.git";
+  #        ref = "linux-explicit-sync-v2";
+  #        rev = "8ead72b7559cf2dc6f24943eb6f48f2d93cb8a78";
+  #      };
+  #    });
+  #    # https://gitlab.freedesktop.org/xorg/proto/xorgproto/-/merge_requests/59
+  #    xorgproto = super.xorgproto.overrideAttrs (oldAttrs: {
+  #      src = builtins.fetchGit {
+  #        url = "https://gitlab.freedesktop.org/ekurzinger/xorgproto.git";
+  #        ref = "explicit-sync";
+  #        rev = "08c729e70b565508f36ad0df086b13b8bb6b0813";
+  #      };
+  #    });
+  #  })
+  #];
+
   programs.xwayland.enable = true;
   programs.sway = {
     enable = true;
@@ -113,7 +144,7 @@
     #displayManager.gdm.autoSuspend = false;
     #displayManager.gdm.autoLogin.user = "svein";
     desktopManager = {
-      plasma5.enable = true;
+      plasma6.enable = true;
     };
     # windowManager.xmonad = {
     #   enable = true;
