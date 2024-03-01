@@ -1,4 +1,5 @@
 {
+  pkgs,
   lib,
   config,
   ...
@@ -68,6 +69,11 @@
     linuxgsm = {
       uid = 1061;
     };
+    nixremote = {
+      uid = 1062;
+      shell = pkgs.bashInteractive;
+    };
+    nix.settings.trusted-users = [ "nixremote" ];
     # Next free ID: 1062
     anne.uid = 1100;
   };

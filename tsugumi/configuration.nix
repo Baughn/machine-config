@@ -13,11 +13,11 @@
     ./sonarr.nix
     ./minecraft.nix
     ./rolebot.nix
+    #../modules/home-assistant.nix
     #./syncplay.nix
     #    ./satisfactory.nix
     #./vintagestory.nix
     #    ./factorio.nix
-    #../modules/plex.nix
     #    ./znc.nix
     #./unifi.nix
     #../modules/netboot-server.nix
@@ -455,6 +455,12 @@
         reverse_proxy http://127.0.0.1:8124
       }
 
+      home.brage.info {
+        import headers
+        import password
+        reverse_proxy http://localhost:8123
+      }
+
       status.brage.info {
         import headers
         reverse_proxy http://127.0.0.1:9090
@@ -541,6 +547,6 @@
     '';
   };
 
-  users.include = ["minecraft" "aquagon"];
+  users.include = ["minecraft" "aquagon" "nixremote"];
   #users.include = ["pl" "aquagon" "will" "snowfire" "minecraft" "linuxgsm"];
 }
