@@ -227,6 +227,11 @@
     wheelNeedsPassword = false;
   };
   security.apparmor.enable = true;
+  # Work around #273164
+  security.apparmor.policies.dummy.profile = ''
+    /dummy {
+    }
+  '';
   services.fail2ban.enable = true;
   services.fail2ban.ignoreIP = [ "89.101.222.214/29" ];
 

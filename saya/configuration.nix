@@ -20,6 +20,17 @@
     virtualisation.enable = true;
   };
 
+
+  # Build on tsugumi as well.
+  nix.buildMachines = [{
+    hostName = "tsugumi";
+    system = "x86_64-linux";
+    protocol = "ssh";
+    maxJobs = 8;
+    supportedFeatures = ["kvm" "nixos-test" "big-parallel"];
+  }];
+  nix.distributedBuilds = true;
+
   services.flatpak.enable = true;
 
   ## Boot & hardware
