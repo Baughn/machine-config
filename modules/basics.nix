@@ -149,7 +149,14 @@
       # Games
       nethack
       steamcmd
-      steam-run
+      (steam.override {
+        extraLibraries = pkgs: with pkgs; [
+          gperftools
+        ];
+        extraPkgs = pkgs: with pkgs; [
+          bc
+        ];
+      }).run
       # Tools
       unrar
       znc
