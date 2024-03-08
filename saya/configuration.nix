@@ -26,10 +26,11 @@
     hostName = "tsugumi";
     system = "x86_64-linux";
     protocol = "ssh";
-    maxJobs = 8;
+    maxJobs = 4;
     supportedFeatures = ["kvm" "nixos-test" "big-parallel"];
   }];
   nix.distributedBuilds = true;
+  nix.settings.cores = 8;
 
   services.flatpak.enable = true;
 
@@ -75,9 +76,15 @@
   };
 
   # Work around https://unix.stackexchange.com/questions/743820/what-could-cause-a-missing-mouse-scroll-event-just-after-reversing-scroll-direct
-  services.xserver.libinput.mouse.additionalOptions = ''
-    Option "HighResolutionWheelScrolling" "off"
+  environment.etc."libinput/local-overrides.quirks".text = ''
+    [Logitech G903 LS]
+    MatchName=Logitech G903 LS
+    AttrEventCode=-REL_WHEEL_HI_RES;
   '';
+
+  #services.xserver.libinput.mouse.additionalOptions = ''
+  #  Option "HighResolutionWheelScrolling" "off"
+  #'';
 
   # Run backup script on a timer, every 30 minutes.
   services.restic.backups.home = rec {
