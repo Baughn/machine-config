@@ -8,6 +8,7 @@
     ./users.nix
     ./logrotate.nix
     ./naming.nix
+    ./nonnix.nix
   ];
 
   # Use whatever kernel package is compatible.
@@ -88,7 +89,6 @@
     gh
     sqlite-interactive
     # System/monitoring/etc tools
-    parted
     psmisc
     atop
     hdparm
@@ -148,15 +148,6 @@
     with pkgs; [
       # Games
       nethack
-      steamcmd
-      (steam.override {
-        extraLibraries = pkgs: with pkgs; [
-          gperftools
-        ];
-        extraPkgs = pkgs: with pkgs; [
-          bc
-        ];
-      }).run
       # Tools
       unrar
       znc
