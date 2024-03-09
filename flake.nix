@@ -18,6 +18,9 @@
   inputs.vscode.url = "github:nix-community/nixos-vscode-server";
   inputs.vscode.inputs.nixpkgs.follows = "nixpkgs";
 
+  inputs.nix-index-database.url = "github:nix-community/nix-index-database";
+  inputs.nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
+
   # Flake outputs:
   # - One machine config for each of my machines.
   # - Packages:
@@ -37,6 +40,7 @@
     deploy-rs,
     agenix,
     vscode,
+    nix-index-database,
   }: let
     system = "x86_64-linux";
     stateVersion = "23.05";
@@ -79,7 +83,9 @@
               nix.nixPath = ["nixpkgs=/etc/nixpkgs"];
               environment.etc."nixpkgs".source = nixpkgs;
               nix.registry.nixpkgs.flake = nixpkgs;
+              programs.nix-index-database.comma.enable = true;
             }
+            nix-index-database.nixosModules.nix-index
             # Add vscode for vscode-server.
             #vscode.nixosModules.default
             #{

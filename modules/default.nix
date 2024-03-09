@@ -21,6 +21,10 @@
   me.monitoring.enable = lib.mkDefault true;
   me.monitoring.zfs = lib.mkDefault false;
 
+  # Use nix-index instead of command-not-found, for flake support.
+  programs.nix-index.enable = true;
+  programs.command-not-found.enable = false;
+
   # Setup cachix
   nix.settings.substituters = [
     "https://cuda-maintainers.cachix.org"
