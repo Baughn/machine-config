@@ -29,7 +29,7 @@
     maxJobs = 4;
     supportedFeatures = ["kvm" "nixos-test" "big-parallel"];
   }];
-  nix.distributedBuilds = true;
+  #nix.distributedBuilds = true;
   nix.settings.cores = 8;
 
   services.flatpak.enable = true;
