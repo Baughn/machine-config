@@ -16,7 +16,7 @@
     enable = true;
     ssh = {
       enable = true;
-      authorizedKeys = (import ./sshKeys.nix).svein;
+      authorizedKeys = (import ./keys.nix).svein.ssh;
       # Use a fixed host key. The same one as for the main host, thanks.
       hostKeys = ["/etc/ssh/ssh_host_ed25519_key"];
     };
