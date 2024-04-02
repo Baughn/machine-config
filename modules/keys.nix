@@ -51,9 +51,18 @@
   };
   lashtear = {
     ssh = [
-      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDOOdDDmkqtHcPOjxsowjAHRP3vJZFE1kTHo5jszDIFVXjQpTqadeJyIvhr2JSbWMK5V48XRg1r1o5PjvbLOQhaztrzF0a/QFHsigniES2V/Tpm57aBPh+gSHHyp9tfzZijyOgEBfnMQ7FIvUgT6bRlY5WJfp0cGJdV+2jNN5Rdxxbcwa97CQAt55u/SdGKsB9vLr+Eil/yjCPmO7Aj4gvB/YElgQCVmOwSBbmtXiT2EP8VesQDX+0hfysxPkc2Vxo9tyAGNywB/QPFVPRz8sSN/RdYNuxXfpTv7N9x76D1L/tKluoqB1k1s2olRVmPBqPfYYxDbzMVsiOLIU8DEjch lucca@chrysalis"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOghAMI7V97vZudyc9fl4csb8VOILUhvKgt8ebk29cJU lucca@atropos"
       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDI61spDB1aui2nU4hmP0x6AH4LcQtm2qdpYysaC4FkY+6U3m8PyJNXPwRVDWS26++GPbB4EPG+1T4BgIdwCN2/3JTk6GwdCmIMh8bWlEdSs9B7cqtD+y5CwmTieWbgrU6fVZT9X6CRSZtz8KMkXlI/JgsI6qfJfNZVn7QPgp0FFhC6i72aNJGDvv4fneK5uYl9htM+NbyqFmO/YygYZhbwjTsYjhymW1aXO3A1+mckWmYR/fYRrtJ55ySso3hWTi6GzL6pQPEicEpWJM2J+/3xZ4kHCE9VHD2H97Vm9FkbBmyDkdXsDQ8WPzP2TA7ijvI29c3FHUsXSaU9PxP2H8ob lucca@kuu"
     ];
+    wireguard = [{
+      publicKey = "We6UVqoySg+bpp3tdVBpATZsdpuTH6/O1JeATcbfvVg=";
+      allowedIPs = [
+        "172.92.0.0/16"
+        "45.56.94.73/32"
+        "2604:4080::/32"
+        "2600:3c01::f03c:91ff:fe96:8652/128"
+      ];
+    }];
   };
   clever = {
     ssh = [
