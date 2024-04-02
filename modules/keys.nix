@@ -1,7 +1,7 @@
 # This file contains SSH and Wireguard keys for various users.
 # When adding yourself, make sure your username matches the one in users.nix.
 #
-# There's no need for the whitelistIP field to list your exact IP address,
+# There's no need for the allowedIPs field to list your exact IP address,
 # as it's intended primarily to blacklist the 95% of the internet that's
 # essentially the Warp. Feel free to include your entire ISP. If you don't
 # know what address that should be, then google for "what is my IP" and
