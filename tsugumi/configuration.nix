@@ -357,41 +357,37 @@
     options = ["bind"];
   };
 
+  services.authelia = {
+    instances.main = {
+      enable = true;
+      secrets.storageEncryptionKeyFile = config.age.secrets."authelia-storage-key".path;
+      secrets.jwtSecretFile = config.age.secrets."authelia-jwt-key".path;
+      settings = {
+       theme = "light";
+       default_2fa_method = "totp";
+       log.level = "debug";
+       #server.disable_healthcheck = true;
+       authentication_backend = {
+         file = {
+           path = "/var/lib/authelia-main/users.yml";
+         };
+       };
+       access_control.default_policy = "one_factor";
+       session.domain = "brage.info";
+       storage = {
+         local = {
+           path = "/var/lib/authelia-main/db.sqlite3";
+         };
+       };
+       notifier.filesystem.filename = "/var/lib/authelia-main/notification.txt";
+      };
+    };
+  };
+
+
   services.caddy = {
     enable = true;
     email = "sveina@gmail.com";
-    globalConfig = ''
-      order authenticate before respond
-      order authorize before basicauth
-
-      security {
-        local identity store localdb {
-          realm local
-          path /var/lib/caddy/users.json
-        }
-
-        authentication portal myportal {
-          enable identity store localdb
-          crypto default token lifetime 86400
-          cookie domain brage.info
-        }
-
-        authorization policy users_policy {
-          set auth url https://auth.brage.info/auth/login
-          allow roles authp/admin authp/user
-          acl rule {
-            comment allow users
-            match role authp/user
-            allow stop log info
-          }
-          acl rule {
-            comment default deny
-            match any
-            deny log warn
-          }
-        }
-      }
-    '';
     extraConfig = ''
       (headers) {
         header Strict-Transport-Security "max-age=31536000; includeSubdomains"
@@ -412,19 +408,21 @@
         }
       }
 
+      # Authelia portal
+      auth.brage.info {
+        reverse_proxy localhost:9091
+      }
+
       (password) {
-        authorize with users_policy
+        forward_auth localhost:9091 {
+          uri /api/verify?rd=https://auth.brage.info/
+          copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+        }
       }
 
       (localonly) {
         @denied not remote_ip 89.101.222.210/29
         abort @denied
-      }
-
-      auth.brage.info {
-        route {
-          authenticate with myportal
-        }
       }
 
       brage.info {
@@ -474,12 +472,14 @@
 
       znc.brage.info {
         import headers
+        import password
         reverse_proxy https://znc.brage.info:4000 {
         }
       }
 
       obico.brage.info {
         import headers
+        import password
         reverse_proxy http://localhost:3334
       }
 
@@ -514,13 +514,9 @@
         file_server browse
       }
 
-      matrix.brage.info {
-        import headers
-        reverse_proxy http://89.101.222.210:8448
-      }
-
       qbt.brage.info {
         import headers
+        import password
         reverse_proxy http://localhost:8080
       }
 
@@ -530,8 +526,15 @@
         reverse_proxy http://localhost:8989
       }
 
+      radarr.brage.info {
+        import headers
+        import password
+        reverse_proxy http://localhost:7878
+      }
+
       jellyfin.brage.info {
         import headers
+        import password
         reverse_proxy http://localhost:8096
       }
 

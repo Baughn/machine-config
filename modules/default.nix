@@ -14,7 +14,6 @@
     ./monitoring.nix
     ./nix-serve.nix
     ./exceptions.nix
-    ./caddy.nix
     ./ipblock.nix
   ];
 
