@@ -38,7 +38,7 @@
   # User setup
   users.mutableUsers = false;
   users.users.root = {
-    openssh.authorizedKeys.keys = (import ./sshKeys.nix).svein;
+    openssh.authorizedKeys.keys = (import ./keys.nix).svein.ssh;
     hashedPasswordFile = config.age.secrets.userPassword.path;
   };
   users.defaultUserShell = pkgs.fish;
