@@ -18,10 +18,14 @@
     }];
   };
   bloxgate = {
-    ssh = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPi0pCZqmvbObrDkAg28EBwt/hriKcCXRlEreexhoNJd bloxgate-ed25519-2018"
-      "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAy/+H1vDZGfsRQJJkZJXDSRUAoQsw+K8P8nJj2CKugl+vw0+un2DPDJRi4GszqC5jkjKVNFHQxKtUZGMGBq8IzxXVudgdMQ0MYoQLxi563UMuPJ+94yuYvUZZ4lCzsq7lUZ6StwfoygQ/P2l6mVXhyCib7CYgS2ubstOn6H9A5UFR4FtZus7IGtpdUzMjzbjs8LQpS+Vr4Ju9cgGGmcKGWV3llz9zq+UDPSP2MZs3phvfo0nPSHTYD6m8tH7lGw945ZTrOj6z5LaHSZZuXqX9NxgdB7WiSYru9iZQVU7wDfZmnkeQ1X3IQBMI+LlqN9YqP6MjAjmQDv3FpmjFY3dQtQ== east-key"
-    ];
+    ssh = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPi0pCZqmvbObrDkAg28EBwt/hriKcCXRlEreexhoNJd bloxgate-ed25519-2018"];
+    wireguard = [{
+      publicKey = "6OMjCrzgoBe3iAnXGlhcce/za/poemekSpE95BuCmXc=";
+	  allowedIPs = [
+	    "2600:1700:eec7:820e::/64"
+	    "172.11.128.0/22"
+	  ];
+	}];
   };
   dusk = {
     ssh = [
