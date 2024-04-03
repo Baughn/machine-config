@@ -21,11 +21,11 @@
     ssh = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPi0pCZqmvbObrDkAg28EBwt/hriKcCXRlEreexhoNJd bloxgate-ed25519-2018"];
     wireguard = [{
       publicKey = "6OMjCrzgoBe3iAnXGlhcce/za/poemekSpE95BuCmXc=";
-	  allowedIPs = [
-	    "2600:1700:eec7:820e::/64"
-	    "172.11.128.0/22"
-	  ];
-	}];
+      allowedIPs = [
+        "2600:1700:eec7:820e::/64"
+        "172.11.128.0/22"
+      ];
+    }];
   };
   dusk = {
     ssh = [
