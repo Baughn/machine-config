@@ -83,11 +83,11 @@
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBpUHboM5fNLogflF/9EEklCgAvmE08L1lmT696UIwSW jared@arch01l.ctha.ja4.org"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG5nvmj3DlRnRJqsvdizUOMcQH71XQxew5jI6WW65Gpv jared@win01d.ctha.ja4.org"
     ];
-    wireguard = [
+    wireguard = [{
       # Tunnel from jump.use1.ja4.org
       publicKey = "3dw3YKuBXdSQj/ULDM9mj1VKotWNEWSNVW6FcIIsR2A=";
       allowedIPs = ["35.168.203.255/32"];
-    ];
+    }];
   };
   maxwell-lt = {
     ssh = [
