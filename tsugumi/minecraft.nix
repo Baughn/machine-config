@@ -31,6 +31,7 @@
   ];
   networking.firewall.allowedUDPPorts = [
     24454  # Simple voice chat
+    51820  # Wireguard
   ];
   services.prometheus.scrapeConfigs = [
     {

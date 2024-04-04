@@ -25,6 +25,7 @@
     ../modules/amdgpu.nix
     ../modules/nvidia.nix
     ../modules/zfs.nix
+    ../modules/wireguard.nix
   ];
 
   me = {
@@ -53,18 +54,10 @@
   ## Networking
   programs.mosh.enable = lib.mkForce false;
   networking.hostName = "tsugumi";
-  services.udev.extraRules = ''
-    # Attempt to fix the bloody realtek drivers.
-    #ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="3c:7c:3f:24:99:f6", NAME="external", RUN+="${pkgs.ethtool}/bin/ethtool --change external autoneg off"
-    #ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="internal", RUN+="${pkgs.ethtool}/bin/ethtool --change internal autoneg off"
-
-    # Define the DMZ interface
-    ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="e8:4e:06:8b:85:8c", NAME="dmz"
-
-    # Set an appropriate usb device name for the FLSUN Super Racer serial port.
-    ACTION=="add", SUBSYSTEM=="tty", ATTRS{serial}=="208734504D34", SYMLINK+="ttyFLSUNRacer"
-  '';
-  networking.networkmanager.enable = true;
+  systemd.network.networks."10-enp8s0" = {
+    matchConfig.Name = "enp8s0";
+    networkConfig.DHCP = "ipv4";
+  };
 
   # Firewall
   networking.firewall.allowedTCPPorts = [
