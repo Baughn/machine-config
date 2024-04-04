@@ -9,7 +9,6 @@
   ];
   # Run SSHD even in emergency mode.
   systemd.services.sshd.wantedBy = ["emergency.target" "rescue.target"];
-  systemd.services.dhcpcd.wantedBy = ["emergency.target" "rescue.target"];
 
   # Allow login during initrd, in case it hangs.
   boot.initrd.network = {
