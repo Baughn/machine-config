@@ -9,7 +9,7 @@
   # Get a list of every unique client (by public key).
   allKeys = builtins.map (c: c.publicKey) allBaseConfigs;
   # Generate a unique IP per client.
-  allIPs = lib.genList (i: "10.100.0.${builtins.toString (i+2)}") (builtins.length allKeys);
+  allIPs = lib.genList (i: "10.171.0.${builtins.toString (i+2)}") (builtins.length allKeys);
   # Zip the keys and IPs together.
   allConfigs = lib.zipListsWith (key: ip: {
     wireguardPeerConfig = {
@@ -36,6 +36,6 @@ in {
   systemd.network.networks.wg0 = {
     enable = true;
     matchConfig.Name = "wg0";
-    address = ["10.100.0.1/24"];
+    address = ["10.171.0.1/24"];
   };
 }
