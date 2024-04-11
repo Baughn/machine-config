@@ -6,6 +6,9 @@
 # essentially the Warp. Feel free to include your entire ISP. If you don't
 # know what address that should be, then google for "what is my IP" and
 # run the resulting address through whois; the CIDR block is what you want.
+#
+# The id field is really just the LSB of your IP, and
+# must be a unique number >1.
 
 {
   svein = {
@@ -15,6 +18,7 @@
     wireguard = [{
       publicKey = "9u3/F1o4ImItDXJCMr06YpEuUKCqX9cuQdG0dlTdQCE=";
       allowedIPs = ["89.101.222.210/29"];
+      id = 6;
     }];
   };
   bloxgate = {
@@ -25,6 +29,7 @@
         "2600:1700:eec7:820e::/64"
         "172.11.128.0/22"
       ];
+      id = 2;
     }];
   };
   dusk = {
@@ -66,6 +71,7 @@
         "2604:4080::/32"
         "2600:3c01::f03c:91ff:fe96:8652/128"
       ];
+      id = 4;
     }];
   };
   clever = {
@@ -87,6 +93,7 @@
       # Tunnel from jump.use1.ja4.org
       publicKey = "3dw3YKuBXdSQj/ULDM9mj1VKotWNEWSNVW6FcIIsR2A=";
       allowedIPs = ["35.168.203.255/32"];
+      id = 3;
     }];
   };
   maxwell-lt = {
@@ -96,6 +103,7 @@
     wireguard = [{
       publicKey = "S+U8WhWiLl9NOzvFb1QGZg6brrGpnAVp0dfrQ5PsrCk=";
       allowedIPs = ["75.46.0.0/16"];
+      id = 5;
     }];
   };
 }

@@ -13,6 +13,7 @@
     ./sonarr.nix
     ./minecraft.nix
     ./rolebot.nix
+    ./sdbot.nix
     #../modules/home-assistant.nix
     #./syncplay.nix
     #    ./satisfactory.nix
