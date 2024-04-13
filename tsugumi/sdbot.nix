@@ -24,7 +24,7 @@ let
       Restart = "on-failure";
       Environment = "";
       ExecStart = "${pkgs.steam-run}/bin/steam-run " + COMFYUI_DIR + "/load.sh";
-      MemoryMax = "32G";
+      MemoryMax = "20G";
     };
   };
 
