@@ -21,10 +21,11 @@ let
       User = "svein";
       WorkingDirectory = COMFYUI_DIR;
       Type = "simple";
-      Restart = "on-failure";
+      Restart = "always";
       Environment = "";
       ExecStart = "${pkgs.steam-run}/bin/steam-run " + COMFYUI_DIR + "/load.sh";
       MemoryMax = "20G";
+      RuntimeMaxSec = "6h";
     };
   };
 
