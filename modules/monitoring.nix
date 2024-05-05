@@ -115,6 +115,16 @@
                 description: "Pool errors detected on {{ $labels.pool }}"
           - name: machine
             rules:
+            - alert: WaterTempHigh
+              expr:  node_hwmon_sensor_label{label="Coolant temp"} * on (chip) group_right node_hwmon_temp_celsius > 43
+              annotations:
+                summary: "Coolant temperature is high"
+                description: "Coolant temperature is {{ $value }} degrees on {{ $labels.instance }}"
+            - alert: PumpSpeedLow
+              expr: node_hwmon_sensor_label{label="Pump speed"} * on (chip) group_right node_hwmon_fan_rpm{sensor="fan1"} < 1600
+              annotations:
+                summary: "Pump speed is low"
+                description: "Pump speed is {{ $value }} RPM on {{ $labels.instance }}"
             - alert: MemoryErrors
               expr: node_edac_correctable_errors_total > 0
               annotations:
