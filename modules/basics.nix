@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  flox,
   lib,
   ...
 }: {
@@ -63,6 +64,7 @@
 
   ## System environment
   environment.systemPackages = with pkgs; [
+    flox.flox
     # Debug/dev tools
     tcpdump
     nmap
@@ -121,8 +123,6 @@
     fd
     rlwrap
     (callPackage ../tools/up {})
-    # AI support
-    shell_gpt
     # File transfer
     rsync
     wget

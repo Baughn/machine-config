@@ -22,10 +22,11 @@ let
       WorkingDirectory = COMFYUI_DIR;
       Type = "simple";
       Restart = "always";
-      Environment = "";
       ExecStart = "${pkgs.steam-run}/bin/steam-run " + COMFYUI_DIR + "/load.sh";
       MemoryMax = "20G";
       RuntimeMaxSec = "6h";
+      # LD_PRELOAD tcmalloc.
+      Environment = "LD_PRELOAD=${pkgs.gperftools}/lib/libtcmalloc.so";
     };
   };
 
