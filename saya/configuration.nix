@@ -48,33 +48,6 @@
   ];
   systemd.enableEmergencyMode = true;
 
-  # Run Caddy (for now?)
-  services.caddy = {
-    enable = true;
-    email = "sveina@gmail.com";
-    extraConfig = ''
-     (headers) {   
-        header Strict-Transport-Security "max-age=31536000; includeSubdomains"
-        header X-Clacks-Overhead "GNU Terry Pratchett"
-        header X-Frame-Options "allow-from https://madoka.brage.info"
-        header X-XSS-Protection "1; mode=block"
-        header Referrer-Policy "no-referrer-when-downgrade"                   
-                                                      
-        encode zstd gzip                                             
-        handle_errors {                        
-          header content-type "text/plain"                 
-          respond "{http.error.status_code} {http.error.status_text}"
-        }                                     
-      }                
-  
-      saya.brage.info {
-        import headers
-        root * /srv/web
-        file_server browse
-      }
-    '';
-  };
-
   # Work around https://unix.stackexchange.com/questions/743820/what-could-cause-a-missing-mouse-scroll-event-just-after-reversing-scroll-direct
   environment.etc."libinput/local-overrides.quirks".text = ''
     [Logitech G903 LS]
@@ -90,7 +63,7 @@
   services.restic.backups.home = rec {
     user = "svein";
     passwordFile = "/home/svein/nixos/secrets/restic.pw";
-    repository = "sftp:svein@brage.info:short-term/backups/saya";
+    repository = "sftp:svein@tsugumi:short-term/backups/saya";
     backupPrepareCommand = "${pkgs.restic}/bin/restic -r ${repository} unlock";
     paths = [ "/home/svein" ];
     exclude = [
