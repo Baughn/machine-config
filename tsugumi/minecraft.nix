@@ -4,14 +4,11 @@
   lib,
   ...
 }: {
-  security.sudo-rs.extraRules = [{
+  security.sudo.extraRules = [{
     users = [ "minecraft" ];
     commands = [
-      { command = "/run/current-system/sw/bin/zpool status"; options = ["NOPASSWD"]; }
-      { command = "/run/current-system/sw/bin/zpool list"; options = ["NOPASSWD"]; }
-      { command = "/run/current-system/sw/bin/zfs list"; options = ["NOPASSWD"]; }
-      { command = "/run/current-system/sw/bin/zfs snapshot rpool/minecraft"; options = ["NOPASSWD"]; }
-      { command = "/run/current-system/sw/bin/zfs rollback rpool/minecraft"; options = ["NOPASSWD"]; }
+      { command = "/run/current-system/sw/bin/zfs list -t snapshot -H"; options = ["NOPASSWD"]; }
+      { command = "/run/current-system/sw/bin/zfs rollback rpool/minecraft/* -r"; options = ["NOPASSWD"]; }
       { command = "/run/current-system/sw/bin/mount -t zfs --target /home/minecraft/snapshot --source rpool/minecraft"; options = ["NOPASSWD"]; }
       { command = "/run/current-system/sw/bin/umount /home/minecraft/snapshot"; options = ["NOPASSWD"]; }
     ];
@@ -31,6 +28,7 @@
   ];
   networking.firewall.allowedUDPPorts = [
     24454  # Simple voice chat
+    51820  # Wireguard
   ];
   services.prometheus.scrapeConfigs = [
     {

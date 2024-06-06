@@ -21,6 +21,18 @@
   inputs.nix-index-database.url = "github:nix-community/nix-index-database";
   inputs.nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
 
+  inputs.flox.url = "github:flox/flox";
+
+  inputs.lix = {
+    url = "git+https://git.lix.systems/lix-project/lix?ref=refs/tags/2.90-beta.1";
+    flake = false;
+  };
+  inputs.lix-module = {
+    url = "git+https://git.lix.systems/lix-project/nixos-module";
+    inputs.lix.follows = "lix";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
   # Flake outputs:
   # - One machine config for each of my machines.
   # - Packages:
@@ -41,6 +53,9 @@
     agenix,
     vscode,
     nix-index-database,
+    flox,
+    lix,
+    lix-module,
   }: let
     system = "x86_64-linux";
     stateVersion = "23.05";
@@ -75,8 +90,12 @@
     node = {modules}:
       nixpkgs.lib.nixosSystem {
         inherit system;
+        specialArgs = {
+          flox = flox.packages.${system};
+        };
         modules =
           [
+            lix-module.nixosModules.default
             {
               system.stateVersion = stateVersion;
               # Propagate nixpkgs

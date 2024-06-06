@@ -14,5 +14,5 @@
   ];
 
   users.users.root.openssh.authorizedKeys.keys =
-    (import ../modules/sshKeys.nix).svein;
+    (import ../modules/keys.nix).svein.ssh;
 }
