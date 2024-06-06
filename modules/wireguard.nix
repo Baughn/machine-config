@@ -3,16 +3,34 @@
   lib,
   ...
 }: let
-  host = config.networking.hostName;
-  guarded = {
-    tsugumi.address = "10.40.0.1";
-    saya.address = "10.40.0.2";
-  };
+  keys = import ./keys.nix;
+  allBaseConfigs = builtins.concatLists (
+    lib.mapAttrsToList (n: v: v.wireguard or []) keys);
+  allConfigs = builtins.map (v: {
+    wireguardPeerConfig = {
+      PublicKey = v.publicKey;
+      AllowedIPs = [("10.171.0." + (toString v.id) + "/32")];
+    };
+  }) allBaseConfigs;
 in {
-  #  networking.wg-quick = lib.mkIf (lib.any (h: h == host) guarded) {
-  #    interfaces.wg0 = {
-  #      addresses = "${guarded.${host}.address}/16";
-  #      listenPort = 10400;
-  #
-  #  }
+  systemd.network.netdevs = {
+    "50-wg0" = {
+      enable = true;
+      netdevConfig = {
+        Kind = "wireguard";
+        Name = "wg0";
+        MTUBytes = "1350";
+      };
+      wireguardConfig = {
+        ListenPort = 51820;
+        PrivateKeyFile = config.age.secrets."wireguard/tsugumi".path;
+      };
+      wireguardPeers = allConfigs;
+    };
+  };
+  systemd.network.networks.wg0 = {
+    enable = true;
+    matchConfig.Name = "wg0";
+    address = ["10.171.0.1/24"];
+  };
 }

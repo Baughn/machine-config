@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  flox,
   lib,
   ...
 }: {
@@ -31,14 +32,13 @@
   boot.swraid.enable = false;
 
   # Performance stuff
-  #nix.daemonCPUSchedPolicy = "idle";
   security.rtkit.enable = true;
   services.ananicy.enable = true;
 
   # User setup
   users.mutableUsers = false;
   users.users.root = {
-    openssh.authorizedKeys.keys = (import ./sshKeys.nix).svein;
+    openssh.authorizedKeys.keys = (import ./keys.nix).svein.ssh;
     hashedPasswordFile = config.age.secrets.userPassword.path;
   };
   users.defaultUserShell = pkgs.fish;
@@ -64,6 +64,7 @@
 
   ## System environment
   environment.systemPackages = with pkgs; [
+    flox.flox
     # Debug/dev tools
     tcpdump
     nmap
@@ -122,8 +123,6 @@
     fd
     rlwrap
     (callPackage ../tools/up {})
-    # AI support
-    shell_gpt
     # File transfer
     rsync
     wget
@@ -205,8 +204,10 @@
   nix.gc.automatic = true;
   nix.gc.dates = "Thu 03:15";
   nix.gc.options = lib.mkDefault "--delete-older-than 14d";
+  nix.daemonCPUSchedPolicy = "batch";
   nix.settings = {
-    cores = lib.mkDefault 0;
+    cores = lib.mkDefault 8;
+    max-jobs = lib.mkDefault 8;
     sandbox = "relaxed";
     trusted-users = ["root" "svein"];
   };
@@ -219,8 +220,7 @@
   '';
 
   ## Security & Login
-  security.sudo.enable = false;
-  security.sudo-rs = {
+  security.sudo = {
     enable = true;
     wheelNeedsPassword = false;
   };
@@ -251,6 +251,8 @@
   powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
 
   ## Networking & Firewall basics
+  networking.useDHCP = false;
+  systemd.network.enable = true;
   networking.domain = "brage.info";
   networking.firewall.allowPing = true;
   networking.firewall.logRefusedConnections = false;

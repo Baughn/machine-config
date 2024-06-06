@@ -4,7 +4,7 @@
   config,
   ...
 }: let
-  sshKeys = import ./sshKeys.nix;
+  keys = import ./keys.nix;
   users = {
     svein = {
       uid = 1000;
@@ -30,7 +30,7 @@
     mei.uid = 1017;
     minecraft = {
       uid = 1018;
-      openssh.authorizedKeys.keys = builtins.concatLists (lib.attrValues sshKeys);
+      openssh.authorizedKeys.keys = lib.concatLists (lib.mapAttrsToList (user: data: data.ssh) keys);
       createHome = false;
       linger = true;
     };
@@ -43,7 +43,7 @@
         [
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAW37vjjfhK1hBwHO6Ja4TRuonXchlLVIYnA4Px9hTYD svein@madoka.brage.info"
         ]
-        ++ sshKeys.svein;
+        ++ keys.svein.ssh;
     };
     lucca.uid = 1055;
     dusk.uid = 1056;
@@ -78,7 +78,7 @@
   };
   includeUser = username: ({
       isNormalUser = true;
-      openssh.authorizedKeys.keys = sshKeys.${username} or [];
+      openssh.authorizedKeys.keys = keys.${username}.ssh or [];
     }
     // users.${username});
 in
