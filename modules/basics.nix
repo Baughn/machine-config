@@ -263,14 +263,16 @@
       to = 61000;
     }
   ];
-  services.avahi = {
-    enable = lib.mkDefault true;
-    nssmdns4 = true;
-    allowInterfaces = ["internal"];
-    publish.enable = true;
-    publish.addresses = true;
-    publish.workstation = true;
+  services.resolved = {
+    enable = true;
+    dnssec = "allow-downgrade";
+    domains = ["local" "brage.info"];
+    extraConfig = ''
+      MulticastDNS = yes
+      LLMNR = no
+    '';
   };
+  networking.firewall.allowedUDPPorts = [ 5353 ];
 
   # Add hosts for SV.
   networking.hosts = lib.mapAttrs' (host: cfg: lib.nameValuePair cfg.publicIP [(host + ".sv")]) (
