@@ -23,3 +23,4 @@ done
 
 # Include google, 'coz work.
 echo '34.64.0.0/10' >> acceptlist.txt
+echo '35.192.0.0/12' >> acceptlist.txt

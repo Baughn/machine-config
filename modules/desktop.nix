@@ -125,8 +125,6 @@
   # Work around #224332
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
-  services.udev.packages = with pkgs; [gnome3.gnome-settings-daemon];
-
   services.xserver = {
     enable = true;
     xkb.layout = "us";
@@ -153,6 +151,7 @@
   services.ratbagd.enable = true;
 
   hardware.pulseaudio.enable = false;
+  sound.enable = true;
   services.pipewire = {
     enable = true;
     alsa.enable = true;

@@ -24,7 +24,7 @@
     };
 
   fileSystems."/tsugumi" = {
-    device = "svein@brage.info:";
+    device = "svein@tsugumi:";
     fsType = "fuse.sshfs";
     options = [
       "noauto"
