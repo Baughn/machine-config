@@ -13,7 +13,7 @@
     ../modules/desktop.nix
     ../modules/zfs.nix
     #../modules/nix-serve.nix
-    ./sdbot.nix
+    #./sdbot.nix
   ];
 
   me = {
@@ -92,7 +92,12 @@
 
   ## Networking
   networking.hostName = "saya";
-  networking.networkmanager.enable = true;
+  systemd.network.networks."10-enp12s0" = {
+    matchConfig.Name = "enp12s0";
+    networkConfig.DHCP = "ipv4";
+    networkConfig.MulticastDNS = true;
+    networkConfig.LinkLocalAddressing = false;
+  };
 
   networking.firewall = {
     allowedTCPPorts = [

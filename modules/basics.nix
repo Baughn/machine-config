@@ -253,6 +253,15 @@
   ## Networking & Firewall basics
   networking.useDHCP = false;
   systemd.network.enable = true;
+  services.resolved = {
+    enable = true;
+    dnssec = "allow-downgrade";
+    domains = ["local" "brage.info"];
+    extraConfig = ''
+      MulticastDNS = yes
+    '';
+  };
+  networking.firewall.allowedUDPPorts = [ 5353 ];
   networking.domain = "brage.info";
   networking.firewall.allowPing = true;
   networking.firewall.logRefusedConnections = false;
@@ -263,19 +272,6 @@
       to = 61000;
     }
   ];
-  services.avahi = {
-    enable = lib.mkDefault true;
-    nssmdns4 = true;
-    allowInterfaces = ["internal"];
-    publish.enable = true;
-    publish.addresses = true;
-    publish.workstation = true;
-  };
-
-  # Add hosts for SV.
-  networking.hosts = lib.mapAttrs' (host: cfg: lib.nameValuePair cfg.publicIP [(host + ".sv")]) (
-    import ../secrets/sv-network.nix
-  );
 
   ## Time & location ##
   console = {
