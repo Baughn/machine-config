@@ -253,14 +253,6 @@
   ## Networking & Firewall basics
   networking.useDHCP = false;
   systemd.network.enable = true;
-  services.resolved = {
-    enable = true;
-    dnssec = "allow-downgrade";
-    domains = ["local" "brage.info"];
-    extraConfig = ''
-      MulticastDNS = yes
-    '';
-  };
   networking.firewall.allowedUDPPorts = [ 5353 ];
   networking.domain = "brage.info";
   networking.firewall.allowPing = true;
@@ -272,6 +264,16 @@
       to = 61000;
     }
   ];
+  services.resolved = {
+    enable = true;
+    dnssec = "allow-downgrade";
+    domains = ["local" "brage.info"];
+    extraConfig = ''
+      MulticastDNS = yes
+      LLMNR = no
+    '';
+  };
+  networking.firewall.allowedUDPPorts = [ 5353 ];
 
   ## Time & location ##
   console = {

@@ -58,6 +58,8 @@
   systemd.network.networks."10-enp8s0" = {
     matchConfig.Name = "enp8s0";
     networkConfig.DHCP = "ipv4";
+    networkConfig.MulticastDNS = true;
+    networkConfig.LinkLocalAddressing = false;
   };
 
   # Firewall

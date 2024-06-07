@@ -32,5 +32,6 @@ in {
     enable = true;
     matchConfig.Name = "wg0";
     address = ["10.171.0.1/24"];
+    networkConfig.MulticastDNS = true;
   };
 }
