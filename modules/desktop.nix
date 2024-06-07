@@ -37,6 +37,7 @@
     # Entertainment
     mpv
     prismlauncher
+    gamescope
     # 3D printing
     orca-slicer
   ];
@@ -45,8 +46,8 @@
   nixpkgs.overlays = [
     # Reminder: Also needs GL threading optimizations disabled in prism.
     (final: prev: {
-      glfw = (prev.glfw.override{ waylandSupport = true; }).overrideAttrs (oldAttrs:
-        assert oldAttrs.version == "3.3.10"; {
+      glfw = prev.glfw.overrideAttrs (oldAttrs:
+        assert oldAttrs.version == "3.4"; {
         version = "3.4";
         src = pkgs.fetchFromGitHub {
           owner = "glfw";

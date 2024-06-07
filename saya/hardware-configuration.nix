@@ -24,7 +24,7 @@
     };
 
   fileSystems."/tsugumi" = {
-    device = "svein@tsugumi:";
+    device = "svein@tsugumi.local:";
     fsType = "fuse.sshfs";
     options = [
       "noauto"

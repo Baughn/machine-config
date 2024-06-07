@@ -3,15 +3,16 @@
   pkgs,
   ...
 }: {
+  hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.beta;
+  # Work around mouse stuttering & firefox crash
+  boot.kernelParams = [
+    "nvidia.NVreg_EnableGpuFirmware=0"
+  ];
+
+  #hardware.nvidia.open = true;
   hardware.nvidia.modesetting.enable = true;
   #hardware.nvidia.powerManagement.enable = true;
-  #boot.kernelParams = [
-  #  "nvidia.NVreg_EnableS0ixPowerManagement=1"
-  #];
   services.xserver.videoDrivers = ["nvidia"];
-  #services.xserver.screenSection = ''
-  #  Option "metamodes" "nvidia-auto-select +0+0 { ForceCompositionPipeline = On, ForceFullCompositionPipeline=On, AllowGSYNCCompatible=On }"
-  #'';
   environment.systemPackages = [pkgs.nvtopPackages.nvidia];
   services.xserver.displayManager.gdm.wayland = true;
   hardware.opengl.enable = true;
