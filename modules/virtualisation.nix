@@ -21,7 +21,7 @@
     environment.systemPackages = [
       pkgs.qemu
       pkgs.nixos-shell
-      pkgs.lxd
+      pkgs.lxd-lts
       pkgs.docker-compose
     ];
   };
