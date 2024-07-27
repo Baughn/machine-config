@@ -12,23 +12,33 @@ let
   COMFYUI_DIR = "/home/svein/AI/image-generation/ComfyUI";
   BOT_DIR = "/home/svein/AI/image-generation/sd-bot-2";
 
-  comfyui = {
-    description = "ComfyUI";
+  setPowerLimit = {
+    description = "Sets the power limit for the GPU";
     wantedBy = [ "multi-user.target" ];
     after = [ "network.target" ];
-    path = [ pkgs.git ];
     serviceConfig = {
-      User = "svein";
-      WorkingDirectory = COMFYUI_DIR;
-      Type = "simple";
-      Restart = "always";
-      ExecStart = "${pkgs.steam-run}/bin/steam-run " + COMFYUI_DIR + "/load.sh";
-      MemoryMax = "20G";
-      RuntimeMaxSec = "6h";
-      # LD_PRELOAD tcmalloc.
-      Environment = "LD_PRELOAD=${pkgs.gperftools}/lib/libtcmalloc.so";
+      Type = "oneshot";
+      ExecStart = "${config.boot.kernelPackages.nvidia_x11.bin}/bin/nvidia-smi -pl 450";
     };
   };
+
+#  comfyui = {
+#    description = "ComfyUI";
+#    wantedBy = [ "multi-user.target" ];
+#    after = [ "network.target" ];
+#    path = [ pkgs.git ];
+#    serviceConfig = {
+#      User = "svein";
+#      WorkingDirectory = COMFYUI_DIR;
+#      Type = "simple";
+#      Restart = "always";
+#      ExecStart = "${pkgs.steam-run}/bin/steam-run " + COMFYUI_DIR + "/load.sh";
+#      MemoryMax = "20G";
+#      RuntimeMaxSec = "6h";
+#      # LD_PRELOAD tcmalloc.
+#      Environment = "LD_PRELOAD=${pkgs.gperftools}/lib/libtcmalloc.so";
+#    };
+#  };
 
   # The bot's a simple rust app.
   bot = {
@@ -47,8 +57,9 @@ let
   };
 in
 {
-  systemd.services.comfyui = comfyui;
+#  systemd.services.comfyui = comfyui;
   systemd.services.sd-bot = bot;
+  systemd.services.setPowerLimit = setPowerLimit;
 
   networking.firewall.allowedTCPPorts = [ 8188 ];
 }

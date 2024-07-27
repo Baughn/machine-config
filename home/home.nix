@@ -83,6 +83,9 @@
         user = "minecraft";
         hostname = "173.231.55.228";
       };
+      "brage.info" = {
+        hostname = "10.171.0.1";
+      };
     };
     extraConfig = ''
       User svein
