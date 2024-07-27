@@ -7,10 +7,8 @@
   allBaseConfigs = builtins.concatLists (
     lib.mapAttrsToList (n: v: v.wireguard or []) keys);
   allConfigs = builtins.map (v: {
-    wireguardPeerConfig = {
-      PublicKey = v.publicKey;
-      AllowedIPs = [("10.171.0." + (toString v.id) + "/32")];
-    };
+    PublicKey = v.publicKey;
+    AllowedIPs = [("10.171.0." + (toString v.id) + "/32")];
   }) allBaseConfigs;
 in {
   systemd.network.netdevs = {

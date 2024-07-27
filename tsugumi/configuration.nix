@@ -97,25 +97,27 @@
     user = "svein";
     configDir = "/home/svein/.config/syncthing";
     dataDir = "/home/svein/Sync";
-    devices.saya.id = "4YR3ALE-55UONK6-ABXCSXM-OKBZNIT-HAJKCXQ-DV2LXKH-TFWVLZV-HKHB6Q3";
-    devices.sayanix.id = "AWYR3YS-GQORA3W-MSRLQGB-MC6X3K4-FIBGBKF-IRJPM3P-QKCNRFP-M3CYNAN";
-    devices.kaho.id = "MD47JRV-UL5JHDJ-VHSSSEC-OPAQGRS-X5MEAH3-MBJUBCO-WG3XIZA-7ZX2KQU";
-    devices.koyomi.id = "WCPI5FZ-WOPAUNY-CO6L7ZR-KXP3BYN-NNOHZZI-K4TCWXM-2SNSFHW-QSA7MQM";
-    folders."/home/svein/Sync" = {
-      id = "default";
-      devices = ["saya" "kaho" "koyomi" "sayanix"];
-    };
-    folders."/home/svein/Music" = {
-      id = "Music";
-      devices = ["kaho" "koyomi"];
-    };
-    folders."/home/svein/Documents" = {
-      id = "Documents";
-      devices = ["kaho" "koyomi" "sayanix"];
-    };
-    folders."/home/svein/secure" = {
-      id = "secure";
-      devices = ["saya" "kaho" "koyomi" "sayanix"];
+    settings = {
+      devices.saya.id = "4YR3ALE-55UONK6-ABXCSXM-OKBZNIT-HAJKCXQ-DV2LXKH-TFWVLZV-HKHB6Q3";
+      devices.sayanix.id = "AWYR3YS-GQORA3W-MSRLQGB-MC6X3K4-FIBGBKF-IRJPM3P-QKCNRFP-M3CYNAN";
+      devices.kaho.id = "MD47JRV-UL5JHDJ-VHSSSEC-OPAQGRS-X5MEAH3-MBJUBCO-WG3XIZA-7ZX2KQU";
+      devices.koyomi.id = "WCPI5FZ-WOPAUNY-CO6L7ZR-KXP3BYN-NNOHZZI-K4TCWXM-2SNSFHW-QSA7MQM";
+      folders."/home/svein/Sync" = {
+        id = "default";
+        devices = ["saya" "kaho" "koyomi" "sayanix"];
+      };
+      folders."/home/svein/Music" = {
+        id = "Music";
+        devices = ["kaho" "koyomi"];
+      };
+      folders."/home/svein/Documents" = {
+        id = "Documents";
+        devices = ["kaho" "koyomi" "sayanix"];
+      };
+      folders."/home/svein/secure" = {
+        id = "secure";
+        devices = ["saya" "kaho" "koyomi" "sayanix"];
+      };
     };
   };
 

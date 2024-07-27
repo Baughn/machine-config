@@ -15,5 +15,5 @@
   services.xserver.videoDrivers = ["nvidia"];
   environment.systemPackages = [pkgs.nvtopPackages.nvidia];
   services.xserver.displayManager.gdm.wayland = true;
-  hardware.opengl.enable = true;
+  hardware.graphics.enable = true;
 }
