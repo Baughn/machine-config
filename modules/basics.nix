@@ -273,7 +273,6 @@
       LLMNR = no
     '';
   };
-  networking.firewall.allowedUDPPorts = [ 5353 ];
 
   ## Time & location ##
   console = {

@@ -93,6 +93,7 @@
   # Syncthing
   services.syncthing = {
     enable = true;
+    openDefaultPorts = true;
     user = "svein";
     configDir = "/home/svein/.config/syncthing";
     dataDir = "/home/svein/Sync";
