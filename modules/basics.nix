@@ -73,7 +73,7 @@
     python3Packages.virtualenv
     inetutils
     man-pages
-    posix_man_pages
+    man-pages-posix
     mono
     heaptrack
     gcc
@@ -122,7 +122,6 @@
     zstd
     fd
     rlwrap
-    (callPackage ../tools/up {})
     # File transfer
     rsync
     wget
@@ -169,7 +168,6 @@
       # Image-manipulation tools
       fgallery
       pngcrush
-      povray
       # Video manipulation
       mkvtoolnix-cli
       ffmpeg
@@ -213,7 +211,6 @@
   };
   nix.nrBuildUsers = 48;
   nixpkgs.config.allowUnfree = true;
-  nix.package = pkgs.nixFlakes;
   nix.extraOptions = ''
     auto-optimise-store = true
     experimental-features = nix-command flakes

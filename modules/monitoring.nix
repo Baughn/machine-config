@@ -148,12 +148,12 @@
                 summary: "CPU steal is {{ $value }} (fraction)"
                 description: "See https://control.sufficientvelocity.com/grafana/d/9CWBz0bik/machine-stats"
             - alert: DiskUseHigh
-              expr: node_filesystem_avail_bytes / node_filesystem_size_bytes < 0.1
+              expr: node_filesystem_avail_bytes{device!~".*@.*"} / node_filesystem_size_bytes < 0.1
               annotations:
                 summary: "Filesystem space use > 90%"
                 description: "S{{ $value }} (fraction) free on {{ $labels.instance }} {{ $labels.mountpoint }}"
             - alert: DiskFreeSpaceLow
-              expr: node_filesystem_avail_bytes{fstype!~"vfat|fuse.*|ramfs|tmpfs"} < 10000000000
+              expr: node_filesystem_avail_bytes{fstype!~"vfat|fuse.*|ramfs|tmpfs",device!~".*@.*"} < 10000000000
               annotations:
                 summary: "Too little free space left."
                 description: "{{ $value }} bytes free on {{ $labels.instance }} {{ $labels.mountpoint }}"

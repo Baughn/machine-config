@@ -10,7 +10,6 @@
     htop
     fortune
     mosh
-    (callPackage ../tools/up {})
   ];
 
   home.sessionVariables = {
