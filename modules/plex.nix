@@ -5,7 +5,7 @@
 }: {
   services.plex.enable = true;
   services.plex.openFirewall = false;
-  networking.firewall.interfaces.external = {
+  networking.firewall = {
     allowedTCPPorts = [ 32400 ];
   };
 #  networking.firewall.interfaces.internal = {

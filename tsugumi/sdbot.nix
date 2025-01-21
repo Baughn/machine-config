@@ -50,7 +50,8 @@ let
       User = "svein";
       WorkingDirectory = BOT_DIR;
       Type = "simple";
-      Restart = "on-failure";
+      Restart = "always";
+      RestartSec = 10;
       Environment = "NIX_PATH=nixpkgs=/etc/nixpkgs";
       ExecStart = "${BOT_DIR}/start.sh";
     };
@@ -59,7 +60,7 @@ in
 {
 #  systemd.services.comfyui = comfyui;
   systemd.services.sd-bot = bot;
-  systemd.services.setPowerLimit = setPowerLimit;
+  #systemd.services.setPowerLimit = setPowerLimit;
 
   networking.firewall.allowedTCPPorts = [ 8188 ];
 }

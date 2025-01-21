@@ -14,8 +14,8 @@
     virtualisation.lxd.enable = false;
     virtualisation.docker = {
       enable = true;
-      enableNvidia = true;
     };
+    hardware.nvidia-container-toolkit.enable = true;
     users.extraUsers.svein.extraGroups = ["docker" "lxd" "libvirtd"];
     networking.firewall.checkReversePath = false;
     environment.systemPackages = [

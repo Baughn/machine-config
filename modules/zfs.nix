@@ -14,5 +14,4 @@
     echo 60 > /sys/module/zfs/parameters/zfs_txg_timeout
   '';
   services.zfs.autoScrub.enable = true;
-  boot.kernelPackages = lib.mkForce config.boot.zfs.package.latestCompatibleLinuxPackages;
 }

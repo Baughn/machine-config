@@ -1,6 +1,7 @@
 {
   nixpkgs.config.permittedInsecurePackages = [
-    "electron-24.8.6"
+    "dotnet-sdk-6.0.428"
+    "aspnetcore-runtime-6.0.36"
   ];
 }
 

@@ -14,6 +14,7 @@
     ./minecraft.nix
     ./rolebot.nix
     ./sdbot.nix
+    ./irctool.nix
     #../modules/home-assistant.nix
     #./syncplay.nix
     #    ./satisfactory.nix
@@ -27,6 +28,7 @@
     ../modules/nvidia.nix
     ../modules/zfs.nix
     ../modules/wireguard.nix
+    ../modules/plex.nix
   ];
 
   me = {
@@ -52,15 +54,17 @@
   ## GPU
   hardware.nvidia.nvidiaPersistenced = true;
 
+  ## AI?
+  services.ollama = {
+    enable = true;
+    acceleration = "cuda";
+  };
+  environment.systemPackages = with pkgs; [ ollama ];
+
   ## Networking
   programs.mosh.enable = lib.mkForce false;
   networking.hostName = "tsugumi";
-  systemd.network.networks."10-enp8s0" = {
-    matchConfig.Name = "enp8s0";
-    networkConfig.DHCP = "ipv4";
-    networkConfig.MulticastDNS = true;
-    networkConfig.LinkLocalAddressing = false;
-  };
+  networking.networkmanager.enable = true;
 
   # Firewall
   networking.firewall.allowedTCPPorts = [
@@ -73,22 +77,8 @@
   networking.firewall.allowedUDPPortRanges = [
   ];
 
-  # Hercules CI
-  #services.hercules-ci-agent.enable = true;
-  services.hercules-ci-agent.settings.concurrentTasks = 4;
-
-  # Samba
-  services.samba = {
-    #enable = true;
-    extraConfig = ''
-      map to guest = bad user
-      mangled names = no
-
-      [homes]
-      read only = no
-    '';
-  };
-  #services.samba-wsdd.enable = true;
+  # Silver Bullet
+  services.silverbullet.enable = true;
 
   # Syncthing
   services.syncthing = {
@@ -98,7 +88,7 @@
     configDir = "/home/svein/.config/syncthing";
     dataDir = "/home/svein/Sync";
     settings = {
-      devices.saya.id = "4YR3ALE-55UONK6-ABXCSXM-OKBZNIT-HAJKCXQ-DV2LXKH-TFWVLZV-HKHB6Q3";
+      devices.saya.id = "5AAHVO7-OIPPJXL-ATSWRLI-AQPXU5A-ED3IYSU-IQD56VF-74NHQE2-CLGZUA6";
       devices.sayanix.id = "AWYR3YS-GQORA3W-MSRLQGB-MC6X3K4-FIBGBKF-IRJPM3P-QKCNRFP-M3CYNAN";
       devices.kaho.id = "MD47JRV-UL5JHDJ-VHSSSEC-OPAQGRS-X5MEAH3-MBJUBCO-WG3XIZA-7ZX2KQU";
       devices.koyomi.id = "WCPI5FZ-WOPAUNY-CO6L7ZR-KXP3BYN-NNOHZZI-K4TCWXM-2SNSFHW-QSA7MQM";
@@ -124,7 +114,7 @@
   ## Hardware
   # UPS
   power.ups = {
-    enable = true;
+    #enable = true;
     ups.phoenix = {
       description = "PhoenixTec VFI 2000";
       driver = "nutdrv_qx";
@@ -141,7 +131,7 @@
       ];
     };
     upsmon = {
-      enable = true;
+      #enable = true;
       monitor.phoenix = {
         user = "admin";
         passwordFile = config.age.secrets."nut/upspw".path;
@@ -170,6 +160,7 @@
       cargoSha256 = "sha256-5tvn7ahHTGqvwcAzVczwmYBX6bSvJNQWcESKJrP0SEc=";
     };
   in {
+    enable = false;
     description = "UPS status exporter";
     wantedBy = ["multi-user.target"];
     after = ["upsd.service" "upsdrv.service"];
@@ -355,6 +346,11 @@
     depends = ["/home/svein/Media"];
     options = ["bind"];
   };
+  fileSystems."/srv/svein/Sync" = {
+    device = "/home/svein/Sync/Watched";
+    depends = ["/home/svein/Sync/Watched"];
+    options = ["bind"];
+  };
 
   services.authelia = {
     instances.main = {
@@ -386,7 +382,12 @@
 
   services.caddy = {
     enable = true;
+    package = pkgs.caddy.withPlugins {
+      plugins = [ "github.com/caddy-dns/cloudflare@v0.0.0-20240703190432-89f16b99c18e" ];
+      hash = "sha256-JoujVXRXjKUam1Ej3/zKVvF0nX97dUizmISjy3M3Kr8=";
+    };
     email = "sveina@gmail.com";
+    environmentFile = config.age.secrets."caddy.env".path;
     extraConfig = ''
       (headers) {
         header Strict-Transport-Security "max-age=31536000; includeSubdomains"
@@ -399,6 +400,11 @@
         handle_errors {
           header content-type "text/plain"
           respond "{http.error.status_code} {http.error.status_text}"
+        }
+
+        tls {
+          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+          resolvers 1.1.1.1
         }
 
         log {
@@ -456,6 +462,12 @@
         import headers
         import password
         reverse_proxy http://localhost:8123
+      }
+
+      comfyui.brage.info {
+        import headers
+        import password
+        reverse_proxy http://saya.local:8188
       }
 
       status.brage.info {
@@ -519,6 +531,12 @@
         reverse_proxy http://localhost:8080
       }
 
+      todo.brage.info {
+        import headers
+        import password
+        reverse_proxy http://localhost:3000
+      }
+
       sonarr.brage.info {
         import headers
         import password
@@ -545,6 +563,11 @@
       store.brage.info {
         import localonly
         reverse_proxy http://localhost:5000
+      }
+
+      plex.brage.info {
+        import headers
+        reverse_proxy http://localhost:32400
       }
     '';
   };
