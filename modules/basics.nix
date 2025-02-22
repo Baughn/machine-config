@@ -250,8 +250,7 @@
   ## Networking & Firewall basics
   networking.useDHCP = false;
   systemd.network.enable = true;
-  networking.firewall.allowedUDPPorts = [ 5353 ];
-  networking.domain = "brage.info";
+  networking.useNetworkd = true;
   networking.firewall.allowPing = true;
   networking.firewall.logRefusedConnections = false;
   ### Open ports for mosh.
@@ -261,13 +260,15 @@
       to = 61000;
     }
   ];
+  networking.firewall.allowedUDPPorts = [
+    5353 5355 # mDNS
+  ];
   services.resolved = {
     enable = true;
     dnssec = "allow-downgrade";
-    domains = ["local" "brage.info"];
     extraConfig = ''
       MulticastDNS = yes
-      LLMNR = no
+      LLMNR = yes
     '';
   };
 

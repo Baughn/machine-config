@@ -64,7 +64,32 @@
   ## Networking
   programs.mosh.enable = lib.mkForce false;
   networking.hostName = "tsugumi";
-  networking.networkmanager.enable = true;
+  systemd.network = {
+    enable = true;
+    networks."10-lan" = {
+      matchConfig.MACAddress = "74:56:3c:b2:26:07";
+      networkConfig = {
+        DHCP = "ipv4";
+        IPv6PrivacyExtensions = "kernel";
+        DNS = "1.1.1.1 1.0.0.1";
+        MulticastDNS = "yes";
+      };
+      extraConfig = ''
+        [DHCPv4]
+        UseDNS = false
+
+        [DHCPv6]
+        UseDNS = false
+
+        [IPv6AcceptRA]
+        UseDNS = false
+      '';
+    };
+    networks."20-wifi" = {
+      matchConfig.Type = "wlan";
+      linkConfig.Unmanaged = true;
+    };
+  };
 
   # Firewall
   networking.firewall.allowedTCPPorts = [
