@@ -116,9 +116,7 @@ fn handle_client(
 
             // Spawn a thread to forward data from client to server
             let client_to_server = {
-                let client_addr = client_addr.clone();
                 let target_addr = target_addr.clone();
-
                 thread::spawn(move || match copy_data(client_read, server, buffer_size) {
                     Ok(bytes) => println!(
                         "{} → {}: {} bytes transferred",
@@ -204,7 +202,7 @@ fn main() -> io::Result<()> {
     let port_mappings: Vec<PortMapping> = args
         .ports
         .split(',')
-        .filter_map(|s| parse_port_mapping(s))
+        .filter_map(parse_port_mapping)
         .collect();
 
     if port_mappings.is_empty() {
