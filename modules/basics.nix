@@ -10,6 +10,7 @@
     ./logrotate.nix
     ./naming.nix
     ./nonnix.nix
+    ./launchable.nix
   ];
 
   # Use whatever kernel package is compatible.
@@ -70,19 +71,11 @@
     nmap
     gdb
     gradle
-    python3Packages.virtualenv
     inetutils
     man-pages
     man-pages-posix
-    mono
     heaptrack
-    gcc
     rustup
-    cargo-edit
-    rust-analyzer
-    python3Full
-    freeipmi
-    binutils
     jq
     gitAndTools.gitFull
     git-lfs
@@ -108,11 +101,8 @@
     iotop
     usbutils
     powertop
-    w3m
-    autossh
     # Shell tools
     file
-    weechat
     parallel
     moreutils
     neovim
@@ -128,15 +118,9 @@
     rtorrent
     sshfs-fuse
     # Nix tools
-    cached-nix-shell
     nox
     nix-prefetch-git
-    # Monitoring, eventually to be a module.
-    prometheus
-    prometheus-node-exporter
-    prometheus-alertmanager
-    prometheus-nginx-exporter
-    # Giant lump of stuff
+    # Misc
     shared-mime-info
     p7zip
     fortune
@@ -148,7 +132,6 @@
       nethack
       # Tools
       unrar
-      znc
       progress
       pv
       pixz
@@ -159,8 +142,6 @@
       gnupg
       encfs
       btop
-      links2
-      unison
       restic
       imagemagickBig
       zip
@@ -172,11 +153,6 @@
       mkvtoolnix-cli
       ffmpeg
     ];
-
-  environment.loginShellInit = ''
-    # Makes touchscreens work in Firefox. Ish.
-    export MOZ_USE_XINPUT2=1
-  '';
 
   # System setup
   ## Power
@@ -228,7 +204,7 @@
     }
   '';
   services.fail2ban.enable = true;
-  services.fail2ban.ignoreIP = [ "89.101.222.214/29" ];
+  services.fail2ban.ignoreIP = [ ];
 
   ### SSH
   security.pam.services.sshd.googleAuthenticator.enable = true;
