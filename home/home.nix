@@ -55,16 +55,6 @@
     terminal = "tmux-256color";
   };
 
-  programs.mpv = {
-    enable = true;
-    config = {
-      ontop = true;
-      alang = "ja";
-      slang = "en";
-      vo = "wlshm";
-    };
-  };
-
   programs.neovim = {
     enable = true;
     vimAlias = true;

@@ -24,7 +24,7 @@
     #}))
     krita
     google-chrome
-    youtube-dl
+    yt-dlp
     steam-run
     #heroic
     # Kanjitomo
@@ -38,8 +38,6 @@
     mpv
     prismlauncher
     gamescope
-    # 3D printing
-    orca-slicer
   ];
 
   # Use newest glfw.
@@ -152,7 +150,6 @@
   services.ratbagd.enable = true;
 
   hardware.pulseaudio.enable = false;
-  sound.enable = true;
   services.pipewire = {
     enable = true;
     alsa.enable = true;

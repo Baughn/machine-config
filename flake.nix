@@ -1,7 +1,7 @@
 {
   description = "Machine configs";
 
-  inputs.nixpkgs-stable.url = "flake:nixpkgs/nixos-23.05";
+  inputs.nixpkgs-stable.url = "flake:nixpkgs/nixos-24.11";
   inputs.nixpkgs.url = "flake:nixpkgs/nixos-unstable";
 
   inputs.nixos-hardware.url = "flake:nixos-hardware";
@@ -58,7 +58,7 @@
     #lix-module,
   }: let
     system = "x86_64-linux";
-    stateVersion = "23.05";
+    stateVersion = "23.11";
     pkgs = nixpkgs.legacyPackages.${system};
     pkgs-stable = nixpkgs-stable.legacyPackages.${system};
     installer = modules:
@@ -134,45 +134,34 @@
 
     checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
 
-    packages.${system} = {
-      install-cd =
-        (installer [
-          "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-          ./installer/cd.nix
-        ])
-        .config
-        .system
-        .build
-        .isoImage;
-      install-kexec =
-        (installer [
-          "${nixpkgs}/nixos/modules/installer/netboot/netboot-minimal.nix"
-          ./installer/kexec.nix
-        ])
-        .config
-        .system
-        .build
-        .kexec_tarball;
-    };
+    #packages.${system} = {
+    #  install-cd =
+    #    (installer [
+    #      "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+    #      ./installer/cd.nix
+    #    ])
+    #    .config
+    #    .system
+    #    .build
+    #    .isoImage;
+    #  install-kexec =
+    #    (installer [
+    #      "${nixpkgs}/nixos/modules/installer/netboot/netboot-minimal.nix"
+    #      ./installer/kexec.nix
+    #    ])
+    #    .config
+    #    .system
+    #    .build
+    #    .kexec_tarball;
+    #};
 
-    deploy.nodes = deployNodes ["tromso" "saya" "tsugumi"];
+    deploy.nodes = deployNodes ["saya" "tsugumi" "v4"];
 
     nixosConfigurations.saya = node {
       modules = [
         nixos-hardware.nixosModules.common-pc
         nixos-hardware.nixosModules.common-cpu-amd
         ./saya/configuration.nix
-      ];
-    };
-
-    nixosConfigurations.kaho = node {
-      modules = [
-        nixos-hardware.nixosModules.asus-zephyrus-ga401
-        nixos-hardware.nixosModules.asus-battery
-        {
-          hardware.asus.battery.chargeUpto = 70;
-        }
-        ./kaho/configuration.nix
       ];
     };
 
@@ -186,12 +175,9 @@
       ];
     };
 
-    nixosConfigurations.tromso = node {
+    nixosConfigurations.v4 = node {
       modules = [
-        nixos-hardware.nixosModules.common-pc
-        nixos-hardware.nixosModules.common-cpu-amd
-        nixos-hardware.nixosModules.common-gpu-amd
-        ./tromso/configuration.nix
+        ./v4/configuration.nix
       ];
     };
   };
