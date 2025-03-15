@@ -102,6 +102,10 @@ fn handle_client(
         Ok(server) => {
             println!("Connected to target {}", target_addr);
 
+            // Disable Nagle's algorithm for lower latency
+            server.set_nodelay(true)?;
+            client.set_nodelay(true)?;
+
             // Set read timeouts to avoid blocking indefinitely
             client.set_read_timeout(Some(timeout))?;
             server.set_read_timeout(Some(timeout))?;
