@@ -465,6 +465,9 @@
         root * /srv/minecraft/
         import headers
         reverse_proxy /warmroast/* localhost:23000
+        handle_path /images/* {
+          reverse_proxy localhost:24464
+        }
         file_server browse
       }
 
