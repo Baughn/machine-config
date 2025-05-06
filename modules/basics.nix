@@ -42,7 +42,7 @@
     openssh.authorizedKeys.keys = (import ./keys.nix).svein.ssh;
     hashedPasswordFile = config.age.secrets.userPassword.path;
   };
-  users.defaultUserShell = pkgs.fish;
+  users.defaultUserShell = pkgs.zsh;
   users.include = ["svein"];
   environment.variables.EDITOR = "nvim";
 
@@ -58,13 +58,14 @@
   programs.zsh.enable = true;
   programs.zsh.autosuggestions.enable = true;
   programs.zsh.syntaxHighlighting.enable = true;
-  programs.fish.enable = true;
+  programs.zsh.ohMyZsh.enable = true;
   programs.nano.nanorc = ''
     set nowrap
   '';
 
   ## System environment
   environment.systemPackages = with pkgs; [
+    nodejs
     flox.flox
     # Debug/dev tools
     tcpdump
