@@ -54,13 +54,6 @@
   ## GPU
   hardware.nvidia.nvidiaPersistenced = true;
 
-  ## AI?
-  services.ollama = {
-    enable = true;
-    acceleration = "cuda";
-  };
-  environment.systemPackages = with pkgs; [ ollama ];
-
   ## Networking
   programs.mosh.enable = lib.mkForce false;
   networking.hostName = "tsugumi";
@@ -168,35 +161,6 @@
       instcmds = ["ALL"];
       passwordFile = config.age.secrets."nut/upspw".path;
     };
-  };
-  # UPS monitoring
-  systemd.services.prometheus-nut-exporter = let
-    prometheus-nut-exporter = pkgs.rustPlatform.buildRustPackage rec {
-      pname = "prometheus-nut-exporter";
-      version = "0aedb7911e3019f9f137e99aa87bc5fa1936084c";
-
-      src = pkgs.fetchFromGitHub {
-        owner = "HON95";
-        repo = pname;
-        rev = version;
-        sha256 = "sha256-iVXCdDcePGugVZT3wSLhd4RvLCMAFfiTKmLJmmn9FWA";
-      };
-
-      cargoSha256 = "sha256-5tvn7ahHTGqvwcAzVczwmYBX6bSvJNQWcESKJrP0SEc=";
-    };
-  in {
-    enable = false;
-    description = "UPS status exporter";
-    wantedBy = ["multi-user.target"];
-    after = ["upsd.service" "upsdrv.service"];
-    wants = ["upsd.service" "upsdrv.service"];
-    serviceConfig = {
-      Restart = "always";
-      DynamicUser = true;
-    };
-    script = ''
-      ${prometheus-nut-exporter}/bin/prometheus-nut-exporter
-    '';
   };
 
   # Power mgmt
@@ -408,8 +372,8 @@
   services.caddy = {
     enable = true;
     package = pkgs.caddy.withPlugins {
-      plugins = [ "github.com/caddy-dns/cloudflare@v0.0.0-20240703190432-89f16b99c18e" ];
-      hash = "sha256-JoujVXRXjKUam1Ej3/zKVvF0nX97dUizmISjy3M3Kr8=";
+      plugins = [ "github.com/caddy-dns/cloudflare@v0.2.1" ];
+      hash = "sha256-saKJatiBZ4775IV2C5JLOmZ4BwHKFtRZan94aS5pO90=";
     };
     email = "sveina@gmail.com";
     environmentFile = config.age.secrets."caddy.env".path;

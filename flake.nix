@@ -15,9 +15,6 @@
   inputs.agenix.url = "github:ryantm/agenix";
   inputs.agenix.inputs.nixpkgs.follows = "nixpkgs";
 
-  inputs.vscode.url = "github:nix-community/nixos-vscode-server";
-  inputs.vscode.inputs.nixpkgs.follows = "nixpkgs";
-
   inputs.nix-index-database.url = "github:nix-community/nix-index-database";
   inputs.nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -51,7 +48,6 @@
     home-manager,
     deploy-rs,
     agenix,
-    vscode,
     nix-index-database,
     flox,
     #lix,
@@ -105,14 +101,6 @@
               programs.nix-index-database.comma.enable = true;
             }
             nix-index-database.nixosModules.nix-index
-            # Add vscode for vscode-server.
-            #vscode.nixosModules.default
-            #{
-            #  services.vscode-server.enable = true;
-            #  services.vscode-server.enableFHS = true;
-            #  nixpkgs.config.permittedInsecurePackages = [
-            #  ];
-            #}
             # Add agenix for secret management.
             agenix.nixosModules.age
             {

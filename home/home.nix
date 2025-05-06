@@ -1,6 +1,5 @@
 {pkgs, ...}: {
   imports = [
-    ../modules/nixos-vscode-server/modules/vscode-server/home.nix
   ];
 
   home.username = "svein";
@@ -35,7 +34,6 @@
   '';
 
   programs.vscode.enable = true;
-  services.vscode-server.enable = true;
 
   programs.rtorrent = {
     enable = true;
@@ -58,7 +56,7 @@
   programs.neovim = {
     enable = true;
     vimAlias = true;
-    extraPackages = [pkgs.nodejs-18_x];
+    extraPackages = [pkgs.nodejs];
   };
 
   programs.ssh = {
@@ -92,7 +90,7 @@
     profileExtra = ''
       if [ -e $HOME/.nix-profile/etc/profile.d/nix.sh ]; then . $HOME/.nix-profile/etc/profile.d/nix.sh; fi
     '';
-    initExtra = ''
+    initContent = ''
       export GOPATH=$HOME/go
 
       with() {
