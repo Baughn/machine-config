@@ -67,6 +67,7 @@
   environment.systemPackages = with pkgs; [
     nodejs
     flox.flox
+    aider-chat
     # Debug/dev tools
     tcpdump
     nmap
@@ -81,6 +82,7 @@
     gitAndTools.gitFull
     git-lfs
     git-crypt
+    jujutsu
     gh
     sqlite-interactive
     # System/monitoring/etc tools
