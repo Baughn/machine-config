@@ -22,27 +22,32 @@
   networking.hostId = "deafbeef";
   networking.interfaces.enp12s0.tempAddress = "enabled";
   systemd.network.enable = true;
+  networking.useDHCP = false;
   networking.useNetworkd = true;
   systemd.network.networks."10-enp12s0" = {
     matchConfig.Name = "enp12s0";
     networkConfig = {
       DHCP = "ipv4";
       IPv6AcceptRA = true;
+      MulticastDNS = true;
+      LinkLocalAddressing = false;
     };
   };
   services.openssh.enable = true;
   networking.firewall.allowedUDPPorts = [
-    34197 # Factorio
+    # mDNS
+    5353
+    5355
+    # Factorio
+    34197
   ];
-  services.avahi = {
-    enable = true;
-    openFirewall = true;
-    publish.enable = true;
-    publish.addresses = true;
-    publish.workstation = true;
-  };
   services.resolved = {
     enable = true;
+    dnssec = "allow-downgrade";
+    extraConfig = ''
+      MulticastDNS = yes
+      LLMNR = yes
+    '';
   };
 
   # Environmental
