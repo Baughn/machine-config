@@ -6,7 +6,8 @@
 
 {
   imports =
-    [ # Include the results of the hardware scan.
+    [
+      # Include the results of the hardware scan.
       ./hardware-configuration.nix
     ];
 
@@ -30,7 +31,7 @@
   };
   services.openssh.enable = true;
   networking.firewall.allowedUDPPorts = [
-    34197  # Factorio
+    34197 # Factorio
   ];
   services.avahi = {
     enable = true;
@@ -87,7 +88,15 @@
 
   # System packages
   environment.systemPackages = with pkgs; [
-    neovim wget restic sshfs google-chrome jujutsu nodejs git rustup
+    neovim
+    wget
+    restic
+    sshfs
+    google-chrome
+    jujutsu
+    nodejs
+    git
+    rustup
   ];
 
   # This option defines the first version of NixOS you have installed on this particular machine,

@@ -13,18 +13,18 @@
       system = "x86_64-linux";
       modules = [
         ./saya/configuration.nix
-	nix-index-database.nixosModules.nix-index
-	{
+        nix-index-database.nixosModules.nix-index
+        {
           # Setup nix-index
-	  programs.nix-index-database.comma.enable = true;
-	  # Propagate nixpkgs
-	  nix.nixPath = ["nixpkgs=/etc/nixpkgs"];
-	  environment.etc."nixpkgs".source = nixpkgs;
-	  nix.registry.nixpkgs.flake = nixpkgs;
+          programs.nix-index-database.comma.enable = true;
+          # Propagate nixpkgs
+          nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
+          environment.etc."nixpkgs".source = nixpkgs;
+          nix.registry.nixpkgs.flake = nixpkgs;
         }
       ];
     };
 
-    packages.x86_64-linux.options = (import (nixpkgs.outPath + "/nixos/release.nix") {}).options;
+    packages.x86_64-linux.options = (import (nixpkgs.outPath + "/nixos/release.nix") { }).options;
   };
 }
