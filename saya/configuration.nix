@@ -39,6 +39,8 @@
   # Nix configuration
   nixpkgs.config.allowUnfree = true;
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  ## Using nix-index instead, for flake support
+  programs.command-not-found.enable = false;
 
   # Desktop
   hardware.nvidia = {
