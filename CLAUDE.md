@@ -30,3 +30,23 @@ A git repository is colocated (to make nix commands work), but DO NOT use git co
 - `nix flake check` -- Comprehensive sanity check.
 
 New files will break the build until after a commit.
+
+## Tools for Claude
+
+### NixOS Options Search
+Use `tools-for-claude/search-options.sh` to find and inspect the documentation for NixOS configuration options.
+*Always* do this prior to adding or editing options. There may well be changes you are unaware of.
+
+**Search for option names:**
+```bash
+./tools-for-claude/search-options.sh search <term>
+```
+Example: `./tools-for-claude/search-options.sh search networking.firewall`
+
+**Get detailed info about options:**
+```bash
+./tools-for-claude/search-options.sh info <term>
+```
+Example: `./tools-for-claude/search-options.sh info services.openssh.enable`
+
+The tool automatically limits output size to prevent overwhelming context. Use more specific search terms if you get a "too large" error.
