@@ -5,7 +5,7 @@ let
   sunakunCustomTheme = pkgs.stdenv.mkDerivation {
     pname = "oh-my-zsh-sunaku-custom-theme";
     version = "1.0.0";
-    
+
     src = pkgs.writeTextFile {
       name = "sunaku-custom.zsh-theme";
       text = ''
@@ -49,9 +49,9 @@ let
         PROMPT2='%{$fg[red]%}\ %{$reset_color%}'
       '';
     };
-    
+
     dontUnpack = true;
-    
+
     installPhase = ''
       mkdir -p $out/share/zsh/themes
       cp $src $out/share/zsh/themes/sunaku-custom.zsh-theme
@@ -63,7 +63,7 @@ in
   # AIDEV-NOTE: Custom Zsh configuration with sunaku-based theme using customPkgs
   programs.zsh = {
     enable = true;
-    
+
     # Oh My Zsh configuration
     ohMyZsh = {
       enable = true;
