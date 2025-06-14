@@ -60,6 +60,11 @@
 
   programs.steam.enable = true;
 
+  # Shell configuration
+  programs.zsh.enable = true;
+  programs.zsh.ohMyZsh.enable = true;
+  users.defaultUserShell = pkgs.zsh;
+
   # Users
   users.users.svein = {
     isNormalUser = true;
@@ -68,7 +73,7 @@
 
   # System packages
   environment.systemPackages = with pkgs; [
-    neovim wget restic sshfs google-chrome jujutsu nodejs git
+    neovim wget restic sshfs google-chrome jujutsu nodejs git rustup
   ];
 
   # This option defines the first version of NixOS you have installed on this particular machine,
