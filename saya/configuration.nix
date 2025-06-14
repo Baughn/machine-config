@@ -19,7 +19,15 @@
   networking.hostName = "saya";
   networking.hostId = "deafbeef";
   networking.interfaces.enp12s0.tempAddress = "enabled";
-  networking.networkmanager.enable = true;
+  systemd.network.enable = true;
+  networking.useNetworkd = true;
+  systemd.network.networks."10-enp12s0" = {
+    matchConfig.Name = "enp12s0";
+    networkConfig = {
+      DHCP = "ipv4";
+      IPv6AcceptRA = true;
+    };
+  };
   services.openssh.enable = true;
   networking.firewall.allowedUDPPorts = [
     34197  # Factorio
@@ -30,6 +38,9 @@
     publish.enable = true;
     publish.addresses = true;
     publish.workstation = true;
+  };
+  services.resolved = {
+    enable = true;
   };
 
   # Environmental
