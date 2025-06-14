@@ -7,8 +7,8 @@
 {
   imports =
     [
-      # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      ./sdbot.nix
       ../modules
     ];
 
@@ -59,6 +59,11 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   ## Using nix-index instead, for flake support
   programs.command-not-found.enable = false;
+
+  # Non-nix development
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [
+  ];
 
   # Desktop
   hardware.nvidia = {
