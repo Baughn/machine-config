@@ -4,6 +4,12 @@ This repository contains NixOS configuration files.
 
 ## Coding style
 
+### Nix Code Formatting
+Use the formatting tool to format all Nix files before committing:
+```bash
+./tools-for-claude/format-nix.sh
+```
+
 ## Anchor comments  
 
 Add specially formatted comments throughout the codebase, where appropriate, for yourself as inline knowledge that can be easily `grep`ped for.  
