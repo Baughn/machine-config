@@ -9,6 +9,7 @@
     [
       # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      ../modules/zsh.nix
     ];
 
   # Boot
@@ -73,8 +74,6 @@
   programs.steam.enable = true;
 
   # Shell configuration
-  programs.zsh.enable = true;
-  programs.zsh.ohMyZsh.enable = true;
   users.defaultUserShell = pkgs.zsh;
 
   # Editor configuration
