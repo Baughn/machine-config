@@ -65,6 +65,9 @@
   programs.zsh.ohMyZsh.enable = true;
   users.defaultUserShell = pkgs.zsh;
 
+  # Editor configuration
+  programs.neovim.defaultEditor = true;
+
   # Users
   users.users.svein = {
     isNormalUser = true;
