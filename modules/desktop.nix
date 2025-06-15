@@ -52,5 +52,6 @@
     google-chrome
     mpv
     syncplay
+    vscode-fhs
   ];
 }
