@@ -65,23 +65,6 @@
   programs.nix-ld.libraries = with pkgs; [
   ];
 
-  # Desktop
-  hardware.nvidia = {
-    modesetting.enable = true;
-    open = true;
-  };
-  services.displayManager.sddm.enable = true;
-  services.displayManager.sddm.wayland.enable = true;
-  services.displayManager.sddm.wayland.compositor = "kwin";
-  services.desktopManager.plasma6.enable = true;
-  services.xserver.videoDrivers = [ "nvidia" ];
-  services.pipewire = {
-    enable = true;
-    pulse.enable = true;
-  };
-  services.flatpak.enable = true;
-
-  programs.steam.enable = true;
 
   # Shell configuration
   users.defaultUserShell = pkgs.zsh;
@@ -101,14 +84,10 @@
     wget
     restic
     sshfs
-    google-chrome
     jujutsu
     nodejs
     git
     rustup
-    mpv
-    syncplay
-    nvtopPackages.nvidia
   ];
 
   # This option defines the first version of NixOS you have installed on this particular machine,

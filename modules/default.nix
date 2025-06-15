@@ -1,6 +1,7 @@
 {
   imports = [
     ./zsh.nix
-    ./performance.nix
+    ./desktop.nix
+    ./nvidia.nix
   ];
 }
