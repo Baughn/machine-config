@@ -1,6 +1,10 @@
 { config, lib, pkgs, ... }:
 
 {
+  imports = [
+    ./performance.nix
+  ];
+
   # AIDEV-NOTE: Desktop/GUI specific configuration
 
   # Allow things that need real-time (like sound) to get real-time.
@@ -30,7 +34,18 @@
   services.flatpak.enable = true;
 
   # Gaming
-  programs.steam.enable = true;
+  programs.steam = {
+    enable = true;
+
+    # This override is the CRITICAL fix for GameMode integration.
+    # It injects the gamemode package and its libraries directly into
+    # Steam's sandboxed FHS environment, fixing the "libgamemode.so not found" error.
+    package = pkgs.steam.override {
+      extraPkgs = pkgs: with pkgs; [
+        gamemode
+      ];
+    };
+  };
 
   # Desktop applications
   environment.systemPackages = with pkgs; [

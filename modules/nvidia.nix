@@ -4,7 +4,7 @@
   # AIDEV-NOTE: NVIDIA hardware configuration for desktop systems
   hardware.nvidia = {
     modesetting.enable = true;
-    open = true;
+    open = false;
   };
   services.xserver.videoDrivers = [ "nvidia" ];
 

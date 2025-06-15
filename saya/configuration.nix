@@ -17,6 +17,20 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.blacklistedKernelModules = [ "amdgpu" ];
 
+  # Hardware quirks
+  programs.gamemode = {
+    enable = true;
+
+    settings.general = {
+      # Pin game threads to the V-Cache cores (Logical cores 0-7 and their SMT siblings 16-23).
+      pin_cores = "0-7,16-23";
+
+      # Park the frequency cores (Logical cores 8-15 and their SMT siblings 24-31).
+      # This makes them unavailable to the game, preventing stutter from inter-CCD traffic.
+      park_cores = "8-15,24-31";
+    };
+  };
+
   # Networking
   networking.hostName = "saya";
   networking.hostId = "deafbeef";
@@ -75,7 +89,7 @@
   # Users
   users.users.svein = {
     isNormalUser = true;
-    extraGroups = [ "wheel" ];
+    extraGroups = [ "wheel" "gamemode" ];
   };
 
   # System packages
@@ -88,6 +102,8 @@
     nodejs
     git
     rustup
+    ripgrep
+    fd
   ];
 
   # This option defines the first version of NixOS you have installed on this particular machine,
