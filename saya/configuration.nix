@@ -66,25 +66,6 @@
 
   # Environmental
   time.timeZone = "Europe/Dublin";
-  security.sudo.wheelNeedsPassword = false;
-
-  # Nix configuration
-  nixpkgs.config.allowUnfree = true;
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
-  ## Using nix-index instead, for flake support
-  programs.command-not-found.enable = false;
-
-  # Non-nix development
-  programs.nix-ld.enable = true;
-  programs.nix-ld.libraries = with pkgs; [
-  ];
-
-
-  # Shell configuration
-  users.defaultUserShell = pkgs.zsh;
-
-  # Editor configuration
-  programs.neovim.defaultEditor = true;
 
   # Users
   users.users.svein = {

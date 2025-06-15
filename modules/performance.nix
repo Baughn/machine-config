@@ -12,6 +12,7 @@
     "threadirqs"
     "amd_pstate=active" # Use CPPC-based driver for faster response
     "amd_prefcore=1" # Prefer V-Cache CCD for latency-sensitive threads
+    "mitigations=off"
   ];
 
   # Memory management with zram

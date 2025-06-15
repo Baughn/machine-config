@@ -21,10 +21,20 @@
           nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
           environment.etc."nixpkgs".source = nixpkgs;
           nix.registry.nixpkgs.flake = nixpkgs;
+          # Allow unfree packages
+          nixpkgs.config.allowUnfree = true;
         }
       ];
     };
 
     packages.x86_64-linux.options = (import (nixpkgs.outPath + "/nixos/release.nix") { }).options;
+
+    # AIDEV-NOTE: VM tests for sanity checking configurations
+    checks.x86_64-linux.basic-boot = import ./tests/basic-desktop.nix {
+      pkgs = import nixpkgs {
+        system = "x86_64-linux";
+        config.allowUnfree = true;
+      };
+    };
   };
 }
