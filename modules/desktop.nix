@@ -24,6 +24,12 @@
   services.displayManager.sddm.wayland.compositor = "kwin";
   services.desktopManager.plasma6.enable = true;
 
+  # Enable autologin for user svein
+  services.displayManager.autoLogin = {
+    enable = true;
+    user = "svein";
+  };
+
   # Audio
   services.pipewire = {
     enable = true;

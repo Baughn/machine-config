@@ -41,7 +41,7 @@ New files will break the build until after a commit.
 
 ### NixOS Options Search
 Use `tools-for-claude/search-options.sh` to find and inspect the documentation for NixOS configuration options.
-*Always* do this prior to adding or editing options. There may well be changes you are unaware of.
+**Important:** Always do this prior to adding or editing options. There may well be changes you are unaware of.
 
 **Search for option names:**
 ```bash
