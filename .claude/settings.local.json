@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./tools-for-claude/search-options.sh:*)",
+      "Bash(nix flake check:*)",
+      "Bash(./tools-for-claude/format-nix.sh:*)",
+      "Bash(jj status:*)",
+      "Bash(rg:*)"
+    ],
+    "deny": []
+  }
+}

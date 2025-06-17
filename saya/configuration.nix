@@ -35,19 +35,8 @@
   networking.hostName = "saya";
   networking.hostId = "deafbeef";
   networking.interfaces.enp12s0.tempAddress = "enabled";
-  systemd.network.enable = true;
-  networking.useDHCP = false;
-  networking.useNetworkd = true;
-  systemd.network.networks."10-enp12s0" = {
-    matchConfig.Name = "enp12s0";
-    networkConfig = {
-      DHCP = "ipv4";
-      IPv6AcceptRA = true;
-      MulticastDNS = true;
-      LinkLocalAddressing = false;
-    };
-  };
   services.openssh.enable = true;
+  networking.firewall.allowPing = true;
   networking.firewall.allowedUDPPorts = [
     # mDNS
     5353
