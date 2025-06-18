@@ -35,6 +35,7 @@
     jujutsu
     nodejs
     git
+    gh
     rustup
     ripgrep
     fd
