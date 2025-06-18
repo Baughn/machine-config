@@ -1,0 +1,14 @@
+[
+  "neovim",
+  "wget",
+  "restic",
+  "sshfs",
+  "jujutsu",
+  "nodejs",
+  "git",
+  "gh",
+  "rustup",
+  "ripgrep",
+  "fd",
+  "tcpdump"
+]

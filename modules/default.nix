@@ -27,18 +27,9 @@
   programs.neovim.defaultEditor = true;
 
   # Software that I use virtually everywhere
-  environment.systemPackages = with pkgs; [
-    neovim
-    wget
-    restic
-    sshfs
-    jujutsu
-    nodejs
-    git
-    gh
-    rustup
-    ripgrep
-    fd
-    tcpdump
-  ];
+  environment.systemPackages = with pkgs;
+    let
+      defaultApps = builtins.fromJSON (builtins.readFile ./defaultApps.json);
+    in
+    map (name: pkgs.${name}) defaultApps;
 }
