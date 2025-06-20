@@ -4,10 +4,10 @@ This repository contains NixOS configuration files.
 
 ## Coding style
 
-### Nix Code Formatting
-Use the formatting tool to format all Nix files before committing:
+### Nix coding style
+Use the delint tool to check for lints (& format all files) before committing.
 ```bash
-./tools-for-claude/format-nix.sh
+./tools-for-claude/lint.sh
 ```
 
 ## Anchor comments  
