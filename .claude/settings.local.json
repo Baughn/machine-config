@@ -5,7 +5,8 @@
       "Bash(nix flake check:*)",
       "Bash(./tools-for-claude/format-nix.sh:*)",
       "Bash(jj status:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(jj diff:*)"
     ],
     "deny": []
   }

@@ -3,12 +3,13 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    nixpkgs-kernel.url = "github:nixos/nixpkgs?ref=nixos-unstable";
 
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nix-index-database, ... }: {
+  outputs = { self, nixpkgs, nixpkgs-kernel, nix-index-database, ... }: {
     nixosConfigurations.saya = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
@@ -23,6 +24,15 @@
           nix.registry.nixpkgs.flake = nixpkgs;
           # Allow unfree packages
           nixpkgs.config.allowUnfree = true;
+          # Overlay to use linuxPackages_zen from nixpkgs-kernel
+          nixpkgs.overlays = [
+            (final: prev: {
+              linuxPackages_zen = (import nixpkgs-kernel {
+                system = prev.system;
+                config.allowUnfree = true;
+              }).linuxPackages_zen;
+            })
+          ];
         }
       ];
     };
