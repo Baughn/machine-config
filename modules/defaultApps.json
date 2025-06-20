@@ -1,14 +1,16 @@
 [
-  "neovim",
-  "wget",
-  "restic",
-  "sshfs",
-  "jujutsu",
-  "nodejs",
-  "git",
-  "gh",
-  "rustup",
-  "ripgrep",
+  "ethtool",
   "fd",
-  "tcpdump"
+  "gh",
+  "git",
+  "htop",
+  "jujutsu",
+  "neovim",
+  "nodejs",
+  "restic",
+  "ripgrep",
+  "rustup",
+  "sshfs",
+  "tcpdump",
+  "wget"
 ]
