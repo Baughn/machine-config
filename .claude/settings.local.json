@@ -6,7 +6,8 @@
       "Bash(./tools-for-claude/format-nix.sh:*)",
       "Bash(jj status:*)",
       "Bash(rg:*)",
-      "Bash(jj diff:*)"
+      "Bash(jj diff:*)",
+      "Bash(./tools-for-claude/lint.sh:*)"
     ],
     "deny": []
   }

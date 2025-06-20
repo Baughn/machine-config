@@ -9,7 +9,6 @@
 
   # Allow things that need real-time (like sound) to get real-time.
   security.rtkit.enable = true;
-  services.ananicy.enable = true;
 
   boot.kernel.sysctl = {
     # Increase max_map_count for compatibility with modern games via Proton/Wine.
@@ -18,26 +17,34 @@
     "net.ipv4.tcp_congestion_control" = "bbr";
   };
 
-  # Display manager and desktop environment
-  services.displayManager.sddm.enable = true;
-  services.displayManager.sddm.wayland.enable = true;
-  services.displayManager.sddm.wayland.compositor = "kwin";
-  services.desktopManager.plasma6.enable = true;
+  services = {
+    ananicy.enable = true;
 
-  # Enable autologin for user svein
-  services.displayManager.autoLogin = {
-    enable = true;
-    user = "svein";
+    # Display manager and desktop environment
+    displayManager = {
+      sddm = {
+        enable = true;
+        wayland = {
+          enable = true;
+          compositor = "kwin";
+        };
+      };
+      autoLogin = {
+        enable = true;
+        user = "svein";
+      };
+    };
+    desktopManager.plasma6.enable = true;
+
+    # Audio
+    pipewire = {
+      enable = true;
+      pulse.enable = true;
+    };
+
+    # Package management
+    flatpak.enable = true;
   };
-
-  # Audio
-  services.pipewire = {
-    enable = true;
-    pulse.enable = true;
-  };
-
-  # Package management
-  services.flatpak.enable = true;
 
   # Gaming
   programs.steam = {

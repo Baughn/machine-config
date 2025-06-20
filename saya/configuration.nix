@@ -13,9 +13,11 @@
     ];
 
   # Boot
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.blacklistedKernelModules = [ "amdgpu" ];
+  boot = {
+    loader.systemd-boot.enable = true;
+    loader.efi.canTouchEfiVariables = true;
+    blacklistedKernelModules = [ "amdgpu" ];
+  };
 
   # Hardware quirks
   programs.gamemode = {
@@ -32,18 +34,20 @@
   };
 
   # Networking
-  networking.hostName = "saya";
-  networking.hostId = "deafbeef";
-  networking.interfaces.enp12s0.tempAddress = "enabled";
+  networking = {
+    hostName = "saya";
+    hostId = "deafbeef";
+    interfaces.enp12s0.tempAddress = "enabled";
+    firewall.allowPing = true;
+    firewall.allowedUDPPorts = [
+      # mDNS
+      5353
+      5355
+      # Factorio
+      34197
+    ];
+  };
   services.openssh.enable = true;
-  networking.firewall.allowPing = true;
-  networking.firewall.allowedUDPPorts = [
-    # mDNS
-    5353
-    5355
-    # Factorio
-    34197
-  ];
   services.resolved = {
     enable = true;
     dnssec = "allow-downgrade";

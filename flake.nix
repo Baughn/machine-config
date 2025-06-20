@@ -27,10 +27,10 @@
           # Overlay to use linuxPackages_zen from nixpkgs-kernel
           nixpkgs.overlays = [
             (final: prev: {
-              linuxPackages_zen = (import nixpkgs-kernel {
-                system = prev.system;
+              inherit ((import nixpkgs-kernel {
+                inherit (prev) system;
                 config.allowUnfree = true;
-              }).linuxPackages_zen;
+              })) linuxPackages_zen;
             })
           ];
         }

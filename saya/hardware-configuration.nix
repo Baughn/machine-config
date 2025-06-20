@@ -9,41 +9,40 @@
       (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
-  boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-amd" ];
-  boot.extraModulePackages = [ ];
+  boot = {
+    initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
+    initrd.kernelModules = [ ];
+    kernelModules = [ "kvm-amd" ];
+    extraModulePackages = [ ];
+  };
 
-  fileSystems."/" =
-    {
+  fileSystems = {
+    "/" = {
       device = "rpool/root";
       fsType = "zfs";
     };
 
-  fileSystems."/boot" =
-    {
+    "/boot" = {
       device = "/dev/disk/by-uuid/2E14-1ECC";
       fsType = "vfat";
       options = [ "fmask=0022" "dmask=0022" ];
     };
 
-  fileSystems."/home" =
-    {
+    "/home" = {
       device = "rpool/home";
       fsType = "zfs";
     };
 
-  fileSystems."/home/svein" =
-    {
+    "/home/svein" = {
       device = "rpool/home/svein";
       fsType = "zfs";
     };
 
-  fileSystems."/home/svein/AI/image-generation/models" =
-    {
+    "/home/svein/AI/image-generation/models" = {
       device = "rpool/bulk/image-models";
       fsType = "zfs";
     };
+  };
 
   swapDevices =
     [{ device = "/dev/disk/by-uuid/646c91c3-19dc-4066-aa3a-827649e3c837"; }
