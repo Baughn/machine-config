@@ -73,20 +73,6 @@
     extraGroups = [ "wheel" "gamemode" ];
   };
 
-  # System packages
-  environment.systemPackages = with pkgs; [
-    neovim
-    wget
-    restic
-    sshfs
-    jujutsu
-    nodejs
-    git
-    rustup
-    ripgrep
-    fd
-  ];
-
   # This option defines the first version of NixOS you have installed on this particular machine,
   # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.
   #
