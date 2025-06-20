@@ -71,7 +71,7 @@ def update_selective_inputs(inputs_to_update):
     print_info(f"Updating inputs: {', '.join(inputs_to_update)}")
     for input_name in inputs_to_update:
         if not run_command(['nix', '--extra-experimental-features', 'nix-command flakes',
-                           'flake', 'lock', '--update-input', input_name]):
+                           'flake', 'update', input_name]):
             return False
     return True
 
