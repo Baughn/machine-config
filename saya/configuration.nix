@@ -10,6 +10,8 @@
       ./hardware-configuration.nix
       ./sdbot.nix
       ../modules
+      ../quirks/g903.nix
+      ../quirks/amd-x3d.nix
     ];
 
   # Boot
@@ -17,7 +19,11 @@
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
     blacklistedKernelModules = [ "amdgpu" ];
+    kernelParams = [ "boot.shell_on_fail" ];
   };
+
+  # Enable emergency mode for troubleshooting
+  systemd.enableEmergencyMode = true;
 
   # Hardware quirks
   programs.gamemode = {

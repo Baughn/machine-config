@@ -44,7 +44,11 @@
     ACTION=="add|change", KERNEL=="sd*", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"
   '';
 
+  powerManagement.cpuFreqGovernor = "schedutil";
+
   # GameMode for per-game performance governor switching
   programs.gamemode.enable = true;
-  powerManagement.cpuFreqGovernor = "performance";
+
+  # System76 scheduler for better desktop responsiveness
+  services.system76-scheduler.enable = true;
 }

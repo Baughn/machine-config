@@ -64,7 +64,7 @@ This document tracks features present in ../nixos-old/saya/configuration.nix tha
 - **Performance:**
   - system76-scheduler
   - CPU frequency governor = schedutil
-- Status: Not migrated
+- Status: Migrated
 
 ### 7. Network Services
 - **Additional firewall ports:**
