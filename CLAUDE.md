@@ -2,7 +2,7 @@
 
 This repository contains NixOS configuration files.
 
-IMPORTANT: Migration plans are in PLANS.md. Read this before any migration actions.
+IMPORTANT: Migration plans are in MIGRATION_PLANS.md. Read this before any migration actions.
 
 ## Coding style
 
