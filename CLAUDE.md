@@ -2,6 +2,8 @@
 
 This repository contains NixOS configuration files.
 
+IMPORTANT: Migration plans are in PLANS.md. Read this before any migration actions.
+
 ## Coding style
 
 ### Nix coding style
