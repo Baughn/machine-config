@@ -41,6 +41,10 @@ New files will break the build until after a commit.
 
 ## Tools for Claude
 
+### Nixpkgs access
+
+If you need to access the nixpkgs source code, e.g. to examine the implementation or read tests, look in ~/dev/nixpkgs/
+
 ### NixOS Options Search
 Use `tools-for-claude/search-options.sh` to find and inspect the documentation for NixOS configuration options.
 **Important:** Always do this prior to adding or editing options. There may well be changes you are unaware of.
