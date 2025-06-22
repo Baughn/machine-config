@@ -19,13 +19,21 @@ if [ ! -f "$JSON_FILE" ]; then
     exit 1
 fi
 
+# Check if package exists in nixpkgs
+echo "Checking if '$PACKAGE' exists in nixpkgs..."
+if ! nix-instantiate --eval -E "with import <nixpkgs> {}; $PACKAGE" >/dev/null 2>&1; then
+    echo "Error: Package '$PACKAGE' not found in nixpkgs"
+    echo "Make sure the package name is correct and exists in the nixpkgs repository"
+    exit 1
+fi
+
 # Check if package already exists
 if jq -e --arg pkg "$PACKAGE" 'any(. == $pkg)' "$JSON_FILE" > /dev/null 2>&1; then
     echo "Package '$PACKAGE' already exists in the list"
     exit 0
 fi
 
-# Add the package and sort the list
-jq --arg pkg "$PACKAGE" '. += [$pkg] | sort' "$JSON_FILE" > "$JSON_FILE.tmp" && mv "$JSON_FILE.tmp" "$JSON_FILE"
+# Add the package and sort the list (removing duplicates)
+jq --arg pkg "$PACKAGE" '. += [$pkg] | unique' "$JSON_FILE" > "$JSON_FILE.tmp" && mv "$JSON_FILE.tmp" "$JSON_FILE"
 
 echo "Added '$PACKAGE' to defaultApps.json"
