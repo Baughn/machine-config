@@ -11,7 +11,10 @@
   security.sudo.wheelNeedsPassword = false;
 
   ## Nix settings
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings = {
+    auto-optimise-store = true;
+    experimental-features = [ "nix-command" "flakes" ];
+  };
   ## Using nix-index instead, for flake support
   programs = {
     command-not-found.enable = false;
