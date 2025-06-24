@@ -69,6 +69,21 @@
           replaceUnknownProfiles = true;
         };
       };
+
+      # v4 proxy server
+      v4 = { name, nodes, ... }: {
+        imports = [
+          ./v4/configuration.nix
+        ];
+
+        # Deployment configuration
+        deployment = {
+          targetHost = "v4.brage.info";
+          targetUser = "root";
+          buildOnTarget = false; # Build locally
+          replaceUnknownProfiles = true;
+        };
+      };
     };
   };
 }
