@@ -66,13 +66,6 @@
   # Environmental
   time.timeZone = "Europe/Dublin";
 
-  # Automatic garbage collection
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 14d";
-  };
-
   # Users
   users.users.svein = {
     isNormalUser = true;

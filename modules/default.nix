@@ -30,6 +30,13 @@
     neovim.defaultEditor = true;
   };
 
+  # Automatic garbage collection
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 14d";
+  };
+
   # Shell configuration
   users.defaultUserShell = pkgs.zsh;
 
