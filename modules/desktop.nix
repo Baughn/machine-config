@@ -22,19 +22,16 @@
 
     # Display manager and desktop environment
     displayManager = {
-      sddm = {
+      gdm = {
         enable = true;
-        wayland = {
-          enable = true;
-          compositor = "kwin";
-        };
+        wayland = true;
       };
       autoLogin = {
         enable = true;
         user = "svein";
       };
     };
-    desktopManager.plasma6.enable = true;
+    desktopManager.gnome.enable = true;
 
     # Audio
     pipewire = {
