@@ -83,14 +83,25 @@ def run_flake_check():
 def try_build(extra_args):
     """Try to build the system configuration."""
     print_info("Building system configuration...")
-    cmd = ['nixos-rebuild', '--flake', '.', 'build', '--show-trace'] + extra_args
+    cmd = ['colmena', 'build'] + extra_args
     return run_command(cmd)
 
 def show_diff_and_deploy():
     """Show diff and prompt for deployment."""
-    # Run nvd diff
+    # Run nvd diff to show changes
     print_info("Showing system differences...")
-    subprocess.run(['nvd', 'diff', '/run/current-system', 'result'])
+    # Get the built system path from Colmena's build output
+    result = subprocess.run(['colmena', 'build', '--quiet'], capture_output=True, text=True)
+    if result.returncode == 0:
+        # Extract system path from Colmena output (it shows the store path)
+        for line in result.stdout.split('\n'):
+            if 'nixos-system-' in line and '/nix/store/' in line:
+                built_system = line.strip()
+                break
+        else:
+            built_system = 'result'  # fallback
+        
+        subprocess.run(['nvd', 'diff', '/run/current-system', built_system])
     
     # Alert sound
     print('\a', end='', flush=True)
@@ -98,8 +109,8 @@ def show_diff_and_deploy():
     # Interactive prompt
     print("\nDeploy?")
     print("1) exit")
-    print("2) switch")
-    print("3) boot")
+    print("2) apply (deploy now)")
+    print("3) boot (apply on next boot)")
     
     while True:
         try:
@@ -108,12 +119,12 @@ def show_diff_and_deploy():
                 print_info("Exiting without deployment.")
                 break
             elif choice == '2':
-                print_info("Switching to new configuration...")
-                subprocess.run(['sudo', 'nixos-rebuild', '--flake', '.', 'switch'])
+                print_info("Deploying with Colmena...")
+                subprocess.run(['colmena', 'apply'])
                 break
             elif choice == '3':
                 print_info("Setting new configuration for next boot...")
-                subprocess.run(['sudo', 'nixos-rebuild', '--flake', '.', 'boot'])
+                subprocess.run(['colmena', 'apply', 'boot'])
                 break
             else:
                 print_error("Invalid choice. Please select 1, 2, or 3.")

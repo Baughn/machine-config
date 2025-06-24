@@ -7,7 +7,12 @@
       "Bash(jj status:*)",
       "Bash(rg:*)",
       "Bash(jj diff:*)",
-      "Bash(./tools-for-claude/lint.sh:*)"
+      "Bash(./tools-for-claude/lint.sh:*)",
+      "Bash(find:*)",
+      "WebFetch(domain:colmena.cli.rs)",
+      "WebFetch(domain:zhaofengli.github.io)",
+      "WebFetch(domain:github.com)",
+      "Bash(jj log:*)"
     ],
     "deny": []
   }

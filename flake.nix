@@ -7,36 +7,12 @@
 
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
+
+    colmena.url = "github:zhaofengli/colmena";
+    colmena.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-kernel, nix-index-database, ... }: {
-    nixosConfigurations.saya = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [
-        ./saya/configuration.nix
-        nix-index-database.nixosModules.nix-index
-        {
-          # Setup nix-index
-          programs.nix-index-database.comma.enable = true;
-          # Propagate nixpkgs
-          nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
-          environment.etc."nixpkgs".source = nixpkgs;
-          nix.registry.nixpkgs.flake = nixpkgs;
-          # Allow unfree packages
-          nixpkgs.config.allowUnfree = true;
-          # Overlay to use linuxPackages_zen from nixpkgs-kernel
-          nixpkgs.overlays = [
-            (final: prev: {
-              inherit ((import nixpkgs-kernel {
-                inherit (prev) system;
-                config.allowUnfree = true;
-              })) linuxPackages_zen;
-            })
-          ];
-        }
-      ];
-    };
-
+  outputs = { self, nixpkgs, nixpkgs-kernel, nix-index-database, colmena, ... }: {
     packages.x86_64-linux.options = (import (nixpkgs.outPath + "/nixos/release.nix") { }).options;
 
     # AIDEV-NOTE: VM tests for sanity checking configurations
@@ -44,6 +20,54 @@
       pkgs = import nixpkgs {
         system = "x86_64-linux";
         config.allowUnfree = true;
+      };
+    };
+
+    # Colmena deployment configuration
+    colmenaHive = colmena.lib.makeHive {
+      meta = {
+        nixpkgs = import nixpkgs {
+          system = "x86_64-linux";
+          config.allowUnfree = true;
+          overlays = [
+            # Reuse existing overlay for zen kernel
+            (final: prev: {
+              inherit ((import nixpkgs-kernel {
+                inherit (prev) system;
+                config.allowUnfree = true;
+              })) linuxPackages_zen;
+            })
+            # Add Colmena overlay
+            colmena.overlays.default
+          ];
+        };
+      };
+
+      # Deploy to current host (saya)
+      saya = { name, nodes, ... }: {
+        imports = [
+          ./saya/configuration.nix
+          nix-index-database.nixosModules.nix-index
+        ];
+
+        # Setup nix-index
+        programs.nix-index-database.comma.enable = true;
+        # Propagate nixpkgs
+        nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
+        environment.etc."nixpkgs".source = nixpkgs;
+        nix.registry.nixpkgs.flake = nixpkgs;
+        
+        # Add Colmena to system packages
+        environment.systemPackages = [ colmena.packages.x86_64-linux.colmena ];
+
+        # Deployment configuration
+        deployment = {
+          targetHost = "localhost"; # Deploy to local machine
+          targetUser = "root";
+          buildOnTarget = false; # Build locally
+	  allowLocalDeployment = true;
+          replaceUnknownProfiles = true;
+        };
       };
     };
   };
