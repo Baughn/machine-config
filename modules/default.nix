@@ -3,8 +3,6 @@
 {
   imports = [
     ./zsh.nix
-    ./desktop.nix
-    ./nvidia.nix
   ];
 
   # Security?
@@ -35,6 +33,13 @@
     automatic = true;
     dates = "weekly";
     options = "--delete-older-than 14d";
+  };
+
+  # Services
+  services.openssh.enable = true;
+  services.resolved = {
+    enable = true;
+    dnssec = "allow-downgrade";
   };
 
   # Shell configuration

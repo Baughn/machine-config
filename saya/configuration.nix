@@ -10,6 +10,8 @@
       ./hardware-configuration.nix
       ./sdbot.nix
       ../modules
+      ../modules/desktop.nix
+      ../modules/nvidia.nix
       ../quirks/g903.nix
       ../quirks/amd-x3d.nix
     ];
@@ -53,10 +55,7 @@
       34197
     ];
   };
-  services.openssh.enable = true;
   services.resolved = {
-    enable = true;
-    dnssec = "allow-downgrade";
     extraConfig = ''
       MulticastDNS = yes
       LLMNR = yes

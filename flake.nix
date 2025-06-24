@@ -56,7 +56,7 @@
         nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
         environment.etc."nixpkgs".source = nixpkgs;
         nix.registry.nixpkgs.flake = nixpkgs;
-        
+
         # Add Colmena to system packages
         environment.systemPackages = [ colmena.packages.x86_64-linux.colmena ];
 
@@ -65,7 +65,7 @@
           targetHost = "localhost"; # Deploy to local machine
           targetUser = "root";
           buildOnTarget = false; # Build locally
-	  allowLocalDeployment = true;
+          allowLocalDeployment = true;
           replaceUnknownProfiles = true;
         };
       };
