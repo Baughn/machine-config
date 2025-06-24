@@ -5,6 +5,7 @@ import json
 import os
 import subprocess
 import sys
+import re
 import tempfile
 from pathlib import Path
 
@@ -91,15 +92,17 @@ def show_diff_and_deploy():
     # Run nvd diff to show changes
     print_info("Showing system differences...")
     # Get the built system path from Colmena's build output
-    result = subprocess.run(['colmena', 'build', '--quiet'], capture_output=True, text=True)
+    result = subprocess.run(['colmena', 'build', '--on', 'saya'], capture_output=True, text=True)
     if result.returncode == 0:
         # Extract system path from Colmena output (it shows the store path)
-        for line in result.stdout.split('\n'):
-            if 'nixos-system-' in line and '/nix/store/' in line:
-                built_system = line.strip()
+        built_system = None
+        for line in result.stderr.split('\n'):
+            store = re.match(r'.*"(/nix/store/.*)".*', line)
+            if store:
+                built_system = store[1]
                 break
-        else:
-            built_system = 'result'  # fallback
+
+        assert built_system is not None
         
         subprocess.run(['nvd', 'diff', '/run/current-system', built_system])
     
