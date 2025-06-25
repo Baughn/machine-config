@@ -28,6 +28,8 @@ Add specially formatted comments throughout the codebase, where appropriate, for
 This project uses Jujutsu (jj) for version management instead of Git.
 A git repository is colocated (to make nix commands work), but DO NOT use git commands.
 
+ALWAYS use `jj diff` before commit.
+
 ### Commit Messages
  
 Commit messages should follow the Conventional Commits specification.
