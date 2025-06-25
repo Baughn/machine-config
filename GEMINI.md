@@ -42,8 +42,9 @@ The format is: `<type>: <description>`
 ## Common Commands
 - `jj status` - Show per-file working copy changes
 - `jj diff` - Show contents of the working copy
-- `jj commit -m "message"` -- Set commit message and create a new commit on top -- like `git commit`
+- `jj commit -m 'message'` -- Set commit message and create a new commit on top -- like `git commit`
 - `jj log --limit 5` -- Show recent commits
+- `jj undo` -- If you make a mistake
 
 ## Testing
 - `nix flake check` -- Comprehensive sanity check.
