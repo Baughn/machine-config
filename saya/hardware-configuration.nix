@@ -42,6 +42,27 @@
       device = "rpool/bulk/image-models";
       fsType = "zfs";
     };
+
+    "/tsugumi" = {
+      device = "svein@tsugumi.local:";
+      fsType = "fuse.sshfs";
+      options = [
+        "noauto"
+        "x-systemd.automount"
+        "_netdev"
+        "users"
+        "idmap=user"
+        "IdentityFile=/home/svein/.ssh/id_ed25519"
+        "allow_other"
+        "default_permissions"
+        "uid=1000"
+        "gid=100"
+        "exec"
+        "reconnect"
+        "ServerAliveInterval=15"
+        "ServerAliveCountMax=3"
+      ];
+    };
   };
 
   swapDevices =
