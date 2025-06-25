@@ -25,7 +25,11 @@
     };
 
     # Editor configuration
-    neovim.defaultEditor = true;
+    neovim = {
+      defaultEditor = true;
+      viAlias = true;
+      vimAlias = true;
+    };
   };
 
   # Automatic garbage collection
