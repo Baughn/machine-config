@@ -5,6 +5,13 @@
     ./performance.nix
   ];
 
+  # Custom packages overlay
+  nixpkgs.overlays = [
+    (final: prev: {
+      faketorio = prev.luaPackages.callPackage ../tools/faketorio.nix { };
+    })
+  ];
+
   # AIDEV-NOTE: Desktop/GUI specific configuration
 
   # Allow things that need real-time (like sound) to get real-time.
