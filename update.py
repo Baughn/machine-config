@@ -105,6 +105,13 @@ def show_diff_and_deploy():
         assert built_system is not None
         
         subprocess.run(['nvd', 'diff', '/run/current-system', built_system])
+        
+        # Check if flake.lock has changed before committing
+        diff_check = subprocess.run(['jj', 'diff', '--stat', 'flake.lock'], capture_output=True, text=True)
+        if '0 files changed' in diff_check.stdout.strip():
+            print_info("No changes to flake.lock to commit.")
+        else:
+            run_command(['jj', 'commit', '-m', 'Bump nixpkgs', 'flake.lock'])
     
     # Alert sound
     print('\a', end='', flush=True)
