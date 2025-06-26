@@ -56,4 +56,10 @@
       cliApps = builtins.fromJSON (builtins.readFile ./cliApps.json);
     in
     map (name: pkgs.${name}) cliApps;
+
+  # Users
+  users.users.svein = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" "gamemode" ];
+  };
 }
