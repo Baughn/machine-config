@@ -53,7 +53,7 @@
   # Software that I use virtually everywhere
   environment.systemPackages = with pkgs;
     let
-      defaultApps = builtins.fromJSON (builtins.readFile ./defaultApps.json);
+      cliApps = builtins.fromJSON (builtins.readFile ./cliApps.json);
     in
-    map (name: pkgs.${name}) defaultApps;
+    map (name: pkgs.${name}) cliApps;
 }

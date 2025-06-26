@@ -58,10 +58,9 @@
   };
 
   # Desktop applications
-  environment.systemPackages = with pkgs; [
-    google-chrome
-    mpv
-    syncplay
-    vscode-fhs
-  ];
+  environment.systemPackages = with pkgs;
+    let
+      desktopApps = builtins.fromJSON (builtins.readFile ./desktopApps.json);
+    in
+    (map (name: pkgs.${name}) desktopApps);
 }
