@@ -7,6 +7,7 @@
   "htop",
   "jujutsu",
   "nodejs",
+  "pciutils",
   "psmisc",
   "restic",
   "ripgrep",

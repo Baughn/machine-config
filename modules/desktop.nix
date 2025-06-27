@@ -32,6 +32,7 @@
       gdm = {
         enable = true;
         wayland = true;
+	autoSuspend = false;
       };
       autoLogin = {
         enable = true;
