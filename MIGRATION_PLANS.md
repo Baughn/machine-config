@@ -148,6 +148,98 @@ The old modules/default.nix included:
 2. Hardware quirks (unless experiencing issues)
 3. Performance optimizations
 
+## Tsugumi Server Migration
+
+### Configuration Status
+- ✅ **Core system**: Hardware config with all ZFS mounts, boot, networking
+- ✅ **Deployment**: Added to flake.nix colmenaHive for remote deployment
+- ❌ **Services**: All applications and services temporarily skipped
+
+### Major Skipped Components
+
+#### Web Infrastructure
+- **Caddy web server** with 15+ domain proxies:
+  - brage.info (file server)
+  - madoka.brage.info (minecraft web)
+  - grafana.brage.info
+  - map.brage.info, incognito.brage.info (minecraft maps)
+  - home.brage.info (home assistant)
+  - comfyui.brage.info (AI proxy to saya)
+  - status.brage.info (prometheus)
+  - alertmanager.brage.info
+  - znc.brage.info, obico.brage.info, klipper.brage.info
+  - racer.brage.info, ar-innna.brage.info
+  - qbt.brage.info, todo.brage.info, sonarr.brage.info, radarr.brage.info
+  - jellyfin.brage.info, plex.brage.info, store.brage.info
+- **Authelia authentication** with TOTP, session management, user database
+- **Custom Caddy build** with Cloudflare DNS plugin
+- **TLS certificates** via Cloudflare DNS challenge
+
+#### Applications & Services
+- **Media Management**:
+  - Sonarr (TV show management)
+  - Plex media server
+  - SilverBullet note-taking system
+- **Game Servers**:
+  - Minecraft servers (sonarr.nix, minecraft.nix)
+  - Bot services (rolebot.nix, sdbot.nix, irctool.nix, aniwatch.nix)
+- **Monitoring Stack**:
+  - Grafana dashboard server
+  - Prometheus with custom UPS monitoring rules
+  - Blackbox exporter for connectivity monitoring
+  - Custom alerting for UPS status, voltage, frequency, battery level
+
+#### Hardware & Infrastructure
+- **UPS Management** (Phoenix TEC VFI 2000):
+  - NUT (Network UPS Tools) configuration
+  - Serial connection via /dev/ttyUSB0
+  - Custom battery pack configuration (24 cells, PbAc)
+  - Runtime calculations and shutdown procedures
+  - Age-encrypted password management
+- **Hardware Support**:
+  - NVIDIA GPU persistence daemon
+  - AMD GPU drivers
+  - Power management and thermal control
+
+#### Data & Sync
+- **Syncthing** multi-device synchronization:
+  - 4 devices: saya, sayanix, kaho, koyomi
+  - 4 folders: default Sync, Music, Documents, secure
+  - Device IDs and folder configurations
+- **ZRepl Backups**:
+  - Push configuration to stash/zrepl
+  - 15-minute snapshot intervals
+  - Sophisticated retention policies (hourly, daily, weekly, monthly)
+  - Excludes dynmap directories for minecraft servers
+- **Filesystem Bind Mounts**:
+  - /srv/ web server root with multiple bind mounts
+  - Media directories (Anime, Movies, TV) mounted for web access
+  - User web directories mounted for serving
+
+#### User Management
+- **Additional Users**: minecraft, aquagon, nixremote
+- **Age Secrets**: Encrypted password and key management
+- **SSH Key Management**: Automated key distribution
+
+#### Network Services
+- **Firewall Configuration**:
+  - TCP: 80, 443 (HTTP/HTTPS)
+  - UDP: 34197 (Factorio)
+- **DNS Configuration**: Custom DNS servers (1.1.1.1, 1.0.0.1)
+- **Network Interface**: Converted from systemd-network to standard NixOS
+
+### Migration Priority for Future
+1. **High**: UPS monitoring, basic web serving, media access
+2. **Medium**: Game servers, authentication system, monitoring
+3. **Low**: Advanced media management, specialized bots
+
+### Technical Notes
+- Original used systemd-network with MAC address matching (74:56:3c:b2:26:07)
+- Converted to standard NixOS networking with interface-based DHCP
+- All ZFS filesystems preserved (20+ mounts including encrypted datasets)
+- Age secrets system needs to be re-implemented or replaced
+- Custom module system ("me" namespace) not migrated
+
 ## Notes
 
 - The current config uses a simpler module structure

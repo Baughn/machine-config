@@ -12,6 +12,9 @@
   # Security?
   security.sudo.wheelNeedsPassword = false;
 
+  # The default is 'performance', which is unnecessary.
+  powerManagement.cpuFreqGovernor = "schedutil";
+
   ## Nix settings
   nix.settings = {
     auto-optimise-store = true;

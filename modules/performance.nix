@@ -44,8 +44,6 @@
     ACTION=="add|change", KERNEL=="sd*", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"
   '';
 
-  powerManagement.cpuFreqGovernor = "schedutil";
-
   # GameMode for per-game performance governor switching
   programs.gamemode.enable = true;
 

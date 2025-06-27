@@ -84,6 +84,32 @@
           replaceUnknownProfiles = true;
         };
       };
+
+      # tsugumi server
+      tsugumi = { name, nodes, ... }: {
+        imports = [
+          ./tsugumi/configuration.nix
+          nix-index-database.nixosModules.nix-index
+        ];
+
+        # Setup nix-index
+        programs.nix-index-database.comma.enable = true;
+        # Propagate nixpkgs
+        nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
+        environment.etc."nixpkgs".source = nixpkgs;
+        nix.registry.nixpkgs.flake = nixpkgs;
+
+        # Add Colmena to system packages
+        environment.systemPackages = [ colmena.packages.x86_64-linux.colmena ];
+
+        # Deployment configuration
+        deployment = {
+          targetHost = "tsugumi.local";
+          targetUser = "root";
+          buildOnTarget = false; # Build locally
+          replaceUnknownProfiles = true;
+        };
+      };
     };
   };
 }
