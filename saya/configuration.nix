@@ -44,9 +44,6 @@
   # Networking
   networking = {
     hostName = "saya";
-    hostId = "deafbeef";
-    interfaces.lan.tempAddress = "enabled";
-    firewall.allowPing = true;
     firewall.allowedUDPPorts = [
       # mDNS
       5353
