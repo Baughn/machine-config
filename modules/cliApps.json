@@ -9,6 +9,7 @@
   "nodejs",
   "pciutils",
   "psmisc",
+  "pv",
   "restic",
   "ripgrep",
   "rustup",
