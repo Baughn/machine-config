@@ -6,6 +6,9 @@
     modesetting.enable = true;
     open = false;
   };
+  boot.kernelParams = [
+    "nvidia.NVreg_EnableGpuFirmware=0"
+  ];
   services.xserver.videoDrivers = [ "nvidia" ];
 
   # Environment variables for G-Sync/VRR (explicit sync auto-enabled in Plasma 6.3+)
