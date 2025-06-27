@@ -3,7 +3,11 @@
 {
   imports = [
     ./zsh.nix
+    ./networking.nix
   ];
+
+  # Use RAM for /tmp, but like, efficiently.
+  boot.tmp.useZram = true;
 
   # Security?
   security.sudo.wheelNeedsPassword = false;

@@ -45,7 +45,7 @@
   networking = {
     hostName = "saya";
     hostId = "deafbeef";
-    interfaces.enp12s0.tempAddress = "enabled";
+    interfaces.lan.tempAddress = "enabled";
     firewall.allowPing = true;
     firewall.allowedUDPPorts = [
       # mDNS
