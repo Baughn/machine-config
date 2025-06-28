@@ -44,19 +44,11 @@
   # Networking
   networking = {
     hostName = "saya";
+    enableMDNS = true;
     firewall.allowedUDPPorts = [
-      # mDNS
-      5353
-      5355
       # Factorio
       34197
     ];
-  };
-  services.resolved = {
-    extraConfig = ''
-      MulticastDNS = yes
-      LLMNR = yes
-    '';
   };
 
   # Environmental
