@@ -4,6 +4,7 @@
   imports = [
     ./zsh.nix
     ./networking.nix
+    ./users.nix
   ];
 
   # Use RAM for /tmp, but like, efficiently.
@@ -64,9 +65,6 @@
     in
     map (name: pkgs.${name}) cliApps;
 
-  # Users
-  users.users.svein = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" "gamemode" ];
-  };
+  # Users are now handled by users.nix with the users.include option
+  users.include = [ "svein" ];
 }

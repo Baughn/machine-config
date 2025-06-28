@@ -11,9 +11,9 @@
   networking = {
     hostId = "deafbeef";
     useDHCP = false;
-    interfaces.lan.useDHCP = lib.mkDefault true; 
+    interfaces.lan.useDHCP = lib.mkDefault true;
     interfaces.lan.tempAddress = "disabled";
     networkmanager.enable = false;
     firewall.allowPing = true;
- };
+  };
 }
