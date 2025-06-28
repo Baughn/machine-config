@@ -10,9 +10,12 @@
 
     colmena.url = "github:zhaofengli/colmena";
     colmena.inputs.nixpkgs.follows = "nixpkgs";
+
+    agenix.url = "github:ryantm/agenix";
+    agenix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-kernel, nix-index-database, colmena, ... }: {
+  outputs = { self, nixpkgs, nixpkgs-kernel, nix-index-database, colmena, agenix, ... }: {
     packages.x86_64-linux.options = (import (nixpkgs.outPath + "/nixos/release.nix") { }).options;
 
     # AIDEV-NOTE: VM tests for sanity checking configurations
@@ -90,6 +93,8 @@
         imports = [
           ./tsugumi/configuration.nix
           nix-index-database.nixosModules.nix-index
+          agenix.nixosModules.default
+          ./secrets
         ];
 
         # Setup nix-index

@@ -8,8 +8,7 @@
       hash = "sha256-2D7dnG50CwtCho+U+iHmSj2w14zllQXPjmTHr6lJZ/A=";
     };
     email = "sveina@gmail.com";
-    # TODO: Uncomment when age secrets are set up
-    # environmentFile = config.age.secrets."caddy.env".path;
+    environmentFile = config.age.secrets."caddy.env".path;
     extraConfig = ''
       (headers) {
         header Strict-Transport-Security "max-age=31536000; includeSubdomains"
