@@ -9,6 +9,8 @@
   imports = [
     ../modules
     ./hardware-configuration.nix
+    ./sdbot.nix
+    ./caddy.nix
   ];
 
   ## Boot
@@ -35,8 +37,6 @@
     hostName = "tsugumi";
     enableLAN = true;
     firewall.allowedTCPPorts = [
-      80
-      443 # Web-server
     ];
     firewall.allowedUDPPorts = [
       34197 # Factorio
