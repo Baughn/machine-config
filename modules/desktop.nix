@@ -70,5 +70,5 @@
     let
       desktopApps = builtins.fromJSON (builtins.readFile ./desktopApps.json);
     in
-    (map (name: pkgs.${name}) desktopApps);
+    map (name: pkgs.${name}) desktopApps;
 }

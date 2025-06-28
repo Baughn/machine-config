@@ -12,17 +12,20 @@
   ];
 
   ## Boot
-  boot.loader.systemd-boot = {
-    enable = true;
-    memtest86.enable = true;
+  boot = {
+    loader = {
+      systemd-boot = {
+        enable = true;
+        memtest86.enable = true;
+      };
+      efi.canTouchEfiVariables = true;
+    };
+    # Enable THP
+    postBootCommands = ''
+      echo always > /sys/kernel/mm/transparent_hugepage/enabled
+      echo defer > /sys/kernel/mm/transparent_hugepage/defrag
+    '';
   };
-  boot.loader.efi.canTouchEfiVariables = true;
-
-  # Enable THP
-  boot.postBootCommands = ''
-    echo always > /sys/kernel/mm/transparent_hugepage/enabled
-    echo defer > /sys/kernel/mm/transparent_hugepage/defrag
-  '';
 
   ## GPU
   hardware.nvidia.nvidiaPersistenced = true;
