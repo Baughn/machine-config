@@ -5,6 +5,7 @@
     ./zsh.nix
     ./networking.nix
     ./users.nix
+    ./tmux.nix
   ];
 
   # Use RAM for /tmp, but like, efficiently.
@@ -24,48 +25,48 @@
   };
   ## Using nix-index instead, for flake support
   programs = {
-      command-not-found.enable = false;
+    command-not-found.enable = false;
 
-      ## Non-nix development
-      nix-ld = {
-        enable = true;
-        libraries = with pkgs; [
-        ];
-      };
-
-      # Editor configuration
-      neovim = {
-        enable = true;
-        defaultEditor = true;
-        viAlias = true;
-        vimAlias = true;
-      };
-    };
-
-    # Automatic garbage collection
-    nix.gc = {
-      automatic = true;
-      dates = "weekly";
-      options = "--delete-older-than 14d";
-    };
-
-    # Services
-    services.openssh.enable = true;
-    services.resolved = {
+    ## Non-nix development
+    nix-ld = {
       enable = true;
-      dnssec = "allow-downgrade";
+      libraries = with pkgs; [
+      ];
     };
 
-    # Shell configuration
-    users.defaultUserShell = pkgs.zsh;
+    # Editor configuration
+    neovim = {
+      enable = true;
+      defaultEditor = true;
+      viAlias = true;
+      vimAlias = true;
+    };
+  };
 
-    # Software that I use virtually everywhere
-    environment.systemPackages = with pkgs;
-      let
-        cliApps = builtins.fromJSON (builtins.readFile ./cliApps.json);
-      in
-      map (name: pkgs.${name}) cliApps;
+  # Automatic garbage collection
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 14d";
+  };
 
-    # Users are now handled by users.nix with the users.include option
-    users.include = [ "svein" ];
-  }
+  # Services
+  services.openssh.enable = true;
+  services.resolved = {
+    enable = true;
+    dnssec = "allow-downgrade";
+  };
+
+  # Shell configuration
+  users.defaultUserShell = pkgs.zsh;
+
+  # Software that I use virtually everywhere
+  environment.systemPackages = with pkgs;
+    let
+      cliApps = builtins.fromJSON (builtins.readFile ./cliApps.json);
+    in
+    map (name: pkgs.${name}) cliApps;
+
+  # Users are now handled by users.nix with the users.include option
+  users.include = [ "svein" ];
+}

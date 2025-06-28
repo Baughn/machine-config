@@ -12,7 +12,9 @@
       "WebFetch(domain:colmena.cli.rs)",
       "WebFetch(domain:zhaofengli.github.io)",
       "WebFetch(domain:github.com)",
-      "Bash(jj log:*)"
+      "Bash(jj log:*)",
+      "Bash(grep:*)",
+      "Bash(colmena build:*)"
     ],
     "deny": []
   }
