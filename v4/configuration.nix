@@ -17,7 +17,6 @@
     };
   };
 
-  boot.tmp.cleanOnBoot = true;
   zramSwap.enable = true;
   networking.hostName = "v4";
   networking.domain = "brage.info";

@@ -33,7 +33,7 @@
   ## Networking
   networking = {
     hostName = "tsugumi";
-    enableMDNS = true;
+    enableLAN = true;
     firewall.allowedTCPPorts = [
       80
       443 # Web-server

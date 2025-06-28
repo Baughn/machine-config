@@ -44,7 +44,7 @@
   # Networking
   networking = {
     hostName = "saya";
-    enableMDNS = true;
+    enableLAN = true;
     firewall.allowedUDPPorts = [
       # Factorio
       34197

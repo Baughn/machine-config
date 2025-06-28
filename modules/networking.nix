@@ -1,35 +1,35 @@
 { config, lib, pkgs, ... }:
 
 {
-  options.networking.enableMDNS = lib.mkOption {
+  options.networking.enableLAN = lib.mkOption {
     type = lib.types.bool;
     default = false;
-    description = "Enable mDNS (multicast DNS) and LLMNR for local network discovery";
+    description = "Enable LAN configuration with Intel 82599 NIC, DHCP, and mDNS support";
   };
 
-  config = {
-    # Rename Intel 82599 10G NIC to 'lan' on any system
+  config = lib.mkIf config.networking.enableLAN {
+    # Rename Intel 82599 10G NIC to 'lan'
     services.udev.extraRules = ''
       # Intel 82599 10 Gigabit Network Connection
       SUBSYSTEM=="net", ACTION=="add", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x1557", NAME="lan"
     '';
 
-    # Common settings
+    # LAN network settings
     networking = {
       hostId = "deafbeef";
       useDHCP = false;
-      interfaces.lan.useDHCP = lib.mkDefault true;
+      interfaces.lan.useDHCP = true;
       interfaces.lan.tempAddress = "disabled";
       networkmanager.enable = false;
       firewall.allowPing = true;
-      firewall.allowedUDPPorts = lib.mkIf config.networking.enableMDNS [
+      firewall.allowedUDPPorts = [
         5353 # mDNS
         5355 # LLMNR
       ];
     };
 
-    # mDNS configuration
-    services.resolved = lib.mkIf config.networking.enableMDNS {
+    # mDNS configuration for local network discovery
+    services.resolved = {
       extraConfig = ''
         MulticastDNS = yes
         LLMNR = yes
