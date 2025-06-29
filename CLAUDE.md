@@ -32,6 +32,7 @@ A git repository is colocated (to make nix commands work), but DO NOT use git co
 - `jj status` - Show per-file working copy changes
 - `jj diff` - Show contents of the working copy
 - `jj commit -m "message"` -- Set commit message and create a new commit on top -- like `git commit`
+- `jj squash` -- Squash current changes into the most recent commit
 - `jj log --limit 5` -- Show recent commits
 
 ## Testing

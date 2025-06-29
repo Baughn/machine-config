@@ -18,8 +18,33 @@
     networking = {
       hostId = "deafbeef";
       useDHCP = false;
-      interfaces.lan.useDHCP = true;
-      interfaces.lan.tempAddress = "disabled";
+      interfaces.lan = {
+        useDHCP = true;
+        tempAddress = "disabled";
+        
+        # IPv4 local network with jumbo frames
+        ipv4.routes = [
+          {
+            address = "192.168.0.0";
+            prefixLength = 24;
+            options.mtu = "9000";
+          }
+        ];
+        
+        # IPv6 local networks with jumbo frames  
+        ipv6.routes = [
+          {
+            address = "2a02:8086:d05:6780::";
+            prefixLength = 64;
+            options.mtu = "9000";
+          }
+          {
+            address = "fe80::";
+            prefixLength = 64;
+            options.mtu = "9000";
+          }
+        ];
+      };
       networkmanager.enable = false;
       firewall.allowPing = true;
       firewall.allowedUDPPorts = [
