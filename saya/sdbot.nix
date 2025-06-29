@@ -24,7 +24,7 @@ let
       Restart = "always";
       ExecStart = "${pkgs.steam-run}/bin/steam-run " + COMFYUI_DIR + "/bwrapped.sh";
       MemoryMax = "64G";
-      RuntimeMaxSec = "24h";
+      RuntimeMaxSec = "72h";
       # LD_PRELOAD tcmalloc.
       Environment = "LD_PRELOAD=${pkgs.gperftools}/lib/libtcmalloc.so";
     };
