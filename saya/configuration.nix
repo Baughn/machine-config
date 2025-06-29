@@ -51,6 +51,40 @@
     ];
   };
 
+  # Backup
+  services.restic.backups.home = {
+    user = "svein";
+    passwordFile = config.age.secrets."restic.pw".path;
+    repository = "sftp:svein@tsugumi.local:short-term/backups/saya";
+    backupPrepareCommand = "${pkgs.restic}/bin/restic -r sftp:svein@tsugumi.local:short-term/backups/saya unlock";
+    paths = [ "/home/svein" ];
+    exclude = [
+      # Enhanced exclusions from backup.sh
+      "/home/*/.cache/*"
+      "!/home/*/.cache/huggingface"
+      "/home/*/.local/share/baloo/*"
+      "/home/*/.local/share/Steam/steamapps"
+      "**/shadercache"
+      "**/Cache" "**/cache" "**/_cacache"
+      "**/.venv" "**/venv"
+      "**/ComfyUI/output"
+    ];
+    extraBackupArgs = [
+      "--exclude-caches"
+      "--compression=max"
+      "--read-concurrency=4"
+    ];
+    timerConfig = {
+      OnCalendar = "*:0/30";  # Every 30 minutes
+    };
+    pruneOpts = [
+      "--keep-hourly=36"
+      "--keep-daily=7"
+      "--keep-weekly=4"
+      "--keep-monthly=3"
+    ];
+  };
+
   # Environmental
   time.timeZone = "Europe/Dublin";
 

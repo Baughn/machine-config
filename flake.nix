@@ -51,6 +51,8 @@
         imports = [
           ./saya/configuration.nix
           nix-index-database.nixosModules.nix-index
+          agenix.nixosModules.default
+          ./secrets
         ];
 
         # Setup nix-index
@@ -60,8 +62,10 @@
         environment.etc."nixpkgs".source = nixpkgs;
         nix.registry.nixpkgs.flake = nixpkgs;
 
-        # Add Colmena to system packages
-        environment.systemPackages = [ colmena.packages.x86_64-linux.colmena ];
+        environment.systemPackages = [
+	  colmena.packages.x86_64-linux.colmena
+	  agenix.packages.x86_64-linux.agenix
+	];
 
         # Deployment configuration
         deployment = {

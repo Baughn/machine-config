@@ -9,6 +9,14 @@
       file = ./caddy.env.age;
       hosts = ["tsugumi"];
     };
+    
+    # Backup
+    "restic.pw" = {
+      file = ./restic.pw.age;
+      hosts = ["saya"];
+      owner = "svein";
+      mode = "0400";
+    };
   };
 in {
   age.secrets = lib.filterAttrs
