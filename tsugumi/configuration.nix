@@ -11,6 +11,11 @@
     ./hardware-configuration.nix
     ./sdbot.nix
     ./caddy.nix
+    ./sonarr.nix
+    ./rolebot.nix
+    ./irctool.nix
+    ./aniwatch.nix
+    ./minecraft.nix
   ];
 
   ## Boot
@@ -36,11 +41,6 @@
   networking = {
     hostName = "tsugumi";
     enableLAN = true;
-    firewall.allowedTCPPorts = [
-    ];
-    firewall.allowedUDPPorts = [
-      34197 # Factorio
-    ];
   };
 
   # Power management

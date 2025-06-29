@@ -235,4 +235,31 @@
     depends = ["/home/svein/Sync/Watched"];
     options = ["bind"];
   };
+
+  services.authelia = {
+    instances.main = {
+      enable = true;
+      secrets.storageEncryptionKeyFile = config.age.secrets."authelia-storage-key".path;
+      secrets.jwtSecretFile = config.age.secrets."authelia-jwt-key".path;
+      settings = {
+       theme = "light";
+       default_2fa_method = "totp";
+       log.level = "debug";
+       #server.disable_healthcheck = true;
+       authentication_backend = {
+         file = {
+           path = "/var/lib/authelia-main/users.yml";
+         };
+       };
+       access_control.default_policy = "one_factor";
+       session.domain = "brage.info";
+       storage = {
+         local = {
+           path = "/var/lib/authelia-main/db.sqlite3";
+         };
+       };
+       notifier.filesystem.filename = "/var/lib/authelia-main/notification.txt";
+      };
+    };
+  };
 }

@@ -15,7 +15,16 @@ let
 in {
   # Web stuff
   "caddy.env.age".publicKeys = host tsugumi;
+  # Authelia
+  "authelia-storage-key.age".publicKeys = host tsugumi;
+  "authelia-jwt-key.age".publicKeys = host tsugumi;
   
   # Backup
   "restic.pw.age".publicKeys = all;
+  
+  # Rolebot
+  "rolebot-config.json.age".publicKeys = host tsugumi;
+  
+  # IRC Tool
+  "irc-tool.env.age".publicKeys = host tsugumi;
 }

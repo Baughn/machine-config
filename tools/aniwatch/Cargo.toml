@@ -1,0 +1,13 @@
+[package]
+name = "aniwatch"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.98"
+chrono = { version = "0.4.41", features = ["serde"] }
+clap = { version = "4.5.39", features = ["derive"] }
+dirs = "6.0.0"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+walkdir = "2.5.0"
