@@ -8,23 +8,24 @@ let
   saya = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO9z421G7kH33uethHVKCXs1FcPPdxJQarKIZIZAx4MN";
   tsugumi = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBQ/0hKkb/+12T9ZzQ0lvu13JEL0RZJMxZ27WaQw9+3K";
   v4 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICn/KDuz5Ie7wJx/s+8hGYur/vMuYoyv6ZkbA+y+cONa";
-  systems = [saya tsugumi v4];
+  systems = [ saya tsugumi v4 ];
 
   all = users ++ systems;
-  host = h: [h] ++ svein;
-in {
+  host = h: [ h ] ++ svein;
+in
+{
   # Web stuff
   "caddy.env.age".publicKeys = host tsugumi;
   # Authelia
   "authelia-storage-key.age".publicKeys = host tsugumi;
   "authelia-jwt-key.age".publicKeys = host tsugumi;
-  
+
   # Backup
   "restic.pw.age".publicKeys = all;
-  
+
   # Rolebot
   "rolebot-config.json.age".publicKeys = host tsugumi;
-  
+
   # IRC Tool
   "irc-tool.env.age".publicKeys = host tsugumi;
 }

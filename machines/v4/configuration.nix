@@ -1,8 +1,8 @@
 { pkgs, ... }: {
   imports = [
     ./hardware-configuration.nix
-    ../modules/v4proxy.nix
-    ../modules
+    ../../modules/v4proxy.nix
+    ../../modules
   ];
 
   environment.systemPackages = with pkgs; [

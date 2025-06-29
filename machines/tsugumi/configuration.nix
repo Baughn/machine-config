@@ -7,7 +7,7 @@
 , ...
 }: {
   imports = [
-    ../modules
+    ../../modules
     ./hardware-configuration.nix
     ./sdbot.nix
     ./caddy.nix

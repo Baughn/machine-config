@@ -202,38 +202,38 @@
   # Bind-mount filesystems to allow access.
   fileSystems."/srv/aquagon" = {
     device = "/home/aquagon/web";
-    depends = ["/home/aquagon/web"];
-    options = ["bind"];
+    depends = [ "/home/aquagon/web" ];
+    options = [ "bind" ];
   };
   fileSystems."/srv/minecraft" = {
     device = "/home/minecraft/web";
-    depends = ["/home/minecraft/web"];
-    options = ["bind"];
+    depends = [ "/home/minecraft/web" ];
+    options = [ "bind" ];
   };
   fileSystems."/srv/svein" = {
     device = "/home/svein/web";
-    depends = ["/home/svein/web"];
-    options = ["bind"];
+    depends = [ "/home/svein/web" ];
+    options = [ "bind" ];
   };
   fileSystems."/srv/svein/Anime" = {
     device = "/home/svein/Anime";
-    depends = ["/home/svein/Media"];
-    options = ["bind"];
+    depends = [ "/home/svein/Media" ];
+    options = [ "bind" ];
   };
   fileSystems."/srv/svein/Movies" = {
     device = "/home/svein/Movies";
-    depends = ["/home/svein/Media"];
-    options = ["bind"];
+    depends = [ "/home/svein/Media" ];
+    options = [ "bind" ];
   };
   fileSystems."/srv/svein/TV" = {
     device = "/home/svein/TV";
-    depends = ["/home/svein/Media"];
-    options = ["bind"];
+    depends = [ "/home/svein/Media" ];
+    options = [ "bind" ];
   };
   fileSystems."/srv/svein/Sync" = {
     device = "/home/svein/Sync/Watched";
-    depends = ["/home/svein/Sync/Watched"];
-    options = ["bind"];
+    depends = [ "/home/svein/Sync/Watched" ];
+    options = [ "bind" ];
   };
 
   services.authelia = {
@@ -242,23 +242,23 @@
       secrets.storageEncryptionKeyFile = config.age.secrets."authelia-storage-key".path;
       secrets.jwtSecretFile = config.age.secrets."authelia-jwt-key".path;
       settings = {
-       theme = "light";
-       default_2fa_method = "totp";
-       log.level = "debug";
-       #server.disable_healthcheck = true;
-       authentication_backend = {
-         file = {
-           path = "/var/lib/authelia-main/users.yml";
-         };
-       };
-       access_control.default_policy = "one_factor";
-       session.domain = "brage.info";
-       storage = {
-         local = {
-           path = "/var/lib/authelia-main/db.sqlite3";
-         };
-       };
-       notifier.filesystem.filename = "/var/lib/authelia-main/notification.txt";
+        theme = "light";
+        default_2fa_method = "totp";
+        log.level = "debug";
+        #server.disable_healthcheck = true;
+        authentication_backend = {
+          file = {
+            path = "/var/lib/authelia-main/users.yml";
+          };
+        };
+        access_control.default_policy = "one_factor";
+        session.domain = "brage.info";
+        storage = {
+          local = {
+            path = "/var/lib/authelia-main/db.sqlite3";
+          };
+        };
+        notifier.filesystem.filename = "/var/lib/authelia-main/notification.txt";
       };
     };
   };

@@ -13,7 +13,7 @@ in
       minecraft-ipv6-proxy = self.rustPlatform.buildRustPackage {
         pname = "minecraft-ipv6-proxy";
         version = "0.1.0";
-        src = ../v4/v4proxy;
+        src = ../machines/v4/v4proxy;
         cargoHash = "sha256-Eflcq1NlSBWFBtCra69TuU8AncuT/dflri0i3jrMxXI=";
 
         meta = with lib; {

@@ -1,11 +1,11 @@
 # Aniwatch - anime file synchronization service
-{ pkgs, ...}:
+{ pkgs, ... }:
 let
   aniwatch = pkgs.rustPlatform.buildRustPackage {
     pname = "aniwatch";
     version = "0.1.0";
-    src = ../tools/aniwatch;
-    cargoLock.lockFile = ../tools/aniwatch/Cargo.lock;
+    src = ../../tools/aniwatch;
+    cargoLock.lockFile = ../../tools/aniwatch/Cargo.lock;
   };
 in
 {

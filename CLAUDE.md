@@ -1,65 +1,187 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # Project: NixOS Configuration
 
-This repository contains NixOS configuration files.
+This repository contains NixOS configuration files for three machines:
+- **saya**: Desktop system (AMD 7950X3D + RTX 4090, gaming/workstation)
+- **tsugumi**: Server system (ZFS storage, various services)
+- **v4**: IPv4 proxy server
 
-IMPORTANT: Migration plans are in MIGRATION_PLANS.md. Read this before any migration actions.
+## Important Context
 
-## Coding style
+### Migration Status
+**CRITICAL**: This repository is actively migrating from an older configuration. Before making any migration-related changes, read `MIGRATION_PLANS.md` for:
+- List of pending migrations with priority levels
+- Technical notes about specific services
+- Missing module imports and their purposes
 
-### Nix coding style
-Use the delint tool to check for lints (& format all files) before committing.
+### Architecture Overview
+The configuration uses:
+- **Nix Flakes** for reproducible builds
+- **Colmena** for deployment management
+- **Modular design** with shared modules in `modules/`
+- **Machine-specific** configurations in `machines/` (saya, tsugumi, v4)
+- **Agenix** for secrets management (encrypted .age files in `secrets/`)
+- **Custom tools** in `tools/` (Rust-based services and utilities)
+
+## Essential Commands
+
+### Build and Deploy
 ```bash
-./tools-for-claude/lint.sh
+# Check configuration validity
+nix flake check
+
+# Build and view changes (using update.py is preferred)
+python update.py  # Interactive update with diff viewing
+
+# Manual deployment with Colmena
+colmena apply --on saya    # Deploy to specific machine
+colmena apply              # Deploy to all machines
+colmena apply-local        # Deploy to current machine only
+
+# View what would change
+nixos-rebuild dry-activate --flake .#hostname
 ```
 
-## Anchor comments  
+### Linting and Formatting
+```bash
+# Run all lints and format (ALWAYS do this before committing)
+./tools-for-claude/lint.sh
 
-Add specially formatted comments throughout the codebase, where appropriate, for yourself as inline knowledge that can be easily `grep`ped for.  
+# Just format Nix files
+./tools-for-claude/format-nix.sh
+```
 
-### Guidelines:  
+### Testing
+```bash
+# Run comprehensive checks
+nix flake check
 
-- Use `AIDEV-NOTE:`, `AIDEV-TODO:`, or `AIDEV-QUESTION:` (all-caps prefix) for comments aimed at AI and developers.  
-- Keep them concise (≤ 120 chars).  
-- **Important:** Before scanning files, always first try to **locate existing anchors** `AIDEV-*` in relevant subdirectories.  
-- **Update relevant anchors** when modifying associated code.  
-- **Do not remove `AIDEV-NOTE`s** without explicit human instruction.  
+# Run VM tests
+nix build .#tests.basic-desktop.x86_64-linux
+```
+
+### Development Tools
+```bash
+# Search NixOS options (ALWAYS use before adding/editing options)
+./tools-for-claude/search-options.sh search <term>
+./tools-for-claude/search-options.sh info <option.path>
+
+# Add a new package
+./add-package.sh <package-name>
+
+# Access nixpkgs source for reference
+cd ~/dev/nixpkgs/
+```
 
 ## Version Control
-This project uses Jujutsu (jj) for version management instead of Git.
-A git repository is colocated (to make nix commands work), but DO NOT use git commands.
+**IMPORTANT**: This project uses Jujutsu (jj) instead of Git. DO NOT use git commands.
 
-## Common Commands
-- `jj status` - Show per-file working copy changes
-- `jj diff` - Show contents of the working copy
-- `jj commit -m "message"` -- Set commit message and create a new commit on top -- like `git commit`
-- `jj squash` -- Squash current changes into the most recent commit
-- `jj log --limit 5` -- Show recent commits
-
-## Testing
-- `nix flake check` -- Comprehensive sanity check.
-
-New files will break the build until after a commit.
-
-## Tools for Claude
-
-### Nixpkgs access
-
-If you need to access the nixpkgs source code, e.g. to examine the implementation or read tests, look in ~/dev/nixpkgs/
-
-### NixOS Options Search
-Use `tools-for-claude/search-options.sh` to find and inspect the documentation for NixOS configuration options.
-**Important:** Always do this prior to adding or editing options. There may well be changes you are unaware of.
-
-**Search for option names:**
 ```bash
-./tools-for-claude/search-options.sh search <term>
+jj status          # Show working copy changes
+jj diff            # Show diff of changes
+jj commit -m "feat(module): Add feature"  # Commit with Conventional Commits format
+jj squash          # Squash into previous commit
+jj log --limit 5   # Show recent commits
+jj undo            # Undo last operation if mistake made
 ```
-Example: `./tools-for-claude/search-options.sh search networking.firewall`
 
-**Get detailed info about options:**
+### Commit Message Format
+Use Conventional Commits specification:
+- `feat(scope):` New feature
+- `fix(scope):` Bug fix
+- `chore(scope):` Maintenance
+- `refactor(scope):` Code restructuring
+- `docs(scope):` Documentation
+
+## Code Style and Conventions
+
+### Nix Style
+- Use `./tools-for-claude/lint.sh` before committing (runs statix, deadnix, and formatter)
+- Module options should use the `me` namespace for custom options
+- Prefer `lib.mkOption` with clear descriptions and types
+- Use `lib.mkIf` for conditional configurations
+
+### Anchor Comments
+Use specially formatted comments for inline knowledge:
+- `AIDEV-NOTE:` Important implementation details
+- `AIDEV-TODO:` Pending tasks
+- `AIDEV-QUESTION:` Clarification needed
+
+**Important**: Before modifying code, search for existing `AIDEV-*` anchors in relevant files. Update anchors when changing associated code.
+
+### Module Organization
+- Shared modules in `modules/` export options under `me.*`
+- Machine configs import modules and set machine-specific values
+- Application lists in `modules/cliApps.json` and `modules/desktopApps.json`
+- Hardware quirks in `quirks/` for specific hardware issues
+
+## Secrets Management
+- Secrets are managed with agenix
+- Encrypted `.age` files in `secrets/`
+- Only secrets for the current host are decrypted
+- Never commit unencrypted secrets
+- Host public keys in `machines/*/ssh_host_ed25519_key.pub`
+
+## Machine-Specific Notes
+
+### saya (Desktop)
+- Gaming optimizations with GameMode and AMD X3D quirks
+- Restic backups to tsugumi every 30 minutes
+- Logitech G903 mouse scroll fix applied
+- Core pinning for V-Cache optimization
+
+### tsugumi (Server)
+- ZFS filesystem (migration pending)
+- Hosts various services (see MIGRATION_PLANS.md)
+- NVIDIA persistence daemon for GPU
+- Target for backup storage
+
+### v4 (Proxy)
+- Simple IPv4 proxy using custom Rust tool
+- Minimal configuration
+
+## Common Tasks
+
+### Adding a New Module
+1. Create module file in `modules/`
+2. Add to imports in `modules/default.nix`
+3. Use `me.*` namespace for options
+4. Run `./tools-for-claude/lint.sh`
+
+### Adding a New Machine
+1. Generate SSH keys: `ssh-keygen -t ed25519`
+2. Create `machines/hostname/configuration.nix`
+3. Add to `flake.nix` under `nixosConfigurations`
+4. Add to `colmena` in `flake.nix`
+5. Configure in `secrets/secrets.nix` if using secrets
+
+### Updating Dependencies
 ```bash
-./tools-for-claude/search-options.sh info <term>
+python update.py  # Interactive update process
+# OR manually:
+nix flake update
+nix build .#nixosConfigurations.hostname.config.system.build.toplevel
 ```
-Example: `./tools-for-claude/search-options.sh info services.openssh.enable`
 
-The tool automatically limits output size to prevent overwhelming context. Use more specific search terms if you get a "too large" error.
+## Important Files
+- `flake.nix` - Main entry point and system definitions
+- `update.py` - Automated update script with diff viewing
+- `modules/default.nix` - Core module importing all others
+- `MIGRATION_PLANS.md` - Critical migration tracking document
+- `secrets/secrets.nix` - Age encryption key management
+
+## Troubleshooting
+- New files break the build until committed with `jj commit`
+- Use `nix flake check` to validate configuration
+- Check `jj status` before committing to ensure all files are tracked
+- For option errors, use `search-options.sh` to verify correct syntax
+- Deployment failures: check machine connectivity and SSH access
+
+## Additional Context
+- Jumbo frames enabled for local network (9000 MTU)
+- Distributed builds planned but not yet configured
+- Many services pending migration from old configuration
+- Custom Rust tools in `tools/` have their own Cargo.toml files

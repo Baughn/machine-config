@@ -21,7 +21,7 @@
       interfaces.lan = {
         useDHCP = true;
         tempAddress = "disabled";
-        
+
         # IPv4 local network with jumbo frames
         ipv4.routes = [
           {
@@ -30,7 +30,7 @@
             options.mtu = "9000";
           }
         ];
-        
+
         # IPv6 local networks with jumbo frames  
         ipv6.routes = [
           {
@@ -50,6 +50,7 @@
       firewall.allowedUDPPorts = [
         5353 # mDNS
         5355 # LLMNR
+        34197 # Factorio
       ];
     };
 

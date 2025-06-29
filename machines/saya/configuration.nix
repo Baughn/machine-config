@@ -9,11 +9,11 @@
     [
       ./hardware-configuration.nix
       ./sdbot.nix
-      ../modules
-      ../modules/desktop.nix
-      ../modules/nvidia.nix
-      ../quirks/g903.nix
-      ../quirks/amd-x3d.nix
+      ../../modules
+      ../../modules/desktop.nix
+      ../../modules/nvidia.nix
+      ../../quirks/g903.nix
+      ../../quirks/amd-x3d.nix
     ];
 
   # Boot
@@ -65,8 +65,11 @@
       "/home/*/.local/share/baloo/*"
       "/home/*/.local/share/Steam/steamapps"
       "**/shadercache"
-      "**/Cache" "**/cache" "**/_cacache"
-      "**/.venv" "**/venv"
+      "**/Cache"
+      "**/cache"
+      "**/_cacache"
+      "**/.venv"
+      "**/venv"
       "**/ComfyUI/output"
     ];
     extraBackupArgs = [
@@ -75,7 +78,7 @@
       "--read-concurrency=4"
     ];
     timerConfig = {
-      OnCalendar = "*:0/30";  # Every 30 minutes
+      OnCalendar = "*:0/30"; # Every 30 minutes
     };
     pruneOpts = [
       "--keep-hourly=36"

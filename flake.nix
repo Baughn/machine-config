@@ -49,7 +49,7 @@
       # Deploy to current host (saya)
       saya = { name, nodes, ... }: {
         imports = [
-          ./saya/configuration.nix
+          ./machines/saya/configuration.nix
           nix-index-database.nixosModules.nix-index
           agenix.nixosModules.default
           ./secrets
@@ -63,9 +63,9 @@
         nix.registry.nixpkgs.flake = nixpkgs;
 
         environment.systemPackages = [
-	  colmena.packages.x86_64-linux.colmena
-	  agenix.packages.x86_64-linux.agenix
-	];
+          colmena.packages.x86_64-linux.colmena
+          agenix.packages.x86_64-linux.agenix
+        ];
 
         # Deployment configuration
         deployment = {
@@ -80,7 +80,7 @@
       # v4 proxy server
       v4 = { name, nodes, ... }: {
         imports = [
-          ./v4/configuration.nix
+          ./machines/v4/configuration.nix
         ];
 
         # Deployment configuration
@@ -95,7 +95,7 @@
       # tsugumi server
       tsugumi = { name, nodes, ... }: {
         imports = [
-          ./tsugumi/configuration.nix
+          ./machines/tsugumi/configuration.nix
           nix-index-database.nixosModules.nix-index
           agenix.nixosModules.default
           ./secrets
