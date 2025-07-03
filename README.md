@@ -1,209 +1,180 @@
-# NixOS Configurations
+# Advanced NixOS Configuration with AI-Assisted Development
 
-This repository manages NixOS configurations for multiple machines using Nix Flakes.
+A sophisticated NixOS configuration repository showcasing cutting-edge hardware optimizations, AI-integrated development workflows, and enterprise-grade service management across multiple machines.
 
-## Project Overview
+## 🚀 What Makes This Configuration Special
 
-This setup allows for declarative, reproducible, and version-controlled system configurations. Key tools used include Nix, Nix Flakes, Colmena (for deployment), and Jujutsu (for version control).
+This isn't your typical NixOS config. This repository demonstrates advanced patterns and innovative approaches that push the boundaries of what's possible with declarative system management.
 
-## Repository Structure
+### 🎮 Gaming Performance Engineering
 
-*   `flake.nix`: The main entry point for the Nix Flake. It defines the NixOS systems (also known as "nodes" in Colmena context, e.g., `saya`, `v4`), common packages, and checks.
-*   `saya/`: Contains the NixOS configuration specific to the machine named "saya" (likely a desktop).
-    *   `configuration.nix`: Main configuration file for "saya".
-    *   `hardware-configuration.nix`: Hardware-specific settings for "saya".
-    *   `sdbot.nix`: Additional specific configurations for "saya".
-*   `v4/`: Contains the NixOS configuration specific to the machine named "v4" (likely a server).
-    *   `configuration.nix`: Main configuration file for "v4".
-    *   `hardware-configuration.nix`: Hardware-specific settings for "v4".
-*   `modules/`: A directory for shared NixOS modules that can be imported by any machine configuration.
-    *   `default.nix`: Imports all modules within this directory.
-    *   Other `.nix` files: Individual modules providing specific functionalities (e.g., `desktop.nix`, `nvidia.nix`).
-*   `quirks/`: Contains configurations for hardware or software-specific workarounds and tweaks (e.g., `amd-x3d.nix`, `g903.nix`).
-*   `tests/`: Basic VM-based tests to ensure configurations can build and boot.
-*   `tools-for-claude/`: Utility scripts helpful for development and maintenance.
-    *   `format-nix.sh`: Formats Nix code.
-    *   `lint.sh`: Lints and formats code in the repository.
-    *   `search-options.sh`: Searches NixOS configuration options.
-*   `CLAUDE.md`: Contains instructions and guidelines for AI-assisted development with this repository.
-*   `update.py`: A Python script to automate updating flake inputs and applying the configuration to the local machine ("saya").
+**AMD 7950X3D V-Cache Optimization**
+- Custom core pinning that routes game threads to V-Cache cores (0-7, 16-23) and parks frequency cores (8-15, 24-31)
+- Eliminates inter-CCD latency stutter in gaming workloads
+- GameMode integration with automatic core affinity management
+- Kernel tuning: `amd_pstate=active`, `amd_prefcore=1`, `mitigations=off`
 
-## Prerequisites
+**Hardware-Specific Fixes**
+- Logitech G903 mouse scroll wheel fix via libinput overrides
+- 10G networking with Intel 82599 NIC and jumbo frame support (9000 MTU)
+- Zen kernel with optimized I/O schedulers (kyber for NVMe, bfq for rotating media)
 
-*   **Nix Package Manager**: Ensure Nix is installed and Flakes are enabled.
-    *   Refer to the [official Nix installation guide](https://nixos.org/download.html).
-    *   Enable Flakes by adding `experimental-features = nix-command flakes` to your Nix configuration file (e.g., `~/.config/nix/nix.conf` or `/etc/nix/nix.conf`).
-*   **Colmena**: Used for deploying NixOS configurations to local or remote machines.
-    *   It's included as a system package for the "saya" machine (see `saya/configuration.nix` and `flake.nix`). For use outside of a configured system, it can typically be installed using `nix profile install .#colmena` from the root of this repository.
-*   **Jujutsu (jj)**: This project uses Jujutsu for version control instead of Git.
-    *   See [Jujutsu documentation](https://martinvonz.github.io/jj/latest/) for installation and usage.
-*   **nvd**: (Optional, used by `update.py`) A tool to compare NixOS generations. `update.py` uses it to show what changed.
+### 🤖 AI-Integrated Development Workflow
 
-## Usage
+**Claude Code Integration**
+- Purpose-built tooling in `tools-for-claude/` for AI-assisted development
+- Intelligent NixOS option search with colored output and size limits
+- AIDEV anchor comment system (`AIDEV-NOTE:`, `AIDEV-TODO:`, `AIDEV-QUESTION`) for AI context preservation
+- Automated package classification between CLI and desktop applications
 
-### Updating System (Saya - Local Machine)
+**Intelligent Automation**
+- Smart update system (`update.py`) with fallback strategies and visual diffs
+- Pre-commit hooks that enforce formatting and run comprehensive builds
+- Automated linting with statix, deadnix, and nixpkgs-fmt integration
 
-The `update.py` script automates the process of updating flake inputs, building the "saya" configuration, showing differences (using `nvd`), and applying it:
+### 🏗️ Advanced NixOS Architecture
 
+**Modular Design Patterns**
+- Custom `me.*` namespace for all user-defined options
+- Hardware abstraction through dedicated `quirks/` directory
+- Conditional module loading based on machine capabilities
+- JSON-based application management with automatic categorization
+
+**Enterprise Secrets Management**
+- Agenix integration with host-specific secret decryption
+- Multi-machine key distribution with user and system key support
+- Secrets filtered by hostname to minimize attack surface
+
+**Modern Version Control**
+- Jujutsu (jj) instead of Git for superior conflict resolution
+- Conventional Commits enforcement with proper scoping
+- Colocated Git repository for tool compatibility
+
+### 🛠️ Custom Service Ecosystem
+
+**Rust-Based Microservices**
+- **v4proxy**: IPv4-to-IPv6 proxy for Minecraft servers with comprehensive testing
+- **rolebot**: Discord role automation based on user activity patterns
+- **irc-tool**: IRC notification system with webhook integration for media management
+- **aniwatch**: Automated anime file synchronization with cleanup scheduling
+
+**Production-Grade Service Management**
+- Systemd hardening with DynamicUser and capability restrictions
+- Timer-based automation for maintenance tasks
+- Multi-protocol support (IRC, Discord, HTTP webhooks, TCP proxying)
+
+### 🌐 Network Infrastructure
+
+**High-Performance Networking**
+- 10 Gigabit Ethernet with custom udev rules for consistent interface naming
+- IPv6-ready configuration with proper routing and jumbo frame support
+- Service discovery via mDNS and LLMNR for seamless local network integration
+
+**Multi-Machine Deployment**
+- Colmena-based deployment with local and remote building capabilities
+- Machine-specific profiles: gaming desktop, media server, IPv4 proxy
+- Centralized configuration with distributed secret management
+
+## 🏛️ Architecture Overview
+
+```
+├── machines/           # Machine-specific configurations
+│   ├── saya/          # Gaming desktop (AMD 7950X3D + RTX 4090)
+│   ├── tsugumi/       # Media server (ZFS + various services)
+│   └── v4/            # IPv4 proxy server
+├── modules/           # Shared NixOS modules with me.* namespace
+├── quirks/            # Hardware-specific workarounds
+├── tools/             # Custom Rust applications
+├── tools-for-claude/  # AI development assistance
+├── secrets/           # Agenix-encrypted secrets
+└── tests/             # VM-based configuration validation
+```
+
+## 💡 Innovation Highlights
+
+### Development Experience
+- **Intelligent Updates**: `update.py` with rollback capabilities and visual system diffs
+- **AI Tooling**: Purpose-built scripts for AI-assisted configuration management
+- **Comprehensive Testing**: VM tests, flake checks, and pre-commit validation
+- **Modern VCS**: Jujutsu integration for superior history management
+
+### Performance Engineering
+- **CPU Optimization**: V-Cache aware scheduling for AMD X3D processors
+- **Network Tuning**: Jumbo frames and optimized drivers for high-throughput workloads
+- **I/O Optimization**: Scheduler selection based on storage technology
+- **Memory Management**: zram with zstd compression for better memory utilization
+
+### Service Architecture
+- **Microservice Design**: Purpose-built Rust applications for specific automation tasks
+- **Security-First**: Systemd hardening with minimal privileges and capability restrictions
+- **Observability**: Structured logging and monitoring integration
+- **Automation**: Timer-based maintenance and cleanup operations
+
+## 🚦 Getting Started
+
+### Prerequisites
+- NixOS with flakes enabled
+- Jujutsu (jj) for version control
+- Colmena for deployment (automatically installed)
+
+### Quick Start
 ```bash
+# Clone and navigate
+git clone <repository-url>
+cd nixos-config
+
+# Run intelligent update
 ./update.py
+
+# Or deploy manually
+colmena apply --on <machine-name>
 ```
 
-This script will:
-1.  Attempt to update all flake inputs (`nix flake update`).
-2.  Run `nix flake check` to ensure basic validity.
-3.  Build the "saya" configuration using `colmena build --on saya`.
-4.  If the above fails, it attempts a selective update (excluding potentially problematic inputs like `nixpkgs-kernel`).
-5.  Show system differences using `nvd diff /run/current-system <new_build_path>`.
-6.  Prompt interactively to deploy the new configuration immediately or on the next boot.
-
-### Building a Configuration
-
-To build a configuration for a specific machine without applying it:
-
+### Development Workflow
 ```bash
-colmena build --on <machine_name>
-```
-Example: `colmena build --on saya` or `colmena build --on v4`.
+# Search NixOS options (AI-optimized)
+./tools-for-claude/search-options.sh search networking
 
-To build for the local machine if its hostname matches a defined node:
-```bash
-colmena build
-```
+# Add packages with auto-classification
+./add-package.sh neovim
 
-### Applying a Configuration
-
-To apply a built configuration to a specific machine:
-
-```bash
-colmena apply --on <machine_name>
-```
-Example: `colmena apply --on v4`.
-
-For the local machine (if its hostname matches a defined node):
-```bash
-colmena apply
-```
-
-To apply the configuration on the next boot:
-```bash
-colmena apply boot --on <machine_name>
-# Or for the local machine:
-colmena apply boot
-```
-
-## Development
-
-### Version Control
-
-This project uses **Jujutsu (jj)** for version control.
-**Important**: Do NOT use `git` commands directly for committing or branching, as `jj` manages the underlying Git repository. The Git repository is primarily for compatibility with tools that expect it (like `nix flake`).
-
-Common `jj` commands:
-*   `jj status`: Show per-file working copy changes.
-*   `jj diff`: Show contents of the working copy changes.
-*   `jj commit -m "message"`: Create a new commit.
-*   `jj log`: Show commit history.
-
-Refer to `CLAUDE.md` for more context or the official Jujutsu documentation.
-
-### Linting and Formatting
-
-Before committing changes, run the linting and formatting script:
-
-```bash
+# Lint and format before committing
 ./tools-for-claude/lint.sh
+
+# Commit with Jujutsu
+jj commit -m "feat(desktop): Add development tools"
 ```
-This script typically formats Nix files and might include other checks.
 
-### Searching NixOS Options
+## 🔍 Learning Opportunities
 
-To find and inspect documentation for NixOS configuration options, use the provided script:
+This configuration serves as a reference implementation for:
 
-*   Search for option names:
-    ```bash
-    ./tools-for-claude/search-options.sh search <term>
-    ```
-    Example: `./tools-for-claude/search-options.sh search networking.firewall`
+- **Hardware Optimization**: Real-world gaming performance tuning
+- **AI Integration**: Practical AI-assisted development workflows  
+- **Advanced NixOS**: Enterprise patterns and best practices
+- **Service Architecture**: Microservice design with Rust and systemd
+- **Deployment Automation**: Multi-machine configuration management
+- **Security**: Secrets management and service hardening
 
-*   Get detailed info about specific options:
-    ```bash
-    ./tools-for-claude/search-options.sh info <option_name>
-    ```
-    Example: `./tools-for-claude/search-options.sh info services.openssh.enable`
+## 📋 Migration Status
 
-Always check option documentation before adding or modifying options, as they can change between Nixpkgs versions.
+This repository is actively evolving from a previous configuration. See `MIGRATION_PLANS.md` for detailed tracking of features being migrated, including priority levels and implementation notes.
 
-### Testing
+## 🤝 Contributing
 
-Run comprehensive checks, including VM-based tests defined in `flake.nix`:
+This configuration is designed for learning and adaptation. The AI development infrastructure makes it particularly suitable for AI-assisted modifications and improvements.
 
-```bash
-nix flake check
-```
-New files might cause build issues until they are committed (tracked by `jj`).
+### Key Files
+- `CLAUDE.md`: Comprehensive guide for AI-assisted development
+- `flake.nix`: Main system definitions and deployment configuration
+- `modules/default.nix`: Core module aggregation point
+- `update.py`: Intelligent update automation
 
-### Anchor Comments
+### Development Tools
+- `tools-for-claude/search-options.sh`: NixOS option discovery
+- `tools-for-claude/lint.sh`: Code quality enforcement
+- `add-package.sh`: Intelligent package management
 
-This codebase uses specially formatted "anchor comments" (`AIDEV-NOTE:`, `AIDEV-TODO:`, `AIDEV-QUESTION:`) for AI and developer inline knowledge. See `CLAUDE.md` for guidelines on their use.
+## 🏷️ License
 
-## Managing Modules
-
-Shared configurations are organized into modules within the `modules/` directory.
-
-*   `modules/default.nix` serves as an aggregate importer for all modules in this directory.
-*   **To add a new shared module**:
-    1.  Create your new `.nix` file (e.g., `modules/my-new-feature.nix`).
-    2.  Define your NixOS options and configurations within this file.
-    3.  Add your new module to the `imports` list in `modules/default.nix`. For example:
-        ```nix
-        # In modules/default.nix
-        imports = [
-          ./desktop.nix
-          ./my-new-feature.nix # Add your new module here
-          # ... other modules
-        ];
-        ```
-    4.  The module's options and configurations will then be available to any machine that imports `../modules` or specific module files.
-
-## Adding a New Machine
-
-To add a new machine configuration to this Flake:
-
-1.  **Create a Directory**: Create a new directory for the machine (e.g., `newmachine/`).
-2.  **Add Configuration Files**:
-    *   Inside `newmachine/`, create a `configuration.nix` file. This will hold the primary NixOS settings for the new machine.
-    *   Create a `hardware-configuration.nix` file (often generated by `nixos-generate-config` during an initial NixOS install on the target hardware).
-3.  **Define in `flake.nix`**:
-    *   Open `flake.nix`.
-    *   Locate the `colmenaHive` definition within the `outputs` section.
-    *   Add a new attribute for your machine, similar to the existing `saya` or `v4` entries. This typically involves specifying the modules to import (including `./newmachine/configuration.nix` and any shared modules from `../modules`).
-    *   Example structure:
-        ```nix
-        # In flake.nix, under outputs.colmenaHive
-        # ...
-        newmachine = { name, nodes, ... }: {
-          imports = [
-            ./newmachine/configuration.nix
-            # Add other relevant modules, e.g.:
-            # ../modules
-            # nix-index-database.nixosModules.nix-index # If you want nix-index
-          ];
-
-          # Optional: machine-specific deployment settings
-          # deployment = {
-          #   targetHost = "newmachine.example.com";
-          #   targetUser = "root";
-          #   buildOnTarget = false;
-          #   # ...
-          # };
-
-          # Optional: machine-specific nixpkgs or registry settings
-          # nix.registry.nixpkgs.flake = nixpkgs;
-        };
-        # ...
-        ```
-4.  **Machine-Specific Quirks**: If the new machine has hardware or software that requires specific workarounds, consider adding a file to the `quirks/` directory and importing it in the machine's `configuration.nix` or directly in the `flake.nix` entry for that machine.
-5.  **Test**: Build the configuration using `colmena build --on newmachine` and run `nix flake check`.
-6.  **Deploy**: Once satisfied, deploy using `colmena apply --on newmachine`.
-```
+This configuration demonstrates advanced NixOS patterns and is shared for educational purposes. Adapt and modify as needed for your own systems.
