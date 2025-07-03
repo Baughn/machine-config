@@ -16,6 +16,7 @@
     ./irctool.nix
     ./aniwatch.nix
     ./minecraft.nix
+    ./syncthing.nix
   ];
 
   ## Boot
