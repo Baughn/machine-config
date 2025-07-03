@@ -91,6 +91,11 @@
   # Environmental
   time.timeZone = "Europe/Dublin";
 
+  # Custom tools
+  environment.systemPackages = with pkgs; [
+    (callPackage ../../tools/ping-discord { })
+  ];
+
   # This option defines the first version of NixOS you have installed on this particular machine,
   # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.
   #

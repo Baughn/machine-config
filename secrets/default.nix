@@ -45,6 +45,14 @@ let
       owner = "svein";
       mode = "0400";
     };
+
+    # Erisia webhook
+    "erisia-webhook.url" = {
+      file = ./erisia-webhook.url.age;
+      hosts = [ "saya" ];
+      owner = "svein";
+      mode = "0400";
+    };
   };
 in
 {

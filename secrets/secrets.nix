@@ -28,4 +28,7 @@ in
 
   # IRC Tool
   "irc-tool.env.age".publicKeys = host tsugumi;
+
+  # Webhook for machine pushes
+  "erisia-webhook.url.age".publicKeys = all;
 }

@@ -4,6 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # Project: NixOS Configuration
 
+Updates and modifications are handled from saya. tsugumi.local and v4.brage.info
+can be contacted through ssh.
+
 This repository contains NixOS configuration files for three machines:
 - **saya**: Desktop system (AMD 7950X3D + RTX 4090, gaming/workstation)
 - **tsugumi**: Server system (ZFS storage, various services)
