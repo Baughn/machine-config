@@ -4,4 +4,4 @@ set -euo pipefail
 cd "$(dirname "$(readlink -f "$0")")"
 
 jj git fetch
-jj rebase -r shiny..@ -d shiny@origin
+jj rebase -r master..@ -d master@origin
