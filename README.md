@@ -1,10 +1,12 @@
 # Advanced NixOS Configuration with AI-Assisted Development
 
-A sophisticated NixOS configuration repository showcasing cutting-edge hardware optimizations, AI-integrated development workflows, and enterprise-grade service management across multiple machines.
+A sophisticated NixOS configuration repository showcasing cutting-edge hardware optimizations, AI-integrated development workflows, and service management across multiple machines.
+
+(And AI-powered README writing. Hi! It's me, the human. Have fun with this~)
 
 ## 🚀 What Makes This Configuration Special
 
-This isn't your typical NixOS config. This repository demonstrates advanced patterns and innovative approaches that push the boundaries of what's possible with declarative system management.
+This isn't your typical NixOS config.
 
 ### 🎮 Gaming Performance Engineering
 
@@ -12,7 +14,7 @@ This isn't your typical NixOS config. This repository demonstrates advanced patt
 - Custom core pinning that routes game threads to V-Cache cores (0-7, 16-23) and parks frequency cores (8-15, 24-31)
 - Eliminates inter-CCD latency stutter in gaming workloads
 - GameMode integration with automatic core affinity management
-- Kernel tuning: `amd_pstate=active`, `amd_prefcore=1`, `mitigations=off`
+- Kernel tuning for a high-performance AMD desktop.
 
 **Hardware-Specific Fixes**
 - Logitech G903 mouse scroll wheel fix via libinput overrides
@@ -40,7 +42,7 @@ This isn't your typical NixOS config. This repository demonstrates advanced patt
 - Conditional module loading based on machine capabilities
 - JSON-based application management with automatic categorization
 
-**Enterprise Secrets Management**
+**Secrets Management**
 - Agenix integration with host-specific secret decryption
 - Multi-machine key distribution with user and system key support
 - Secrets filtered by hostname to minimize attack surface
@@ -66,7 +68,6 @@ This isn't your typical NixOS config. This repository demonstrates advanced patt
 ### 🌐 Network Infrastructure
 
 **High-Performance Networking**
-- 10 Gigabit Ethernet with custom udev rules for consistent interface naming
 - IPv6-ready configuration with proper routing and jumbo frame support
 - Service discovery via mDNS and LLMNR for seamless local network integration
 
@@ -176,5 +177,7 @@ This configuration is designed for learning and adaptation. The AI development i
 - `add-package.sh`: Intelligent package management
 
 ## 🏷️ License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 This configuration demonstrates advanced NixOS patterns and is shared for educational purposes. Adapt and modify as needed for your own systems.

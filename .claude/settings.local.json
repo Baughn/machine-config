@@ -15,7 +15,8 @@
       "Bash(jj log:*)",
       "Bash(grep:*)",
       "Bash(colmena build:*)",
-      "WebFetch(domain:docs.anthropic.com)"
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:opensource.org)"
     ],
     "deny": []
   }
