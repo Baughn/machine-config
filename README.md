@@ -178,6 +178,12 @@ This configuration is designed for learning and adaptation. The AI development i
 
 ## 🏷️ License
 
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FBaughn%2Fmachine-config.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FBaughn%2Fmachine-config?ref=badge_shield)
+
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+All third-party code should be in third\_party, and is at least FOSS, but check those licenses yourself.
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FBaughn%2Fmachine-config.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FBaughn%2Fmachine-config?ref=badge_large)
 
 This configuration demonstrates advanced NixOS patterns and is shared for educational purposes. Adapt and modify as needed for your own systems.
