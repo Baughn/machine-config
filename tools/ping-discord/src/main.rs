@@ -101,7 +101,7 @@ fn handle_update(patterns: String, message: Option<String>, revision: String, dr
     let mut in_commit_message = false;
     
     for line in jj_output.lines() {
-        if line.starts_with("○") || line.starts_with("@") || line.starts_with("◉") {
+        if line.starts_with("○") || line.starts_with("@") || line.starts_with("◉") || line.starts_with("◆") {
             // Parse commit header line: ○  qkqmkllk sveina@gmail.com 2025-07-04 00:48:49 git_head() fdbf7d3c
             let parts: Vec<&str> = line.split_whitespace().collect();
             if parts.len() >= 6 {
