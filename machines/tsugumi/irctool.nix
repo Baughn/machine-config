@@ -1,12 +1,7 @@
 { config, lib, pkgs, ... }:
 
 let
-  irc-tool = pkgs.rustPlatform.buildRustPackage {
-    pname = "irc-tool";
-    version = "0.1.0";
-    src = ../../tools/irc-tool;
-    cargoLock.lockFile = ../../tools/irc-tool/Cargo.lock;
-  };
+  irc-tool = pkgs.callPackage ../../tools/irc-tool { };
 in
 {
   systemd.services.irc-tool = {

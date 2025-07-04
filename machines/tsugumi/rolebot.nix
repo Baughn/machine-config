@@ -1,12 +1,7 @@
 # Simple systemd unit for the 'rolebot' service
 { config, pkgs, ... }:
 let
-  rolebot = pkgs.rustPlatform.buildRustPackage {
-    pname = "rolebot";
-    version = "0.1.0";
-    src = ../../tools/rolebot;
-    cargoLock.lockFile = ../../tools/rolebot/Cargo.lock;
-  };
+  rolebot = pkgs.callPackage ../../tools/rolebot { };
 in
 {
   systemd.services.rolebot = {
