@@ -3,6 +3,10 @@ use clap::{Parser, Subcommand};
 use serde::Serialize;
 use std::process::Command;
 
+
+mod parser;
+use parser::{parse_jj_jsonl_output, FileChangeType};
+
 // Hardcoded path to the agenix-decrypted webhook URL
 const WEBHOOK_PATH: &str = "/run/agenix/erisia-webhook.url";
 
@@ -79,92 +83,84 @@ fn main() -> Result<()> {
 }
 
 fn handle_update(patterns: String, message: Option<String>, revision: String, dry_run: bool) -> Result<()> {
-    // Get changed files from jj
-    let output = Command::new("jj")
-        .args(&["log", "-s", "-r", &revision])
-        .output()
-        .context("Failed to execute jj log")?;
+    // NOTE: Using /home/svein/.cargo/bin/jj (version 0.31) for json() support
+    // TODO: Switch to system jj when NixOS packages jj 0.31+
     
-    if !output.status.success() {
-        anyhow::bail!("jj log failed: {}", String::from_utf8_lossy(&output.stderr));
+    // Get commit data as JSONL
+    let json_output = Command::new("/home/svein/.cargo/bin/jj")
+        .args(&["log", "--no-graph", "-r", &revision, "-T", "json(self) ++ \"\\n\""])
+        .output()
+        .context("Failed to execute jj log for commit data")?;
+    
+    if !json_output.status.success() {
+        anyhow::bail!("jj log (json) failed: {}", String::from_utf8_lossy(&json_output.stderr));
     }
     
-    let jj_output = String::from_utf8_lossy(&output.stdout);
+    // Get file changes separately using diff.summary()
+    let diff_output = Command::new("/home/svein/.cargo/bin/jj")
+        .args(&["log", "--no-graph", "-r", &revision, "-T", "diff.summary()"])
+        .output()
+        .context("Failed to execute jj log for file changes")?;
+    
+    if !diff_output.status.success() {
+        anyhow::bail!("jj log (diff) failed: {}", String::from_utf8_lossy(&diff_output.stderr));
+    }
+    
+    let jsonl_output = String::from_utf8_lossy(&json_output.stdout);
+    let diff_summary = String::from_utf8_lossy(&diff_output.stdout);
     
     // Parse patterns
     let patterns: Vec<&str> = patterns.split(',').map(|s| s.trim()).collect();
     
-    // Parse jj log output
-    let mut matching_files = Vec::new();
-    let mut commit_info = None;
-    let mut current_commit_message = String::new();
-    let mut in_commit_message = false;
+    // Parse jj log output using the new JSONL parser
+    let parsed = parse_jj_jsonl_output(&jsonl_output, &diff_summary)
+        .map_err(|e| anyhow::anyhow!("Failed to parse jj log output: {}", e))?;
     
-    for line in jj_output.lines() {
-        if line.starts_with("○") || line.starts_with("@") || line.starts_with("◉") || line.starts_with("◆") {
-            // Parse commit header line: ○  qkqmkllk sveina@gmail.com 2025-07-04 00:48:49 git_head() fdbf7d3c
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            if parts.len() >= 6 {
-                let hash_short = parts[1];
-                let email = parts[2];
-                let date = parts[3];
-                let time = parts[4];
-                let hash_full = parts[parts.len() - 1]; // Last part is the full hash
-                commit_info = Some((hash_full.to_string(), email.to_string(), format!("{} {}", date, time)));
-                in_commit_message = true;
-            }
-        } else if (line.starts_with("│") || line.starts_with("~")) && in_commit_message {
-            // This is the commit message line
-            let msg = line.trim_start_matches(['│', '~']).trim();
-            if !msg.is_empty() && current_commit_message.is_empty() {
-                current_commit_message = msg.to_string();
-                in_commit_message = false;
-            }
-        } else if line.trim().starts_with(|c: char| c == 'M' || c == 'A' || c == 'D' || c == 'R') {
-            // Parse file change with change type
-            let line_trimmed = line.trim();
-            if line_trimmed.len() > 2 {
-                let change_type = &line_trimmed[0..1];
-                let file = &line_trimmed[2..]; // Skip the change type and space
+    // Find matching files
+    let mut matching_files = Vec::new();
+    for file_change in &parsed.file_changes {
+        // Check if file matches any pattern
+        for pattern in &patterns {
+            let file_matches = if pattern.contains('*') {
+                // Simple glob matching
+                let pattern_parts: Vec<&str> = pattern.split('*').collect();
+                let mut matches = true;
+                let mut pos = 0;
                 
-                // Check if file matches any pattern
-                for pattern in &patterns {
-                    let file_matches = if pattern.contains('*') {
-                        // Simple glob matching
-                        let pattern_parts: Vec<&str> = pattern.split('*').collect();
-                        let mut matches = true;
-                        let mut pos = 0;
-                        
-                        for (i, part) in pattern_parts.iter().enumerate() {
-                            if part.is_empty() {
-                                continue;
-                            }
-                            
-                            if i == 0 && !file.starts_with(part) {
-                                matches = false;
-                                break;
-                            } else if i == pattern_parts.len() - 1 && !file.ends_with(part) {
-                                matches = false;
-                                break;
-                            } else if i > 0 {
-                                if let Some(idx) = file[pos..].find(part) {
-                                    pos += idx + part.len();
-                                } else {
-                                    matches = false;
-                                    break;
-                                }
-                            }
-                        }
-                        matches
-                    } else {
-                        file == *pattern
-                    };
+                for (i, part) in pattern_parts.iter().enumerate() {
+                    if part.is_empty() {
+                        continue;
+                    }
                     
-                    if file_matches {
-                        matching_files.push(format!("{} {}", change_type, file));
+                    if i == 0 && !file_change.path.starts_with(part) {
+                        matches = false;
                         break;
+                    } else if i == pattern_parts.len() - 1 && !file_change.path.ends_with(part) {
+                        matches = false;
+                        break;
+                    } else if i > 0 {
+                        if let Some(idx) = file_change.path[pos..].find(part) {
+                            pos += idx + part.len();
+                        } else {
+                            matches = false;
+                            break;
+                        }
                     }
                 }
+                matches
+            } else {
+                file_change.path == *pattern
+            };
+            
+            if file_matches {
+                let change_type_str = match file_change.change_type {
+                    FileChangeType::Added => "A",
+                    FileChangeType::Modified => "M",
+                    FileChangeType::Deleted => "D",
+                    FileChangeType::Renamed => "R",
+                };
+                matching_files.push(format!("{} {}", change_type_str, file_change.path));
+                break;
             }
         }
     }
@@ -174,28 +170,46 @@ fn handle_update(patterns: String, message: Option<String>, revision: String, dr
         return Ok(());
     }
     
-    // Build Discord message
-    let (hash, email, timestamp) = commit_info.unwrap_or_else(|| {
-        ("unknown".to_string(), "unknown".to_string(), "unknown".to_string())
-    });
-    
-    let commit_msg = if current_commit_message.is_empty() {
-        "No commit message".to_string()
+    // Build Discord message with multi-commit support
+    let (hash, email, timestamp) = if let Some(latest_commit) = parsed.commits.first() {
+        (latest_commit.hash.clone(), latest_commit.author.clone(), latest_commit.timestamp.clone())
     } else {
-        current_commit_message
+        ("unknown".to_string(), "unknown".to_string(), "unknown".to_string())
+    };
+    
+    // Create commit summary
+    let commit_descriptions: Vec<String> = parsed.commits
+        .iter()
+        .filter_map(|c| {
+            if c.description.is_empty() || c.description.contains("(no description set)") {
+                None
+            } else {
+                Some(c.description.clone())
+            }
+        })
+        .collect();
+    
+    let commit_summary = if commit_descriptions.is_empty() {
+        "No commit messages".to_string()
+    } else if commit_descriptions.len() == 1 {
+        commit_descriptions[0].clone()
+    } else {
+        format!("{} commits:\n{}", commit_descriptions.len(), commit_descriptions.join("\n"))
     };
     
     let title = if let Some(custom_msg) = message {
         custom_msg
+    } else if commit_descriptions.len() == 1 {
+        format!("NixOS config update: {}", commit_descriptions[0])
     } else {
-        format!("NixOS config update: {}", commit_msg)
+        format!("NixOS config update: {} commits", commit_descriptions.len())
     };
     
     let webhook = DiscordWebhook {
         content: format!("🔧 **{}**", title),
         embeds: vec![Embed {
             title: "Commit Details".to_string(),
-            description: commit_msg.clone(),
+            description: commit_summary,
             color: 0x2ECC71, // Green
             fields: vec![
                 Field {
@@ -204,7 +218,7 @@ fn handle_update(patterns: String, message: Option<String>, revision: String, dr
                     inline: true,
                 },
                 Field {
-                    name: "Commit".to_string(),
+                    name: "Latest Commit".to_string(),
                     value: format!("`{}`", &hash[..8.min(hash.len())]),
                     inline: true,
                 },
