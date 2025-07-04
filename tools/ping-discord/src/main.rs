@@ -25,6 +25,10 @@ enum Commands {
         #[arg(short, long)]
         message: Option<String>,
 
+        /// Revision filter for jj log
+        #[arg(short, long, default_value = "immutable_heads()..latest(ancestors(@) & ~empty() & ~description(exact:\"\"))")]
+        revision: String,
+
         /// Show what would be sent without sending
         #[arg(long)]
         dry_run: bool,
@@ -65,8 +69,8 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
     
     match cli.command {
-        Commands::Update { patterns, message, dry_run } => {
-            handle_update(patterns, message, dry_run)
+        Commands::Update { patterns, message, revision, dry_run } => {
+            handle_update(patterns, message, revision, dry_run)
         }
         Commands::Send { message, dry_run } => {
             handle_send(message, dry_run)
@@ -74,10 +78,10 @@ fn main() -> Result<()> {
     }
 }
 
-fn handle_update(patterns: String, message: Option<String>, dry_run: bool) -> Result<()> {
+fn handle_update(patterns: String, message: Option<String>, revision: String, dry_run: bool) -> Result<()> {
     // Get changed files from jj
     let output = Command::new("jj")
-        .args(&["log", "-s", "-r", "immutable_heads()..latest(ancestors(@) & ~empty() & ~description(exact:\"\"))"])
+        .args(&["log", "-s", "-r", &revision])
         .output()
         .context("Failed to execute jj log")?;
     
