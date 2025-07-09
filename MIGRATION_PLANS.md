@@ -2,6 +2,141 @@
 
 This document tracks features present in ../nixos-old/saya/configuration.nix that are not yet in the current configuration.
 
+## Migration Summary (Updated 2025-07-09)
+
+### Completed Migrations ✅
+- **Backup System**: Restic backups to tsugumi with 30-minute intervals
+- **System Configuration**: All boot parameters, hardware quirks, and performance optimizations
+- **Hardware Fixes**: Logitech G903 mouse fix, AMD X3D optimizations
+- **Core Services**: Caddy web server, Minecraft servers, Sonarr, bot services, Syncthing
+- **Desktop Apps**: Flatpak support, google-chrome, mpv
+- **User Management**: Additional users (minecraft, aquagon), age secrets
+- **Network Services**: Factorio ports, HTTP/HTTPS, Minecraft ports
+
+### Remaining High Priority Items ❌
+- **Distributed builds**: Not yet configured
+- **ZFS support**: Auto-snapshots and performance tuning
+- **Monitoring Stack**: Grafana, Prometheus, UPS monitoring (see detailed plan below)
+- **Virtualization**: Docker, LXD, container support
+- **Authentication**: Authelia system for web services
+
+## Monitoring Stack Migration Plan
+
+### Current State
+- **✅ Caddy Reverse Proxy**: Already configured for monitoring endpoints
+  - `grafana.brage.info` → `localhost:1230`
+  - `status.brage.info` → `localhost:9090` (Prometheus)
+  - `alertmanager.brage.info` → `localhost:9093`
+- **❌ No monitoring services**: No Grafana, Prometheus, or UPS monitoring active
+
+### Improved Architecture Design
+
+#### Core Stack (Modern NixOS Integration)
+1. **Prometheus** (`services.prometheus`)
+   - **Improvement**: Use declarative scrape configs and rule management
+   - **Enhancement**: Add more comprehensive system metrics
+   - **Target**: `localhost:9090` (matches existing Caddy config)
+
+2. **Grafana** (`services.grafana`)
+   - **Improvement**: Use declarative dashboard and datasource provisioning
+   - **Enhancement**: Modern authentication integration
+   - **Target**: `localhost:1230` (matches existing Caddy config)
+
+3. **Alertmanager** (`services.prometheus.alertmanager`)
+   - **Improvement**: Replace custom Discord bridge with modern notification methods
+   - **Enhancement**: Better alert routing and grouping
+   - **Target**: `localhost:9093` (matches existing Caddy config)
+
+#### UPS Monitoring
+
+Skip. The current hardware lacks an UPS.
+
+#### Advanced Monitoring Features
+1. **ZFS Monitoring**
+   - **Improvement**: Use `services.prometheus.exporters.zfs` if available
+   - **Enhancement**: Pool health, scrub status, and error reporting
+
+2. **System Metrics**
+   - **Enhancement**: Node exporter with expanded collectors
+   - **Addition**: GPU monitoring for both systems
+   - **Addition**: Network performance monitoring
+
+3. **Service Health Monitoring**
+   - **Enhancement**: Blackbox exporter for service availability
+   - **Addition**: Application-specific metrics (Minecraft, media services)
+
+### Migration Implementation Plan
+
+#### Phase 1: Core Infrastructure (High Priority)
+1. **Create monitoring module** (`modules/monitoring.nix`)
+   - Enable Prometheus with modern scrape configs
+   - Configure Grafana with declarative provisioning
+   - Set up Alertmanager with webhook notifications
+
+2. **Basic system monitoring**
+   - Enable node exporter with comprehensive collectors
+   - Add ZFS monitoring if available
+   - Configure basic alerting rules
+
+#### Phase 2: Enhanced Features (Medium Priority)
+1. **Advanced dashboards**
+   - Create comprehensive system overview dashboard
+   - UPS status and history dashboard
+   - Service health dashboard
+
+2. **Improved alerting**
+   - Replace Discord bridge with modern notification system
+   - Add smart alert routing based on severity
+   - Implement alert suppression during maintenance
+
+3. **Security and authentication**
+   - Integrate with Authelia once available
+   - Add proper SSL/TLS for monitoring endpoints
+   - Implement role-based access control
+
+#### Phase 3: Specialized Monitoring (Low Priority)
+1. **Application-specific monitoring**
+   - Minecraft server metrics
+   - Media server (Plex/Sonarr) monitoring
+   - Game server performance metrics
+
+2. **Custom tools migration**
+   - Migrate Victron energy monitoring
+   - Add alerts for Victron monitoring
+   - Add custom exporters for specialized hardware
+   - Implement log aggregation and analysis
+
+### File Structure Plan
+```
+modules/
+├── monitoring.nix          # Core Prometheus + Grafana config
+├── ups.nix                 # UPS monitoring with power.ups
+└── monitoring/
+    ├── dashboards/         # Grafana dashboard definitions
+    ├── rules/              # Prometheus alerting rules
+    └── exporters/          # Custom metric exporters
+```
+
+### Configuration Integration
+- **Secrets**: Use existing `age.secrets` for monitoring credentials
+- **Networking**: Leverage existing `networking.enableLAN` for local metrics
+- **Firewall**: Add monitoring ports to existing firewall config
+- **Deployment**: Use existing Colmena deployment for monitoring services
+
+### Benefits of Improved Architecture
+1. **Declarative Configuration**: All monitoring config in Nix, version controlled
+2. **Better Integration**: Uses modern NixOS services instead of custom scripts
+3. **Enhanced Reliability**: Built-in systemd integration and service management
+4. **Easier Maintenance**: Centralized configuration and automated updates
+5. **Better Security**: Proper authentication and encryption by default
+6. **Scalability**: Easy to add new monitoring targets and metrics
+
+### Testing Strategy
+1. **Development**: Test monitoring stack on saya before tsugumi deployment
+2. **Validation**: Verify all old alerts and dashboards are recreated
+3. **Monitoring**: Monitor the monitoring system during migration
+4. **Rollback**: Keep old monitoring config accessible if needed for reference
+
 ## Major Missing Features
 
 ### 1. Build Infrastructure
@@ -16,7 +151,7 @@ This document tracks features present in ../nixos-old/saya/configuration.nix tha
   - Backs up /home/svein with cache exclusions
   - Retention policy: 36 hourly, 7 daily, 4 weekly, 3 monthly
   - Uses compression=max
-  - Status: Not migrated
+  - Status: ✅ **COMPLETED** (machines/saya/configuration.nix:55-89)
 
 ### 3. Storage & Filesystems
 - **ZFS support** (/home/svein/nixos-old/modules/zfs.nix)
@@ -42,39 +177,41 @@ This document tracks features present in ../nixos-old/saya/configuration.nix tha
 - **Flatpak support**
 - **Missing packages:**
   - krita
-  - google-chrome
+  - ✅ google-chrome (modules/desktopApps.json)
   - yt-dlp
   - steam-run
   - KanjiTomo (custom desktop item)
   - discord
-  - mpv
+  - ✅ mpv (modules/desktopApps.json)
   - prismlauncher
   - gamescope
   - kernel perf tools
+- **✅ Flatpak support** (modules/desktop.nix:51)
 - **GLFW overlay** with custom patches
 - Status: Partially migrated (some may be in desktop.nix)
 
 ### 6. System Configuration
 - **Boot parameters:**
-  - boot.shell_on_fail
-  - systemd.enableEmergencyMode = true
+  - ✅ boot.shell_on_fail (machines/saya/configuration.nix:24)
+  - ✅ systemd.enableEmergencyMode = true (machines/saya/configuration.nix:28)
 - **Hardware quirks:**
-  - Logitech G903 mouse scroll wheel fix
-  - WINE_CPU_TOPOLOGY for AMD X3D
+  - ✅ Logitech G903 mouse scroll wheel fix (quirks/g903.nix)
+  - ✅ WINE_CPU_TOPOLOGY for AMD X3D (quirks/amd-x3d.nix)
 - **Performance:**
-  - system76-scheduler
-  - CPU frequency governor = schedutil
-- Status: Migrated
+  - ✅ system76-scheduler (modules/performance.nix:51)
+  - ✅ CPU frequency governor = schedutil (modules/performance.nix:14)
+- Status: ✅ **COMPLETED**
 
 ### 7. Network Services
 - **Additional firewall ports:**
-  - 80, 443 (HTTP/HTTPS)
+  - 80, 443 (HTTP/HTTPS) - ✅ **COMPLETED** (tsugumi has caddy.nix)
   - 6987 (rtorrent)
   - 3000 (Textchat-ui)
-  - 25565 (Minecraft)
+  - 25565 (Minecraft) - ✅ **COMPLETED** (tsugumi has minecraft.nix)
   - 10401 (Wireguard)
   - 5200, 5201 (Stationeers)
-- Status: Not migrated
+  - ✅ 34197 (Factorio) - (modules/networking.nix:53, saya/configuration.nix:50)
+- Status: Partially migrated
 
 ## Missing Module Imports
 
@@ -153,12 +290,12 @@ The old modules/default.nix included:
 ### Configuration Status
 - ✅ **Core system**: Hardware config with all ZFS mounts, boot, networking
 - ✅ **Deployment**: Added to flake.nix colmenaHive for remote deployment
-- ❌ **Services**: All applications and services temporarily skipped
+- ✅ **Services**: Many services have been migrated (see individual service files)
 
 ### Major Skipped Components
 
 #### Web Infrastructure
-- **Caddy web server** with 15+ domain proxies:
+- ✅ **Caddy web server** with 15+ domain proxies (machines/tsugumi/caddy.nix):
   - brage.info (file server)
   - madoka.brage.info (minecraft web)
   - grafana.brage.info
@@ -177,12 +314,12 @@ The old modules/default.nix included:
 
 #### Applications & Services
 - **Media Management**:
-  - Sonarr (TV show management)
+  - ✅ Sonarr (TV show management) - (machines/tsugumi/sonarr.nix)
   - Plex media server
   - SilverBullet note-taking system
 - **Game Servers**:
-  - Minecraft servers (sonarr.nix, minecraft.nix)
-  - Bot services (rolebot.nix, sdbot.nix, irctool.nix, aniwatch.nix)
+  - ✅ Minecraft servers (machines/tsugumi/minecraft.nix)
+  - ✅ Bot services (machines/tsugumi/rolebot.nix, sdbot.nix, irctool.nix, aniwatch.nix)
 - **Monitoring Stack**:
   - Grafana dashboard server
   - Prometheus with custom UPS monitoring rules
@@ -202,7 +339,7 @@ The old modules/default.nix included:
   - Power management and thermal control
 
 #### Data & Sync
-- **Syncthing** multi-device synchronization:
+- ✅ **Syncthing** multi-device synchronization (machines/tsugumi/syncthing.nix):
   - 4 devices: saya, sayanix, kaho, koyomi
   - 4 folders: default Sync, Music, Documents, secure
   - Device IDs and folder configurations
@@ -217,8 +354,8 @@ The old modules/default.nix included:
   - User web directories mounted for serving
 
 #### User Management
-- **Additional Users**: minecraft, aquagon, nixremote
-- **Age Secrets**: Encrypted password and key management
+- ✅ **Additional Users**: minecraft, aquagon (machines/tsugumi/configuration.nix:55)
+- ✅ **Age Secrets**: Encrypted password and key management (secrets/default.nix)
 - **SSH Key Management**: Automated key distribution
 
 #### Network Services
@@ -229,9 +366,9 @@ The old modules/default.nix included:
 - **Network Interface**: Converted from systemd-network to standard NixOS
 
 ### Migration Priority for Future
-1. **High**: UPS monitoring, basic web serving, media access
-2. **Medium**: Game servers, authentication system, monitoring
-3. **Low**: Advanced media management, specialized bots
+1. **High**: UPS monitoring, authentication system, monitoring stack
+2. **Medium**: Plex media server, ZRepl backups, filesystem bind mounts
+3. **Low**: SilverBullet note-taking, advanced media management features
 
 ### Technical Notes
 - Original used systemd-network with MAC address matching (74:56:3c:b2:26:07)
