@@ -38,8 +38,8 @@ in
       enable = true;
       port = cfg.prometheusPort;
       listenAddress = "127.0.0.1";
-      retention = "15d";
-      
+      retentionTime = "15d";
+
       scrapeConfigs = [
         {
           job_name = "prometheus";
@@ -128,7 +128,7 @@ in
             smtp_smarthost = "localhost:587";
             smtp_from = "alertmanager@brage.info";
           };
-          
+
           route = {
             group_by = [ "alertname" ];
             group_wait = "10s";
@@ -136,7 +136,7 @@ in
             repeat_interval = "1h";
             receiver = "default";
           };
-          
+
           receivers = [
             {
               name = "default";
@@ -178,19 +178,17 @@ in
           domain = "grafana.brage.info";
           root_url = "https://grafana.brage.info/";
         };
-        
+
         # Security settings
         security = {
           admin_user = "admin";
           admin_password = "$__file{${config.age.secrets."grafana-admin-password".path}}";
           disable_gravatar = true;
         };
-        
+
         # Anonymous access disabled - use Authelia
-        auth.anonymous = {
-          enabled = false;
-        };
-        
+        "auth.anonymous".enabled = false;
+
         # Disable user signup
         users = {
           allow_sign_up = false;
@@ -198,14 +196,14 @@ in
           auto_assign_org = true;
           auto_assign_org_role = "Viewer";
         };
-        
+
         # Analytics disabled
         analytics = {
           reporting_enabled = false;
           check_for_updates = false;
         };
       };
-      
+
       # Declarative datasource provisioning
       provision = {
         enable = true;
@@ -218,7 +216,7 @@ in
             isDefault = true;
           }
         ];
-        
+
         # Basic system dashboard
         dashboards.settings.providers = [
           {
@@ -296,7 +294,7 @@ in
     networking.firewall = {
       interfaces.lo.allowedTCPPorts = [
         cfg.grafanaPort
-        cfg.prometheusPort  
+        cfg.prometheusPort
         cfg.alertmanagerPort
         config.services.prometheus.exporters.node.port
       ];
