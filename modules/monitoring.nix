@@ -153,13 +153,11 @@ in
       enabledCollectors = [
         "systemd"
         "filesystem"
-        "network"
-        "memory"
+        "netdev"
+        "meminfo"
         "cpu"
         "loadavg"
         "diskstats"
-        "netdev"
-        "meminfo"
         "stat"
       ];
       port = 9100;

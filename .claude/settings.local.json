@@ -18,7 +18,8 @@
       "WebFetch(domain:docs.anthropic.com)",
       "WebFetch(domain:opensource.org)",
       "WebFetch(domain:jj-vcs.github.io)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }
