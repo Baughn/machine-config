@@ -6,6 +6,7 @@
     ./networking.nix
     ./users.nix
     ./tmux.nix
+    ./monitoring.nix
   ];
 
   # Use RAM for /tmp, but like, efficiently.

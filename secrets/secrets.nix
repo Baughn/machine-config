@@ -31,4 +31,7 @@ in
 
   # Webhook for machine pushes
   "erisia-webhook.url.age".publicKeys = all;
+
+  # Monitoring
+  "grafana-admin-password.age".publicKeys = host tsugumi;
 }

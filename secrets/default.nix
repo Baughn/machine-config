@@ -53,6 +53,14 @@ let
       owner = "svein";
       mode = "0400";
     };
+
+    # Monitoring
+    "grafana-admin-password" = {
+      file = ./grafana-admin-password.age;
+      hosts = [ "tsugumi" ];
+      owner = "grafana";
+      mode = "0400";
+    };
   };
 in
 {

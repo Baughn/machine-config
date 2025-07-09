@@ -38,7 +38,7 @@ This document tracks features present in ../nixos-old/saya/configuration.nix tha
    - **Target**: `localhost:9090` (matches existing Caddy config)
 
 2. **Grafana** (`services.grafana`)
-   - **Improvement**: Use declarative dashboard and datasource provisioning
+   - **Improvement**: Use declarative dashboard and datasource provisioning, via nixos options
    - **Enhancement**: Modern authentication integration
    - **Target**: `localhost:1230` (matches existing Caddy config)
 
@@ -112,7 +112,6 @@ modules/
 ├── monitoring.nix          # Core Prometheus + Grafana config
 ├── ups.nix                 # UPS monitoring with power.ups
 └── monitoring/
-    ├── dashboards/         # Grafana dashboard definitions
     ├── rules/              # Prometheus alerting rules
     └── exporters/          # Custom metric exporters
 ```
@@ -132,7 +131,7 @@ modules/
 6. **Scalability**: Easy to add new monitoring targets and metrics
 
 ### Testing Strategy
-1. **Development**: Test monitoring stack on saya before tsugumi deployment
+1. **Development**: Deploy to tsugumi during development
 2. **Validation**: Verify all old alerts and dashboards are recreated
 3. **Monitoring**: Monitor the monitoring system during migration
 4. **Rollback**: Keep old monitoring config accessible if needed for reference
