@@ -1,6 +1,6 @@
 # Migration Plan: Features Missing from Current Configuration
 
-This document tracks features present in ../nixos-old/saya/configuration.nix that are not yet in the current configuration.
+This document tracks features present in old/** that are not yet in the current configuration.
 
 ## Migration Summary (Updated 2025-07-09)
 

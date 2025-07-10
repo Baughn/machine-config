@@ -1,0 +1,5 @@
+{...}: {
+  kexec.justdoit = {
+    luksEncrypt = false;
+  };
+}
