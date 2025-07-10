@@ -84,7 +84,7 @@ def run_flake_check():
 def try_build(extra_args):
     """Try to build the system configuration."""
     print_info("Building system configuration...")
-    cmd = ['colmena', 'build'] + extra_args
+    cmd = ['colmena', 'build', '--legacy-flake-eval', '--evaluator', 'streaming', '--impure'] + extra_args
     return run_command(cmd)
 
 def show_diff_and_deploy():
