@@ -1,15 +1,15 @@
 let
-  pkgs = import <nixpkgs> {config = {};};
+  pkgs = import <nixpkgs> { config = { }; };
   packages = with pkgs.lib;
     self: {
       nvme = false;
       uefi = false;
       virtio = true;
-      configuration = {};
+      configuration = { };
       configuration1 = {
-        imports = [./configuration.nix self.configuration];
+        imports = [ ./configuration.nix self.configuration ];
       };
-      config = (import <nixpkgs/nixos> {configuration = self.configuration1;}).config;
+      config = (import <nixpkgs/nixos> { configuration = self.configuration1; }).config;
       image = self.config.system.build.image;
       interface =
         if self.nvme
@@ -51,47 +51,50 @@ let
       '';
       qemu_test = pkgs.buildEnv {
         name = "qemu_test";
-        paths = with self; [qemu_test1 qemu_test2];
+        paths = with self; [ qemu_test1 qemu_test2 ];
       };
     };
   self = pkgs.lib.makeScope pkgs.newScope packages;
-  makeTest = {
-    uefi ? false,
-    nvme ? false,
-    virtio ? false,
-    luks ? false,
-  }: let
-    pkgs2 = with pkgs.lib;
-      self.overrideScope (super: self: {
-        inherit uefi nvme virtio;
-        configuration = {
-          kexec.justdoit = {
-            rootDevice = mkForce (
-              if nvme
-              then "/dev/nvme0n1"
-              else
-                (
-                  if virtio
-                  then "/dev/vda"
-                  else "/dev/sda"
-                )
-            );
-            nvme = mkForce nvme;
-            luksEncrypt = mkForce luks;
-            uefi = mkForce uefi;
+  makeTest =
+    { uefi ? false
+    , nvme ? false
+    , virtio ? false
+    , luks ? false
+    ,
+    }:
+    let
+      pkgs2 = with pkgs.lib;
+        self.overrideScope (super: self: {
+          inherit uefi nvme virtio;
+          configuration = {
+            kexec.justdoit = {
+              rootDevice = mkForce (
+                if nvme
+                then "/dev/nvme0n1"
+                else
+                  (
+                    if virtio
+                    then "/dev/vda"
+                    else "/dev/sda"
+                  )
+              );
+              nvme = mkForce nvme;
+              luksEncrypt = mkForce luks;
+              uefi = mkForce uefi;
+            };
           };
-        };
-      });
-  in
+        });
+    in
     pkgs2.qemu_test;
-in {
-  legacy_sata = makeTest {};
-  uefi_sata = makeTest {uefi = true;};
+in
+{
+  legacy_sata = makeTest { };
+  uefi_sata = makeTest { uefi = true; };
   nvme = makeTest {
     uefi = true;
     nvme = true;
   };
-  luks_legacy = makeTest {luks = true;};
+  luks_legacy = makeTest { luks = true; };
   luks_nvme = makeTest {
     luks = true;
     uefi = true;

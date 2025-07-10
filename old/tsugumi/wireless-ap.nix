@@ -1,7 +1,6 @@
-{
-  config,
-  pkgs,
-  ...
+{ config
+, pkgs
+, ...
 }: {
   # In theory it should be possible to run hostapd under NixOS, but the hardware
   # isn't cooperating. OpenWRT carries many patches. It's all rather concerning.
@@ -22,8 +21,8 @@
   };
 
   # Pass the WiFi card through to OpenWRT.
-  boot.kernelParams = ["amd_iommu=on"];
-  boot.kernelModules = ["vfio" "vfio_iommu_type1" "vfio_pci" "vfio_virqfd"];
+  boot.kernelParams = [ "amd_iommu=on" ];
+  boot.kernelModules = [ "vfio" "vfio_iommu_type1" "vfio_pci" "vfio_virqfd" ];
   boot.extraModprobeConfig = "options vfio-pci ids=168c:0046";
 
   # Wifi AP

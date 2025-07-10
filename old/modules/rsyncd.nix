@@ -1,9 +1,8 @@
-{
-  config,
-  pkgs,
-  ...
+{ config
+, pkgs
+, ...
 }: {
-  networking.firewall.allowedTCPPorts = [873];
+  networking.firewall.allowedTCPPorts = [ 873 ];
   services.rsyncd = {
     enable = true;
     motd = ''      Welcome to Factorial Productions
@@ -16,25 +15,27 @@
           from "Baughn", or one of its duly authorised minions.
 
     '';
-    modules = let
-      module = config: ({
+    modules =
+      let
+        module = config: ({
           "read only" = "yes";
           "use chroot" = "true";
           "uid" = "nobody";
           "gid" = "nobody";
         }
         // config);
-    in {
-      factorio = module {
-        comment = "Factorio";
-        path = "/home/svein/rsync/factorio";
+      in
+      {
+        factorio = module {
+          comment = "Factorio";
+          path = "/home/svein/rsync/factorio";
+        };
+        incoming = module {
+          comment = "Drop box";
+          path = "/home/svein/rsync/incoming";
+          "read only" = "false";
+          "write only" = "true";
+        };
       };
-      incoming = module {
-        comment = "Drop box";
-        path = "/home/svein/rsync/incoming";
-        "read only" = "false";
-        "write only" = "true";
-      };
-    };
   };
 }

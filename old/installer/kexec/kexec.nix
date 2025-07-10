@@ -1,10 +1,9 @@
-{
-  pkgs,
-  config,
-  ...
+{ pkgs
+, config
+, ...
 }: {
   system.build = rec {
-    image = pkgs.runCommand "image" {buildInputs = [pkgs.nukeReferences];} ''
+    image = pkgs.runCommand "image" { buildInputs = [ pkgs.nukeReferences ]; } ''
       mkdir $out
       cp ${config.system.build.kernel}/bzImage $out/kernel
       cp ${config.system.build.netbootRamdisk}/initrd $out/initrd
@@ -44,6 +43,6 @@
         symlink = "/kexec_nixos";
       }
     ];
-    contents = [];
+    contents = [ ];
   };
 }

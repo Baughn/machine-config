@@ -1,7 +1,7 @@
 {
   machine1 = {
     # if the root device is diferent, update it here
-    boot.loader.grub.devices = ["/dev/sda"];
+    boot.loader.grub.devices = [ "/dev/sda" ];
     deployment = {
       targetEnv = "none";
       targetHost = "192.168.2.160";
@@ -27,7 +27,7 @@
       };
     };
     swapDevices = [
-      {label = "NIXOS_SWAP";}
+      { label = "NIXOS_SWAP"; }
     ];
     networking.hostId = "1d27723e"; # must be copied from the one justdoit randomly generated
   };

@@ -2,7 +2,7 @@
 
 {
   nixpkgs.config.permittedInsecurePackages = [
-    "openssl-1.1.1w"  # EOL in Sep, not insecure as such.
+    "openssl-1.1.1w" # EOL in Sep, not insecure as such.
   ];
 
   services.home-assistant = {
@@ -18,10 +18,12 @@
       };
     };
     extraComponents = [
-      "google_translate" "weather"
+      "google_translate"
+      "weather"
     ];
     extraPackages = python3Packages: with python3Packages; [
-      dateutil numpy
+      dateutil
+      numpy
     ];
   };
 }

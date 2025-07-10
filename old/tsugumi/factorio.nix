@@ -1,13 +1,14 @@
-{
-  config,
-  pkgs,
-  ...
-}: let
+{ config
+, pkgs
+, ...
+}:
+let
   version = "1.1.59";
-in {
+in
+{
   services.factorio = {
     enable = true;
-    admins = ["Baughn"];
+    admins = [ "Baughn" ];
     description = "Erisia";
     game-name = "Erisia";
     game-password = builtins.readFile ../secrets/factorio.pw;

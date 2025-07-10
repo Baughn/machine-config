@@ -1,8 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
+{ config
+, pkgs
+, lib
+, ...
 }: {
   # Power saving settings.
   services.tlp = {
@@ -37,5 +36,5 @@
 
   networking.networkmanager.wifi.powersave = true;
 
-  environment.systemPackages = [pkgs.acpi];
+  environment.systemPackages = [ pkgs.acpi ];
 }

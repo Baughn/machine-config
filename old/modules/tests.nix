@@ -1,8 +1,8 @@
-{
-  config,
-  pkgs,
-  ...
-}: let
+{ config
+, pkgs
+, ...
+}:
+let
   file = f: (import (pkgs.path + "/nixos/tests/${f}.nix"));
 
   test = f: (file f {
@@ -13,13 +13,14 @@
   gnome = test "gnome3-gdm";
   kde = test "plasma5";
   # The 19.03 version should work with just `(test "zfs").stable`.
-  zfs = (test "zfs").stable {};
-  zfs2 = (test "zfs").unstable {};
+  zfs = (test "zfs").stable { };
+  zfs2 = (test "zfs").unstable { };
 
   tests =
-    pkgs.runCommand "proof-of-tests" {
-      tests = [gnome kde];
-    } ''
+    pkgs.runCommand "proof-of-tests"
+      {
+        tests = [ gnome kde ];
+      } ''
       mkdir -p $out/share/doc/proof-of-tests
       i=1
       for test in $tests; do
@@ -27,7 +28,8 @@
         i=$(($i + 1))
       done
     '';
-in {
+in
+{
   environment.systemPackages = [
     tests
   ];

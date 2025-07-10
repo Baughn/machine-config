@@ -1,11 +1,12 @@
 let
-  pkgs = import <nixpkgs> {config = {};};
+  pkgs = import <nixpkgs> { config = { }; };
   callPackage = pkgs.newScope self;
   self = {
-    qemu_test1 = let
-      config = (import <nixpkgs/nixos> {configuration = ./configuration.nix;}).config;
-      image = config.system.build.image;
-    in
+    qemu_test1 =
+      let
+        config = (import <nixpkgs/nixos> { configuration = ./configuration.nix; }).config;
+        image = config.system.build.image;
+      in
       pkgs.writeScriptBin "qemu_test1" ''
         #!${pkgs.stdenv.shell}
         export PATH=${pkgs.qemu_kvm}/bin/:$PATH
@@ -21,8 +22,8 @@ let
     '';
     qemu_test = pkgs.buildEnv {
       name = "qemu_test";
-      paths = with self; [qemu_test1 qemu_test2];
+      paths = with self; [ qemu_test1 qemu_test2 ];
     };
   };
 in
-  self
+self

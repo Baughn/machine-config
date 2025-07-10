@@ -1,6 +1,6 @@
-{
-  buildGoModule,
-  fetchFromGitHub,
+{ buildGoModule
+, fetchFromGitHub
+,
 }:
 buildGoModule rec {
   pname = "alertmanager-discord";

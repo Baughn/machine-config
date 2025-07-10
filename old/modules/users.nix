@@ -1,14 +1,14 @@
-{
-  pkgs,
-  lib,
-  config,
-  ...
-}: let
+{ pkgs
+, lib
+, config
+, ...
+}:
+let
   keys = import ./keys.nix;
   users = {
     svein = {
       uid = 1000;
-      extraGroups = ["wheel" "wireshark" "systemd-journal" "disnix" "networkmanager" "dialout" "sonarr"];
+      extraGroups = [ "wheel" "wireshark" "systemd-journal" "disnix" "networkmanager" "dialout" "sonarr" ];
       hashedPasswordFile = config.age.secrets.userPassword.path;
       createHome = false;
     };
@@ -77,21 +77,21 @@
     # Next free ID: 1062
   };
   includeUser = username: ({
-      isNormalUser = true;
-      openssh.authorizedKeys.keys = keys.${username}.ssh or [];
-    }
-    // users.${username});
-in
-  with lib; {
-    options = {
-      users.include = mkOption {
-        type = types.listOf types.str;
-        description = "Users to include on this system";
-        default = [];
-      };
-    };
-
-    config = {
-      users.users = lib.genAttrs config.users.include includeUser;
-    };
+    isNormalUser = true;
+    openssh.authorizedKeys.keys = keys.${username}.ssh or [ ];
   }
+  // users.${username});
+in
+with lib; {
+  options = {
+    users.include = mkOption {
+      type = types.listOf types.str;
+      description = "Users to include on this system";
+      default = [ ];
+    };
+  };
+
+  config = {
+    users.users = lib.genAttrs config.users.include includeUser;
+  };
+}

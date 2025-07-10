@@ -26,7 +26,7 @@
         resources = [
           {
             compress = false;
-            names = ["client" "webclient" "federation"];
+            names = [ "client" "webclient" "federation" ];
           }
         ];
         tls = false;

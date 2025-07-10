@@ -1,8 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
+{ config
+, pkgs
+, lib
+, ...
 }:
 
 {
@@ -21,9 +20,9 @@
 
   config = lib.mkIf config.me.monitoring.enable {
     systemd.services.alertmanager-discord = {
-      requires = ["network-online.target"];
-      after = ["network-online.target"];
-      wantedBy = ["multi-user.target"];
+      requires = [ "network-online.target" ];
+      after = [ "network-online.target" ];
+      wantedBy = [ "multi-user.target" ];
       script = ''
         source ${config.age.secrets.monitoringWebhook.path}
         ${pkgs.callPackage monitoring/alertmanager-discord {}}/bin/alertmanager-discord --listen.address=0.0.0.0:9095
@@ -35,7 +34,7 @@
 
     systemd.services.prometheus-zpool-exporter = lib.mkIf config.me.monitoring.zfs {
       description = "Export current pool error status, for alerting";
-      wantedBy = ["multi-user.target"];
+      wantedBy = [ "multi-user.target" ];
       script = ''
         cd /run/prometheus-node-exporter
         while true; do
@@ -66,7 +65,7 @@
         port = 9093;
         configuration = {
           route = {
-            group_by = ["alertname"];
+            group_by = [ "alertname" ];
             group_wait = "30s";
             repeat_interval = "1h";
             receiver = "discord";
@@ -90,7 +89,7 @@
           #path_prefix = "/alertmanager";
           static_configs = [
             {
-              targets = ["${config.networking.hostName}:${builtins.toString config.services.prometheus.alertmanager.port}"];
+              targets = [ "${config.networking.hostName}:${builtins.toString config.services.prometheus.alertmanager.port}" ];
             }
           ];
         }
@@ -189,9 +188,9 @@
         node = {
           enable = true;
           enabledCollectors =
-            ["interrupts" "logind" "meminfo_numa" "mountstats" "tcpstat" "systemd" "zfs" "wifi" "textfile"]
+            [ "interrupts" "logind" "meminfo_numa" "mountstats" "tcpstat" "systemd" "zfs" "wifi" "textfile" ]
             ++ (lib.optional config.services.ntp.enable "ntp");
-          extraFlags = ["--collector.textfile.directory=/run/prometheus-node-exporter/"];
+          extraFlags = [ "--collector.textfile.directory=/run/prometheus-node-exporter/" ];
         };
         collectd.enable = true;
         nginx.enable = config.services.nginx.enable;
@@ -202,7 +201,7 @@
           job_name = "node";
           static_configs = [
             {
-              targets = ["${config.networking.hostName}:${builtins.toString config.services.prometheus.exporters.node.port}"];
+              targets = [ "${config.networking.hostName}:${builtins.toString config.services.prometheus.exporters.node.port}" ];
             }
           ];
         }

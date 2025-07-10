@@ -1,8 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
+{ config
+, pkgs
+, lib
+, ...
 }:
 with lib; let
   cfg = config.kexec.justdoit;
@@ -10,7 +9,8 @@ with lib; let
     if cfg.nvme
     then "p"
     else "";
-in {
+in
+{
   options = {
     kexec.justdoit = {
       rootDevice = mkOption {
@@ -150,7 +150,7 @@ in {
       umount /mnt/home /mnt/nix /mnt/boot /mnt
       zpool export ${cfg.poolName}
     '';
-    environment.systemPackages = [config.system.build.justdoit];
-    boot.supportedFilesystems = ["zfs"];
+    environment.systemPackages = [ config.system.build.justdoit ];
+    boot.supportedFilesystems = [ "zfs" ];
   };
 }

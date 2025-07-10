@@ -1,5 +1,5 @@
-{...}: {
-  imports = [./hardware-configuration.nix ./generated.nix];
+{ ... }: {
+  imports = [ ./hardware-configuration.nix ./generated.nix ];
   boot.loader.grub.enable = true;
   boot.loader.grub.version = 2;
   services.openssh.enable = true;

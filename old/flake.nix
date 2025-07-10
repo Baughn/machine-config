@@ -40,133 +40,136 @@
   #
   # Each machine config also includes the home-manager config for my normal user.
   #
-  outputs = {
-    self,
-    nixpkgs,
-    nixpkgs-stable,
-    nixos-hardware,
-    home-manager,
-    deploy-rs,
-    agenix,
-    nix-index-database,
-    flox,
-    #lix,
-    #lix-module,
-  }: let
-    system = "x86_64-linux";
-    stateVersion = "23.11";
-    pkgs = nixpkgs.legacyPackages.${system};
-    pkgs-stable = nixpkgs-stable.legacyPackages.${system};
-    installer = modules:
-      nixpkgs.lib.nixosSystem {
-        inherit system modules;
-      };
-    # Imported by each machine config.
-    homeConfig = [
-      home-manager.nixosModules.home-manager
-      {
-        home-manager = {
-          useGlobalPkgs = true;
-          useUserPackages = true;
-          users.svein = import ./home/home.nix;
+  outputs =
+    { self
+    , nixpkgs
+    , nixpkgs-stable
+    , nixos-hardware
+    , home-manager
+    , deploy-rs
+    , agenix
+    , nix-index-database
+    , flox
+    , #lix,
+      #lix-module,
+    }:
+    let
+      system = "x86_64-linux";
+      stateVersion = "23.11";
+      pkgs = nixpkgs.legacyPackages.${system};
+      pkgs-stable = nixpkgs-stable.legacyPackages.${system};
+      installer = modules:
+        nixpkgs.lib.nixosSystem {
+          inherit system modules;
         };
-      }
-    ];
-    deployNodes = hosts:
-      pkgs.lib.listToAttrs (map (host:
-        pkgs.lib.nameValuePair host
+      # Imported by each machine config.
+      homeConfig = [
+        home-manager.nixosModules.home-manager
         {
-          hostname = "${host}.brage.info";
-          profiles.system = {
-            user = "root";
-            path = deploy-rs.lib.${system}.activate.nixos self.nixosConfigurations.${host};
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            users.svein = import ./home/home.nix;
           };
-        })
-      hosts);
-    node = {modules}:
-      nixpkgs.lib.nixosSystem {
-        inherit system;
-        specialArgs = {
-          flox = flox.packages.${system};
+        }
+      ];
+      deployNodes = hosts:
+        pkgs.lib.listToAttrs (map
+          (host:
+            pkgs.lib.nameValuePair host
+              {
+                hostname = "${host}.brage.info";
+                profiles.system = {
+                  user = "root";
+                  path = deploy-rs.lib.${system}.activate.nixos self.nixosConfigurations.${host};
+                };
+              })
+          hosts);
+      node = { modules }:
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = {
+            flox = flox.packages.${system};
+          };
+          modules =
+            [
+              #lix-module.nixosModules.default
+              {
+                system.stateVersion = stateVersion;
+                # Propagate nixpkgs
+                nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
+                environment.etc."nixpkgs".source = nixpkgs;
+                nix.registry.nixpkgs.flake = nixpkgs;
+                programs.nix-index-database.comma.enable = true;
+              }
+              nix-index-database.nixosModules.nix-index
+              # Add agenix for secret management.
+              agenix.nixosModules.age
+              {
+                # Agenix
+                environment.systemPackages = [ agenix.packages.${system}.default ];
+                age.identityPaths = [
+                  "/etc/ssh/ssh_host_ed25519_key"
+                  "/home/svein/.ssh/id_ed25519"
+                ];
+              }
+            ]
+            ++ homeConfig
+            ++ modules;
         };
-        modules =
-          [
-            #lix-module.nixosModules.default
-            {
-              system.stateVersion = stateVersion;
-              # Propagate nixpkgs
-              nix.nixPath = ["nixpkgs=/etc/nixpkgs"];
-              environment.etc."nixpkgs".source = nixpkgs;
-              nix.registry.nixpkgs.flake = nixpkgs;
-              programs.nix-index-database.comma.enable = true;
-            }
-            nix-index-database.nixosModules.nix-index
-            # Add agenix for secret management.
-            agenix.nixosModules.age
-            {
-              # Agenix
-              environment.systemPackages = [agenix.packages.${system}.default];
-              age.identityPaths = [
-                "/etc/ssh/ssh_host_ed25519_key"
-                "/home/svein/.ssh/id_ed25519"
-              ];
-            }
-          ]
-          ++ homeConfig
-          ++ modules;
+    in
+    {
+      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
+
+      devShell.${system} = import ./shell.nix { inherit pkgs; };
+
+      checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
+
+      #packages.${system} = {
+      #  install-cd =
+      #    (installer [
+      #      "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+      #      ./installer/cd.nix
+      #    ])
+      #    .config
+      #    .system
+      #    .build
+      #    .isoImage;
+      #  install-kexec =
+      #    (installer [
+      #      "${nixpkgs}/nixos/modules/installer/netboot/netboot-minimal.nix"
+      #      ./installer/kexec.nix
+      #    ])
+      #    .config
+      #    .system
+      #    .build
+      #    .kexec_tarball;
+      #};
+
+      deploy.nodes = deployNodes [ "saya" "tsugumi" "v4" ];
+
+      nixosConfigurations.saya = node {
+        modules = [
+          nixos-hardware.nixosModules.common-pc
+          nixos-hardware.nixosModules.common-cpu-amd
+          ./saya/configuration.nix
+        ];
       };
-  in {
-    formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
 
-    devShell.${system} = import ./shell.nix {inherit pkgs;};
+      nixosConfigurations.tsugumi = node {
+        modules = [
+          nixos-hardware.nixosModules.common-pc
+          nixos-hardware.nixosModules.common-cpu-amd
+          nixos-hardware.nixosModules.common-gpu-amd
+          #openwrt.nixosModule
+          ./tsugumi/configuration.nix
+        ];
+      };
 
-    checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
-
-    #packages.${system} = {
-    #  install-cd =
-    #    (installer [
-    #      "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-    #      ./installer/cd.nix
-    #    ])
-    #    .config
-    #    .system
-    #    .build
-    #    .isoImage;
-    #  install-kexec =
-    #    (installer [
-    #      "${nixpkgs}/nixos/modules/installer/netboot/netboot-minimal.nix"
-    #      ./installer/kexec.nix
-    #    ])
-    #    .config
-    #    .system
-    #    .build
-    #    .kexec_tarball;
-    #};
-
-    deploy.nodes = deployNodes ["saya" "tsugumi" "v4"];
-
-    nixosConfigurations.saya = node {
-      modules = [
-        nixos-hardware.nixosModules.common-pc
-        nixos-hardware.nixosModules.common-cpu-amd
-        ./saya/configuration.nix
-      ];
+      nixosConfigurations.v4 = node {
+        modules = [
+          ./v4/configuration.nix
+        ];
+      };
     };
-
-    nixosConfigurations.tsugumi = node {
-      modules = [
-        nixos-hardware.nixosModules.common-pc
-        nixos-hardware.nixosModules.common-cpu-amd
-        nixos-hardware.nixosModules.common-gpu-amd
-        #openwrt.nixosModule
-        ./tsugumi/configuration.nix
-      ];
-    };
-
-    nixosConfigurations.v4 = node {
-      modules = [
-        ./v4/configuration.nix
-      ];
-    };
-  };
 }

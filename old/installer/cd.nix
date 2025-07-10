@@ -1,4 +1,4 @@
-{pkgs, ...}: {
+{ pkgs, ... }: {
   imports = [
     ../modules/bcachefs.nix
   ];
@@ -18,12 +18,12 @@
 
   environment.etc.nixos-git.source =
     builtins.filterSource
-    (path: type:
-      baseNameOf path
-      != ".git"
-      && baseNameOf path != "secrets"
-      && type != "symlink"
-      && !(pkgs.lib.hasSuffix ".qcow2" path)
-      && baseNameOf path != "server")
-    ../.;
+      (path: type:
+        baseNameOf path
+        != ".git"
+        && baseNameOf path != "secrets"
+        && type != "symlink"
+        && !(pkgs.lib.hasSuffix ".qcow2" path)
+        && baseNameOf path != "server")
+      ../.;
 }

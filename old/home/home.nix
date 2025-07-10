@@ -1,4 +1,4 @@
-{pkgs, ...}: {
+{ pkgs, ... }: {
   imports = [
   ];
 
@@ -56,7 +56,7 @@
   programs.neovim = {
     enable = true;
     vimAlias = true;
-    extraPackages = [pkgs.nodejs];
+    extraPackages = [ pkgs.nodejs ];
   };
 
   programs.ssh = {
@@ -84,7 +84,7 @@
     autosuggestion.enable = true;
     enableCompletion = true;
     oh-my-zsh.enable = true;
-    oh-my-zsh.plugins = ["git" "sudo"];
+    oh-my-zsh.plugins = [ "git" "sudo" ];
 
     oh-my-zsh.theme = "afowler";
     profileExtra = ''

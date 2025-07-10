@@ -1,8 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
+{ config
+, pkgs
+, lib
+, ...
 }: {
   networking.hostId = lib.mkDefault "deafbeef";
   services.zfs.autoSnapshot.enable = lib.mkDefault true;

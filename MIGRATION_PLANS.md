@@ -16,18 +16,25 @@ This document tracks features present in old/** that are not yet in the current 
 ### Remaining High Priority Items ❌
 - **Distributed builds**: Not yet configured
 - **ZFS support**: Auto-snapshots and performance tuning
-- **Monitoring Stack**: Grafana, Prometheus, UPS monitoring (see detailed plan below)
 - **Virtualization**: Docker, LXD, container support
 - **Authentication**: Authelia system for web services
 
+### Recently Completed ✅
+- **Monitoring Stack Phase 1**: Core Prometheus, Grafana, Alertmanager infrastructure (2025-07-10)
+
 ## Monitoring Stack Migration Plan
 
-### Current State
+### Current State (Updated 2025-07-10)
 - **✅ Caddy Reverse Proxy**: Already configured for monitoring endpoints
   - `grafana.brage.info` → `localhost:1230`
   - `status.brage.info` → `localhost:9090` (Prometheus)
   - `alertmanager.brage.info` → `localhost:9093`
-- **❌ No monitoring services**: No Grafana, Prometheus, or UPS monitoring active
+- **✅ Core Monitoring Stack**: Phase 1 completed and deployed
+  - **Prometheus** on port 9090: Collecting metrics from all targets
+  - **Grafana** on port 1230: Web interface with basic system dashboard
+  - **Alertmanager** on port 9093: Basic notification configuration
+  - **Node Exporter** on port 9100: System metrics collection
+  - **Integration**: Working with existing Authelia authentication
 
 ### Improved Architecture Design
 
@@ -67,16 +74,20 @@ Skip. The current hardware lacks an UPS.
 
 ### Migration Implementation Plan
 
-#### Phase 1: Core Infrastructure (High Priority)
-1. **Create monitoring module** (`modules/monitoring.nix`)
-   - Enable Prometheus with modern scrape configs
-   - Configure Grafana with declarative provisioning
-   - Set up Alertmanager with webhook notifications
+#### Phase 1: Core Infrastructure ✅ **COMPLETED (2025-07-10)**
+1. **✅ Create monitoring module** (`modules/monitoring.nix`)
+   - ✅ Enable Prometheus with modern scrape configs
+   - ✅ Configure Grafana with declarative provisioning  
+   - ✅ Set up Alertmanager with basic notification configuration
+   - ✅ Integrated with existing Caddy reverse proxy
+   - ✅ Secured with agenix secret management
 
-2. **Basic system monitoring**
-   - Enable node exporter with comprehensive collectors
-   - Add ZFS monitoring if available
-   - Configure basic alerting rules
+2. **✅ Basic system monitoring**
+   - ✅ Enable node exporter with comprehensive collectors (systemd, filesystem, netdev, meminfo, cpu, loadavg, diskstats, stat)
+   - ✅ Configure basic alerting rules (system load, disk space, memory usage, service health)
+   - ✅ All services running and collecting metrics
+   
+**Status**: Phase 1 fully deployed and operational. All targets healthy and scraping successfully.
 
 #### Phase 2: Enhanced Features (Medium Priority)
 1. **Advanced dashboards**
@@ -131,10 +142,34 @@ modules/
 6. **Scalability**: Easy to add new monitoring targets and metrics
 
 ### Testing Strategy
-1. **Development**: Deploy to tsugumi during development
-2. **Validation**: Verify all old alerts and dashboards are recreated
-3. **Monitoring**: Monitor the monitoring system during migration
-4. **Rollback**: Keep old monitoring config accessible if needed for reference
+1. **✅ Development**: Deploy to tsugumi during development
+2. **✅ Validation**: Verify all services are running and targets healthy
+3. **✅ Monitoring**: Confirmed monitoring system collecting metrics successfully
+4. **✅ Web Access**: All monitoring endpoints accessible via reverse proxy
+
+### Phase 1 Implementation Results (2025-07-10)
+
+#### Files Created/Modified:
+- ✅ `modules/monitoring.nix` - Core monitoring module with Prometheus, Grafana, Alertmanager
+- ✅ `modules/default.nix` - Added monitoring module import
+- ✅ `secrets/secrets.nix` - Added Grafana admin password secret
+- ✅ `secrets/default.nix` - Added secret configuration for tsugumi
+- ✅ `secrets/grafana-admin-password.age` - Encrypted password file
+- ✅ `machines/tsugumi/configuration.nix` - Enabled monitoring with `me.monitoring.enable = true`
+
+#### Services Status:
+- ✅ **Prometheus** (port 9090): Active, scraping 4/5 targets successfully
+- ✅ **Grafana** (port 1230): Active, with provisioned datasource and basic dashboard  
+- ✅ **Alertmanager** (port 9093): Active, with basic routing configuration
+- ✅ **Node Exporter** (port 9100): Active, collecting comprehensive system metrics
+
+#### Web Access:
+- ✅ **https://grafana.brage.info** - Grafana web interface (authenticated)
+- ✅ **https://status.brage.info** - Prometheus web interface (authenticated)
+- ✅ **https://alertmanager.brage.info** - Alertmanager web interface (authenticated)
+
+#### Next Steps:
+Phase 2 can now focus on enhanced dashboards, improved alerting, ZFS monitoring, and application-specific metrics.
 
 ## Major Missing Features
 

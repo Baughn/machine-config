@@ -1,7 +1,6 @@
-{
-  config,
-  lib,
-  ...
+{ config
+, lib
+, ...
 }: {
   options = {
     kexec.autoReboot = lib.mkOption {
@@ -12,8 +11,8 @@
   };
   config = lib.mkIf config.kexec.autoReboot {
     systemd.timers.autoreboot = {
-      partOf = ["autoreboot.service"];
-      wantedBy = ["timers.target"];
+      partOf = [ "autoreboot.service" ];
+      wantedBy = [ "timers.target" ];
       timerConfig.OnCalendar = "hourly";
     };
     systemd.services.autoreboot = {

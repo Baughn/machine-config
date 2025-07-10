@@ -1,10 +1,9 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-{
-  config,
-  pkgs,
-  ...
+{ config
+, pkgs
+, ...
 }: {
   imports = [
     ../modules
@@ -18,7 +17,7 @@
   systemd.enableEmergencyMode = false; # Start up no matter what, if at all possible.
   hardware.cpu.amd.updateMicrocode = true;
 
-  users.include = [];
+  users.include = [ ];
 
   services.plex.enable = true;
   services.plex.openFirewall = true;

@@ -4,7 +4,7 @@ let
   ports = [ 25565 25566 ];
   target = "direct.brage.info";
   portsComma = lib.concatStringsSep "," (map builtins.toString ports);
-in 
+in
 
 {
   # Build the v4proxy package from source
@@ -15,7 +15,7 @@ in
         version = "0.1.0";
         src = ./v4proxy;
         cargoHash = "sha256-DvkiI3kK/sJeuGjNcc2udBpF1nvAYHnGz5oqBwD4OMo=";
-        
+
         meta = with lib; {
           description = "IPv4 to IPv6 proxy for Minecraft servers";
           platforms = platforms.linux;
@@ -29,17 +29,17 @@ in
     description = "Minecraft IPv4 to IPv6 Proxy";
     after = [ "network.target" ];
     wantedBy = [ "multi-user.target" ];
-    
+
     serviceConfig = {
       ExecStart = "${pkgs.minecraft-ipv6-proxy}/bin/v4proxy --ports ${toString portsComma} --target ${target}";
       Restart = "always";
       RestartSec = "10";
-      
+
       # Security settings
       DynamicUser = true;
       AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
       CapabilityBoundingSet = [ "CAP_NET_BIND_SERVICE" ];
-      
+
       # Hardening
       ProtectSystem = "strict";
       ProtectHome = true;

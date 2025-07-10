@@ -1,9 +1,8 @@
-{
-  config,
-  pkgs,
-  flox,
-  lib,
-  ...
+{ config
+, pkgs
+, flox
+, lib
+, ...
 }: {
   imports = [
     ./users.nix
@@ -43,12 +42,12 @@
     hashedPasswordFile = config.age.secrets.userPassword.path;
   };
   users.defaultUserShell = pkgs.zsh;
-  users.include = ["svein"];
+  users.include = [ "svein" ];
   environment.variables.EDITOR = "nvim";
 
   # Software
   documentation.dev.enable = true;
-  environment.extraOutputsToInstall = ["man" "devman"];
+  environment.extraOutputsToInstall = [ "man" "devman" ];
   programs.dconf.enable = true; # Needed for settings by various apps
   programs.java.enable = true;
   programs.mosh.enable = true;
@@ -186,7 +185,7 @@
     cores = lib.mkDefault 8;
     max-jobs = lib.mkDefault 8;
     sandbox = "relaxed";
-    trusted-users = ["root" "svein"];
+    trusted-users = [ "root" "svein" ];
   };
   nix.nrBuildUsers = 48;
   nixpkgs.config.allowUnfree = true;
@@ -240,7 +239,8 @@
     }
   ];
   networking.firewall.allowedUDPPorts = [
-    5353 5355 # mDNS
+    5353
+    5355 # mDNS
   ];
   services.resolved = {
     enable = true;

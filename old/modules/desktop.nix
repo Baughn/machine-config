@@ -1,8 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
+{ config
+, pkgs
+, lib
+, ...
 }: {
   imports = [
     ./mcupdater.nix
@@ -46,59 +45,64 @@
     (final: prev: {
       glfw = prev.glfw.overrideAttrs (oldAttrs:
         assert oldAttrs.version == "3.4"; {
-        version = "3.4";
-        src = pkgs.fetchFromGitHub {
-          owner = "glfw";
-          repo = "glfw";
-          rev = "3.4";
-          hash = "sha256-FcnQPDeNHgov1Z07gjFze0VMz2diOrpbKZCsI96ngz0=";
-        };
-        patches = [
-          ../glfw.patch
-        ];
-        cmakeFlags = [
+          version = "3.4";
+          src = pkgs.fetchFromGitHub {
+            owner = "glfw";
+            repo = "glfw";
+            rev = "3.4";
+            hash = "sha256-FcnQPDeNHgov1Z07gjFze0VMz2diOrpbKZCsI96ngz0=";
+          };
+          patches = [
+            ../glfw.patch
+          ];
+          cmakeFlags = [
             "-DBUILD_SHARED_LIBS=ON"
             "-DCMAKE_C_FLAGS=-D_GLFW_GLX_LIBRARY='\"${lib.getLib pkgs.libGL}/lib/libGL.so.1\"'"
             "-DGLFW_BUILD_WAYLAND=ON"
             "-DGLFW_BUILD_X11=ON"
             "-DCMAKE_C_FLAGS=-D_GLFW_EGL_LIBRARY='\"${lib.getLib pkgs.libGL}/lib/libEGL.so.1\"'"
-        ];
-        buildInputs = oldAttrs.buildInputs ++ (with pkgs; with xorg; [
-          libffi
-          libX11 libXrandr libXinerama libXcursor libXi libXext
-        ]);
-      });
+          ];
+          buildInputs = oldAttrs.buildInputs ++ (with pkgs; with xorg; [
+            libffi
+            libX11
+            libXrandr
+            libXinerama
+            libXcursor
+            libXi
+            libXext
+          ]);
+        });
     })
   ];
 
-#  environment.launchable.systemPackages = pkgs:
-#    with pkgs; [
-#      # Applications I rarely use
-#      winePackages.full
-#      winetricks
-#      blender
-#      pavucontrol
-#      ncmpcpp
-#      mpd
-#      xlockmore
-#      xorg.xwd
-#      xorg.xdpyinfo
-#      xorg.xev
-#      xorg.xkill
-#      glxinfo
-#      # Video / Photo editing
-#      kdenlive
-#      frei0r
-#      gimp-with-plugins
-      # Emacs
-      #((emacsPackagesNgGen pkgs.emacs).emacsWithPackages (p: with p.melpaStablePackages; [
-      #    solarized-theme indent-guide
-      #    nyan-mode smex ein js2-mode js3-mode
-      #    multiple-cursors flyspell-lazy yasnippet buffer-move counsel
-      #    p.elpaPackages.undo-tree magit nix-mode gradle-mode lua-mode
-      #    groovy-mode editorconfig rust-mode pabbrev expand-region
-      #  ]))
-#    ];
+  #  environment.launchable.systemPackages = pkgs:
+  #    with pkgs; [
+  #      # Applications I rarely use
+  #      winePackages.full
+  #      winetricks
+  #      blender
+  #      pavucontrol
+  #      ncmpcpp
+  #      mpd
+  #      xlockmore
+  #      xorg.xwd
+  #      xorg.xdpyinfo
+  #      xorg.xev
+  #      xorg.xkill
+  #      glxinfo
+  #      # Video / Photo editing
+  #      kdenlive
+  #      frei0r
+  #      gimp-with-plugins
+  # Emacs
+  #((emacsPackagesNgGen pkgs.emacs).emacsWithPackages (p: with p.melpaStablePackages; [
+  #    solarized-theme indent-guide
+  #    nyan-mode smex ein js2-mode js3-mode
+  #    multiple-cursors flyspell-lazy yasnippet buffer-move counsel
+  #    p.elpaPackages.undo-tree magit nix-mode gradle-mode lua-mode
+  #    groovy-mode editorconfig rust-mode pabbrev expand-region
+  #  ]))
+  #    ];
 
   programs.steam.enable = true;
 
@@ -118,7 +122,7 @@
   programs.xwayland.enable = true;
   programs.sway = {
     enable = true;
-    extraOptions = ["--unsupported-gpu"];
+    extraOptions = [ "--unsupported-gpu" ];
   };
 
   # Work around #224332

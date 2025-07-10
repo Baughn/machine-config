@@ -17,12 +17,12 @@
     ];
     wireguard = [{
       publicKey = "9u3/F1o4ImItDXJCMr06YpEuUKCqX9cuQdG0dlTdQCE=";
-      allowedIPs = ["89.101.222.210/29"];
+      allowedIPs = [ "89.101.222.210/29" ];
       id = 6;
     }];
   };
   bloxgate = {
-    ssh = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPi0pCZqmvbObrDkAg28EBwt/hriKcCXRlEreexhoNJd bloxgate-ed25519-2018"];
+    ssh = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPi0pCZqmvbObrDkAg28EBwt/hriKcCXRlEreexhoNJd bloxgate-ed25519-2018" ];
     wireguard = [{
       publicKey = "6OMjCrzgoBe3iAnXGlhcce/za/poemekSpE95BuCmXc=";
       allowedIPs = [
@@ -44,7 +44,7 @@
     ];
   };
   buizerd = {
-    ssh = ["ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAhD/TX8mV0yCbuVsSE8Nno9YLBIMccUKmmEK4Ps1z77D+mi9F6HeaLFJ9FGIvhZ1BVChCJrNTNsTSqRcHLoDye3IsQa080mwhK2hRYPpKPhpa8/Y1zXP6bk6oePVeZDHR1tMgkRJzM/8kOpgNKRKIcdtFU7KWvCWywAeLi8BjrLE3fHU1a2I3ZrT4FUintgjtYVPD7p3m7AEsx4nvqOCxHqlt04i175bwvQ4HVgFzNYgQX9oQw4NgPfDsCCNXkDcVBwZNakUu8q9guHbjWO+1IXvUwfTUEk3pRpbM3glbWzba2PXJA+xM4/NYhZbfXqsXY8vMOmkC0Z54gVEN07s8lw== buizerd@localhost"];
+    ssh = [ "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAhD/TX8mV0yCbuVsSE8Nno9YLBIMccUKmmEK4Ps1z77D+mi9F6HeaLFJ9FGIvhZ1BVChCJrNTNsTSqRcHLoDye3IsQa080mwhK2hRYPpKPhpa8/Y1zXP6bk6oePVeZDHR1tMgkRJzM/8kOpgNKRKIcdtFU7KWvCWywAeLi8BjrLE3fHU1a2I3ZrT4FUintgjtYVPD7p3m7AEsx4nvqOCxHqlt04i175bwvQ4HVgFzNYgQX9oQw4NgPfDsCCNXkDcVBwZNakUu8q9guHbjWO+1IXvUwfTUEk3pRpbM3glbWzba2PXJA+xM4/NYhZbfXqsXY8vMOmkC0Z54gVEN07s8lw== buizerd@localhost" ];
   };
   luke = {
     ssh = [
@@ -60,10 +60,10 @@
     }];
   };
   vindex = {
-    ssh = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCoFU4rmBlaVsQj/odpzWYtBu4j4TDQpNTTpkAIxQ+Qu/uikMkdq/CrSERgE+fPd6KLHz7nBCA5wIGoP0GDOCF/OShyP4F9KoQeCcuT1s2+rQBpRG3wjOftPil8V6Rw3dl5lLFcmyKDtNUpTQupenyH+nzlmBIJ9OPB5y7CIxulk+MgdA8dHF9IROGnfevJe4SkMdJixu4lgaGSx7JHztnq1RRN86FCIhtrc4qBJfbSwcrL3r3yGOK+trdXt2WAf1smXsskTmEAhpUnFrY5t74g9zfzmDJapnpxpUmAEY1N5Xg4xICAEOzma4Gi1CT8NRvUfsb/IkPUGfartASvRVbB"];
+    ssh = [ "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCoFU4rmBlaVsQj/odpzWYtBu4j4TDQpNTTpkAIxQ+Qu/uikMkdq/CrSERgE+fPd6KLHz7nBCA5wIGoP0GDOCF/OShyP4F9KoQeCcuT1s2+rQBpRG3wjOftPil8V6Rw3dl5lLFcmyKDtNUpTQupenyH+nzlmBIJ9OPB5y7CIxulk+MgdA8dHF9IROGnfevJe4SkMdJixu4lgaGSx7JHztnq1RRN86FCIhtrc4qBJfbSwcrL3r3yGOK+trdXt2WAf1smXsskTmEAhpUnFrY5t74g9zfzmDJapnpxpUmAEY1N5Xg4xICAEOzma4Gi1CT8NRvUfsb/IkPUGfartASvRVbB" ];
   };
   einsig = {
-    ssh = ["ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAjBmEEumO4pp05DRSaGTWkt22NZhcv1tJ+h9gKJvck8Em/WvdwG7l9qlXqu+URIRtosuh5S6M5imrEnTj/lkRC/RkxlH4MX172cNvgXJ9//Ge67wT3sZ/N9+CwfRIUgIMCdl14yJ3Q9+Vf3zlB64sp6pYmrDf7vClcDzzFgbbb3R2FRwRVjNqguSCP47Jb1XAgP0oQWc1JSYbUPLHwv7wIfarLfSsy/4KNi5z4ozT1JZUnpHfVygE5MUZyjB8EGZ7ZmpCa3duYxASTG8P9+dBk9iMDsI21XTektKsypk5qonlFdDoDZrFOAy9YQb7GMEcFvKjAYtG+GPDHxJcgOu6Pw== rsa-key-20161217"];
+    ssh = [ "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAjBmEEumO4pp05DRSaGTWkt22NZhcv1tJ+h9gKJvck8Em/WvdwG7l9qlXqu+URIRtosuh5S6M5imrEnTj/lkRC/RkxlH4MX172cNvgXJ9//Ge67wT3sZ/N9+CwfRIUgIMCdl14yJ3Q9+Vf3zlB64sp6pYmrDf7vClcDzzFgbbb3R2FRwRVjNqguSCP47Jb1XAgP0oQWc1JSYbUPLHwv7wIfarLfSsy/4KNi5z4ozT1JZUnpHfVygE5MUZyjB8EGZ7ZmpCa3duYxASTG8P9+dBk9iMDsI21XTektKsypk5qonlFdDoDZrFOAy9YQb7GMEcFvKjAYtG+GPDHxJcgOu6Pw== rsa-key-20161217" ];
   };
   lashtear = {
     ssh = [
@@ -99,7 +99,7 @@
     wireguard = [{
       # Tunnel from jump.use1.ja4.org
       publicKey = "3dw3YKuBXdSQj/ULDM9mj1VKotWNEWSNVW6FcIIsR2A=";
-      allowedIPs = ["35.168.203.255/32"];
+      allowedIPs = [ "35.168.203.255/32" ];
       id = 3;
     }];
   };
@@ -109,7 +109,7 @@
     ];
     wireguard = [{
       publicKey = "S+U8WhWiLl9NOzvFb1QGZg6brrGpnAVp0dfrQ5PsrCk=";
-      allowedIPs = ["75.46.0.0/16"];
+      allowedIPs = [ "75.46.0.0/16" ];
       id = 5;
     }];
   };

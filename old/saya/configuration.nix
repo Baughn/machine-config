@@ -1,10 +1,9 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-{
-  config,
-  pkgs,
-  ...
+{ config
+, pkgs
+, ...
 }: {
   imports = [
     ../modules
@@ -27,7 +26,7 @@
     system = "x86_64-linux";
     protocol = "ssh";
     maxJobs = 4;
-    supportedFeatures = ["kvm" "nixos-test" "big-parallel"];
+    supportedFeatures = [ "kvm" "nixos-test" "big-parallel" ];
   }];
   #nix.distributedBuilds = true;
   nix.settings.cores = 8;
@@ -70,7 +69,7 @@
       "/home/*/.cache/*"
       "!/home/*/.cache/huggingface"
     ];
-    extraBackupArgs = ["--exclude-caches" "--compression=max"];
+    extraBackupArgs = [ "--exclude-caches" "--compression=max" ];
     timerConfig = {
       OnCalendar = "*:0/30";
     };
@@ -101,18 +100,20 @@
 
   networking.firewall = {
     allowedTCPPorts = [
-      80 443  # HTTP(S)
+      80
+      443 # HTTP(S)
       6987 # rtorrent
       3000 # Textchat-ui
-      25565  # Minecraft
+      25565 # Minecraft
     ];
     allowedUDPPorts = [
       6987 # rtorrent
       34197 # factorio
       10401 # Wireguard
-      5200 5201 # Stationeers
+      5200
+      5201 # Stationeers
     ];
   };
 
-  users.include = [];
+  users.include = [ ];
 }

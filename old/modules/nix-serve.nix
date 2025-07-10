@@ -1,7 +1,6 @@
-{
-  config,
-  lib,
-  ...
+{ config
+, lib
+, ...
 }: # Run nix-serve on Tsugumi and Saya.
 lib.mkIf (config.networking.hostName == "tsugumi" || config.networking.hostName == "saya") {
   services.nix-serve = {

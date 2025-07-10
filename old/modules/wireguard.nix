@@ -1,16 +1,19 @@
-{
-  config,
-  lib,
-  ...
-}: let
+{ config
+, lib
+, ...
+}:
+let
   keys = import ./keys.nix;
   allBaseConfigs = builtins.concatLists (
-    lib.mapAttrsToList (n: v: v.wireguard or []) keys);
-  allConfigs = builtins.map (v: {
-    PublicKey = v.publicKey;
-    AllowedIPs = [("10.171.0." + (toString v.id) + "/32")];
-  }) allBaseConfigs;
-in {
+    lib.mapAttrsToList (n: v: v.wireguard or [ ]) keys);
+  allConfigs = builtins.map
+    (v: {
+      PublicKey = v.publicKey;
+      AllowedIPs = [ ("10.171.0." + (toString v.id) + "/32") ];
+    })
+    allBaseConfigs;
+in
+{
   systemd.network.netdevs = {
     "50-wg0" = {
       enable = true;
@@ -29,7 +32,7 @@ in {
   systemd.network.networks.wg0 = {
     enable = true;
     matchConfig.Name = "wg0";
-    address = ["10.171.0.1/24"];
+    address = [ "10.171.0.1/24" ];
     networkConfig.MulticastDNS = true;
   };
 }

@@ -1,5 +1,5 @@
 # Simple systemd unit for the 'rolebot' service
-{ pkgs, ...}:
+{ pkgs, ... }:
 {
   systemd.services.rolebot = {
     description = "Rolebot";

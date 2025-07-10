@@ -1,7 +1,6 @@
-{
-  config,
-  pkgs,
-  ...
+{ config
+, pkgs
+, ...
 }: {
   networking.firewall.allowedUDPPorts = [
     15777 # Satisfactory query
@@ -11,7 +10,7 @@
 
   systemd.services.satisfactory-autopdater = {
     description = "Check for updates of the Satisfactory dedicated server";
-    after = ["satisfactory.service"];
+    after = [ "satisfactory.service" ];
     startAt = "*-*-* *:3/15";
     serviceConfig = {
       StateDirectory = "satisfactory-updater";
@@ -43,9 +42,9 @@
 
   systemd.services.satisfactory = {
     description = "The Satisfactory dedicated server";
-    wantedBy = ["multi-user.target"];
-    after = ["network-online.target"];
-    wants = ["network-online.target"];
+    wantedBy = [ "multi-user.target" ];
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
     serviceConfig = {
       Restart = "always";
       StateDirectory = "satisfactory";

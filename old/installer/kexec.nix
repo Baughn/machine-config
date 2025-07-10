@@ -1,10 +1,10 @@
-{pkgs, ...}: {
+{ pkgs, ... }: {
   imports = [
     kexec/configuration.nix
     ../modules/zfs.nix
   ];
 
-  boot.supportedFilesystems = ["zfs"];
+  boot.supportedFilesystems = [ "zfs" ];
   networking.hostId = "deafbeef";
 
   kexec.autoReboot = false;

@@ -1,11 +1,10 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-{
-  config,
-  pkgs,
-  lib,
-  ...
+{ config
+, pkgs
+, lib
+, ...
 }: {
   imports = [
     ../modules
@@ -90,7 +89,7 @@
     443 # Web-server
   ];
   networking.firewall.allowedUDPPorts = [
-    34197  # Factorio
+    34197 # Factorio
   ];
   networking.firewall.allowedUDPPortRanges = [
   ];
@@ -112,19 +111,19 @@
       devices.koyomi.id = "WCPI5FZ-WOPAUNY-CO6L7ZR-KXP3BYN-NNOHZZI-K4TCWXM-2SNSFHW-QSA7MQM";
       folders."/home/svein/Sync" = {
         id = "default";
-        devices = ["saya" "kaho" "koyomi" "sayanix"];
+        devices = [ "saya" "kaho" "koyomi" "sayanix" ];
       };
       folders."/home/svein/Music" = {
         id = "Music";
-        devices = ["kaho" "koyomi"];
+        devices = [ "kaho" "koyomi" ];
       };
       folders."/home/svein/Documents" = {
         id = "Documents";
-        devices = ["kaho" "koyomi" "sayanix"];
+        devices = [ "kaho" "koyomi" "sayanix" ];
       };
       folders."/home/svein/secure" = {
         id = "secure";
-        devices = ["saya" "kaho" "koyomi" "sayanix"];
+        devices = [ "saya" "kaho" "koyomi" "sayanix" ];
       };
     };
   };
@@ -157,8 +156,8 @@
       settings.SHUTDOWNCMD = config.age.secrets."nut/do_shutdown.sh".path;
     };
     users.admin = {
-      actions = ["ALL"];
-      instcmds = ["ALL"];
+      actions = [ "ALL" ];
+      instcmds = [ "ALL" ];
       passwordFile = config.age.secrets."nut/upspw".path;
     };
   };
@@ -182,37 +181,37 @@
         };
         root_fs = "stash/zrepl";
       }
-      {
-        name = "rpool";
-        type = "push";
-        connect = {
-          type = "local";
-          listener_name = "backup-sink";
-          client_identity = "rpool";
-        };
-        replication.protection.incremental = "guarantee_incremental";
-        snapshotting = {
-          type = "periodic";
-          prefix = "zrepl_";
-          interval = "15m";
-        };
-        filesystems = {
-          "rpool/minecraft/erisia/dynmap" = false;
-          "rpool/minecraft/incognito/dynmap" = false;
-          "rpool/minecraft/testing/dynmap" = false;
-          "rpool/root<" = false;
-          "rpool<" = true;
-        };
-        pruning = {
-          keep_sender = [
-            { type = "last_n"; count = 4; }
-            { type = "grid"; grid = "1x1h(keep=all) | 24x1h | 7x1d"; regex = "^zrepl_"; }
-          ];
-          keep_receiver = [
-            { type = "grid"; grid = "1x1h(keep=all) | 24x1h | 14x1d | 4x30d"; regex = "^zrepl_"; }
-          ];
-        };
-      }];
+        {
+          name = "rpool";
+          type = "push";
+          connect = {
+            type = "local";
+            listener_name = "backup-sink";
+            client_identity = "rpool";
+          };
+          replication.protection.incremental = "guarantee_incremental";
+          snapshotting = {
+            type = "periodic";
+            prefix = "zrepl_";
+            interval = "15m";
+          };
+          filesystems = {
+            "rpool/minecraft/erisia/dynmap" = false;
+            "rpool/minecraft/incognito/dynmap" = false;
+            "rpool/minecraft/testing/dynmap" = false;
+            "rpool/root<" = false;
+            "rpool<" = true;
+          };
+          pruning = {
+            keep_sender = [
+              { type = "last_n"; count = 4; }
+              { type = "grid"; grid = "1x1h(keep=all) | 24x1h | 7x1d"; regex = "^zrepl_"; }
+            ];
+            keep_receiver = [
+              { type = "grid"; grid = "1x1h(keep=all) | 24x1h | 14x1d | 4x30d"; regex = "^zrepl_"; }
+            ];
+          };
+        }];
     };
   };
 
@@ -237,22 +236,22 @@
         job_name = "nut";
         static_configs = [
           {
-            targets = ["localhost:9995"];
+            targets = [ "localhost:9995" ];
           }
         ];
         metrics_path = "/nut";
-        params.target = ["localhost:3493"];
+        params.target = [ "localhost:3493" ];
       }
       {
         job_name = "blackbox";
         static_configs = [
           {
-            targets = ["localhost:9115"];
+            targets = [ "localhost:9115" ];
           }
         ];
         metrics_path = "/probe";
-        params.module = ["icmp"];
-        params.target = ["google.com"];
+        params.module = [ "icmp" ];
+        params.target = [ "google.com" ];
       }
     ];
     rules = [
@@ -307,38 +306,38 @@
   # Webserver (Caddy)
   fileSystems."/srv/aquagon" = {
     device = "/home/aquagon/web";
-    depends = ["/home/aquagon/web"];
-    options = ["bind"];
+    depends = [ "/home/aquagon/web" ];
+    options = [ "bind" ];
   };
   fileSystems."/srv/minecraft" = {
     device = "/home/minecraft/web";
-    depends = ["/home/minecraft/web"];
-    options = ["bind"];
+    depends = [ "/home/minecraft/web" ];
+    options = [ "bind" ];
   };
   fileSystems."/srv/svein" = {
     device = "/home/svein/web";
-    depends = ["/home/svein/web"];
-    options = ["bind"];
+    depends = [ "/home/svein/web" ];
+    options = [ "bind" ];
   };
   fileSystems."/srv/svein/Anime" = {
     device = "/home/svein/Anime";
-    depends = ["/home/svein/Media"];
-    options = ["bind"];
+    depends = [ "/home/svein/Media" ];
+    options = [ "bind" ];
   };
   fileSystems."/srv/svein/Movies" = {
     device = "/home/svein/Movies";
-    depends = ["/home/svein/Media"];
-    options = ["bind"];
+    depends = [ "/home/svein/Media" ];
+    options = [ "bind" ];
   };
   fileSystems."/srv/svein/TV" = {
     device = "/home/svein/TV";
-    depends = ["/home/svein/Media"];
-    options = ["bind"];
+    depends = [ "/home/svein/Media" ];
+    options = [ "bind" ];
   };
   fileSystems."/srv/svein/Sync" = {
     device = "/home/svein/Sync/Watched";
-    depends = ["/home/svein/Sync/Watched"];
-    options = ["bind"];
+    depends = [ "/home/svein/Sync/Watched" ];
+    options = [ "bind" ];
   };
 
   services.authelia = {
@@ -347,23 +346,23 @@
       secrets.storageEncryptionKeyFile = config.age.secrets."authelia-storage-key".path;
       secrets.jwtSecretFile = config.age.secrets."authelia-jwt-key".path;
       settings = {
-       theme = "light";
-       default_2fa_method = "totp";
-       log.level = "debug";
-       #server.disable_healthcheck = true;
-       authentication_backend = {
-         file = {
-           path = "/var/lib/authelia-main/users.yml";
-         };
-       };
-       access_control.default_policy = "one_factor";
-       session.domain = "brage.info";
-       storage = {
-         local = {
-           path = "/var/lib/authelia-main/db.sqlite3";
-         };
-       };
-       notifier.filesystem.filename = "/var/lib/authelia-main/notification.txt";
+        theme = "light";
+        default_2fa_method = "totp";
+        log.level = "debug";
+        #server.disable_healthcheck = true;
+        authentication_backend = {
+          file = {
+            path = "/var/lib/authelia-main/users.yml";
+          };
+        };
+        access_control.default_policy = "one_factor";
+        session.domain = "brage.info";
+        storage = {
+          local = {
+            path = "/var/lib/authelia-main/db.sqlite3";
+          };
+        };
+        notifier.filesystem.filename = "/var/lib/authelia-main/notification.txt";
       };
     };
   };
@@ -564,6 +563,6 @@
     '';
   };
 
-  users.include = ["minecraft" "aquagon" "nixremote"];
+  users.include = [ "minecraft" "aquagon" "nixremote" ];
   #users.include = ["pl" "aquagon" "will" "snowfire" "minecraft" "linuxgsm"];
 }

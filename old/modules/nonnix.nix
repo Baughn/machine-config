@@ -12,10 +12,10 @@ in
 
 {
   environment.systemPackages = with pkgs; [
-      steamcmd
-      (steam.override {
-        inherit extraPkgs extraLibraries;
-      }).run
+    steamcmd
+    (steam.override {
+      inherit extraPkgs extraLibraries;
+    }).run
   ] ++ (extraPkgs pkgs);
 
   programs.nix-ld.enable = true;
