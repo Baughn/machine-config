@@ -1,1 +1,0 @@
-java -Xmx1200m -jar KanjiTomo.jar -run
