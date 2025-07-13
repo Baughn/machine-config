@@ -7,6 +7,7 @@
     ./users.nix
     ./tmux.nix
     ./monitoring.nix
+    ./victron-monitor.nix
   ];
 
   # Use RAM for /tmp, but like, efficiently.

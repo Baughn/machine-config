@@ -112,8 +112,8 @@ Skip. The current hardware lacks an UPS.
    - Game server performance metrics
 
 2. **Custom tools migration**
-   - Migrate Victron energy monitoring
-   - Add alerts for Victron monitoring
+   - ✅ Migrate Victron energy monitoring (metrics only)
+   - ❌ Add alerts for Victron monitoring
    - Add custom exporters for specialized hardware
    - Implement log aggregation and analysis
 

@@ -73,6 +73,15 @@ in
             }
           ];
         }
+      ] ++ optionals config.me.victron-monitor.enable [
+        {
+          job_name = "victron-monitor";
+          static_configs = [
+            {
+              targets = [ "127.0.0.1:${toString config.me.victron-monitor.prometheusPort}" ];
+            }
+          ];
+        }
       ];
 
       # Basic alerting rules

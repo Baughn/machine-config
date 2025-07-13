@@ -47,6 +47,9 @@
   ## Monitoring
   me.monitoring.enable = true;
 
+  ## Victron Energy monitoring
+  me.victron-monitor.enable = true;
+
   # Power management
   powerManagement.enable = true;
   powerManagement.powertop.enable = true;
