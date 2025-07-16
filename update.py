@@ -206,6 +206,11 @@ def alert_sound(ctx: ExecutionContext) -> bool:
     print('\a', end='', flush=True)
     return True
 
+def remote_garbage_collect(ctx: ExecutionContext) -> bool:
+    """Run garbage collection on remote machines."""
+    print_info("Running garbage collection on remote machines...")
+    return run_command(['colmena', 'exec', '--on', '@remote', 'nix-collect-garbage', '-d'])
+
 # ============================================================================
 # POLICY DEFINITIONS - Declarative strategies
 # ============================================================================
@@ -236,6 +241,7 @@ EFFECTORS: Dict[str, Callable[[ExecutionContext], bool]] = {
     'restore_flake_lock_from_backup': restore_flake_lock_from_backup,
     'cleanup_backup': cleanup_backup,
     'alert_sound': alert_sound,
+    'remote_garbage_collect': remote_garbage_collect,
 }
 
 # Update strategies defined declaratively
@@ -243,7 +249,7 @@ UPDATE_STRATEGIES: Dict[str, Strategy] = {
     'full_update': Strategy(
         name='full_update',
         description='Update all inputs and build',
-        steps=['update_all_inputs', 'run_flake_check', 'try_build'],
+        steps=['backup_flake_lock', 'update_all_inputs', 'run_flake_check', 'try_build', 'show_diff_and_deploy', 'remote_garbage_collect'],
         success_message='Full update successful!',
         failure_message='Full update failed, trying selective update...',
         fallback_strategy='selective_update',
@@ -253,7 +259,7 @@ UPDATE_STRATEGIES: Dict[str, Strategy] = {
     'selective_update': Strategy(
         name='selective_update',
         description='Update inputs excluding problematic ones',
-        steps=['update_selective_inputs', 'run_flake_check', 'try_build'],
+        steps=['update_selective_inputs', 'run_flake_check', 'try_build', 'show_diff_and_deploy', 'remote_garbage_collect'],
         success_message='Selective update successful (excluded problematic inputs)!',
         failure_message='Build still failing, restoring original flake.lock...',
         fallback_strategy='restore_and_exit',
@@ -308,11 +314,6 @@ def run_update_pipeline(ctx: ExecutionContext) -> bool:
         if success:
             if strategy.success_message:
                 print_success(strategy.success_message)
-            
-            # If we successfully completed a build strategy, show diff and deploy
-            if current_strategy_name in ['full_update', 'selective_update']:
-                show_diff_and_deploy(ctx)
-            
             return True
         else:
             if strategy.failure_message:
@@ -349,9 +350,6 @@ def main():
     ctx = ExecutionContext(extra_args=extra_args)
     
     try:
-        # Create backup
-        backup_flake_lock(ctx)
-        
         # Run the declarative update pipeline
         success = run_update_pipeline(ctx)
         
