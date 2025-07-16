@@ -129,10 +129,13 @@ def restore_flake_lock_from_backup(ctx: ExecutionContext) -> bool:
 
 def show_diff_and_deploy(ctx: ExecutionContext) -> bool:
     """Show diff and prompt for deployment."""
+    # Get current hostname
+    hostname = subprocess.run(['hostname'], capture_output=True, text=True).stdout.strip()
+    
     # Run nvd diff to show changes
-    print_info("Showing system differences...")
+    print_info(f"Showing system differences for {hostname}...")
     # Get the built system path from Colmena's build output
-    result = subprocess.run(['colmena', 'build', '--on', 'saya'], capture_output=True, text=True)
+    result = subprocess.run(['colmena', 'build', '--on', hostname], capture_output=True, text=True)
     if result.returncode == 0:
         # Extract system path from Colmena output (it shows the store path)
         built_system = None
@@ -169,12 +172,22 @@ def show_diff_and_deploy(ctx: ExecutionContext) -> bool:
                 print_info("Exiting without deployment.")
                 return True
             elif choice == '2':
-                print_info("Deploying with Colmena...")
-                subprocess.run(['colmena', 'apply'])
+                # Deploy local machine immediately
+                print_info(f"Deploying local machine ({hostname})...")
+                subprocess.run(['colmena', 'apply-local', '--sudo'])
+                
+                # Deploy remote machines with boot option (apply after reboot)
+                print_info("Deploying remote machines (will apply after reboot)...")
+                subprocess.run(['colmena', 'apply', '--on', '@remote', '--reboot', 'boot'])
                 return True
             elif choice == '3':
-                print_info("Setting new configuration for next boot...")
-                subprocess.run(['colmena', 'apply', 'boot'])
+                # Deploy local machine for next boot
+                print_info(f"Setting local machine ({hostname}) configuration for next boot...")
+                subprocess.run(['colmena', 'apply-local', '--sudo', 'boot'])
+                
+                # Deploy remote machines with boot option (apply after reboot)
+                print_info("Deploying remote machines (will apply after reboot)...")
+                subprocess.run(['colmena', 'apply', '--on', '@remote', '--reboot', 'boot'])
                 return True
             else:
                 print_error("Invalid choice. Please select 1, 2, or 3.")
@@ -329,7 +342,7 @@ def main():
     script_dir = Path(__file__).parent.absolute()
     os.chdir(script_dir)
     
-    # Get extra arguments for nixos-rebuild
+    # Get extra arguments for colmena build
     extra_args = sys.argv[1:]
     
     # Create execution context
