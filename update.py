@@ -211,6 +211,11 @@ def remote_garbage_collect(ctx: ExecutionContext) -> bool:
     print_info("Running garbage collection on remote machines...")
     return run_command(['colmena', 'exec', '--on', '@remote', 'nix-collect-garbage', '-d'])
 
+def update_flatpaks(ctx: ExecutionContext) -> bool:
+    """Update Flatpak applications."""
+    print_info("Updating Flatpak applications...")
+    return run_command(['flatpak', 'update', '-y'])
+
 # ============================================================================
 # POLICY DEFINITIONS - Declarative strategies
 # ============================================================================
@@ -242,6 +247,7 @@ EFFECTORS: Dict[str, Callable[[ExecutionContext], bool]] = {
     'cleanup_backup': cleanup_backup,
     'alert_sound': alert_sound,
     'remote_garbage_collect': remote_garbage_collect,
+    'update_flatpaks': update_flatpaks,
 }
 
 # Update strategies defined declaratively
@@ -249,7 +255,7 @@ UPDATE_STRATEGIES: Dict[str, Strategy] = {
     'full_update': Strategy(
         name='full_update',
         description='Update all inputs and build',
-        steps=['backup_flake_lock', 'update_all_inputs', 'run_flake_check', 'try_build', 'show_diff_and_deploy', 'remote_garbage_collect'],
+        steps=['backup_flake_lock', 'update_all_inputs', 'run_flake_check', 'try_build', 'show_diff_and_deploy', 'remote_garbage_collect', 'update_flatpaks'],
         success_message='Full update successful!',
         failure_message='Full update failed, trying selective update...',
         fallback_strategy='selective_update',
@@ -259,7 +265,7 @@ UPDATE_STRATEGIES: Dict[str, Strategy] = {
     'selective_update': Strategy(
         name='selective_update',
         description='Update inputs excluding problematic ones',
-        steps=['update_selective_inputs', 'run_flake_check', 'try_build', 'show_diff_and_deploy', 'remote_garbage_collect'],
+        steps=['update_selective_inputs', 'run_flake_check', 'try_build', 'show_diff_and_deploy', 'remote_garbage_collect', 'update_flatpaks'],
         success_message='Selective update successful (excluded problematic inputs)!',
         failure_message='Build still failing, restoring original flake.lock...',
         fallback_strategy='restore_and_exit',

@@ -29,6 +29,14 @@ The configuration uses:
 - **Agenix** for secrets management (encrypted .age files in `secrets/`)
 - **Custom tools** in `tools/` (Rust-based services and utilities)
 
+## Essential workflows
+
+### Adding a package, tool, piece of software or service
+
+1. Use mcp-nixos to check for a NixOS option for the piece of software. Servers are typically in the service hierarchy. Programs (steam, mtr, etc.) are typically under programs.
+2. Use the service/programs option, if one exists. Offer suggestions as to potential extra configuration that might be useful.
+3. If and ONLY if there is no such option, then use the mcp-nixos package search. Assuming a package is found, use ./add-package.sh to add it; then run `colmena apply`.
+
 ## Essential Commands
 
 ### Build and Deploy
@@ -42,20 +50,15 @@ python update.py  # Interactive update with diff viewing
 # Manual deployment with Colmena
 colmena apply --on saya    # Deploy to specific machine
 colmena apply              # Deploy to all machines
-colmena apply-local        # Deploy to current machine only
+colmena apply-local --sudo # Deploy to current machine only
 
 # View what would change
 nixos-rebuild dry-activate --flake .#hostname
 ```
 
 ### Linting and Formatting
-```bash
-# Run all lints and format (ALWAYS do this before committing)
-./tools-for-claude/lint.sh
 
-# Just format Nix files
-./tools-for-claude/format-nix.sh
-```
+Runs automatically; fix lints if they arise.
 
 ### Testing
 ```bash
