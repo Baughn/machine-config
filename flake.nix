@@ -89,6 +89,7 @@
           targetUser = "root";
           buildOnTarget = false; # Build locally
           replaceUnknownProfiles = true;
+	  tags = ["remote"];
         };
       };
 
@@ -117,6 +118,7 @@
           targetUser = "root";
           buildOnTarget = false; # Build locally
           replaceUnknownProfiles = true;
+	  tags = ["remote"];
         };
       };
     };
