@@ -44,10 +44,7 @@ The configuration uses:
 # Check configuration validity
 nix flake check
 
-# Build and view changes (using update.py is preferred)
-python update.py  # Interactive update with diff viewing
-
-# Manual deployment with Colmena
+# Build and view changes
 colmena apply --on saya    # Deploy to specific machine
 colmena apply              # Deploy to all machines
 colmena apply-local --sudo # Deploy to current machine only
@@ -166,7 +163,7 @@ Use specially formatted comments for inline knowledge:
 
 ### Updating Dependencies
 ```bash
-python update.py  # Interactive update process
+python update.py  # Interactive update process; must be run by user on their own
 # OR manually:
 nix flake update
 nix build .#nixosConfigurations.hostname.config.system.build.toplevel

@@ -39,7 +39,7 @@
         user = "svein";
       };
     };
-    desktopManager.gnome.enable = true;
+    desktopManager.plasma6.enable = true;
 
     # Audio
     pipewire = {
