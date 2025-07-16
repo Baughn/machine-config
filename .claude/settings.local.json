@@ -19,12 +19,14 @@
       "WebFetch(domain:opensource.org)",
       "WebFetch(domain:jj-vcs.github.io)",
       "Bash(ls:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "mcp__nixos__nixos_search",
+      "mcp__nixos__nixos_info"
     ],
     "deny": []
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "nixos"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }
