@@ -21,7 +21,10 @@
       "Bash(ls:*)",
       "Bash(curl:*)",
       "mcp__nixos__nixos_search",
-      "mcp__nixos__nixos_info"
+      "mcp__nixos__nixos_info",
+      "mcp__nixos__home_manager_search",
+      "mcp__nixos__home_manager_info",
+      "mcp__nixos__home_manager_options_by_prefix"
     ],
     "deny": []
   },

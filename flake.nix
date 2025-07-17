@@ -13,9 +13,12 @@
 
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
+
+    home-manager.url = "github:nix-community/home-manager";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-kernel, nix-index-database, colmena, agenix, ... }: {
+  outputs = { self, nixpkgs, nixpkgs-kernel, nix-index-database, colmena, agenix, home-manager, ... }: {
     packages.x86_64-linux.options = (import (nixpkgs.outPath + "/nixos/release.nix") { }).options;
 
     # AIDEV-NOTE: VM tests for sanity checking configurations
@@ -50,6 +53,7 @@
         imports = [
           nix-index-database.nixosModules.nix-index
           agenix.nixosModules.default
+          home-manager.nixosModules.home-manager
           ./secrets
         ];
 
@@ -66,6 +70,13 @@
           colmena.packages.x86_64-linux.colmena
           agenix.packages.x86_64-linux.agenix
         ];
+
+        # Bare-minimum home-manager setup
+        home-manager.useGlobalPkgs = true;
+        home-manager.useUserPackages = true;
+        home-manager.users.svein = ./home/home.nix;
+        # Automatically clobber pre-HM files
+        home-manager.backupFileExtension = "backup";
 
         # Default deployment configuration
         deployment = {
