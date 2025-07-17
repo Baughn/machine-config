@@ -46,10 +46,8 @@
         };
       };
 
-      # Deploy to current host (saya)
-      saya = { name, nodes, ... }: {
+      defaults = { name, nodes, ... }: {
         imports = [
-          ./machines/saya/configuration.nix
           nix-index-database.nixosModules.nix-index
           agenix.nixosModules.default
           ./secrets
@@ -57,23 +55,36 @@
 
         # Setup nix-index
         programs.nix-index-database.comma.enable = true;
+
         # Propagate nixpkgs
         nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
         environment.etc."nixpkgs".source = nixpkgs;
         nix.registry.nixpkgs.flake = nixpkgs;
 
+        # Common system packages
         environment.systemPackages = [
           colmena.packages.x86_64-linux.colmena
           agenix.packages.x86_64-linux.agenix
         ];
 
+        # Default deployment configuration
+        deployment = {
+          targetUser = "root";
+          buildOnTarget = false; # Build locally
+          replaceUnknownProfiles = true;
+        };
+      };
+
+      # Deploy to current host (saya)
+      saya = { name, nodes, ... }: {
+        imports = [
+          ./machines/saya/configuration.nix
+        ];
+
         # Deployment configuration
         deployment = {
           targetHost = "localhost"; # Deploy to local machine
-          targetUser = "root";
-          buildOnTarget = false; # Build locally
           allowLocalDeployment = true;
-          replaceUnknownProfiles = true;
         };
       };
 
@@ -86,9 +97,6 @@
         # Deployment configuration
         deployment = {
           targetHost = "v4.brage.info";
-          targetUser = "root";
-          buildOnTarget = false; # Build locally
-          replaceUnknownProfiles = true;
           tags = [ "remote" ];
         };
       };
@@ -97,27 +105,11 @@
       tsugumi = { name, nodes, ... }: {
         imports = [
           ./machines/tsugumi/configuration.nix
-          nix-index-database.nixosModules.nix-index
-          agenix.nixosModules.default
-          ./secrets
         ];
-
-        # Setup nix-index
-        programs.nix-index-database.comma.enable = true;
-        # Propagate nixpkgs
-        nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
-        environment.etc."nixpkgs".source = nixpkgs;
-        nix.registry.nixpkgs.flake = nixpkgs;
-
-        # Add Colmena to system packages
-        environment.systemPackages = [ colmena.packages.x86_64-linux.colmena ];
 
         # Deployment configuration
         deployment = {
           targetHost = "tsugumi.local";
-          targetUser = "root";
-          buildOnTarget = false; # Build locally
-          replaceUnknownProfiles = true;
           tags = [ "remote" ];
         };
       };
