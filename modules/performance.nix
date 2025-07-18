@@ -28,8 +28,28 @@
   zramSwap = {
     enable = true;
     algorithm = "zstd";
-    memoryPercent = 50; # 50% of RAM for compressed swap
+    memoryPercent = 75;
     priority = 100;
+  };
+
+  # Kill applications on OOM... prior to the desktop locking up.
+  services.earlyoom = {
+    enable = true;
+    enableNotifications = true;
+    extraArgs = [
+      # Avoid killing important system and desktop processes
+      "--avoid"
+      "^(systemd|kernel|init|dbus|NetworkManager|pipewire|wireplumber|pulse)$"
+      "--avoid"
+      "^(gnome-shell|plasmashell|kwin|xorg|wayland|sway|hyprland)$"
+      "--avoid"
+      "^(gdm|sddm|lightdm|greetd)$"
+      # Prefer killing these types of processes first
+      "--prefer"
+      "^(chrome|chromium|firefox|electron)$"
+      "--prefer"
+      "^(java|node|python|ruby)$"
+    ];
   };
 
   # Disk schedulers optimized for different storage types

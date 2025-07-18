@@ -214,7 +214,7 @@ def remote_garbage_collect(ctx: ExecutionContext) -> bool:
 def update_flatpaks(ctx: ExecutionContext) -> bool:
     """Update Flatpak applications."""
     print_info("Updating Flatpak applications...")
-    return run_command(['flatpak', 'update', '-y'])
+    return run_command(['sudo', 'flatpak', 'update', '-y'])
 
 # ============================================================================
 # POLICY DEFINITIONS - Declarative strategies
