@@ -34,6 +34,7 @@ The configuration uses:
 ### Adding a package, tool, piece of software or service
 
 1. Use mcp-nixos to check for a NixOS option for the piece of software. Servers are typically in the service hierarchy. Programs (steam, mtr, etc.) are typically under programs.
+   ALWAYS do this, even if you think you know the correct config options. Keeping the defaults is often fine.
 2. Use the service/programs option, if one exists. Offer suggestions as to potential extra configuration that might be useful.
 3. If and ONLY if there is no such option, then use the mcp-nixos package search. Assuming a package is found, use ./add-package.sh to add it; then run `colmena apply`.
 
