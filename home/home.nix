@@ -16,6 +16,8 @@
     claude = "~/.claude/local/claude";
   };
 
+  programs.zsh.enable = true;
+
   # Program Configurations
   programs.git = {
     enable = true;
