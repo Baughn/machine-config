@@ -76,11 +76,13 @@
         ];
 
         # Bare-minimum home-manager setup
-        home-manager.useGlobalPkgs = true;
-        home-manager.useUserPackages = true;
-        home-manager.users.svein = ./home/home.nix;
-        # Automatically clobber pre-HM files
-        home-manager.backupFileExtension = "backup";
+        home-manager = {
+          useGlobalPkgs = true;
+          useUserPackages = true;
+          users.svein = ./home/home.nix;
+          # Automatically clobber pre-HM files
+          backupFileExtension = "backup";
+        };
 
         # Default deployment configuration
         deployment = {

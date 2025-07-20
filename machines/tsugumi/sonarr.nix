@@ -1,11 +1,15 @@
 { pkgs, ... }:
 
 {
-  services.bazarr.enable = true;
-  services.sonarr.enable = true;
-  services.prowlarr.enable = true;
-  services.radarr.enable = true;
-  services.radarr.group = "sonarr";
+  services = {
+    bazarr.enable = true;
+    sonarr.enable = true;
+    prowlarr.enable = true;
+    radarr = {
+      enable = true;
+      group = "sonarr";
+    };
+  };
 
   # Also run qbittorrent-nox as svein.
   systemd.services.qbittorrent-sonarr = {

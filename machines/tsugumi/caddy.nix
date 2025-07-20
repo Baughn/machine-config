@@ -200,40 +200,42 @@
   networking.firewall.allowedTCPPorts = [ 80 443 ];
 
   # Bind-mount filesystems to allow access.
-  fileSystems."/srv/aquagon" = {
-    device = "/home/aquagon/web";
-    depends = [ "/home/aquagon/web" ];
-    options = [ "bind" ];
-  };
-  fileSystems."/srv/minecraft" = {
-    device = "/home/minecraft/web";
-    depends = [ "/home/minecraft/web" ];
-    options = [ "bind" ];
-  };
-  fileSystems."/srv/svein" = {
-    device = "/home/svein/web";
-    depends = [ "/home/svein/web" ];
-    options = [ "bind" ];
-  };
-  fileSystems."/srv/svein/Anime" = {
-    device = "/home/svein/Anime";
-    depends = [ "/home/svein/Media" ];
-    options = [ "bind" ];
-  };
-  fileSystems."/srv/svein/Movies" = {
-    device = "/home/svein/Movies";
-    depends = [ "/home/svein/Media" ];
-    options = [ "bind" ];
-  };
-  fileSystems."/srv/svein/TV" = {
-    device = "/home/svein/TV";
-    depends = [ "/home/svein/Media" ];
-    options = [ "bind" ];
-  };
-  fileSystems."/srv/svein/Sync" = {
-    device = "/home/svein/Sync/Watched";
-    depends = [ "/home/svein/Sync/Watched" ];
-    options = [ "bind" ];
+  fileSystems = {
+    "/srv/aquagon" = {
+      device = "/home/aquagon/web";
+      depends = [ "/home/aquagon/web" ];
+      options = [ "bind" ];
+    };
+    "/srv/minecraft" = {
+      device = "/home/minecraft/web";
+      depends = [ "/home/minecraft/web" ];
+      options = [ "bind" ];
+    };
+    "/srv/svein" = {
+      device = "/home/svein/web";
+      depends = [ "/home/svein/web" ];
+      options = [ "bind" ];
+    };
+    "/srv/svein/Anime" = {
+      device = "/home/svein/Anime";
+      depends = [ "/home/svein/Media" ];
+      options = [ "bind" ];
+    };
+    "/srv/svein/Movies" = {
+      device = "/home/svein/Movies";
+      depends = [ "/home/svein/Media" ];
+      options = [ "bind" ];
+    };
+    "/srv/svein/TV" = {
+      device = "/home/svein/TV";
+      depends = [ "/home/svein/Media" ];
+      options = [ "bind" ];
+    };
+    "/srv/svein/Sync" = {
+      device = "/home/svein/Sync/Watched";
+      depends = [ "/home/svein/Sync/Watched" ];
+      options = [ "bind" ];
+    };
   };
 
   services.authelia = {
