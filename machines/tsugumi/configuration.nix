@@ -17,6 +17,7 @@
     ./aniwatch.nix
     ./minecraft.nix
     ./syncthing.nix
+    ./silverbullet.nix
   ];
 
   ## Boot

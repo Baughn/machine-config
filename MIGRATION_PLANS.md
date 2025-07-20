@@ -350,7 +350,7 @@ The old modules/default.nix included:
 - **Media Management**:
   - ✅ Sonarr (TV show management) - (machines/tsugumi/sonarr.nix)
   - Plex media server
-  - SilverBullet note-taking system
+  - ✅ SilverBullet note-taking system - (machines/tsugumi/silverbullet.nix)
 - **Game Servers**:
   - ✅ Minecraft servers (machines/tsugumi/minecraft.nix)
   - ✅ Bot services (machines/tsugumi/rolebot.nix, sdbot.nix, irctool.nix, aniwatch.nix)
@@ -402,7 +402,7 @@ The old modules/default.nix included:
 ### Migration Priority for Future
 1. **High**: UPS monitoring, authentication system, monitoring stack
 2. **Medium**: Plex media server, ZRepl backups, filesystem bind mounts
-3. **Low**: SilverBullet note-taking, advanced media management features
+3. **Low**: Advanced media management features
 
 ### Technical Notes
 - Original used systemd-network with MAC address matching (74:56:3c:b2:26:07)
