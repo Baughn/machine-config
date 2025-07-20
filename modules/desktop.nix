@@ -2,7 +2,7 @@
 
 {
   imports = [
-    ./performance.nix
+    ./performance-desktop.nix
   ];
 
   # Custom packages overlay

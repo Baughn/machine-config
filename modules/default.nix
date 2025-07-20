@@ -8,6 +8,7 @@
     ./tmux.nix
     ./monitoring.nix
     ./victron-monitor.nix
+    ./performance-default.nix
   ];
 
   # Would prefer zram, but it's broken
