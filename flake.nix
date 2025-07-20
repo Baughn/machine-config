@@ -16,9 +16,12 @@
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    lanzaboote.url = "github:nix-community/lanzaboote";
+    lanzaboote.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-kernel, nix-index-database, colmena, agenix, home-manager, ... }: {
+  outputs = { self, nixpkgs, nixpkgs-kernel, nix-index-database, colmena, agenix, home-manager, lanzaboote, ... }@inputs: {
     packages.x86_64-linux.options = (import (nixpkgs.outPath + "/nixos/release.nix") { }).options;
 
     # AIDEV-NOTE: VM tests for sanity checking configurations
@@ -47,6 +50,7 @@
             colmena.overlays.default
           ];
         };
+        specialArgs = { inherit inputs; };
       };
 
       defaults = { name, nodes, ... }: {

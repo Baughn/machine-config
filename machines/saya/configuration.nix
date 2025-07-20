@@ -12,13 +12,13 @@
       ../../modules
       ../../modules/desktop.nix
       ../../modules/nvidia.nix
+      ../../modules/secure-boot.nix
       ../../quirks/g903.nix
       ../../quirks/amd-x3d.nix
     ];
 
   # Boot
   boot = {
-    loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
     blacklistedKernelModules = [ "amdgpu" ];
     kernelParams = [ "boot.shell_on_fail" ];
