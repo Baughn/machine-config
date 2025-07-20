@@ -10,8 +10,8 @@
     ./victron-monitor.nix
   ];
 
-  # Use RAM for /tmp, but like, efficiently.
-  boot.tmp.useZram = true;
+  # Would prefer zram, but it's broken
+  boot.tmp.cleanOnBoot = true;
 
   # Security?
   security.sudo.wheelNeedsPassword = false;

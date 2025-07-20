@@ -4,10 +4,10 @@
   # AIDEV-NOTE: NVIDIA hardware configuration for desktop systems
   hardware.nvidia = {
     modesetting.enable = true;
-    open = false;
+    open = true;
   };
   boot.kernelParams = [
-    "nvidia.NVreg_EnableGpuFirmware=0"
+    #"nvidia.NVreg_EnableGpuFirmware=0"
   ];
   services.xserver.videoDrivers = [ "nvidia" ];
 

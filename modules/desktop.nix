@@ -29,11 +29,7 @@
 
     # Display manager and desktop environment
     displayManager = {
-      gdm = {
-        enable = true;
-        wayland = true;
-        autoSuspend = false;
-      };
+      sddm.enable = true;
       autoLogin = {
         enable = true;
         user = "svein";
