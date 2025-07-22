@@ -64,6 +64,9 @@ in
   programs.zsh = {
     enable = true;
 
+    # Enable autosuggestions from history
+    autosuggestions.enable = true;
+
     # Oh My Zsh configuration
     ohMyZsh = {
       enable = true;
