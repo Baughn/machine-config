@@ -26,7 +26,8 @@
       "mcp__nixos__home_manager_info",
       "mcp__nixos__home_manager_options_by_prefix",
       "Bash(tools-for-claude/lint.sh:*)",
-      "Bash(tools-for-claude/format-nix.sh:*)"
+      "Bash(tools-for-claude/format-nix.sh:*)",
+      "WebFetch(domain:discourse.nixos.org)"
     ],
     "deny": []
   },
