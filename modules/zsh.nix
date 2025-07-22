@@ -26,6 +26,12 @@ let
         test $UID -eq 0 && user_color='red'
 
         _sunakayu_vcs_status() {
+          # Skip jj operations when running as root to avoid ownership issues
+          if [[ $UID -eq 0 ]]; then
+            git_prompt_status
+            return
+          fi
+          
           local ref='self.change_id().shortest(3)'
           local empty_color="$fg[green]"
           local nonempty_color="$fg[magenta]"
@@ -35,6 +41,12 @@ let
         }
 
         _sunakayu_vcs_info() {
+          # Skip jj operations when running as root to avoid ownership issues
+          if [[ $UID -eq 0 ]]; then
+            git_prompt_info
+            return
+          fi
+          
           jj_prompt_template 'surround("", " ", self.description().first_line())' \
           || git_prompt_info
         }
