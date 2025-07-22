@@ -9,7 +9,11 @@
     ./monitoring.nix
     ./victron-monitor.nix
     ./performance-default.nix
+    ./neovim.nix
   ];
+
+  # Enable enhanced Neovim configuration
+  me.neovim.enable = true;
 
   # Would prefer zram, but it's broken
   boot.tmp.cleanOnBoot = true;
@@ -35,14 +39,6 @@
       enable = true;
       libraries = with pkgs; [
       ];
-    };
-
-    # Editor configuration
-    neovim = {
-      enable = true;
-      defaultEditor = true;
-      viAlias = true;
-      vimAlias = true;
     };
   };
 
