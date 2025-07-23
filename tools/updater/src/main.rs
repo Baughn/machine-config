@@ -2,10 +2,10 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 use tracing_subscriber::EnvFilter;
 
-use updater::commands;
+use nixos_updater::commands;
 
 #[derive(Parser)]
-#[command(name = "updater")]
+#[command(name = "nixos-updater")]
 #[command(about = "NixOS update workflow tools", long_about = None)]
 struct Cli {
     #[command(subcommand)]
