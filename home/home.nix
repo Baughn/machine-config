@@ -5,6 +5,9 @@
   home = {
     sessionVariables = {
       EDITOR = "nvim";
+      # Claude
+      BASH_DEFAULT_TIMEOUT_MS = 300000;
+      BASH_MAX_TIMEOUT_MS = 1800000;
     };
 
     # Add directories to PATH
