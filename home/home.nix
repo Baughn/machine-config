@@ -79,6 +79,15 @@
     };
   }; # End of programs block
 
+  # Symlink claude files back to ~/.claude
+  home.file = {
+    ".claude/CLAUDE.md".source = ../context/CLAUDE.md;
+    ".claude/agents" = {
+      source = ../context/agents;
+      recursive = true;
+    };
+  };
+
   # Do not modify unless you want to delete your home directory.
   home.stateVersion = "25.05";
 }

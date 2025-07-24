@@ -1,0 +1,2 @@
+- If there is a battle tested, well known package that can help us, always recommend it. Ask the user's opinion before proceeding.
+- There is project-specific documentation in context/. Use it when it exists. If it does not exist, or is insufficient, invoke the context-docs-generator agent to improve it.
