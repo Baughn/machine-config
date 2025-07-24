@@ -24,6 +24,25 @@
   outputs = { self, nixpkgs, nixpkgs-kernel, nix-index-database, colmena, agenix, home-manager, lanzaboote, ... }@inputs: {
     packages.x86_64-linux.options = (import (nixpkgs.outPath + "/nixos/release.nix") { }).options;
 
+    # Custom ISO image
+    packages.x86_64-linux.iso = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        nix-index-database.nixosModules.nix-index
+        ./machines/iso/configuration.nix
+        {
+          # Setup nix-index
+          programs.nix-index-database.comma.enable = true;
+
+          # Propagate nixpkgs
+          nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
+          environment.etc."nixpkgs".source = nixpkgs;
+          nix.registry.nixpkgs.flake = nixpkgs;
+        }
+      ];
+      specialArgs = { inherit inputs; };
+    };
+
     # AIDEV-NOTE: VM tests for sanity checking configurations
     checks.x86_64-linux.basic-boot = import ./tests/basic-desktop.nix {
       pkgs = import nixpkgs {
