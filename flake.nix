@@ -5,6 +5,7 @@
     #nixpkgs.url = "git+file:///home/svein/dev/nixpkgs";
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     nixpkgs-kernel.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    nixpkgs-upstream.url = "github:nixos/nixpkgs?ref=nixos-unstable";
 
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
@@ -20,9 +21,12 @@
 
     lanzaboote.url = "github:nix-community/lanzaboote";
     lanzaboote.inputs.nixpkgs.follows = "nixpkgs";
+
+    nix-darwin.url = "github:nix-darwin/nix-darwin/master";
+    nix-darwin.inputs.nixpkgs.follows = "nixpkgs-upstream";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-kernel, nix-index-database, colmena, agenix, home-manager, lanzaboote, ... }@inputs: {
+  outputs = { self, nixpkgs, nixpkgs-kernel, nix-index-database, colmena, agenix, home-manager, lanzaboote, nix-darwin, ... }@inputs: {
     packages.x86_64-linux.options = (import (nixpkgs.outPath + "/nixos/release.nix") { }).options;
 
     # Custom ISO image
@@ -143,6 +147,39 @@
           tags = [ "remote" ];
         };
       };
+
+      # kaho macOS machine
+      kaho = { name, nodes, ... }: {
+        imports = [
+          ./machines/kaho/configuration.nix
+        ];
+
+        # Deployment configuration for macOS
+        deployment = {
+          targetHost = "localhost";
+          allowLocalDeployment = true;
+          tags = [ "darwin" ];
+        };
+      };
+    };
+
+    # Darwin configuration for kaho
+    darwinConfigurations."kaho" = nix-darwin.lib.darwinSystem {
+      modules = [
+        ./machines/kaho/configuration.nix
+        home-manager.darwinModules.home-manager
+        {
+          # Home-manager configuration for macOS
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            users.svein = ./home/home.nix;
+            # Automatically clobber pre-HM files
+            backupFileExtension = "backup";
+          };
+        }
+      ];
+      specialArgs = { inherit inputs; };
     };
   };
 }
