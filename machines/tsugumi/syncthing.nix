@@ -9,7 +9,8 @@
     dataDir = "/home/svein/Sync";
     settings = {
       devices = {
-        kaho.id = "MD47JRV-UL5JHDJ-VHSSSEC-OPAQGRS-X5MEAH3-MBJUBCO-WG3XIZA-7ZX2KQU";
+        macbook.id = "MD47JRV-UL5JHDJ-VHSSSEC-OPAQGRS-X5MEAH3-MBJUBCO-WG3XIZA-7ZX2KQU";
+        kaho.id = "MLGJ2L6-C6CIOGI-UGHQWLV-QH2Q72R-OBSW6PF-EU7P2JI-UNPRPQR-AACUCQT";
       };
       folders = {
         "/home/svein/Sync" = {
