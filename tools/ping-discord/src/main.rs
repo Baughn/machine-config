@@ -5,7 +5,7 @@ use std::process::Command;
 
 
 mod parser;
-use parser::{parse_jj_jsonl_output, FileChangeType};
+use parser::{parse_commits_only, parse_file_changes, FileChangeType};
 
 // Hardcoded path to the agenix-decrypted webhook URL
 const WEBHOOK_PATH: &str = "/run/agenix/erisia-webhook.url";
@@ -88,7 +88,7 @@ fn handle_update(patterns: String, message: Option<String>, revision: String, dr
     
     // Get commit data as JSONL
     let json_output = Command::new("/home/svein/.cargo/bin/jj")
-        .args(&["log", "--no-graph", "-r", &revision, "-T", "json(self) ++ \"\\n\""])
+        .args(["log", "--no-graph", "-r", &revision, "-T", "json(self) ++ \"\\n\""])
         .output()
         .context("Failed to execute jj log for commit data")?;
     
@@ -96,89 +96,104 @@ fn handle_update(patterns: String, message: Option<String>, revision: String, dr
         anyhow::bail!("jj log (json) failed: {}", String::from_utf8_lossy(&json_output.stderr));
     }
     
-    // Get file changes separately using diff.summary()
-    let diff_output = Command::new("/home/svein/.cargo/bin/jj")
-        .args(&["log", "--no-graph", "-r", &revision, "-T", "diff.summary()"])
-        .output()
-        .context("Failed to execute jj log for file changes")?;
-    
-    if !diff_output.status.success() {
-        anyhow::bail!("jj log (diff) failed: {}", String::from_utf8_lossy(&diff_output.stderr));
-    }
-    
     let jsonl_output = String::from_utf8_lossy(&json_output.stdout);
-    let diff_summary = String::from_utf8_lossy(&diff_output.stdout);
+    
+    // Parse commits
+    let all_commits = parse_commits_only(&jsonl_output)
+        .map_err(|e| anyhow::anyhow!("Failed to parse jj log output: {}", e))?;
     
     // Parse patterns
     let patterns: Vec<&str> = patterns.split(',').map(|s| s.trim()).collect();
     
-    // Parse jj log output using the new JSONL parser
-    let parsed = parse_jj_jsonl_output(&jsonl_output, &diff_summary)
-        .map_err(|e| anyhow::anyhow!("Failed to parse jj log output: {}", e))?;
+    // For each commit, get its file changes and check for matches
+    let mut matching_commits = Vec::new();
+    let mut all_matching_files = Vec::new();
     
-    // Find matching files
-    let mut matching_files = Vec::new();
-    for file_change in &parsed.file_changes {
-        // Check if file matches any pattern
-        for pattern in &patterns {
-            let file_matches = if pattern.contains('*') {
-                // Simple glob matching
-                let pattern_parts: Vec<&str> = pattern.split('*').collect();
-                let mut matches = true;
-                let mut pos = 0;
-                
-                for (i, part) in pattern_parts.iter().enumerate() {
-                    if part.is_empty() {
-                        continue;
-                    }
+    for commit in &all_commits {
+        // Get file changes for this specific commit
+        let show_output = Command::new("/home/svein/.cargo/bin/jj")
+            .args(["show", "-T", "", &commit.hash, "--summary"])
+            .output()
+            .context("Failed to execute jj show for commit file changes")?;
+        
+        if !show_output.status.success() {
+            anyhow::bail!("jj show failed for commit {}: {}", commit.hash, String::from_utf8_lossy(&show_output.stderr));
+        }
+        
+        let commit_diff_output = String::from_utf8_lossy(&show_output.stdout);
+        let file_changes = parse_file_changes(&commit_diff_output);
+        
+        // Check if this commit has any matching files
+        let mut commit_matching_files = Vec::new();
+        for file_change in &file_changes {
+            // Check if file matches any pattern
+            for pattern in &patterns {
+                let file_matches = if pattern.contains('*') {
+                    // Simple glob matching
+                    let pattern_parts: Vec<&str> = pattern.split('*').collect();
+                    let mut matches = true;
+                    let mut pos = 0;
                     
-                    if i == 0 && !file_change.path.starts_with(part) {
-                        matches = false;
-                        break;
-                    } else if i == pattern_parts.len() - 1 && !file_change.path.ends_with(part) {
-                        matches = false;
-                        break;
-                    } else if i > 0 {
-                        if let Some(idx) = file_change.path[pos..].find(part) {
-                            pos += idx + part.len();
-                        } else {
+                    for (i, part) in pattern_parts.iter().enumerate() {
+                        if part.is_empty() {
+                            continue;
+                        }
+                        
+                        if (i == 0 && !file_change.path.starts_with(part)) ||
+                           (i == pattern_parts.len() - 1 && !file_change.path.ends_with(part)) {
                             matches = false;
                             break;
+                        } else if i > 0 {
+                            if let Some(idx) = file_change.path[pos..].find(part) {
+                                pos += idx + part.len();
+                            } else {
+                                matches = false;
+                                break;
+                            }
                         }
                     }
-                }
-                matches
-            } else {
-                file_change.path == *pattern
-            };
-            
-            if file_matches {
-                let change_type_str = match file_change.change_type {
-                    FileChangeType::Added => "A",
-                    FileChangeType::Modified => "M",
-                    FileChangeType::Deleted => "D",
-                    FileChangeType::Renamed => "R",
+                    matches
+                } else {
+                    file_change.path == *pattern
                 };
-                matching_files.push(format!("{} {}", change_type_str, file_change.path));
-                break;
+                
+                if file_matches {
+                    let change_type_str = match file_change.change_type {
+                        FileChangeType::Added => "A",
+                        FileChangeType::Modified => "M",
+                        FileChangeType::Deleted => "D",
+                        FileChangeType::Renamed => "R",
+                    };
+                    let formatted_change = format!("{} {}", change_type_str, file_change.path);
+                    if !commit_matching_files.contains(&formatted_change) {
+                        commit_matching_files.push(formatted_change);
+                    }
+                    break;
+                }
             }
+        }
+        
+        // If this commit has matching files, include it
+        if !commit_matching_files.is_empty() {
+            matching_commits.push(commit.clone());
+            all_matching_files.extend(commit_matching_files);
         }
     }
     
-    if matching_files.is_empty() {
+    if all_matching_files.is_empty() {
         println!("No files matching patterns: {}", patterns.join(","));
         return Ok(());
     }
     
-    // Build Discord message with multi-commit support
-    let (hash, email, timestamp) = if let Some(latest_commit) = parsed.commits.first() {
+    // Build Discord message with only matching commits
+    let (hash, email, timestamp) = if let Some(latest_commit) = matching_commits.first() {
         (latest_commit.hash.clone(), latest_commit.author.clone(), latest_commit.timestamp.clone())
     } else {
         ("unknown".to_string(), "unknown".to_string(), "unknown".to_string())
     };
     
     // Create commit summary
-    let commit_descriptions: Vec<String> = parsed.commits
+    let commit_descriptions: Vec<String> = matching_commits
         .iter()
         .filter_map(|c| {
             if c.description.is_empty() || c.description.contains("(no description set)") {
@@ -206,7 +221,7 @@ fn handle_update(patterns: String, message: Option<String>, revision: String, dr
     };
     
     let webhook = DiscordWebhook {
-        content: format!("🔧 **{}**", title),
+        content: format!("🔧 **{title}**"),
         embeds: vec![Embed {
             title: "Commit Details".to_string(),
             description: commit_summary,
@@ -229,12 +244,12 @@ fn handle_update(patterns: String, message: Option<String>, revision: String, dr
                 },
                 Field {
                     name: "Changed Files".to_string(),
-                    value: if matching_files.len() > 10 {
+                    value: if all_matching_files.len() > 10 {
                         format!("{}\n... and {} more files", 
-                               matching_files[..10].join("\n"), 
-                               matching_files.len() - 10)
+                               all_matching_files[..10].join("\n"), 
+                               all_matching_files.len() - 10)
                     } else {
-                        matching_files.join("\n")
+                        all_matching_files.join("\n")
                     },
                     inline: false,
                 },
@@ -259,7 +274,7 @@ fn send_webhook(webhook: DiscordWebhook, dry_run: bool) -> Result<()> {
     
     if dry_run {
         println!("Would send to Discord:");
-        println!("{}", json);
+        println!("{json}");
         return Ok(());
     }
     
