@@ -17,6 +17,7 @@
   "pciutils",
   "psmisc",
   "pv",
+  "python3",
   "restic",
   "ripgrep",
   "rustup",
