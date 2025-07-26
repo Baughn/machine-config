@@ -18,6 +18,7 @@
     ./minecraft.nix
     ./syncthing.nix
     ./silverbullet.nix
+    ./nfs.nix
   ];
 
   ## Boot
@@ -44,6 +45,9 @@
     hostName = "tsugumi";
     enableLAN = true;
   };
+
+  ## WireGuard
+  me.wireguard.enable = true;
 
   ## Monitoring
   me.monitoring.enable = true;

@@ -4,6 +4,7 @@
   imports = [
     ./zsh.nix
     ./networking.nix
+    ./wireguard.nix
     ./users.nix
     ./tmux.nix
     ./monitoring.nix

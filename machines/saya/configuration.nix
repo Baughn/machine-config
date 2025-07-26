@@ -51,6 +51,9 @@
     ];
   };
 
+  # WireGuard
+  me.wireguard.enable = true;
+
   # Backup
   services.restic.backups.home = {
     user = "svein";

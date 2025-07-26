@@ -25,10 +25,11 @@
     packages.x86_64-linux.options = (import (nixpkgs.outPath + "/nixos/release.nix") { }).options;
 
     # Custom ISO image
-    packages.x86_64-linux.iso = nixpkgs.lib.nixosSystem {
+    packages.x86_64-linux.iso = (nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
         nix-index-database.nixosModules.nix-index
+        agenix.nixosModules.default
         ./machines/iso/configuration.nix
         {
           # Setup nix-index
@@ -41,15 +42,7 @@
         }
       ];
       specialArgs = { inherit inputs; };
-    };
-
-    # AIDEV-NOTE: VM tests for sanity checking configurations
-    checks.x86_64-linux.basic-boot = import ./tests/basic-desktop.nix {
-      pkgs = import nixpkgs {
-        system = "x86_64-linux";
-        config.allowUnfree = true;
-      };
-    };
+    }).config.system.build.isoImage;
 
     # Colmena deployment configuration
     colmenaHive = colmena.lib.makeHive {

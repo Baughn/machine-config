@@ -44,23 +44,18 @@
     };
 
     "/tsugumi" = {
-      device = "svein@tsugumi.local:";
-      fsType = "fuse.sshfs";
+      device = "10.171.0.1:/home/svein";
+      fsType = "nfs4";
       options = [
-        "noauto"
-        "x-systemd.automount"
+        "nfsvers=4.2"
         "_netdev"
-        "users"
-        "idmap=user"
-        "IdentityFile=/home/svein/.ssh/id_ed25519"
-        "allow_other"
-        "default_permissions"
-        "uid=1000"
-        "gid=100"
-        "exec"
-        "reconnect"
-        "ServerAliveInterval=15"
-        "ServerAliveCountMax=3"
+        "auto"
+        "x-systemd.automount"
+        "x-systemd.idle-timeout=600"
+        "rsize=1048576"
+        "wsize=1048576"
+        "timeo=14"
+        "intr"
       ];
     };
   };

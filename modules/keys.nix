@@ -115,4 +115,21 @@
       id = 5;
     }];
   };
+  # Machine-specific WireGuard entries
+  tsugumi-machine = {
+    ssh = [ ]; # No SSH needed for machine entries
+    wireguard = [{
+      publicKey = "y55YDIReEJ/lWrJiWYhxZ+grCPCJnqYlIN9LU7p6Yk0=";
+      allowedIPs = [ ]; # Server accepts from anywhere in VPN
+      id = 1;
+    }];
+  };
+  saya-machine = {
+    ssh = [ ]; # No SSH needed for machine entries
+    wireguard = [{
+      publicKey = "jyde6U7syzInvaQQfuIVUQKvYPJ51So51rFFDMkjKCE=";
+      allowedIPs = [ ]; # Client connects to server
+      id = 6;
+    }];
+  };
 }

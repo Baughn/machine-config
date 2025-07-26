@@ -34,4 +34,8 @@ in
 
   # Monitoring
   "grafana-admin-password.age".publicKeys = host tsugumi;
+
+  # WireGuard private keys
+  "wireguard-saya.age".publicKeys = host saya;
+  "wireguard-tsugumi.age".publicKeys = host tsugumi;
 }

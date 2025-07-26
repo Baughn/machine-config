@@ -36,6 +36,9 @@ in
     };
   };
 
+  # Disable WireGuard in installer
+  me.wireguard.enable = false;
+
   # Services for the installer environment
   services = {
     openssh = {
