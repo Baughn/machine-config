@@ -184,7 +184,7 @@ class ISOWriter:
                 # Build the ISO
                 result = subprocess.run([
                     'nix', 'build', 
-                    '.#packages.x86_64-linux.iso.config.system.build.isoImage',
+                    '.#packages.x86_64-linux.iso',
                     '--print-out-paths'
                 ], capture_output=True, text=True, check=True)
                 
