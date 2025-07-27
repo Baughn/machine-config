@@ -428,18 +428,11 @@ class ISOWriter:
     
     def run(self):
         """Main application loop."""
-        self.console.print(Panel.fit(
-            "[bold blue]NixOS ISO Builder and USB Writer[/bold blue]\n"
-            "Builds custom NixOS installation images and write them to USB drives",
-            title="ISO Writer"
-        ))
-        
         # Check prerequisites
         if not self.check_prerequisites():
             return 1
         
         # Detect USB drives
-        self.console.print("\n[cyan]Detecting USB drives...[/cyan]")
         usb_drives = self.get_usb_drives()
         
         if not usb_drives:
