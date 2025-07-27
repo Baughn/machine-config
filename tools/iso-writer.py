@@ -12,6 +12,8 @@ import json
 import time
 import threading
 import re
+import argparse
+import tempfile
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 
@@ -49,9 +51,13 @@ class USBDrive:
 class ISOWriter:
     """Main application class for ISO building and USB writing."""
     
-    def __init__(self):
+    def __init__(self, dry_run: bool = False):
         self.console = Console()
         self.repo_root = Path(__file__).parent.parent
+        self.dry_run = dry_run
+        self.temp_file = None
+        if self.dry_run:
+            self.console.print("[yellow]Running in DRY-RUN mode - no actual writes to USB[/yellow]")
         
     def get_usb_drives(self) -> List[USBDrive]:
         """Detect plugged-in USB drives using lsblk."""
@@ -93,6 +99,7 @@ class ISOWriter:
             self.console.print("[yellow]No USB drives detected.[/yellow]")
             return
         
+        self.console.print("\n")
         table = Table(title="Available USB Drives")
         table.add_column("Index", style="cyan", no_wrap=True)
         table.add_column("Device", style="green")
@@ -111,6 +118,19 @@ class ISOWriter:
     
     def select_usb_drive(self, drives: List[USBDrive]) -> Optional[USBDrive]:
         """Let user select a USB drive."""
+        if self.dry_run:
+            # In dry-run mode, create a temp file and return a mock USB drive
+            self.temp_file = tempfile.NamedTemporaryFile(prefix="nixos-iso-dryrun-", suffix=".img", delete=False)
+            self.temp_file.close()
+            mock_drive = USBDrive(
+                device=self.temp_file.name,
+                size="16GB",
+                model="DryRun Mock Drive",
+                vendor="Test"
+            )
+            self.console.print(f"[yellow]Dry-run mode: Using temporary file {self.temp_file.name}[/yellow]")
+            return mock_drive
+            
         if not drives:
             return None
         
@@ -432,7 +452,7 @@ class ISOWriter:
         if not self.check_prerequisites():
             return 1
         
-        # Detect USB drives
+        # Detect USB drives (even in dry-run to exercise the code)
         usb_drives = self.get_usb_drives()
         
         if not usb_drives:
@@ -476,8 +496,19 @@ class ISOWriter:
 
 def main():
     """Entry point."""
+    parser = argparse.ArgumentParser(
+        description="NixOS ISO Builder and USB Writer"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Run in dry-run mode (writes to temporary file instead of USB)"
+    )
+    args = parser.parse_args()
+    
+    app = None
     try:
-        app = ISOWriter()
+        app = ISOWriter(dry_run=args.dry_run)
         return app.run()
     except KeyboardInterrupt:
         console.print("\n[yellow]Operation cancelled by user.[/yellow]")
@@ -485,6 +516,14 @@ def main():
     except Exception as e:
         console.print(f"\n[red]Unexpected error: {e}[/red]")
         return 1
+    finally:
+        # Clean up temp file if in dry-run mode
+        if app and app.dry_run and app.temp_file:
+            try:
+                os.unlink(app.temp_file.name)
+                console.print(f"[yellow]Cleaned up temporary file: {app.temp_file.name}[/yellow]")
+            except:
+                pass
 
 
 if __name__ == "__main__":
