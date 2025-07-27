@@ -21,8 +21,11 @@
   "restic",
   "ripgrep",
   "rustup",
+  "smartmontools",
   "sshfs",
   "tcpdump",
+  "usbutils",
+  "util-linux",
   "uv",
   "wget"
 ]
