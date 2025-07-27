@@ -22,6 +22,14 @@ in
 
     # Make the ISO a bit larger to accommodate our packages
     isoBaseName = lib.mkForce "nixos-custom";
+
+    # Include a copy of this repository in the ISO
+    contents = [
+      {
+        source = ../..;
+        target = "/nixos-config";
+      }
+    ];
   };
 
   # Network configuration for the installer
@@ -70,18 +78,13 @@ in
   };
 
   # Additional packages useful for installation
+  # Note: Many applications, including git and jujutsu are already included via cliApps.json in default.nix
   environment.systemPackages = with pkgs; [
-    # Hardware inspection
-    pciutils
     usbutils
     lsof
 
-    # Network tools
-    wget
-    curl
-
     # Text editors
-    vim
+    neovim
     nano
 
     # Partitioning tools
