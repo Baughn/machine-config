@@ -5,64 +5,75 @@
 
 {
   imports =
-    [
-      (modulesPath + "/installer/scan/not-detected.nix")
+    [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
-  boot = {
-    initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
-    initrd.kernelModules = [ ];
-    kernelModules = [ "kvm-amd" ];
-    extraModulePackages = [ ];
+  boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
+  boot.initrd.kernelModules = [ ];
+  boot.kernelModules = [ "kvm-amd" ];
+  boot.extraModulePackages = [ ];
+
+  boot.initrd.luks.devices = {
+    "crypt-nvme0" = {
+      device = "/dev/nvme0n1p2";
+      allowDiscards = true;
+      bypassWorkqueues = true;
+    };
+    "crypt-nvme1" = {
+      device = "/dev/nvme1n1p1";
+      allowDiscards = true;
+      bypassWorkqueues = true;
+    };
+    "crypt-nvme2" = {
+      device = "/dev/nvme2n1p1";
+      allowDiscards = true;
+      bypassWorkqueues = true;
+    };
   };
 
-  fileSystems = {
-    "/" = {
-      device = "rpool/root";
+  fileSystems."/" =
+    { device = "rpool/root";
       fsType = "zfs";
     };
 
-    "/boot" = {
-      device = "/dev/disk/by-uuid/2E14-1ECC";
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-uuid/C6E9-C328";
       fsType = "vfat";
       options = [ "fmask=0022" "dmask=0022" ];
     };
 
-    "/home" = {
-      device = "rpool/home";
+  fileSystems."/home" =
+    { device = "rpool/home";
       fsType = "zfs";
     };
 
-    "/home/svein" = {
-      device = "rpool/home/svein";
+  fileSystems."/home/svein" =
+    { device = "rpool/home/svein";
       fsType = "zfs";
     };
 
-    "/home/svein/AI/image-generation/models" = {
-      device = "rpool/bulk/image-models";
+  fileSystems."/home/svein/AI/image-generation/models" =
+    { device = "rpool/bulk/image-models";
       fsType = "zfs";
     };
 
-    "/tsugumi" = {
-      device = "10.171.0.1:/home/svein";
-      fsType = "nfs4";
-      options = [
-        "nfsvers=4.2"
-        "_netdev"
-        "auto"
-        "x-systemd.automount"
-        "x-systemd.idle-timeout=600"
-        "rsize=1048576"
-        "wsize=1048576"
-        "timeo=14"
-        "intr"
-      ];
-    };
+  fileSystems."/tsugumi" = {
+    device = "10.171.0.1:/home/svein";
+    fsType = "nfs4";
+    options = [
+      "nfsvers=4.2"
+      "_netdev"
+      "auto"
+      "x-systemd.automount"
+      "x-systemd.idle-timeout=600"
+      "rsize=1048576"
+      "wsize=1048576"
+      "timeo=14"
+      "intr"
+    ];
   };
 
-  swapDevices =
-    [{ device = "/dev/disk/by-uuid/646c91c3-19dc-4066-aa3a-827649e3c837"; }
-      { device = "/dev/disk/by-uuid/46a03ba7-f146-4b50-a756-5e22cabfcf4d"; }];
+  swapDevices = [ ];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;

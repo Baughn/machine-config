@@ -2,7 +2,8 @@
   description = "Machine configurations for all my machines";
 
   inputs = {
-    nixpkgs.url = "git+file:///home/svein/dev/nixpkgs";
+    #nixpkgs.url = "git+file:///home/svein/dev/nixpkgs";
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     nixpkgs-kernel.url = "github:nixos/nixpkgs?ref=nixos-unstable";
 
     nix-index-database.url = "github:nix-community/nix-index-database";
