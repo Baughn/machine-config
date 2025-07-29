@@ -5,7 +5,8 @@
 
 {
   imports =
-    [ (modulesPath + "/installer/scan/not-detected.nix")
+    [
+      (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
   boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
@@ -32,28 +33,33 @@
   };
 
   fileSystems."/" =
-    { device = "rpool/root";
+    {
+      device = "rpool/root";
       fsType = "zfs";
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/C6E9-C328";
+    {
+      device = "/dev/disk/by-uuid/C6E9-C328";
       fsType = "vfat";
       options = [ "fmask=0022" "dmask=0022" ];
     };
 
   fileSystems."/home" =
-    { device = "rpool/home";
+    {
+      device = "rpool/home";
       fsType = "zfs";
     };
 
   fileSystems."/home/svein" =
-    { device = "rpool/home/svein";
+    {
+      device = "rpool/home/svein";
       fsType = "zfs";
     };
 
   fileSystems."/home/svein/AI/image-generation/models" =
-    { device = "rpool/bulk/image-models";
+    {
+      device = "rpool/bulk/image-models";
       fsType = "zfs";
     };
 

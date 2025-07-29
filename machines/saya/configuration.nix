@@ -13,6 +13,7 @@
       ../../modules/desktop.nix
       ../../modules/nvidia.nix
       ../../modules/secure-boot.nix
+      ../../modules/tpm2-luks.nix
       ../../quirks/g903.nix
       ../../quirks/amd-x3d.nix
     ];
