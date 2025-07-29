@@ -83,11 +83,8 @@ fn main() -> Result<()> {
 }
 
 fn handle_update(patterns: String, message: Option<String>, revision: String, dry_run: bool) -> Result<()> {
-    // NOTE: Using /home/svein/.cargo/bin/jj (version 0.31) for json() support
-    // TODO: Switch to system jj when NixOS packages jj 0.31+
-    
     // Get commit data as JSONL
-    let json_output = Command::new("/home/svein/.cargo/bin/jj")
+    let json_output = Command::new("jj")
         .args(["log", "--no-graph", "-r", &revision, "-T", "json(self) ++ \"\\n\""])
         .output()
         .context("Failed to execute jj log for commit data")?;
@@ -111,7 +108,7 @@ fn handle_update(patterns: String, message: Option<String>, revision: String, dr
     
     for commit in &all_commits {
         // Get file changes for this specific commit
-        let show_output = Command::new("/home/svein/.cargo/bin/jj")
+        let show_output = Command::new("jj")
             .args(["show", "-T", "", &commit.hash, "--summary"])
             .output()
             .context("Failed to execute jj show for commit file changes")?;
