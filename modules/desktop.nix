@@ -30,10 +30,6 @@
     # Display manager and desktop environment
     displayManager = {
       sddm.enable = true;
-      autoLogin = {
-        enable = true;
-        user = "svein";
-      };
     };
     desktopManager.plasma6.enable = true;
 
