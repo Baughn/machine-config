@@ -38,6 +38,11 @@
   # Necessary because Determinate manages nix
   nix.enable = false;
 
+  # Enable passwordless sudo
+  security.sudo.extraConfig = ''
+    svein ALL = (ALL) NOPASSWD: ALL
+  '';
+
   # Set Git commit hash for darwin-version
   system.configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
 
