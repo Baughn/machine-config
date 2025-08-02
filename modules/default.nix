@@ -30,6 +30,7 @@
     auto-optimise-store = true;
     experimental-features = [ "nix-command" "flakes" ];
     trusted-users = [ "svein" ];
+    sandbox = "relaxed";
   };
   ## Using nix-index instead, for flake support
   programs = {

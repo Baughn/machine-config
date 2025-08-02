@@ -63,7 +63,7 @@
       ╰─ Press any key to dismiss ───────────╯"; read -n 1'
       
             # Show help on new window creation
-            bind n new-window \; display-popup -w 50% -h 20 -E 'echo "
+            bind c new-window \; display-popup -w 50% -h 20 -E 'echo "
       ╭─ Tmux Help (vim keybindings enabled)─╮
       │ Navigation:                          │
       │   Ctrl+h/j/k/l  - Move between panes │
