@@ -1,7 +1,15 @@
-#!/usr/bin/env nix-shell
-#!nix-shell -i bash -p jq
+#!/usr/bin/env bash
 
 set -euo pipefail
+
+# Function to run jq - uses system jq if available, otherwise nix-shell
+jq() {
+    if command -v jq >/dev/null 2>&1; then
+        command jq "$@"
+    else
+        nix-shell -p jq --run "jq $(printf '%q ' "$@")" 2>/dev/null
+    fi
+}
 
 # Colors
 BLUE='\033[1;34m'
