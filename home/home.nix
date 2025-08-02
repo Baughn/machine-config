@@ -59,6 +59,49 @@
         TCPKeepAlive yes
         ConnectionAttempts 2
       '';
+      matchBlocks = {
+        # Smart connection to brage.info - tries IPv6 first
+        "brage.info-ipv6" = {
+          match = ''host brage.info exec "${../scripts/check-ipv6.sh} direct.brage.info"'';
+          hostname = "direct.brage.info";
+          port = 22;
+          extraOptions = {
+            AddressFamily = "inet6";
+            ConnectTimeout = "5";
+          };
+        };
+
+        # Fallback for brage.info when IPv6 is not available
+        "brage.info-ipv4" = {
+          match = ''host brage.info exec "! ${../scripts/check-ipv6.sh} direct.brage.info"'';
+          hostname = "direct.brage.info";
+          port = 22;
+          proxyJump = "v4.brage.info";
+          extraOptions = {
+            AddressFamily = "inet";
+          };
+        };
+
+        # Direct connection aliases for testing
+        "direct.brage.info tsugumi" = {
+          hostname = "direct.brage.info";
+          port = 22;
+          extraOptions = {
+            AddressFamily = "inet6";
+            ConnectTimeout = "5";
+          };
+        };
+
+        # Proxy connection aliases for testing
+        "proxy.brage.info tsugumi-proxy" = {
+          hostname = "direct.brage.info";
+          port = 22;
+          proxyJump = "v4.brage.info";
+          extraOptions = {
+            AddressFamily = "inet";
+          };
+        };
+      };
     };
 
     tmux = {
