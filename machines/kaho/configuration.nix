@@ -6,11 +6,24 @@
   # List packages installed in system profile
   environment.systemPackages = with pkgs; [
     neovim
-    syncplay
+    mosh
     mpv
     jujutsu
     git
+    rtorrent
+    rustup
+    nodejs
+    yt-dlp 
   ];
+
+  homebrew = {
+    enable = true;
+    caskArgs.appdir = "/Applications/Autonix";
+    casks = [
+      "syncplay"
+      "ghostty"
+    ];
+  };
 
   # System identification
   networking.computerName = "kaho";
