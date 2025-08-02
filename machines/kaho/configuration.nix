@@ -13,7 +13,7 @@
     rtorrent
     rustup
     nodejs
-    yt-dlp 
+    yt-dlp
   ];
 
   homebrew = {

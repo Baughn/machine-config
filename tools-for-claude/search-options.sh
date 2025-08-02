@@ -61,8 +61,8 @@ fi
 SEARCH_TERM="$2"
 
 # Build options documentation
-echo -e "${YELLOW}Building NixOS options documentation...${RESET}" >&2
-OPTIONS="$(nix build --no-link --print-out-paths .#options 2>/dev/null)/share/doc/nixos/options.json"
+echo -e "${YELLOW}Building options documentation...${RESET}" >&2
+OPTIONS="$(nix build --no-link --print-out-paths .#options 2>/dev/null)"
 
 # Create temporary file for output
 TMPFILE=$(mktemp)
@@ -132,7 +132,15 @@ else
           "\n  Read-only: true"
         else "" end +
         if .value.declarations then
-          "\n  Declared in: " + (.value.declarations | join(", "))
+          "\n  Declared in: " + (.value.declarations | 
+            if type == "array" and (.[0] | type) == "string" then
+              join(", ")
+            elif type == "array" and (.[0] | type) == "object" then
+              map(.name) | join(", ")
+            else
+              tojson
+            end
+          )
         else "" end +
         "\n"
       end

@@ -26,17 +26,71 @@
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs-upstream";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-kernel, nix-index-database, colmena, agenix, home-manager, lanzaboote, nix-darwin, ... }@inputs: {
-    packages.x86_64-linux.options = (import (nixpkgs.outPath + "/nixos/release.nix") { }).options;
+  outputs = { self, nixpkgs, nixpkgs-kernel, nix-index-database, colmena, agenix, home-manager, lanzaboote, nix-darwin, ... }@inputs:
+    let
+      # Helper to extract just the options.json file from a derivation
+      extractOptionsJson = system: optionsDrv: docPath:
+        nixpkgs.legacyPackages.${system}.runCommand "options.json" { } ''
+          cp ${optionsDrv}/${docPath} $out
+        '';
+    in
+    {
+      packages.x86_64-linux.options = extractOptionsJson "x86_64-linux"
+        (import (nixpkgs.outPath + "/nixos/release.nix") { }).options
+        "share/doc/nixos/options.json";
+      packages.aarch64-darwin.options = extractOptionsJson "aarch64-darwin"
+        nix-darwin.packages.aarch64-darwin.optionsJSON
+        "share/doc/darwin/options.json";
 
-    # Custom ISO image
-    packages.x86_64-linux.iso = (nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [
-        nix-index-database.nixosModules.nix-index
-        agenix.nixosModules.default
-        ./machines/iso/configuration.nix
-        {
+      # Custom ISO image
+      packages.x86_64-linux.iso = (nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          nix-index-database.nixosModules.nix-index
+          agenix.nixosModules.default
+          ./machines/iso/configuration.nix
+          {
+            # Setup nix-index
+            programs.nix-index-database.comma.enable = true;
+
+            # Propagate nixpkgs
+            nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
+            environment.etc."nixpkgs".source = nixpkgs;
+            nix.registry.nixpkgs.flake = nixpkgs;
+          }
+        ];
+        specialArgs = { inherit inputs; };
+      }).config.system.build.isoImage;
+
+      # Colmena deployment configuration
+      colmenaHive = colmena.lib.makeHive {
+        meta = {
+          nixpkgs = import nixpkgs {
+            system = "x86_64-linux";
+            config.allowUnfree = true;
+            overlays = [
+              # Reuse existing overlay for zen kernel
+              (final: prev: {
+                inherit ((import nixpkgs-kernel {
+                  inherit (prev) system;
+                  config.allowUnfree = true;
+                })) linuxPackages_zen;
+              })
+              # Add Colmena overlay
+              colmena.overlays.default
+            ];
+          };
+          specialArgs = { inherit inputs; };
+        };
+
+        defaults = { name, nodes, ... }: {
+          imports = [
+            nix-index-database.nixosModules.nix-index
+            agenix.nixosModules.default
+            home-manager.nixosModules.home-manager
+            ./secrets
+          ];
+
           # Setup nix-index
           programs.nix-index-database.comma.enable = true;
 
@@ -44,132 +98,14 @@
           nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
           environment.etc."nixpkgs".source = nixpkgs;
           nix.registry.nixpkgs.flake = nixpkgs;
-        }
-      ];
-      specialArgs = { inherit inputs; };
-    }).config.system.build.isoImage;
 
-    # Colmena deployment configuration
-    colmenaHive = colmena.lib.makeHive {
-      meta = {
-        nixpkgs = import nixpkgs {
-          system = "x86_64-linux";
-          config.allowUnfree = true;
-          overlays = [
-            # Reuse existing overlay for zen kernel
-            (final: prev: {
-              inherit ((import nixpkgs-kernel {
-                inherit (prev) system;
-                config.allowUnfree = true;
-              })) linuxPackages_zen;
-            })
-            # Add Colmena overlay
-            colmena.overlays.default
+          # Common system packages
+          environment.systemPackages = [
+            colmena.packages.x86_64-linux.colmena
+            agenix.packages.x86_64-linux.agenix
           ];
-        };
-        specialArgs = { inherit inputs; };
-      };
 
-      defaults = { name, nodes, ... }: {
-        imports = [
-          nix-index-database.nixosModules.nix-index
-          agenix.nixosModules.default
-          home-manager.nixosModules.home-manager
-          ./secrets
-        ];
-
-        # Setup nix-index
-        programs.nix-index-database.comma.enable = true;
-
-        # Propagate nixpkgs
-        nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
-        environment.etc."nixpkgs".source = nixpkgs;
-        nix.registry.nixpkgs.flake = nixpkgs;
-
-        # Common system packages
-        environment.systemPackages = [
-          colmena.packages.x86_64-linux.colmena
-          agenix.packages.x86_64-linux.agenix
-        ];
-
-        # Bare-minimum home-manager setup
-        home-manager = {
-          useGlobalPkgs = true;
-          useUserPackages = true;
-          users.svein = ./home/home.nix;
-          # Automatically clobber pre-HM files
-          backupFileExtension = "backup";
-        };
-
-        # Default deployment configuration
-        deployment = {
-          targetUser = "root";
-          buildOnTarget = false; # Build locally
-          replaceUnknownProfiles = true;
-        };
-      };
-
-      # Deploy to current host (saya)
-      saya = { name, nodes, ... }: {
-        imports = [
-          ./machines/saya/configuration.nix
-        ];
-
-        # Deployment configuration
-        deployment = {
-          targetHost = "localhost"; # Deploy to local machine
-          allowLocalDeployment = true;
-        };
-      };
-
-      # v4 proxy server
-      v4 = { name, nodes, ... }: {
-        imports = [
-          ./machines/v4/configuration.nix
-        ];
-
-        # Deployment configuration
-        deployment = {
-          targetHost = "v4.brage.info";
-          tags = [ "remote" ];
-        };
-      };
-
-      # tsugumi server
-      tsugumi = { name, nodes, ... }: {
-        imports = [
-          ./machines/tsugumi/configuration.nix
-        ];
-
-        # Deployment configuration
-        deployment = {
-          targetHost = "tsugumi.local";
-          tags = [ "remote" ];
-        };
-      };
-
-      # kaho macOS machine
-      kaho = { name, nodes, ... }: {
-        imports = [
-          ./machines/kaho/configuration.nix
-        ];
-
-        # Deployment configuration for macOS
-        deployment = {
-          targetHost = "localhost";
-          allowLocalDeployment = true;
-          tags = [ "darwin" ];
-        };
-      };
-    };
-
-    # Darwin configuration for kaho
-    darwinConfigurations."kaho" = nix-darwin.lib.darwinSystem {
-      modules = [
-        ./machines/kaho/configuration.nix
-        home-manager.darwinModules.home-manager
-        {
-          # Home-manager configuration for macOS
+          # Bare-minimum home-manager setup
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
@@ -177,10 +113,87 @@
             # Automatically clobber pre-HM files
             backupFileExtension = "backup";
           };
-        }
-      ];
-      specialArgs = { inherit inputs; };
+
+          # Default deployment configuration
+          deployment = {
+            targetUser = "root";
+            buildOnTarget = false; # Build locally
+            replaceUnknownProfiles = true;
+          };
+        };
+
+        # Deploy to current host (saya)
+        saya = { name, nodes, ... }: {
+          imports = [
+            ./machines/saya/configuration.nix
+          ];
+
+          # Deployment configuration
+          deployment = {
+            targetHost = "localhost"; # Deploy to local machine
+            allowLocalDeployment = true;
+          };
+        };
+
+        # v4 proxy server
+        v4 = { name, nodes, ... }: {
+          imports = [
+            ./machines/v4/configuration.nix
+          ];
+
+          # Deployment configuration
+          deployment = {
+            targetHost = "v4.brage.info";
+            tags = [ "remote" ];
+          };
+        };
+
+        # tsugumi server
+        tsugumi = { name, nodes, ... }: {
+          imports = [
+            ./machines/tsugumi/configuration.nix
+          ];
+
+          # Deployment configuration
+          deployment = {
+            targetHost = "tsugumi.local";
+            tags = [ "remote" ];
+          };
+        };
+
+        # kaho macOS machine
+        kaho = { name, nodes, ... }: {
+          imports = [
+            ./machines/kaho/configuration.nix
+          ];
+
+          # Deployment configuration for macOS
+          deployment = {
+            targetHost = "localhost";
+            allowLocalDeployment = true;
+            tags = [ "darwin" ];
+          };
+        };
+      };
+
+      # Darwin configuration for kaho
+      darwinConfigurations."kaho" = nix-darwin.lib.darwinSystem {
+        modules = [
+          ./machines/kaho/configuration.nix
+          home-manager.darwinModules.home-manager
+          {
+            # Home-manager configuration for macOS
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              users.svein = ./home/home.nix;
+              # Automatically clobber pre-HM files
+              backupFileExtension = "backup";
+            };
+          }
+        ];
+        specialArgs = { inherit inputs; };
+      };
     };
-  };
 }
 
