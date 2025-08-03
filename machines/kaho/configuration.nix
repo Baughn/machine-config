@@ -22,6 +22,7 @@
     casks = [
       "syncplay"
       "ghostty"
+      "visual-studio-code"
     ];
   };
 
