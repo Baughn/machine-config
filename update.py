@@ -111,8 +111,9 @@ def run_flake_check(ctx: ExecutionContext) -> bool:
 
 def try_build(ctx: ExecutionContext) -> bool:
     """Try to build the system configuration."""
-    print_info("Building system configuration...")
-    cmd = ['colmena', 'build', '--legacy-flake-eval', '--evaluator', 'streaming', '--impure'] + ctx.extra_args
+    print_info("Building system configurations with nom...")
+    # Build all systems using nom
+    cmd = ['nom', 'build', '.#all-systems'] + ctx.extra_args
     return run_command(cmd)
 
 def backup_flake_lock(ctx: ExecutionContext) -> bool:
@@ -134,18 +135,12 @@ def show_diff_and_deploy(ctx: ExecutionContext) -> bool:
     
     # Run nvd diff to show changes
     print_info(f"Showing system differences for {hostname}...")
-    # Get the built system path from Colmena's build output
-    result = subprocess.run(['colmena', 'build', '--on', hostname], capture_output=True, text=True)
+    # Build the specific system configuration with nom and get the output path
+    result = subprocess.run(['nom', 'build', f'.#nixosConfigurations.{hostname}.config.system.build.toplevel', '--print-out-paths'], capture_output=True, text=True)
     if result.returncode == 0:
-        # Extract system path from Colmena output (it shows the store path)
-        built_system = None
-        for line in result.stderr.split('\n'):
-            store = re.match(r'.*"(/nix/store/.*)".*', line)
-            if store:
-                built_system = store[1]
-                break
-
-        assert built_system is not None
+        # The built system path is printed to stdout
+        built_system = result.stdout.strip()
+        assert built_system and built_system.startswith('/nix/store/')
         
         subprocess.run(['nvd', 'diff', '/run/current-system', built_system])
         
@@ -255,7 +250,7 @@ UPDATE_STRATEGIES: Dict[str, Strategy] = {
     'full_update': Strategy(
         name='full_update',
         description='Update all inputs and build',
-        steps=['backup_flake_lock', 'update_all_inputs', 'run_flake_check', 'try_build', 'show_diff_and_deploy', 'remote_garbage_collect', 'update_flatpaks'],
+        steps=['backup_flake_lock', 'update_all_inputs', 'try_build', 'show_diff_and_deploy', 'remote_garbage_collect', 'update_flatpaks'],
         success_message='Full update successful!',
         failure_message='Full update failed, trying selective update...',
         fallback_strategy='selective_update',
@@ -265,7 +260,7 @@ UPDATE_STRATEGIES: Dict[str, Strategy] = {
     'selective_update': Strategy(
         name='selective_update',
         description='Update inputs excluding problematic ones',
-        steps=['update_selective_inputs', 'run_flake_check', 'try_build', 'show_diff_and_deploy', 'remote_garbage_collect', 'update_flatpaks'],
+        steps=['update_selective_inputs', 'try_build', 'show_diff_and_deploy', 'remote_garbage_collect', 'update_flatpaks'],
         success_message='Selective update successful (excluded problematic inputs)!',
         failure_message='Build still failing, restoring original flake.lock...',
         fallback_strategy='restore_and_exit',
