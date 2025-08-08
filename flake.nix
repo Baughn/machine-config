@@ -123,14 +123,13 @@
       }).config.system.build.isoImage;
 
       # Build all machine configurations
-      packages.x86_64-linux.all-systems = nixpkgs.legacyPackages.x86_64-linux.symlinkJoin {
-        name = "all-systems";
-        paths = builtins.map
-          (name:
-            self.nixosConfigurations.${name}.config.system.build.toplevel
-          )
-          (builtins.attrNames machineConfigs);
-      };
+      packages.x86_64-linux.all-systems = nixpkgs.legacyPackages.x86_64-linux.linkFarm "all-systems"
+        (builtins.map
+          (name: {
+            name = name;
+            path = self.nixosConfigurations.${name}.config.system.build.toplevel;
+          })
+          (builtins.attrNames machineConfigs));
 
       # NixOS configurations for standard nixos-rebuild
       nixosConfigurations = builtins.mapAttrs

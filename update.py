@@ -44,6 +44,7 @@ class ExecutionContext:
     extra_args: List[str]
     backup_path: Optional[str] = None
     inputs_to_exclude: List[str] = None
+    all_systems_built: bool = False
     
     def __post_init__(self):
         if self.inputs_to_exclude is None:
@@ -114,7 +115,10 @@ def try_build(ctx: ExecutionContext) -> bool:
     print_info("Building system configurations with nom...")
     # Build all systems using nom
     cmd = ['nom', 'build', '.#all-systems'] + ctx.extra_args
-    return run_command(cmd)
+    success = run_command(cmd)
+    if success:
+        ctx.all_systems_built = True
+    return success
 
 def backup_flake_lock(ctx: ExecutionContext) -> bool:
     """Create backup of flake.lock."""
@@ -135,14 +139,27 @@ def show_diff_and_deploy(ctx: ExecutionContext) -> bool:
     
     # Run nvd diff to show changes
     print_info(f"Showing system differences for {hostname}...")
-    # Build the specific system configuration with nom and get the output path
-    result = subprocess.run(['nom', 'build', f'.#nixosConfigurations.{hostname}.config.system.build.toplevel', '--print-out-paths'], capture_output=True, text=True)
-    if result.returncode == 0:
-        # The built system path is printed to stdout
-        built_system = result.stdout.strip()
-        assert built_system and built_system.startswith('/nix/store/')
-        
-        subprocess.run(['nvd', 'diff', '/run/current-system', built_system])
+    
+    if ctx.all_systems_built and os.path.exists('result'):
+        # Use the already-built all-systems linkFarm
+        built_system_link = f"result/{hostname}"
+        if os.path.exists(built_system_link):
+            # Resolve the symlink to get the actual system path
+            built_system = os.path.realpath(built_system_link)
+            subprocess.run(['nvd', 'diff', '/run/current-system', built_system])
+        else:
+            print_warning(f"System for {hostname} not found in result/, falling back to direct build")
+            # Fallback: build just this system
+            result = subprocess.run(['nix', 'build', f'.#nixosConfigurations.{hostname}.config.system.build.toplevel', '--print-out-paths'], capture_output=True, text=True)
+            if result.returncode == 0:
+                built_system = result.stdout.strip()
+                subprocess.run(['nvd', 'diff', '/run/current-system', built_system])
+    else:
+        # No all-systems built, build the specific system
+        result = subprocess.run(['nix', 'build', f'.#nixosConfigurations.{hostname}.config.system.build.toplevel', '--print-out-paths'], capture_output=True, text=True)
+        if result.returncode == 0:
+            built_system = result.stdout.strip()
+            subprocess.run(['nvd', 'diff', '/run/current-system', built_system])
         
         # Check if flake.lock has changed before committing
         diff_check = subprocess.run(['jj', 'diff', '--stat', 'flake.lock'], capture_output=True, text=True)
