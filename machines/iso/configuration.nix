@@ -47,6 +47,9 @@ in
   # Disable WireGuard in installer
   me.wireguard.enable = false;
 
+  # Disable SSH OTP authentication in installer
+  me.sshAuth.enable = false;
+
   # Services for the installer environment
   services = {
     openssh = {

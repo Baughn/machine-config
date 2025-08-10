@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 {
   imports = [
@@ -11,6 +11,7 @@
     ./victron-monitor.nix
     ./performance-default.nix
     ./neovim.nix
+    ./ssh-auth.nix
   ];
 
   # Enable enhanced Neovim configuration
@@ -52,7 +53,8 @@
   };
 
   # Services
-  services.openssh.enable = true;
+  # SSH is now handled by ssh-auth.nix module
+  me.sshAuth.enable = lib.mkDefault true;
   services.resolved = {
     enable = true;
     dnssec = "allow-downgrade";
