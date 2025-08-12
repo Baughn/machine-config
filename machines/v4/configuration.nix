@@ -1,4 +1,4 @@
-{ pkgs, ... }: {
+{ pkgs, lib, ... }: {
   imports = [
     ./hardware-configuration.nix
     ../../modules/v4proxy.nix
@@ -22,5 +22,12 @@
   zramSwap.enable = true;
   networking.hostName = "v4";
   networking.domain = "brage.info";
+
+  # Additional users for v4
+  users.include = [ "minecraft" ];
+
+  # Disable linger for minecraft user (proxy jumps only, no services)
+  users.users.minecraft.linger = lib.mkForce false;
+
   system.stateVersion = "23.11";
 }
