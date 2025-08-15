@@ -53,10 +53,14 @@ class ExecutionContext:
 def run_command(cmd, check=True):
     """Run a command and return success status."""
     print_info(f"Running: {' '.join(cmd)}")
-    result = subprocess.run(cmd, capture_output=False)
-    if check and result.returncode != 0:
-        return False
-    return True
+    try:
+        result = subprocess.run(cmd, capture_output=False)
+        if check and result.returncode != 0:
+            return False
+        return True
+    except KeyboardInterrupt:
+        print_info("\nInterrupted by user, exiting...")
+        sys.exit(130)
 
 def save_flake_lock():
     """Save the current flake.lock to a temporary file."""
@@ -350,9 +354,9 @@ def show_diff_and_deploy(ctx: ExecutionContext) -> bool:
                 print_info(f"Deploying local machine ({hostname})...")
                 subprocess.run(['colmena', 'apply-local', '--sudo'])
                 
-                # Deploy remote machines with boot option (apply after reboot)
-                print_info("Deploying remote machines (will apply after reboot)...")
-                subprocess.run(['colmena', 'apply', '--on', '@remote', '--reboot', 'boot'])
+                # Deploy remote machines immediately (no reboot)
+                print_info("Deploying remote machines...")
+                subprocess.run(['colmena', 'apply', '--on', '@remote'])
                 return True
             elif choice == '3':
                 # Deploy local machine for next boot
@@ -465,55 +469,63 @@ def execute_strategy(strategy: Strategy, ctx: ExecutionContext) -> bool:
     """Execute a strategy by running its steps."""
     print_info(f"Executing strategy: {strategy.name} - {strategy.description}")
     
-    for step_name in strategy.steps:
-        if step_name not in EFFECTORS:
-            print_error(f"Unknown effector: {step_name}")
-            return False
-            
-        effector = EFFECTORS[step_name]
-        if not effector(ctx):
-            print_warning(f"Step '{step_name}' failed in strategy '{strategy.name}'")
-            return False
+    try:
+        for step_name in strategy.steps:
+            if step_name not in EFFECTORS:
+                print_error(f"Unknown effector: {step_name}")
+                return False
+                
+            effector = EFFECTORS[step_name]
+            if not effector(ctx):
+                print_warning(f"Step '{step_name}' failed in strategy '{strategy.name}'")
+                return False
+    except KeyboardInterrupt:
+        print_info("\nInterrupted by user, exiting...")
+        sys.exit(130)
     
     return True
 
 def run_update_pipeline(ctx: ExecutionContext) -> bool:
     """Run the complete update pipeline with fallback strategies."""
-    # Set up kernel exclusion for selective updates
-    ctx.inputs_to_exclude = ['nixpkgs-kernel']
-    
-    current_strategy_name = 'full_update'
-    
-    while current_strategy_name:
-        strategy = UPDATE_STRATEGIES.get(current_strategy_name)
-        if not strategy:
-            print_error(f"Unknown strategy: {current_strategy_name}")
-            return False
-            
-        success = execute_strategy(strategy, ctx)
+    try:
+        # Set up kernel exclusion for selective updates
+        ctx.inputs_to_exclude = ['nixpkgs-kernel']
         
-        if success:
-            if strategy.success_message:
-                print_success(strategy.success_message)
-            return True
-        else:
-            if strategy.failure_message:
-                print_warning(strategy.failure_message)
-            
-            # Execute failure steps
-            for step_name in strategy.on_failure_steps:
-                if step_name in EFFECTORS:
-                    EFFECTORS[step_name](ctx)
-            
-            # Move to fallback strategy
-            current_strategy_name = strategy.fallback_strategy
-            
-            # Special case: if we're going to exit, do it now
-            if current_strategy_name == 'restore_and_exit':
-                execute_strategy(UPDATE_STRATEGIES[current_strategy_name], ctx)
+        current_strategy_name = 'full_update'
+        
+        while current_strategy_name:
+            strategy = UPDATE_STRATEGIES.get(current_strategy_name)
+            if not strategy:
+                print_error(f"Unknown strategy: {current_strategy_name}")
                 return False
-    
-    return False
+                
+            success = execute_strategy(strategy, ctx)
+            
+            if success:
+                if strategy.success_message:
+                    print_success(strategy.success_message)
+                return True
+            else:
+                if strategy.failure_message:
+                    print_warning(strategy.failure_message)
+                
+                # Execute failure steps
+                for step_name in strategy.on_failure_steps:
+                    if step_name in EFFECTORS:
+                        EFFECTORS[step_name](ctx)
+                
+                # Move to fallback strategy
+                current_strategy_name = strategy.fallback_strategy
+                
+                # Special case: if we're going to exit, do it now
+                if current_strategy_name == 'restore_and_exit':
+                    execute_strategy(UPDATE_STRATEGIES[current_strategy_name], ctx)
+                    return False
+        
+        return False
+    except KeyboardInterrupt:
+        print_info("\nInterrupted by user, exiting...")
+        sys.exit(130)
 
 # ============================================================================
 # MAIN ORCHESTRATOR
@@ -536,7 +548,9 @@ def main():
         
         if not success:
             sys.exit(1)
-    
+    except KeyboardInterrupt:
+        print_info("\nInterrupted by user, exiting...")
+        sys.exit(130)
     finally:
         # Clean up backup file
         cleanup_backup(ctx)

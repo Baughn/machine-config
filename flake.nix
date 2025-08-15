@@ -103,7 +103,7 @@
         tsugumi = {
           modules = [ ./machines/tsugumi/configuration.nix ];
           deployment = {
-            targetHost = "tsugumi.local";
+            targetHost = "direct.brage.info";
             tags = [ "remote" ];
           };
         };
