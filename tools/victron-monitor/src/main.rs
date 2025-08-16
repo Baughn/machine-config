@@ -119,7 +119,8 @@ async fn update_metrics(data: HashMap<String, f64>, config: &AppConfig) -> Resul
             let mut metrics = METRICS.write().await;
 
             let gauge = metrics.entry(metric_name.clone()).or_insert_with(|| {
-                let label_names: Vec<&str> = labels.keys().map(|s| s.as_str()).collect();
+                let mut label_names: Vec<&str> = labels.keys().map(|s| s.as_str()).collect();
+                label_names.sort(); // Ensure consistent ordering
                 let gauge_vec = register_gauge_vec!(
                     metric_name.as_str(),
                     "Victron monitoring metric",
@@ -129,7 +130,9 @@ async fn update_metrics(data: HashMap<String, f64>, config: &AppConfig) -> Resul
                 gauge_vec
             });
 
-            let label_values: Vec<&str> = labels.values().map(|s| s.as_str()).collect();
+            let mut label_pairs: Vec<(&str, &str)> = labels.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+            label_pairs.sort_by_key(|(k, _)| *k); // Sort by key to match label_names order
+            let label_values: Vec<&str> = label_pairs.iter().map(|(_, v)| *v).collect();
             gauge.with_label_values(&label_values).set(value);
 
             debug!("Updated metric {} with value {}", metric_name, value);
