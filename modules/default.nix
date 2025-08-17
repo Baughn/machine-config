@@ -52,6 +52,9 @@
     options = "--delete-older-than 14d";
   };
 
+  # Enable all terminfo entries system-wide
+  environment.enableAllTerminfo = true;
+
   # Services
   # SSH is now handled by ssh-auth.nix module
   me.sshAuth.enable = lib.mkDefault true;
