@@ -103,9 +103,8 @@ def update_selective_inputs(ctx: ExecutionContext) -> bool:
         return False
         
     print_info(f"Updating inputs: {', '.join(inputs_to_update)}")
-    for input_name in inputs_to_update:
-        if not run_command(['nix', '--extra-experimental-features', 'nix-command flakes',
-                           'flake', 'update', input_name]):
+    if not run_command(['nix', '--extra-experimental-features', 'nix-command flakes',
+                       'flake', 'update', *inputs_to_update]):
             return False
     return True
 
