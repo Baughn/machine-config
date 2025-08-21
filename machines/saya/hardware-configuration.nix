@@ -16,17 +16,17 @@
 
   boot.initrd.luks.devices = {
     "crypt-nvme0" = {
-      device = "/dev/nvme0n1p2";
+      device = "/dev/disk/by-id/nvme-Samsung_SSD_990_PRO_2TB_S7DNNJ0WA38963E-part2";
       allowDiscards = true;
       bypassWorkqueues = true;
     };
     "crypt-nvme1" = {
-      device = "/dev/nvme1n1p1";
+      device = "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_2TB_S4J4NM0R603977H-part1";
       allowDiscards = true;
       bypassWorkqueues = true;
     };
     "crypt-nvme2" = {
-      device = "/dev/nvme2n1p1";
+      device = "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_2TB_S6S2NJ0T302168Y-part1";
       allowDiscards = true;
       bypassWorkqueues = true;
     };
