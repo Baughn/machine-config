@@ -27,6 +27,7 @@
 
   # Enable emergency mode for troubleshooting
   systemd.enableEmergencyMode = true;
+  boot.initrd.systemd.emergencyAccess = "$6$rounds=10000000$GAXX9.me90GC7BJd$L1gwAQOMT6jELp//LhRw6t9/fKL6XykkF4HRHqmYKCrcCeU0X2HW1Yc9oa3j./7GP9dke5IaJTg3FiXmH1WfG1";
 
   # Hardware quirks
   programs.gamemode = {
