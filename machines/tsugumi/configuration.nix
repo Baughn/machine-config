@@ -55,6 +55,9 @@
   ## Victron Energy monitoring
   me.victron-monitor.enable = true;
 
+  ## Redis
+  me.redis.enable = true;
+
   # Power management
   powerManagement.enable = true;
   powerManagement.powertop.enable = true;
