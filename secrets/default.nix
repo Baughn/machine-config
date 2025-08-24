@@ -1,3 +1,4 @@
+# This file must be kept in sync with secrets.nix.
 { config
 , lib
 , ...
@@ -59,6 +60,21 @@ let
       file = ./grafana-admin-password.age;
       hosts = [ "tsugumi" ];
       owner = "grafana";
+      mode = "0400";
+    };
+
+    # Redis
+    "redis-password" = {
+      file = ./redis-password.age;
+      hosts = [ "tsugumi" ];
+      owner = "redis-default";
+      group = "wheel";
+      mode = "0440";
+    };
+    "redis-nixcheck-password" = {
+      file = ./redis-nixcheck-password.age;
+      hosts = [ "saya" "tsugumi" ];
+      owner = "svein";
       mode = "0400";
     };
   };

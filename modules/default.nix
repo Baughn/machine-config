@@ -74,8 +74,9 @@
   environment.systemPackages = with pkgs;
     let
       cliApps = builtins.fromJSON (builtins.readFile ./cliApps.json);
+      nix-check-cached = pkgs.callPackage ../tools/nix-check-cached/default.nix { };
     in
-    map (name: pkgs.${name}) cliApps;
+    map (name: pkgs.${name}) cliApps ++ [ nix-check-cached ];
 
   # Users are now handled by users.nix with the users.include option
   users.include = [ "svein" ];

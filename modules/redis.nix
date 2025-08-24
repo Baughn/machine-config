@@ -25,14 +25,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Ensure we have the Redis password secret
-    age.secrets."redis-password" = {
-      file = ../secrets/redis-password.age;
-      mode = "0400";
-      owner = "redis-default";
-      group = "redis-default";
-    };
-
     # Configure Redis using the built-in NixOS module
     services.redis.servers.default = {
       enable = true;
@@ -99,6 +91,9 @@ in
           "replica 256mb 64mb 60"
           "pubsub 32mb 8mb 60"
         ];
+
+        # ACL configuration for nixcheck user
+        # Note: ACL commands need to be set up separately via redis-cli or init script
       };
     };
 
@@ -106,6 +101,57 @@ in
     systemd.services.redis-default = {
       after = [ "systemd-networkd-wait-online.service" ];
       wants = [ "systemd-networkd-wait-online.service" ];
+    };
+
+    # Set up Redis ACL for nixcheck user
+    systemd.services.redis-nixcheck-acl = {
+      description = "Setup Redis ACL for nixcheck user";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "redis-default.service" ];
+      wants = [ "redis-default.service" ];
+
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        User = "root";
+      };
+
+      script = ''
+        set -euo pipefail
+        
+        # Wait for Redis to be ready
+        timeout=30
+        while ! ${pkgs.redis}/bin/redis-cli -h ${
+          if config.networking.hostName == "tsugumi" then "10.171.0.1"
+          else if config.networking.hostName == "saya" then "10.171.0.6" 
+          else "127.0.0.1"
+        } -p 6379 -a "$(cat ${config.age.secrets."redis-password".path})" ping > /dev/null 2>&1; do
+          sleep 1
+          timeout=$((timeout - 1))
+          if [ $timeout -eq 0 ]; then
+            echo "Timeout waiting for Redis to start"
+            exit 1
+          fi
+        done
+        
+        # Get nixcheck password
+        NIXCHECK_PASSWORD=$(cat ${config.age.secrets."redis-nixcheck-password".path})
+        REDIS_PASSWORD=$(cat ${config.age.secrets."redis-password".path})
+        
+        # Create nixcheck user with limited permissions
+        ${pkgs.redis}/bin/redis-cli -h ${
+          if config.networking.hostName == "tsugumi" then "10.171.0.1"
+          else if config.networking.hostName == "saya" then "10.171.0.6"
+          else "127.0.0.1"
+        } -p 6379 -a "$REDIS_PASSWORD" ACL SETUSER nixcheck \
+          on \
+          ">$NIXCHECK_PASSWORD" \
+          "~nix-check:*" \
+          "+get" "+set" "+setex" "+exists" "+del" "+ping" \
+          || true  # Don't fail if user already exists
+        
+        echo "Redis ACL for nixcheck user configured successfully"
+      '';
     };
   };
 }
