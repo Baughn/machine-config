@@ -43,6 +43,9 @@
       libraries = with pkgs; [
       ];
     };
+
+    ## Network diagnostics
+    mtr.enable = true;
   };
 
   # Automatic garbage collection
