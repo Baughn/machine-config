@@ -38,4 +38,7 @@ in
   # WireGuard private keys
   "wireguard-saya.age".publicKeys = host saya;
   "wireguard-tsugumi.age".publicKeys = host tsugumi;
+
+  # Redis
+  "redis-password.age".publicKeys = host tsugumi;
 }

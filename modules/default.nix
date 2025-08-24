@@ -12,6 +12,7 @@
     ./performance-default.nix
     ./neovim.nix
     ./ssh-auth.nix
+    ./redis.nix
   ];
 
   # Enable enhanced Neovim configuration
