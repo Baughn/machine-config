@@ -8,10 +8,16 @@
   };
 
   config = lib.mkIf config.networking.enableLAN {
-    # Rename Intel 82599 10G NIC to 'lan'
+    # Rename network interfaces
     services.udev.extraRules = ''
-      # Intel 82599 10 Gigabit Network Connection
+      # Intel 82599 10 Gigabit Network Connection (spare NIC, may be reused)
       SUBSYSTEM=="net", ACTION=="add", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x1557", NAME="lan"
+      
+      # Intel E810 dual-port NIC - port 0 (device 0x159b)
+      SUBSYSTEM=="net", ACTION=="add", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x159b", ATTR{phys_port_name}=="p0", NAME="p0_unused"
+      
+      # Intel E810 dual-port NIC - port 1 (device 0x159b)
+      SUBSYSTEM=="net", ACTION=="add", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x159b", ATTR{phys_port_name}=="p1", NAME="lan"
     '';
 
     # LAN network settings
