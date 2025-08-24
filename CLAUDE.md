@@ -38,6 +38,8 @@ The configuration uses:
 2. Use the service/programs option, if one exists. Offer suggestions as to potential extra configuration that might be useful.
 3. If and ONLY if there is no such option, then use the mcp-nixos package search. Assuming a package is found, use ./add-package.sh to add it; then run `colmena apply`.
 
+Note: A programs.<program>.enable entry will do the equivalent of add-package; don't use both.
+
 ## Essential Commands
 
 ### Build and Deploy
@@ -61,18 +63,11 @@ Runs automatically; fix lints if they arise.
 ### Testing
 ```bash
 # Run comprehensive checks
-nix flake check
-
-# Run VM tests
-nix build .#tests.basic-desktop.x86_64-linux
+nix flake check  # This runs automatically on stop; there is normally no need to do this manually.
 ```
 
 ### Development Tools
 ```bash
-# Search NixOS options (ALWAYS use before adding/editing options)
-./tools-for-claude/search-options.sh search <term>
-./tools-for-claude/search-options.sh info <option.path>
-
 # Add a new package
 ./add-package.sh <package-name>
 
