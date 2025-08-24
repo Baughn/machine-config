@@ -40,8 +40,8 @@ in
       # Network configuration - bind to WireGuard interface
       # We need to get the actual IP from the interface
       bind =
-        if config.networking.hostName == "tsugumi" then "10.171.0.2"
-        else if config.networking.hostName == "saya" then "10.171.0.1"
+        if config.networking.hostName == "tsugumi" then "10.171.0.1"
+        else if config.networking.hostName == "saya" then "10.171.0.6"
         else "127.0.0.1";
 
       port = 6379;
