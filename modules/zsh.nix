@@ -55,6 +55,7 @@ let
         %{$reset_color%})'\
         '%{$bold_color%}$(_sunakayu_vcs_status)%{$reset_color%}'\
         '$(_sunakayu_vcs_info)'\
+        '%{$fg[cyan]%}%m%{$reset_color%} '\
         '%{$fg[$user_color]%}%~%{$reset_color%}'\
         '%(!.#.>) '
 
