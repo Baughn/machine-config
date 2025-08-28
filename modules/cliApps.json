@@ -10,6 +10,7 @@
   "iftop",
   "inetutils",
   "iperf3",
+  "iredis",
   "jjui",
   "jq",
   "jujutsu",
