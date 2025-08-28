@@ -18,6 +18,12 @@
       
       # Intel E810 dual-port NIC - port 1 (device 0x159b)
       SUBSYSTEM=="net", ACTION=="add", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x159b", ATTR{phys_port_name}=="p1", NAME="lan"
+      
+      # Realtek RTL8125 motherboard ethernet (unused)
+      SUBSYSTEM=="net", ACTION=="add", ATTRS{vendor}=="0x10ec", ATTRS{device}=="0x8125", NAME="rj45_unused"
+      
+      # MediaTek MT7921 WiFi adapter (unused)
+      SUBSYSTEM=="net", ACTION=="add", ATTRS{vendor}=="0x14c3", ATTRS{device}=="0x0616", NAME="wifi_unused"
     '';
 
     # LAN network settings
