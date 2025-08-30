@@ -63,7 +63,7 @@ in
       settings = {
         # Memory management
         maxmemory = cfg.maxMemory;
-        "maxmemory-policy" = "allkeys-lru"; # Evict least recently used keys when memory limit is reached
+        "maxmemory-policy" = "volatile-lru";
 
         # Connection settings
         timeout = 300; # Disconnect idle clients after 300 seconds
@@ -76,10 +76,10 @@ in
 
         # Disable dangerous commands in production
         "rename-command" = [
-          "FLUSHDB ''"
-          "FLUSHALL ''"
-          "KEYS ''"
-          "CONFIG ''"
+          #"FLUSHDB ''"
+          #"FLUSHALL ''"
+          #"KEYS ''"
+          #"CONFIG ''"
         ];
 
         # Enable active rehashing for better performance
