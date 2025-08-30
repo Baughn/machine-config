@@ -45,7 +45,7 @@
           programs.nix-index-database.comma.enable = true;
 
           # Propagate nixpkgs
-          nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ];
+          nix.nixPath = [ "nixpkgs=/etc/nixpkgs:/nix/var/nix/profiles/per-user/root/channels/nixos" ];
           environment.etc."nixpkgs".source = nixpkgs;
           nix.registry.nixpkgs.flake = nixpkgs;
 
