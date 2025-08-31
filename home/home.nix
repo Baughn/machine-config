@@ -162,6 +162,13 @@
         protocol.encryption.set = allow_incoming,try_outgoing,enable_retry
       '';
     };
+
+    # direnv for automatic environment loading
+    direnv = {
+      enable = true;
+      enableZshIntegration = true;
+      nix-direnv.enable = true;
+    };
   }; # End of programs block
 
   # Symlink claude files back to ~/.claude
