@@ -49,17 +49,21 @@
 
     ssh = {
       enable = true;
-      controlMaster = "auto";
-      controlPath = "~/.ssh/control-%r@%h:%p";
-      controlPersist = "10m";
-      serverAliveInterval = 60;
-      serverAliveCountMax = 3;
+      enableDefaultConfig = false;
       extraConfig = ''
         ConnectTimeout 30
         TCPKeepAlive yes
         ConnectionAttempts 2
       '';
       matchBlocks = {
+        # Global options
+        "*" = {
+          controlMaster = "auto";
+          controlPath = "~/.ssh/control-%r@%h:%p";
+          controlPersist = "10m";
+          serverAliveInterval = 60;
+          serverAliveCountMax = 3;
+        };
         # Smart connection to brage.info - tries IPv6 first
         "brage.info-ipv6" = {
           match = ''host brage.info exec "${../scripts/check-ipv6.sh} direct.brage.info"'';
