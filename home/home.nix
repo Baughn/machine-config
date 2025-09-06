@@ -12,7 +12,8 @@
 
     # Add directories to PATH
     sessionPath = [
-      "~/.cargo/bin"
+      "/home/svein/.cargo/bin"
+      "/home/svein/.npm-global/bin"
     ];
 
     # Shell aliases
