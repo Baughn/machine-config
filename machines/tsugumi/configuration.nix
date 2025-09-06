@@ -9,7 +9,7 @@
   imports = [
     ../../modules
     ./hardware-configuration.nix
-    ./sdbot.nix
+    #./sdbot.nix
     ./caddy.nix
     ./sonarr.nix
     ./rolebot.nix

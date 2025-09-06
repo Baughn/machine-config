@@ -1,10 +1,11 @@
-use anyhow::Result;
+use anyhow::{anyhow, bail, Result};
 use axum::{routing::get, Router};
 use clap::Parser;
 use config::Config;
 use lazy_static::lazy_static;
 use prometheus::{register_gauge_vec, Encoder, GaugeVec, TextEncoder};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::collections::HashMap;
 use std::net::{Ipv6Addr, SocketAddr};
 use std::sync::Arc;
@@ -97,12 +98,14 @@ async fn udp_listener(config: Arc<AppConfig>) -> Result<()> {
                 debug!("Received {} bytes from {}", len, addr);
                 trace!("Content: {}", String::from_utf8_lossy(&buf[..len]));
 
-                if let Ok(data) = serde_json::from_slice::<HashMap<String, f64>>(&buf[..len]) {
+                if let Ok(data) = serde_json::from_slice::<HashMap<String, Value>>(&buf[..len]) {
                     if let Err(e) = update_metrics(data, &config).await {
                         warn!("Failed to update metrics: {}", e);
                     }
                 } else {
                     warn!("Failed to parse JSON from {}", addr);
+                    let kinda_string = String::from_utf8_lossy(&buf[..len]);
+                    warn!("{}", kinda_string);
                 }
             }
             Err(e) => {
@@ -113,8 +116,13 @@ async fn udp_listener(config: Arc<AppConfig>) -> Result<()> {
 }
 
 #[instrument(skip_all)]
-async fn update_metrics(data: HashMap<String, f64>, config: &AppConfig) -> Result<()> {
+async fn update_metrics(data: HashMap<String, Value>, config: &AppConfig) -> Result<()> {
     for (key, value) in data {
+        let value = match value {
+            Value::Bool(b) => if b {1.0} else {0.0},
+            Value::Number(n) => n.as_f64().ok_or(anyhow!("Could not parse number"))?,
+            x => bail!("Cannot parse value {}", x),
+        };
         if let Some((metric_name, labels)) = parse_metric_name(&key, config) {
             let mut metrics = METRICS.write().await;
 
@@ -171,7 +179,7 @@ fn parse_metric_name(
         }
     }
 
-    let device_type = device_type?;
+    let device_type = device_type.unwrap_or(device_part.to_string());
 
     // Parse measurement and unit
     let (measurement, unit) = if let Some(idx) = measurement_part.rfind(" (") {
@@ -377,18 +385,6 @@ mod tests {
         assert_eq!(
             labels.get("device"),
             Some(&"multiplus_ii_48_5000_70_50".to_string())
-        );
-    }
-
-    #[test]
-    fn test_unknown_device_type() {
-        let config = test_config();
-
-        let result = parse_metric_name("Unknown Device - Some metric (W)", &config);
-
-        assert!(
-            result.is_none(),
-            "Should return None for unknown device type"
         );
     }
 }
