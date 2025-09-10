@@ -8,6 +8,7 @@
   "git",
   "htop",
   "iftop",
+  "inetutils",
   "iperf3",
   "jjui",
   "jq",
@@ -29,8 +30,10 @@
   "smartmontools",
   "sshfs",
   "tcpdump",
+  "unzip",
   "usbutils",
   "util-linux",
   "uv",
-  "wget"
+  "wget",
+  "zip"
 ]
