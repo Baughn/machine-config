@@ -76,10 +76,10 @@ in
 
         # Disable dangerous commands in production
         "rename-command" = [
-          #"FLUSHDB ''"
-          #"FLUSHALL ''"
+          "FLUSHDB ''"
+          "FLUSHALL ''"
           #"KEYS ''"
-          #"CONFIG ''"
+          "CONFIG ''"
         ];
 
         # Enable active rehashing for better performance
