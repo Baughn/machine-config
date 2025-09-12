@@ -151,12 +151,6 @@
       };
     };
 
-    tmux = {
-      enable = true;
-      escapeTime = 10;
-      terminal = "screen-256color";
-    };
-
     rtorrent = {
       enable = true;
       extraConfig = ''
