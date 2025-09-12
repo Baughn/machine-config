@@ -7,6 +7,8 @@
     nixpkgs-kernel.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     nixpkgs-upstream.url = "github:nixos/nixpkgs?ref=nixos-unstable";
 
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -26,7 +28,7 @@
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs-upstream";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-kernel, nix-index-database, colmena, agenix, home-manager, lanzaboote, nix-darwin, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-kernel, determinate, nix-index-database, colmena, agenix, home-manager, lanzaboote, nix-darwin, ... }@inputs:
     let
       # Helper to extract just the options.json file from a derivation
       extractOptionsJson = system: optionsDrv: docPath:
@@ -36,6 +38,7 @@
 
       # Common modules for all NixOS systems
       commonModules = [
+        determinate.nixosModules.default
         nix-index-database.nixosModules.nix-index
         agenix.nixosModules.default
         home-manager.nixosModules.home-manager

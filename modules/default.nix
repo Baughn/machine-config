@@ -30,9 +30,10 @@
   ## Nix settings
   nix.settings = {
     auto-optimise-store = true;
-    experimental-features = [ "nix-command" "flakes" ];
+    experimental-features = [ "nix-command" "flakes" "parallel-eval" ];
     trusted-users = [ "svein" ];
     sandbox = "relaxed";
+    eval-cores = 0;
   };
   ## Using nix-index instead, for flake support
   programs = {
@@ -47,13 +48,6 @@
 
     ## Network diagnostics
     mtr.enable = true;
-  };
-
-  # Automatic garbage collection
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 14d";
   };
 
   # Enable all terminfo entries system-wide
