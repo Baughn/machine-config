@@ -26,6 +26,9 @@
 
     nix-darwin.url = "github:nix-darwin/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs-upstream";
+
+    ganbot.url = "git+file:///home/svein/dev/ganbot";
+    ganbot.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = { self, nixpkgs, nixpkgs-kernel, determinate, nix-index-database, colmena, agenix, home-manager, lanzaboote, nix-darwin, ... }@inputs:

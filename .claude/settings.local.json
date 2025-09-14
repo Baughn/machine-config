@@ -27,7 +27,11 @@
       "mcp__nixos__home_manager_options_by_prefix",
       "Bash(tools-for-claude/lint.sh:*)",
       "Bash(tools-for-claude/format-nix.sh:*)",
-      "WebFetch(domain:discourse.nixos.org)"
+      "WebFetch(domain:discourse.nixos.org)",
+      "Read(//home/svein/AI/image-generation/ComfyUI/**)",
+      "Read(//home/svein/dev/ganbot/**)",
+      "Read(//home/svein/AI/image-generation/**)",
+      "Bash(sudo journalctl:*)"
     ],
     "deny": []
   },
