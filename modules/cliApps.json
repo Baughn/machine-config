@@ -35,5 +35,6 @@
   "util-linux",
   "uv",
   "wget",
+  "zellij",
   "zip"
 ]
