@@ -1,9 +1,0 @@
-#!/bin/bash
-
-if grep -q 'Arch Linux' /etc/issue; then
-  yaourt -Syua --devel
-else
-  echo "I don't know how to upgrade this system."
-  exit 1
-fi
-

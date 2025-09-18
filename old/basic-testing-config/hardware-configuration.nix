@@ -1,1 +1,0 @@
-../saya/hardware-configuration.nix
