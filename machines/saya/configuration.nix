@@ -12,14 +12,13 @@
       ../../modules
       ../../modules/desktop.nix
       ../../modules/nvidia.nix
-      ../../modules/secure-boot.nix
-      ../../modules/tpm2-luks.nix
       ../../quirks/g903.nix
       ../../quirks/amd-x3d.nix
     ];
 
   # Boot
   boot = {
+    loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
     blacklistedKernelModules = [ "amdgpu" ];
     kernelParams = [ "boot.shell_on_fail" ];
@@ -42,6 +41,9 @@
       park_cores = "8-15,24-31";
     };
   };
+
+  hardware.openrazer.enable = true;
+  hardware.openrazer.users = [ "svein" ];
 
   # Networking
   networking = {

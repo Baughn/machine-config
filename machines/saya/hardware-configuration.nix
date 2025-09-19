@@ -14,24 +14,6 @@
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
-  boot.initrd.luks.devices = {
-    "crypt-nvme0" = {
-      device = "/dev/disk/by-id/nvme-Samsung_SSD_990_PRO_2TB_S7DNNJ0WA38963E-part2";
-      allowDiscards = true;
-      bypassWorkqueues = true;
-    };
-    "crypt-nvme1" = {
-      device = "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_2TB_S4J4NM0R603977H-part1";
-      allowDiscards = true;
-      bypassWorkqueues = true;
-    };
-    "crypt-nvme2" = {
-      device = "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_2TB_S6S2NJ0T302168Y-part1";
-      allowDiscards = true;
-      bypassWorkqueues = true;
-    };
-  };
-
   fileSystems."/" =
     {
       device = "rpool/root";
@@ -40,7 +22,7 @@
 
   fileSystems."/boot" =
     {
-      device = "/dev/disk/by-uuid/C6E9-C328";
+      device = "/dev/disk/by-uuid/7AC0-14C4";
       fsType = "vfat";
       options = [ "fmask=0022" "dmask=0022" ];
     };
