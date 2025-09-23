@@ -27,7 +27,7 @@
     nix-darwin.url = "github:nix-darwin/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs-upstream";
 
-    ganbot.url = "git+file:///home/svein/dev/ganbot";
+    ganbot.url = "git+file:///home/svein/dev/ganbot?ref=master";
     ganbot.inputs.nixpkgs.follows = "nixpkgs";
   };
 
