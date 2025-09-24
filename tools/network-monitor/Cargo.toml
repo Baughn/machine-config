@@ -1,0 +1,15 @@
+[package]
+name = "network-monitor"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4.5", features = ["derive"] }
+hickory-resolver = { version = "0.24", default-features = false, features = ["tokio-runtime", "system-config"] }
+once_cell = "1"
+owo-colors = "4"
+regex = "1.10"
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "process", "time", "signal"] }
+toml = "0.8"

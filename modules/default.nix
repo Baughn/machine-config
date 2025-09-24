@@ -69,8 +69,9 @@
     let
       cliApps = builtins.fromJSON (builtins.readFile ./cliApps.json);
       nix-check-cached = pkgs.callPackage ../tools/nix-check-cached/default.nix { };
+      network-monitor = pkgs.callPackage ../tools/network-monitor { };
     in
-    map (name: pkgs.${name}) cliApps ++ [ nix-check-cached ];
+    map (name: pkgs.${name}) cliApps ++ [ nix-check-cached network-monitor ];
 
   # Users are now handled by users.nix with the users.include option
   users.include = [ "svein" ];

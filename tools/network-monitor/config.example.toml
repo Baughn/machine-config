@@ -1,0 +1,34 @@
+# Refresh interval (milliseconds)
+interval_ms = 2000
+# Samples retained per target (controls bar width)
+history_length = 40
+# Optional: set the NIC to monitor. Leave commented to auto-detect.
+# interface = "lan"
+
+[[targets]]
+kind = "icmp"
+name = "Local server"
+address = "192.168.1.10"
+
+[[targets]]
+kind = "icmp"
+name = "Modem"
+address = "192.168.1.1"
+
+[[targets]]
+kind = "icmp"
+name = "Remote"
+address = "1.1.1.1"
+
+[[targets]]
+kind = "dns"
+name = "System DNS"
+query = "example.com"
+record_type = "A"
+
+[[targets]]
+kind = "dns"
+name = "Cloudflare DNS"
+query = "example.com"
+resolver = "1.1.1.1"
+record_type = "A"
