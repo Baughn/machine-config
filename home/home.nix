@@ -19,6 +19,7 @@
     # Shell aliases
     shellAliases = {
       claude = "~/.claude/local/claude";
+      codex = "npx @openai/codex@latest";
     };
   };
 
