@@ -20,6 +20,7 @@
     shellAliases = {
       claude = "~/.claude/local/claude";
       codex = "npx @openai/codex@latest";
+      za = "zellij a";
     };
   };
 

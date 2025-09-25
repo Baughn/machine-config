@@ -176,7 +176,18 @@ in
           })
           
           -- Configure LSP servers
-          lspconfig.nil_ls.setup{}
+          lspconfig.nil_ls.setup{
+            settings = {
+              ['nil'] = {
+	        nix = {
+	          flake = {
+                    autoArchive = true,
+                    autoEvalInputs = true,
+		  },
+		},
+              },
+            },
+          }
           lspconfig.rust_analyzer.setup{}
           lspconfig.ts_ls.setup{}
           lspconfig.pylsp.setup{}
