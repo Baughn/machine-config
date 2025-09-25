@@ -81,186 +81,186 @@ in
         '';
 
         customLuaRC = ''
-          -- Highlight on yank
-          local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
-          vim.api.nvim_create_autocmd('TextYankPost', {
-            callback = function()
-              vim.highlight.on_yank()
-            end,
-            group = highlight_group,
-            pattern = '*',
-          })
+                    -- Highlight on yank
+                    local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
+                    vim.api.nvim_create_autocmd('TextYankPost', {
+                      callback = function()
+                        vim.highlight.on_yank()
+                      end,
+                      group = highlight_group,
+                      pattern = '*',
+                    })
           
-          -- Set up diagnostics
-          vim.diagnostic.config({
-            virtual_text = true,
-            signs = true,
-            underline = true,
-            update_in_insert = false,
-            severity_sort = true,
-          })
+                    -- Set up diagnostics
+                    vim.diagnostic.config({
+                      virtual_text = true,
+                      signs = true,
+                      underline = true,
+                      update_in_insert = false,
+                      severity_sort = true,
+                    })
           
-          -- Configure nvim-tree
-          require("nvim-tree").setup({
-            view = {
-              width = 30,
-            },
-            renderer = {
-              group_empty = true,
-            },
-            filters = {
-              dotfiles = false,
-            },
-          })
+                    -- Configure nvim-tree
+                    require("nvim-tree").setup({
+                      view = {
+                        width = 30,
+                      },
+                      renderer = {
+                        group_empty = true,
+                      },
+                      filters = {
+                        dotfiles = false,
+                      },
+                    })
           
-          -- Configure lualine
-          require('lualine').setup {
-            options = {
-              theme = 'catppuccin',
-              icons_enabled = true,
-            },
-            sections = {
-              lualine_x = { 'copilot', 'encoding', 'fileformat', 'filetype' },
-            }
-          }
+                    -- Configure lualine
+                    require('lualine').setup {
+                      options = {
+                        theme = 'catppuccin',
+                        icons_enabled = true,
+                      },
+                      sections = {
+                        lualine_x = { 'copilot', 'encoding', 'fileformat', 'filetype' },
+                      }
+                    }
           
-          -- Configure telescope
-          require('telescope').setup{
-            defaults = {
-              mappings = {
-                i = {
-                  ["<C-u>"] = false,
-                  ["<C-d>"] = false,
-                },
-              },
-            },
-          }
+                    -- Configure telescope
+                    require('telescope').setup{
+                      defaults = {
+                        mappings = {
+                          i = {
+                            ["<C-u>"] = false,
+                            ["<C-d>"] = false,
+                          },
+                        },
+                      },
+                    }
           
-          -- LSP Configuration
-          local lspconfig = require('lspconfig')
+                    -- LSP Configuration
+                    local lspconfig = require('lspconfig')
           
-          -- Global mappings
-          vim.keymap.set('n', '<space>e', vim.diagnostic.open_float)
-          vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
-          vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
-          vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist)
+                    -- Global mappings
+                    vim.keymap.set('n', '<space>e', vim.diagnostic.open_float)
+                    vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
+                    vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
+                    vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist)
           
-          -- Use LspAttach autocommand to only map the following keys
-          -- after the language server attaches to the current buffer
-          vim.api.nvim_create_autocmd('LspAttach', {
-            group = vim.api.nvim_create_augroup('UserLspConfig', {}),
-            callback = function(ev)
-              -- Enable completion triggered by <c-x><c-o>
-              vim.bo[ev.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
+                    -- Use LspAttach autocommand to only map the following keys
+                    -- after the language server attaches to the current buffer
+                    vim.api.nvim_create_autocmd('LspAttach', {
+                      group = vim.api.nvim_create_augroup('UserLspConfig', {}),
+                      callback = function(ev)
+                        -- Enable completion triggered by <c-x><c-o>
+                        vim.bo[ev.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
               
-              -- Buffer local mappings
-              local opts = { buffer = ev.buf }
-              vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
-              vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
-              vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
-              vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
-              vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
-              vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, opts)
-              vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, opts)
-              vim.keymap.set('n', '<space>wl', function()
-                print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-              end, opts)
-              vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, opts)
-              vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, opts)
-              vim.keymap.set({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action, opts)
-              vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
-              vim.keymap.set('n', '<space>f', function()
-                vim.lsp.buf.format { async = true }
-              end, opts)
-            end,
-          })
+                        -- Buffer local mappings
+                        local opts = { buffer = ev.buf }
+                        vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
+                        vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
+                        vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
+                        vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
+                        vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
+                        vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, opts)
+                        vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, opts)
+                        vim.keymap.set('n', '<space>wl', function()
+                          print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+                        end, opts)
+                        vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, opts)
+                        vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, opts)
+                        vim.keymap.set({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action, opts)
+                        vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
+                        vim.keymap.set('n', '<space>f', function()
+                          vim.lsp.buf.format { async = true }
+                        end, opts)
+                      end,
+                    })
           
-          -- Configure LSP servers
-          lspconfig.nil_ls.setup{
-            settings = {
-              ['nil'] = {
-	        nix = {
-	          flake = {
-                    autoArchive = true,
-                    autoEvalInputs = true,
-		  },
-		},
-              },
-            },
-          }
-          lspconfig.rust_analyzer.setup{}
-          lspconfig.ts_ls.setup{}
-          lspconfig.pylsp.setup{}
-          lspconfig.lua_ls.setup{
-            settings = {
-              Lua = {
-                runtime = {
-                  version = 'LuaJIT',
-                },
-                diagnostics = {
-                  globals = {'vim'},
-                },
-                workspace = {
-                  library = vim.api.nvim_get_runtime_file("", true),
-                  checkThirdParty = false,
-                },
-                telemetry = {
-                  enable = false,
-                },
-              },
-            },
-          }
+                    -- Configure LSP servers
+                    lspconfig.nil_ls.setup{
+                      settings = {
+                        ['nil'] = {
+          	        nix = {
+          	          flake = {
+                              autoArchive = true,
+                              autoEvalInputs = true,
+          		  },
+          		},
+                        },
+                      },
+                    }
+                    lspconfig.rust_analyzer.setup{}
+                    lspconfig.ts_ls.setup{}
+                    lspconfig.pylsp.setup{}
+                    lspconfig.lua_ls.setup{
+                      settings = {
+                        Lua = {
+                          runtime = {
+                            version = 'LuaJIT',
+                          },
+                          diagnostics = {
+                            globals = {'vim'},
+                          },
+                          workspace = {
+                            library = vim.api.nvim_get_runtime_file("", true),
+                            checkThirdParty = false,
+                          },
+                          telemetry = {
+                            enable = false,
+                          },
+                        },
+                      },
+                    }
           
-          -- Configure nvim-cmp
-          local cmp = require'cmp'
+                    -- Configure nvim-cmp
+                    local cmp = require'cmp'
           
-          cmp.setup({
-            snippet = {
-              expand = function(args)
-                vim.fn["vsnip#anonymous"](args.body)
-              end,
-            },
-            mapping = cmp.mapping.preset.insert({
-              ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-              ['<C-f>'] = cmp.mapping.scroll_docs(4),
-              ['<C-Space>'] = cmp.mapping.complete(),
-              ['<C-e>'] = cmp.mapping.abort(),
-              ['<CR>'] = cmp.mapping.confirm({ select = true }),
-            }),
-            sources = cmp.config.sources({
-              { name = 'nvim_lsp' },
-              { name = 'vsnip' },
-              { name = 'copilot' },
-            }, {
-              { name = 'buffer' },
-            })
-          })
+                    cmp.setup({
+                      snippet = {
+                        expand = function(args)
+                          vim.fn["vsnip#anonymous"](args.body)
+                        end,
+                      },
+                      mapping = cmp.mapping.preset.insert({
+                        ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+                        ['<C-f>'] = cmp.mapping.scroll_docs(4),
+                        ['<C-Space>'] = cmp.mapping.complete(),
+                        ['<C-e>'] = cmp.mapping.abort(),
+                        ['<CR>'] = cmp.mapping.confirm({ select = true }),
+                      }),
+                      sources = cmp.config.sources({
+                        { name = 'nvim_lsp' },
+                        { name = 'vsnip' },
+                        { name = 'copilot' },
+                      }, {
+                        { name = 'buffer' },
+                      })
+                    })
           
-          -- Configure treesitter
-          require'nvim-treesitter.configs'.setup {
-            highlight = {
-              enable = true,
-              additional_vim_regex_highlighting = false,
-            },
-            indent = {
-              enable = true,
-            },
-          }
+                    -- Configure treesitter
+                    require'nvim-treesitter.configs'.setup {
+                      highlight = {
+                        enable = true,
+                        additional_vim_regex_highlighting = false,
+                      },
+                      indent = {
+                        enable = true,
+                      },
+                    }
           
-          -- Configure gitsigns
-          require('gitsigns').setup()
+                    -- Configure gitsigns
+                    require('gitsigns').setup()
           
-          -- Configure comment.nvim
-          require('Comment').setup()
+                    -- Configure comment.nvim
+                    require('Comment').setup()
           
-          -- Configure nvim-surround
-          require("nvim-surround").setup()
+                    -- Configure nvim-surround
+                    require("nvim-surround").setup()
           
-          -- Configure nvim-autopairs
-          require('nvim-autopairs').setup{}
+                    -- Configure nvim-autopairs
+                    require('nvim-autopairs').setup{}
           
-          -- Configure which-key
-          require("which-key").setup{}
+                    -- Configure which-key
+                    require("which-key").setup{}
         '';
 
         packages.myVimPackage = with pkgs.vimPlugins; {
