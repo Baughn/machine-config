@@ -102,6 +102,13 @@
   environment.systemPackages = with pkgs; [
     (callPackage ../../tools/ping-discord { })
     (callPackage ../../tools/updater { })
+    (vintagestory.overrideAttrs (oldAttrs: rec {
+      version = "1.21.4";
+      src = pkgs.fetchurl {
+        url = "https://cdn.vintagestory.at/gamefiles/stable/vs_client_linux-x64_${version}.tar.gz";
+        hash = "sha256-npffJgxgUMefX9OiveNk1r4kVqsMaVCC1jcWaibz9l8=";
+      };
+    }))
   ];
 
   # This option defines the first version of NixOS you have installed on this particular machine,
