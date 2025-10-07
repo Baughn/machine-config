@@ -168,11 +168,14 @@ def deploy(local_goal: Optional[str], remote_goal: Optional[str]) -> None:
         cmd = ['colmena', 'apply', '--on', '@remote']
         if remote_goal != 'switch':
             cmd.append(remote_goal)
+        if remote_goal == 'boot':
+            cmd.append('--reboot')
         run_command(cmd)
 
 
 def post_deploy_tasks() -> None:
-    run_command(['colmena', 'exec', '--on', '@remote', 'nix-collect-garbage', '-d'], fatal=False)
+    # Currently handled by determinate nix
+    #run_command(['colmena', 'exec', '--on', '@remote', 'nix-collect-garbage', '-d'], fatal=False)
     run_command(['sudo', 'flatpak', 'update', '-y'], fatal=False)
 
 
