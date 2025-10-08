@@ -9,6 +9,7 @@
     [
       ./hardware-configuration.nix
       ./sdbot.nix
+      ./vintage-story.nix
       ../../modules
       ../../modules/desktop.nix
       ../../modules/nvidia.nix
