@@ -144,7 +144,7 @@ let
 in
 {
   systemd.services.comfyui = comfyui-service;
-  systemd.services.ganbot = ganbot-service;
+  #systemd.services.ganbot = ganbot-service;
 
   networking.firewall.allowedTCPPorts = [ 8188 8485 ];
 }
