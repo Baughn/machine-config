@@ -146,5 +146,5 @@ in
   systemd.services.comfyui = comfyui-service;
   systemd.services.ganbot = ganbot-service;
 
-  networking.firewall.allowedTCPPorts = [ 8188 ];
+  networking.firewall.allowedTCPPorts = [ 8188 8485 ];
 }

@@ -57,6 +57,11 @@
         file_server browse
       }
 
+      ganbot.brage.info {
+        import headers
+        reverse_proxy http://saya.local:8485
+      }
+
       madoka.brage.info {
         root * /srv/minecraft/
         import headers
