@@ -90,6 +90,43 @@ def cleanup_backup(backup_path: Optional[Path]) -> None:
         backup_path.unlink()
 
 
+def has_flake_lock_changes() -> bool:
+    result = run_command(['jj', 'status'], capture_output=True, text=True, fatal=False)
+    if result.returncode != 0:
+        return False
+
+    for line in result.stdout.splitlines():
+        if line.startswith(('A ', 'M ')) and 'flake.lock' in line:
+            return True
+    return False
+
+
+def should_squash_into_parent() -> bool:
+    result = run_command(
+        ['jj', 'log', '-r', '@- & mutable()', '-T', 'description', '--no-graph'],
+        capture_output=True,
+        text=True,
+        fatal=False,
+    )
+    if result.returncode != 0 or not result.stdout.strip():
+        return False
+
+    parent_description = result.stdout.strip()
+    return parent_description.startswith('Bump nixpkgs')
+
+
+def commit_flake_lock() -> None:
+    if not has_flake_lock_changes():
+        return
+
+    if should_squash_into_parent():
+        print_info('Squashing flake.lock into previous "Bump nixpkgs" commit...')
+        run_command(['jj', 'squash', '-m', 'Bump nixpkgs', 'flake.lock'], fatal=False)
+    else:
+        print_info('Creating new "Bump nixpkgs" commit for flake.lock...')
+        run_command(['jj', 'commit', '-m', 'Bump nixpkgs', 'flake.lock'], fatal=False)
+
+
 def get_flake_inputs(exclude: Optional[List[str]] = None) -> List[str]:
     lock_path = Path('flake.lock')
     if not lock_path.exists():
@@ -207,6 +244,8 @@ def main() -> None:
                 sys.exit(1)
 
             fallback_used = True
+
+        commit_flake_lock()
 
         hostname = subprocess.check_output(['hostname'], text=True).strip()
         built_system = ensure_built_system(hostname)
