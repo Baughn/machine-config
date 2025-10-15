@@ -31,7 +31,9 @@
       "Read(//home/svein/AI/image-generation/ComfyUI/**)",
       "Read(//home/svein/dev/ganbot/**)",
       "Read(//home/svein/AI/image-generation/**)",
-      "Bash(sudo journalctl:*)"
+      "Bash(sudo journalctl:*)",
+      "Bash(nix eval:*)",
+      "Bash(nix-prefetch-url:*)"
     ],
     "deny": []
   },
