@@ -1,5 +1,12 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, mylib, inputs, ... }:
 
+let
+  # Import nixpkgs-master for accessing bleeding-edge packages
+  pkgs-master = import inputs.nixpkgs-master {
+    inherit (pkgs) system;
+    config.allowUnfree = true;
+  };
+in
 {
   imports = [
     ./performance-desktop.nix
@@ -61,6 +68,20 @@
   environment.systemPackages = with pkgs;
     let
       desktopApps = builtins.fromJSON (builtins.readFile ./desktopApps.json);
+
+      # Select the newest Vintage Story version from available sources
+      # Listed in priority order: stable sources first, master last (lowest priority)
+      vintagestory-latest = mylib.versions.selectNewest [
+        pkgs.vintagestory # nixpkgs unstable version
+        (pkgs.vintagestory.overrideAttrs (oldAttrs: rec {
+          version = "1.21.5";
+          src = pkgs.fetchurl {
+            url = "https://cdn.vintagestory.at/gamefiles/stable/vs_client_linux-x64_${version}.tar.gz";
+            hash = "sha256-dG1D2Buqht+bRyxx2ie34Z+U1bdKgi5R3w29BG/a5jg=";
+          };
+        }))
+        pkgs-master.vintagestory # nixpkgs master version (lowest priority due to rebuild cost)
+      ];
     in
-    map (name: pkgs.${name}) desktopApps;
+    map (name: pkgs.${name}) desktopApps ++ [ vintagestory-latest ];
 }

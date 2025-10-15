@@ -6,6 +6,7 @@
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     nixpkgs-kernel.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     nixpkgs-upstream.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    nixpkgs-master.url = "github:nixos/nixpkgs?ref=master";
 
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
 
@@ -31,8 +32,11 @@
     ganbot.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-kernel, determinate, nix-index-database, colmena, agenix, home-manager, lanzaboote, nix-darwin, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-kernel, nixpkgs-master, determinate, nix-index-database, colmena, agenix, home-manager, lanzaboote, nix-darwin, ... }@inputs:
     let
+      # Custom library functions
+      mylib = import ./lib { lib = nixpkgs.lib; };
+
       # Helper to extract just the options.json file from a derivation
       extractOptionsJson = system: optionsDrv: docPath:
         nixpkgs.legacyPackages.${system}.runCommand "options.json" { } ''
@@ -87,7 +91,7 @@
             })
           ];
         }];
-        specialArgs = { inherit inputs; };
+        specialArgs = { inherit inputs mylib; };
       };
 
       # Machine configurations
@@ -116,6 +120,9 @@
       };
     in
     {
+      # Expose custom library functions
+      lib = mylib;
+
       packages.x86_64-linux.options = extractOptionsJson "x86_64-linux"
         (import (nixpkgs.outPath + "/nixos/release.nix") { }).options
         "share/doc/nixos/options.json";
@@ -162,7 +169,7 @@
               colmena.overlays.default
             ];
           };
-          specialArgs = { inherit inputs; };
+          specialArgs = { inherit inputs mylib; };
         };
 
         defaults = { name, nodes, ... }: {
