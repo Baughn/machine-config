@@ -60,15 +60,13 @@ let
     exec python main.py --listen --port 8188
   '';
 
-  # Ganbot wrapper that uses the development environment
-  ganbot-wrapper = pkgs.writeShellScript "ganbot-wrapper" ''
+  # Background process manager wrapper for ganbot
+  background-process-manager-wrapper = pkgs.writeShellScript "background-process-manager-wrapper" ''
     set -euo pipefail
-    cd ${GANBOT_DIR}
-
     export RUST_BACKTRACE=1
-    export RUST_LOG="ganbot=debug"
+    export RUST_LOG="background_process_manager=info,ganbot=debug"
 
-    exec ${inputs.ganbot.apps.x86_64-linux.default.program}
+    exec ${inputs.background-process-manager.apps.x86_64-linux.default.program} ${GANBOT_DIR}
   '';
 
   comfyui-service = {
@@ -116,13 +114,18 @@ let
   };
 
   ganbot-service = {
-    description = "Ganbot - Multi-platform Discord/IRC Bot";
+    description = "Background Process Manager for Ganbot";
     wantedBy = [ "multi-user.target" ];
     after = [ "network.target" "comfyui.service" ];
     wants = [ "network-online.target" ];
 
     path = with pkgs; [
       openssh
+      # Tools needed by background-process-manager
+      cargo
+      rustc
+      direnv
+      git
     ];
 
     serviceConfig = {
@@ -132,7 +135,7 @@ let
       Type = "simple";
       Restart = "always";
       RestartSec = "10s";
-      ExecStart = ganbot-wrapper;
+      ExecStart = background-process-manager-wrapper;
 
       # Security restrictions
       PrivateTmp = true;
@@ -144,7 +147,8 @@ let
 in
 {
   systemd.services.comfyui = comfyui-service;
-  #systemd.services.ganbot = ganbot-service;
+  systemd.services.ganbot = ganbot-service;
 
-  networking.firewall.allowedTCPPorts = [ 8188 8485 ];
+  # Port 8188 for ComfyUI, 8485 for ganbot, 3001 for MCP server
+  networking.firewall.allowedTCPPorts = [ 8188 8485 3001 ];
 }

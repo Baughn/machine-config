@@ -30,6 +30,9 @@
 
     ganbot.url = "git+file:///home/svein/dev/ganbot?ref=master";
     ganbot.inputs.nixpkgs.follows = "nixpkgs";
+
+    background-process-manager.url = "github:Baughn/background-process-manager";
+    background-process-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = { self, nixpkgs, nixpkgs-kernel, nixpkgs-master, determinate, nix-index-database, colmena, agenix, home-manager, lanzaboote, nix-darwin, ... }@inputs:
