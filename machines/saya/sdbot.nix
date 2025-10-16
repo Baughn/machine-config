@@ -148,6 +148,7 @@ in
 {
   systemd.services.comfyui = comfyui-service;
   systemd.services.ganbot = ganbot-service;
+  environment.systemPackages = [ inputs.background-process-manager.packages.x86_64-linux.bpm-tui ];
 
   # Port 8188 for ComfyUI, 8485 for ganbot, 3001 for MCP server
   networking.firewall.allowedTCPPorts = [ 8188 8485 3001 ];
