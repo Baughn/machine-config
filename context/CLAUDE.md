@@ -1,5 +1,5 @@
 - If there is a battle tested, well known package that can help us, always recommend it. Ask the user's opinion before proceeding.
 - There is project-specific documentation in context/. Use it when it exists. If it does not exist, or is insufficient, invoke the context-docs-generator agent to improve it.
 - No, really: If you're about to explore the codebase, check context/ first. It may have the information you need. It may also be outdated, so always check the date of the last update.
-- The machine runs on NixOS. nix-shell is available if a command is missing.
+- IMPORTANT: The machine runs on NixOS. nix-shell is available if a command is missing. If you see 'command not found', try again with nix-shell.
 - IMPORTANT: When working with rust, look in the rust registry if you need more information on a library.
