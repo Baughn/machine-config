@@ -14,11 +14,9 @@ This repository contains NixOS configuration files for three machines:
 
 ## Important Context
 
-### Migration Status
-**CRITICAL**: This repository is actively migrating from an older configuration. Before making any migration-related changes, read `MIGRATION_PLANS.md` for:
-- List of pending migrations with priority levels
-- Technical notes about specific services
-- Missing module imports and their purposes
+### Current machine
+
+All work happens on saya. If you see this, then chances are you're running on saya.
 
 ### Architecture Overview
 The configuration uses:
