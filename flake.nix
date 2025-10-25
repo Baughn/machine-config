@@ -2,10 +2,13 @@
   description = "Machine configurations for all my machines";
 
   inputs = {
-    #nixpkgs.url = "git+file:///home/svein/dev/nixpkgs";
+    # Default input
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    nixpkgs-kernel.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    # Default channel w/lag, sometimes used for individual currently broken packages
+    nixpkgs-lagging.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    # Default channel without local changes (if any)
     nixpkgs-upstream.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    # Master branch (pre-build)
     nixpkgs-master.url = "github:nixos/nixpkgs?ref=master";
 
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
@@ -35,7 +38,7 @@
     background-process-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-kernel, nixpkgs-master, determinate, nix-index-database, colmena, agenix, home-manager, lanzaboote, nix-darwin, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-master, determinate, nix-index-database, colmena, agenix, home-manager, lanzaboote, nix-darwin, ... }@inputs:
     let
       # Custom library functions
       mylib = import ./lib { lib = nixpkgs.lib; };
@@ -84,15 +87,6 @@
         inherit system;
         modules = commonModules ++ modules ++ [{
           nixpkgs.config.allowUnfree = true;
-          nixpkgs.overlays = [
-            # Reuse existing overlay for zen kernel
-            (final: prev: {
-              inherit ((import nixpkgs-kernel {
-                inherit (prev) system;
-                config.allowUnfree = true;
-              })) linuxPackages_zen;
-            })
-          ];
         }];
         specialArgs = { inherit inputs mylib; };
       };
@@ -161,13 +155,6 @@
             system = "x86_64-linux";
             config.allowUnfree = true;
             overlays = [
-              # Reuse existing overlay for zen kernel
-              (final: prev: {
-                inherit ((import nixpkgs-kernel {
-                  inherit (prev) system;
-                  config.allowUnfree = true;
-                })) linuxPackages_zen;
-              })
               # Add Colmena overlay
               colmena.overlays.default
             ];
