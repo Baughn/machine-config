@@ -30,8 +30,10 @@
 
     git = {
       enable = true;
-      userName = "Svein Ove Aas";
-      userEmail = "sveina@gmail.com";
+      settings.user = {
+        name = "Svein Ove Aas";
+        email = "sveina@gmail.com";
+      };
       lfs.enable = true;
     };
 
