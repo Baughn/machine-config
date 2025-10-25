@@ -15,34 +15,14 @@
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    {
-      device = "rpool/root";
-      fsType = "zfs";
+    { device = "/dev/disk/by-uuid/dfe83475-f17f-4f49-afcc-6d7f7863447c";
+      fsType = "btrfs";
     };
 
   fileSystems."/boot" =
-    {
-      device = "/dev/disk/by-uuid/7AC0-14C4";
+    { device = "/dev/disk/by-uuid/6E2E-5808";
       fsType = "vfat";
       options = [ "fmask=0022" "dmask=0022" ];
-    };
-
-  fileSystems."/home" =
-    {
-      device = "rpool/home";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/svein" =
-    {
-      device = "rpool/home/svein";
-      fsType = "zfs";
-    };
-
-  fileSystems."/home/svein/AI/image-generation/models" =
-    {
-      device = "rpool/bulk/image-models";
-      fsType = "zfs";
     };
 
   fileSystems."/tsugumi" = {
