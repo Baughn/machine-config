@@ -81,14 +81,6 @@ cd ~/dev/nixpkgs/
 - Prefer `lib.mkOption` with clear descriptions and types
 - Use `lib.mkIf` for conditional configurations
 
-### Anchor Comments
-Use specially formatted comments for inline knowledge:
-- `AIDEV-NOTE:` Important implementation details
-- `AIDEV-TODO:` Pending tasks
-- `AIDEV-QUESTION:` Clarification needed
-
-**Important**: Before modifying code, search for existing `AIDEV-*` anchors in relevant files. Update anchors when changing associated code.
-
 ### Module Organization
 - Shared modules in `modules/` export options under `me.*`
 - Machine configs import modules and set machine-specific values

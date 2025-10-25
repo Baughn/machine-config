@@ -73,7 +73,6 @@ let
 
 in
 {
-  # AIDEV-NOTE: Custom Zsh configuration with sunaku-based theme using customPkgs
   programs.zsh = {
     enable = true;
 

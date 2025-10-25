@@ -17,7 +17,7 @@
   #   ]
   #   => returns the derivation with version "1.22.0"
   #
-  # AIDEV-NOTE: Uses builtins.compareVersions which returns:
+  # Uses builtins.compareVersions which returns:
   #   1 if first version is newer
   #  -1 if first version is older
   #   0 if versions are equal
