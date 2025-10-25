@@ -5,7 +5,7 @@ let
   ];
   users = svein;
 
-  saya = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDjcOLkrCPxoqRthhEfUn5mfXLDsgCKCx9ufaQYcZel4 root@saya";
+  saya = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOdIYOlIa1ZjcKZKv9D5ofkv4ITwJEg9lO2XwlHwxFen";
   tsugumi = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBQ/0hKkb/+12T9ZzQ0lvu13JEL0RZJMxZ27WaQw9+3K";
   v4 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICn/KDuz5Ie7wJx/s+8hGYur/vMuYoyv6ZkbA+y+cONa";
   systems = [ saya tsugumi v4 ];
