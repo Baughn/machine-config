@@ -1,8 +1,6 @@
 { config, lib, pkgs, ... }:
 
 {
-  # AIDEV-NOTE: Basic performance optimizations for all systems
-
   # VM tweaks for better responsiveness
   boot.kernel.sysctl = {
     "vm.swappiness" = 10; # Prefer zram, avoid SSD wear

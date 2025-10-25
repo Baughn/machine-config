@@ -1,4 +1,3 @@
-# AIDEV-NOTE: Basic VM test to verify NixOS configuration builds and boots
 { pkgs, ... }:
 
 pkgs.nixosTest {

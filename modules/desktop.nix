@@ -19,8 +19,6 @@ in
     })
   ];
 
-  # AIDEV-NOTE: Desktop/GUI specific configuration
-
   # Allow things that need real-time (like sound) to get real-time.
   security.rtkit.enable = true;
 

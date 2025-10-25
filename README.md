@@ -26,7 +26,6 @@ This isn't your typical NixOS config.
 **Claude Code Integration**
 - Purpose-built tooling in `tools-for-claude/` for AI-assisted development
 - Intelligent NixOS option search with colored output and size limits
-- AIDEV anchor comment system (`AIDEV-NOTE:`, `AIDEV-TODO:`, `AIDEV-QUESTION`) for AI context preservation
 - Automated package classification between CLI and desktop applications
 
 **Intelligent Automation**
