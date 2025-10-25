@@ -228,19 +228,19 @@ def main() -> None:
         run_command(['nix', '--extra-experimental-features', 'nix-command flakes', 'flake', 'update'])
 
         if not build_all_systems(extra_args):
-            print_warning('nom build failed; attempting update without nixpkgs-kernel input...')
+            print_warning('nom build failed; attempting update without nixpkgs-lagging input...')
             if not backup_path:
-                print_error('No flake.lock backup available; cannot retry without nixpkgs-kernel.')
+                print_error('No flake.lock backup available; cannot retry without nixpkgs-lagging.')
                 sys.exit(1)
 
             restore_flake_lock(backup_path)
-            inputs = get_flake_inputs(exclude=['nixpkgs-kernel'])
+            inputs = get_flake_inputs(exclude=['nixpkgs-lagging'])
             if not update_selected_inputs(inputs):
-                print_error('Fallback update without nixpkgs-kernel failed.')
+                print_error('Fallback update without nixpkgs-lagging failed.')
                 sys.exit(1)
 
             if not build_all_systems(extra_args):
-                print_error('Build failed even after excluding nixpkgs-kernel.')
+                print_error('Build failed even after excluding nixpkgs-lagging.')
                 sys.exit(1)
 
             fallback_used = True
@@ -259,7 +259,7 @@ def main() -> None:
             post_deploy_tasks()
 
         if fallback_used:
-            print_warning('Update completed without nixpkgs-kernel input.')
+            print_warning('Update completed without nixpkgs-lagging input.')
 
         print_success('Update script finished.')
 
