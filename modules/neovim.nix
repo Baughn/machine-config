@@ -137,14 +137,12 @@ in
                     }
           
                     -- LSP Configuration
-                    local lspconfig = require('lspconfig')
-          
                     -- Global mappings
                     vim.keymap.set('n', '<space>e', vim.diagnostic.open_float)
                     vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
                     vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
                     vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist)
-          
+
                     -- Use LspAttach autocommand to only map the following keys
                     -- after the language server attaches to the current buffer
                     vim.api.nvim_create_autocmd('LspAttach', {
@@ -152,7 +150,7 @@ in
                       callback = function(ev)
                         -- Enable completion triggered by <c-x><c-o>
                         vim.bo[ev.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
-              
+
                         -- Buffer local mappings
                         local opts = { buffer = ev.buf }
                         vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
@@ -174,24 +172,46 @@ in
                         end, opts)
                       end,
                     })
-          
-                    -- Configure LSP servers
-                    lspconfig.nil_ls.setup{
+
+                    -- Configure LSP servers using new vim.lsp.config API
+                    vim.lsp.config.nil_ls = {
+                      cmd = { 'nil' },
+                      filetypes = { 'nix' },
+                      root_markers = { 'flake.nix', '.git' },
                       settings = {
                         ['nil'] = {
           	        nix = {
           	          flake = {
-                              autoArchive = true,
-                              autoEvalInputs = true,
+                              autoArchive = false,
+                              autoEvalInputs = false,
           		  },
           		},
                         },
                       },
                     }
-                    lspconfig.rust_analyzer.setup{}
-                    lspconfig.ts_ls.setup{}
-                    lspconfig.pylsp.setup{}
-                    lspconfig.lua_ls.setup{
+
+                    vim.lsp.config.rust_analyzer = {
+                      cmd = { 'rust-analyzer' },
+                      filetypes = { 'rust' },
+                      root_markers = { 'Cargo.toml' },
+                    }
+
+                    vim.lsp.config.ts_ls = {
+                      cmd = { 'typescript-language-server', '--stdio' },
+                      filetypes = { 'javascript', 'javascriptreact', 'typescript', 'typescriptreact' },
+                      root_markers = { 'package.json', 'tsconfig.json', 'jsconfig.json' },
+                    }
+
+                    vim.lsp.config.pylsp = {
+                      cmd = { 'pylsp' },
+                      filetypes = { 'python' },
+                      root_markers = { 'pyproject.toml', 'setup.py', 'setup.cfg', 'requirements.txt', 'Pipfile' },
+                    }
+
+                    vim.lsp.config.lua_ls = {
+                      cmd = { 'lua-language-server' },
+                      filetypes = { 'lua' },
+                      root_markers = { '.luarc.json', '.luarc.jsonc', '.luacheckrc', '.stylua.toml', 'stylua.toml', 'selene.toml', 'selene.yml' },
                       settings = {
                         Lua = {
                           runtime = {
@@ -210,6 +230,13 @@ in
                         },
                       },
                     }
+
+                    -- Enable LSP servers
+                    vim.lsp.enable('nil_ls')
+                    vim.lsp.enable('rust_analyzer')
+                    vim.lsp.enable('ts_ls')
+                    vim.lsp.enable('pylsp')
+                    vim.lsp.enable('lua_ls')
           
                     -- Configure nvim-cmp
                     local cmp = require'cmp'
@@ -280,9 +307,6 @@ in
 
             # Fuzzy finder
             telescope-nvim
-
-            # LSP
-            nvim-lspconfig
 
             # Autocompletion
             nvim-cmp
