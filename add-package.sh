@@ -46,7 +46,8 @@ add_package() {
 
 # Check if the package has a dependency on X11 or Wayland
 echo "Analyzing dependencies for '$PACKAGE'..."
-REFERENCES=$(nix-store --query --references $(nix build "nixpkgs#legacyPackages.x86_64-linux.$PACKAGE" --print-out-paths --no-link 2>/dev/null))
+nix build "nixpkgs#$PACKAGE"
+REFERENCES=$(nix path-info --recursive "nixpkgs#$PACKAGE")
 
 if echo "$REFERENCES" | grep -q -e "libX11" -e "wayland"; then
     echo "'$PACKAGE' appears to be a desktop application."
