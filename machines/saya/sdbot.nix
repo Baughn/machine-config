@@ -2,9 +2,10 @@
 
 let
   # Updated CUDA and library paths for current nixpkgs
+  cp = pkgs.cudaPackages_12_8;
   cudaLibPath = "/run/opengl-driver/lib:" + (with pkgs; lib.makeLibraryPath [
-    cudaPackages.cudatoolkit
-    cudaPackages.cudnn
+    cp.cudatoolkit
+    cp.cudnn
     stdenv.cc.cc.lib
     libGL
     libGLU
@@ -35,10 +36,11 @@ let
 
     # Set up environment variables like shell.nix
     export LD_LIBRARY_PATH="${cudaLibPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-    export CUDA_HOME="${pkgs.cudaPackages.cudatoolkit}"
-    export CUDA_PATH="${pkgs.cudaPackages.cudatoolkit}"
-    export CUDNN_PATH="${pkgs.cudaPackages.cudnn}"
+    export CUDA_HOME="${cp.cudatoolkit}"
+    export CUDA_PATH="${cp.cudatoolkit}"
+    export CUDNN_PATH="${cp.cudnn}"
     export PYTORCH_CUDA_ALLOC_CONF="max_split_size_mb:512"
+    export CUDA_VISIBLE_DEVICES=0
 
     # Create virtual environment if it doesn't exist
     if [[ ! -d .venv ]]; then
@@ -47,7 +49,7 @@ let
 
       source .venv/bin/activate
 
-      echo "Installing PyTorch with CUDA 12.4 support..."
+      echo "Installing PyTorch with CUDA support..."
       ${pkgs.uv}/bin/uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 
       echo "Installing ComfyUI requirements..."
@@ -83,8 +85,8 @@ let
       gnumake
       cmake
       pkg-config
-      cudaPackages.cudatoolkit
-      cudaPackages.cudnn
+      cp.cudatoolkit
+      cp.cudnn
       steam-run
     ];
 
