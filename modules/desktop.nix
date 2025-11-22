@@ -67,6 +67,11 @@ in
     let
       desktopApps = builtins.fromJSON (builtins.readFile ./desktopApps.json);
 
+      antigravity = mylib.versions.selectNewest [
+        pkgs.antigravity
+        pkgs-master.antigravity
+      ];
+
       # Select the newest Vintage Story version from available sources
       # Listed in priority order: stable sources first, master last (lowest priority)
       vintagestory-latest = mylib.versions.selectNewest [
@@ -81,5 +86,5 @@ in
         pkgs-master.vintagestory # nixpkgs master version (lowest priority due to rebuild cost)
       ];
     in
-    map (name: pkgs.${name}) desktopApps ++ [ vintagestory-latest ];
+    map (name: pkgs.${name}) desktopApps ++ [ vintagestory-latest antigravity ];
 }
