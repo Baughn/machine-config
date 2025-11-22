@@ -33,7 +33,9 @@
       "Read(//home/svein/AI/image-generation/**)",
       "Bash(sudo journalctl:*)",
       "Bash(nix eval:*)",
-      "Bash(nix-prefetch-url:*)"
+      "Bash(nix-prefetch-url:*)",
+      "WebSearch",
+      "WebFetch(domain:hydra.nixos.org)"
     ],
     "deny": []
   },

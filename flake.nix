@@ -3,7 +3,8 @@
 
   inputs = {
     # Default input
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    #nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    nixpkgs.url = "git+file:///home/svein/dev/nixpkgs";
     # Default channel w/lag, sometimes used for individual currently broken packages
     nixpkgs-lagging.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     # Default channel without local changes (if any)
@@ -97,6 +98,13 @@
           modules = [ ./machines/saya/configuration.nix ];
           deployment = {
             targetHost = "localhost";
+            allowLocalDeployment = true;
+          };
+        };
+        testcase = {
+          modules = [ ./machines/testcase/configuration.nix ];
+          deployment = {
+            targetHost = null;
             allowLocalDeployment = true;
           };
         };
