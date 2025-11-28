@@ -45,15 +45,18 @@ let
     # Create virtual environment if it doesn't exist
     if [[ ! -d .venv ]]; then
       echo "Creating virtual environment..."
-      ${pkgs.uv}/bin/uv venv --prompt comfyui --python 3.12 --python-preference only-managed .venv
+      ${pkgs.uv}/bin/uv venv --prompt comfyui --python 3.13 --python-preference only-managed .venv
 
       source .venv/bin/activate
 
       echo "Installing PyTorch with CUDA support..."
-      ${pkgs.uv}/bin/uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+      ${pkgs.uv}/bin/uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu130
 
       echo "Installing ComfyUI requirements..."
       ${pkgs.uv}/bin/uv pip install -r requirements.txt
+
+      echo "Installing extension requirements..."
+      uv pip install opencv-python PyWavelets matplotlib pygit gguf
     fi
 
     source .venv/bin/activate
