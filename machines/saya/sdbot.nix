@@ -62,7 +62,7 @@ let
     source .venv/bin/activate
 
     echo "Starting ComfyUI..."
-    exec python main.py --listen --port 8188
+    exec python main.py --listen --port 8188 --enable-landlock
   '';
 
   # Background process manager wrapper for ganbot
