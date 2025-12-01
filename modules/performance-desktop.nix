@@ -15,10 +15,12 @@
     ];
   };
 
+
   # Services configuration
   services = {
-    # System76 scheduler for better desktop responsiveness
-    system76-scheduler.enable = true;
+    # Use a low-latency task scheduler.
+    scx.enable = true;
+    scx.scheduler = "scx_bpfland";
   };
 
   # GameMode for per-game performance governor switching
