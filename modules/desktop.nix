@@ -30,8 +30,6 @@ in
   };
 
   services = {
-    ananicy.enable = true;
-
     # Display manager and desktop environment
     displayManager = {
       sddm.enable = true;
