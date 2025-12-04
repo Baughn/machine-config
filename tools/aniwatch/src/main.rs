@@ -259,7 +259,7 @@ fn clean_command(dry_run: bool) -> Result<()> {
         }
     };
     
-    let three_weeks_ago = Local::now() - Duration::weeks(3);
+    let horizon = Local::now() - Duration::weeks(2);
     let mut files_to_remove = Vec::new();
     let mut cleaned_count = 0;
     
@@ -268,7 +268,7 @@ fn clean_command(dry_run: bool) -> Result<()> {
             continue;
         }
         
-        if tracked_file.copied_at < three_weeks_ago {
+        if tracked_file.copied_at < horizon {
             if tracked_file.dest_path.exists() {
                 if dry_run {
                     println!("Would delete: {:?} (copied on {})", 
@@ -319,9 +319,9 @@ fn status_command() -> Result<()> {
     
     println!("Auto-copied files: {}", auto_copied.len());
     
-    let three_weeks_ago = Local::now() - Duration::weeks(3);
+    let horizon = Local::now() - Duration::weeks(2);
     let pending_deletion: Vec<_> = auto_copied.iter()
-        .filter(|f| f.copied_at < three_weeks_ago && f.dest_path.exists())
+        .filter(|f| f.copied_at < horizon && f.dest_path.exists())
         .collect();
     
     println!("Files pending deletion: {}", pending_deletion.len());
