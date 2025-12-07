@@ -22,6 +22,7 @@
     earlyoom = {
       enable = true;
       enableNotifications = true;
+      freeMemThreshold = 20;
       extraArgs = [
         # Avoid killing important system and desktop processes
         "--avoid"
