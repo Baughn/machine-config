@@ -96,6 +96,11 @@
     ];
   };
 
+  # Prevent suspend on SDDM login screen (desktop + server)
+  services.logind.settings.Login = {
+    IdleAction = "ignore";
+  };
+
   # Environmental
   time.timeZone = "Europe/Dublin";
 
