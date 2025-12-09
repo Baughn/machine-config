@@ -13,10 +13,14 @@
     ./neovim.nix
     ./ssh-auth.nix
     ./redis.nix
+    ./magic-reboot.nix
   ];
 
   # Enable enhanced Neovim configuration
   me.neovim.enable = true;
+
+  # Enable magic reboot for emergency recovery
+  me.magicReboot.enable = true;
 
   # Would prefer zram, but it's broken
   boot.tmp.cleanOnBoot = true;

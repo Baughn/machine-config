@@ -42,4 +42,7 @@ in
   # Redis
   "redis-password.age".publicKeys = host tsugumi;
   "redis-nixcheck-password.age".publicKeys = all;
+
+  # Magic reboot - emergency reboot via UDP packet
+  "magic-reboot.key.age".publicKeys = all;
 }
