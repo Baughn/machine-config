@@ -44,5 +44,6 @@
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "nixos"
-  ]
+  ],
+  "outputStyle": "Explanatory"
 }

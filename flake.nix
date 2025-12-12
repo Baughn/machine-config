@@ -77,6 +77,7 @@
             useGlobalPkgs = true;
             useUserPackages = true;
             users.svein = ./home/home.nix;
+            extraSpecialArgs = { isDarwin = false; };
             # Automatically clobber pre-HM files
             backupFileExtension = "backup";
           };
@@ -202,6 +203,7 @@
               useGlobalPkgs = true;
               useUserPackages = true;
               users.svein = ./home/home.nix;
+              extraSpecialArgs = { isDarwin = true; };
               # Automatically clobber pre-HM files
               backupFileExtension = "backup";
             };

@@ -1,6 +1,9 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, isDarwin, ... }:
 
 {
+  # Import Oh My Zsh config only on Darwin (NixOS uses system-wide config)
+  imports = lib.optionals isDarwin [ ./zsh-ohmyzsh.nix ];
+
   # Environment Variables
   home = {
     sessionVariables = {
