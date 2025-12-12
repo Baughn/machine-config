@@ -184,6 +184,12 @@
   };
 
 
+  # Custom terminfo entries (Darwin only - NixOS handles this system-wide)
+  home.activation.buildTerminfo = lib.mkIf pkgs.stdenv.isDarwin ''
+    mkdir -p $HOME/.terminfo
+    ${pkgs.ncurses}/bin/tic -o $HOME/.terminfo ${./terminfo/xterm-ghostty.terminfo}
+  '';
+
   # Do not modify unless you want to delete your home directory.
   home.stateVersion = "25.05";
 }

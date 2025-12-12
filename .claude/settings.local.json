@@ -36,7 +36,8 @@
       "Bash(nix-prefetch-url:*)",
       "WebSearch",
       "WebFetch(domain:hydra.nixos.org)",
-      "WebFetch(domain:www.kernel.org)"
+      "WebFetch(domain:www.kernel.org)",
+      "Bash(tree:*)"
     ],
     "deny": []
   },

@@ -14,6 +14,8 @@
     rustup
     nodejs
     yt-dlp
+    ripgrep
+    fd
   ];
 
   homebrew = {
