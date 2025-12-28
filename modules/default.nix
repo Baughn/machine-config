@@ -68,6 +68,12 @@
   # Shell configuration
   users.defaultUserShell = pkgs.zsh;
 
+  # Fix uv python ssl.SSLCertVerificationError
+  environment.etc.certfile = {
+    source = "/etc/ssl/certs/ca-bundle.crt";
+    target = "ssl/cert.pem";
+  };
+
   # Software that I use virtually everywhere
   environment.systemPackages = with pkgs;
     let
