@@ -179,9 +179,9 @@
 
   # Symlink claude files back to ~/.claude
   home.file = {
-    ".claude/CLAUDE.md".source = ../context/CLAUDE.md;
+    ".claude/CLAUDE.md".source = ../docs/CLAUDE.md;
     ".claude/agents" = {
-      source = ../context/agents;
+      source = ../docs/agents;
       recursive = true;
     };
   };

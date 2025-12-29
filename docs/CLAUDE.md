@@ -1,0 +1,4 @@
+- If there is a battle tested, well known package that can help us, always recommend it. Ask the user's opinion before proceeding.
+- The machine runs on NixOS. nix-shell is available if a command is missing. If you see 'command not found', try again with nix-shell.
+- When working with rust, look in the rust registry if you need more information on a library.
+- There is project-specific documentation in docs/. Use it when it exists, though bear in mind it may be outdated. Check the 'last updated' tag at the top.
