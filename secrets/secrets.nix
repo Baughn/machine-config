@@ -2,6 +2,7 @@ let
   svein = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDFqQOHIaerfzhi0pQHZ/U1ES2yvql9NY46A01TjmgAl" # Tsugumi
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGs877ZtpIoKuc+Jn+GDISMBWxxGyZNdubdnqX2b6TV0" # Saya
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICeiqQnylmCVUzTNNcYRWKp/38dB5i3aGBs7ZB11MjkS" # Kaho
   ];
   users = svein;
 
