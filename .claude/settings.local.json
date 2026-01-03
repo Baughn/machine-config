@@ -45,5 +45,5 @@
   "enabledMcpjsonServers": [
     "nixos"
   ],
-  "outputStyle": "Explanatory"
+  "outputStyle": "default"
 }

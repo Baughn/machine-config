@@ -1,4 +1,14 @@
-{ pkgs, lib, isDarwin, ... }:
+{ pkgs, lib, config, isDarwin, ... }:
+
+let
+  # Build the magic-reboot sender
+  magic-reboot-send = pkgs.callPackage ../tools/magic-reboot/sender/default.nix { };
+
+  # Wrapper that auto-injects the decrypted key path
+  magic-reboot = pkgs.writeShellScriptBin "magic-reboot" ''
+    exec ${magic-reboot-send}/bin/magic-reboot-send --key ${config.age.secrets.magic-reboot-key.path} "$@"
+  '';
+in
 
 {
   # Import Oh My Zsh config only on Darwin (NixOS uses system-wide config)
@@ -176,6 +186,17 @@
       nix-direnv.enable = true;
     };
   }; # End of programs block
+
+  # Agenix secret decryption
+  age = {
+    identityPaths = [ "${config.home.homeDirectory}/.ssh/id_ed25519" ];
+    secrets.magic-reboot-key.file = ../secrets/magic-reboot.key.age;
+  };
+
+  # Additional packages
+  home.packages = [
+    magic-reboot
+  ];
 
   # Symlink claude files back to ~/.claude
   home.file = {

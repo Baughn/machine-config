@@ -80,6 +80,7 @@
             extraSpecialArgs = { isDarwin = false; };
             # Automatically clobber pre-HM files
             backupFileExtension = "backup";
+            sharedModules = [ agenix.homeManagerModules.default ];
           };
         }
       ];
@@ -206,6 +207,7 @@
               extraSpecialArgs = { isDarwin = true; };
               # Automatically clobber pre-HM files
               backupFileExtension = "backup";
+              sharedModules = [ agenix.homeManagerModules.default ];
             };
           }
         ];

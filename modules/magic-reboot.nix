@@ -48,9 +48,6 @@ in
     # Open firewall port
     networking.firewall.allowedUDPPorts = [ cfg.port ];
 
-    # Install sender tool
-    environment.systemPackages = [ magicRebootSender ];
-
     # Secret for the magic packet
     age.secrets."magic-reboot.key" = {
       file = ../secrets/magic-reboot.key.age;
