@@ -60,6 +60,13 @@ in
     };
   };
 
+  # Fonts
+  fonts.enableDefaultPackages = true;
+  fonts.packages = with pkgs; [
+    ipafont
+    kochi-substitute
+  ];
+
   # Desktop applications
   environment.systemPackages = with pkgs;
     let
