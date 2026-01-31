@@ -3,7 +3,11 @@
 {
   services = {
     bazarr.enable = true;
-    sonarr.enable = true;
+    sonarr = {
+      enable = true;
+      user = "svein";
+      group = "sonarr";
+    };
     prowlarr.enable = true;
     radarr = {
       enable = true;

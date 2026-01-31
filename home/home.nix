@@ -25,13 +25,14 @@ in
 
     # Add directories to PATH
     sessionPath = [
+      "/home/svein/.local/bin"
       "/home/svein/.cargo/bin"
       "/home/svein/.npm-global/bin"
     ];
 
     # Shell aliases
     shellAliases = {
-      claude = "~/.claude/local/claude";
+      claude = "~/.local/bin/claude";
       codex = "npx @openai/codex@latest";
       za = "zellij a";
     };
