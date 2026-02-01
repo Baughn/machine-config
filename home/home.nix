@@ -1,4 +1,4 @@
-{ pkgs, lib, config, isDarwin, ... }:
+{ pkgs, lib, config, isDarwin, isStandalone ? isDarwin, ... }:
 
 let
   # Build the magic-reboot sender
@@ -12,7 +12,7 @@ in
 
 {
   # Import Oh My Zsh config only on Darwin (NixOS uses system-wide config)
-  imports = lib.optionals isDarwin [ ./zsh-ohmyzsh.nix ];
+  imports = lib.optionals isStandalone [ ./zsh-ohmyzsh.nix ];
 
   # Environment Variables
   home = {
@@ -41,6 +41,8 @@ in
   # Program Configurations
   programs = {
     zsh.enable = true;
+
+    home-manager.enable = isStandalone;
 
     git = {
       enable = true;

@@ -3,8 +3,8 @@
 
   inputs = {
     # Default input
-    #nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    nixpkgs.url = "git+file:///home/svein/dev/nixpkgs";
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    #nixpkgs.url = "git+file:///home/svein/dev/nixpkgs";
     # Default channel w/lag, sometimes used for individual currently broken packages
     nixpkgs-lagging.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     # Default channel without local changes (if any)
@@ -212,6 +212,20 @@
           }
         ];
         specialArgs = { inherit inputs; };
+      };
+
+      # Standalone home-manager configuration
+      homeConfigurations."svein" = home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+        modules = [
+          ./home/home.nix
+          agenix.homeManagerModules.default
+          {
+            home.username = "svein";
+            home.homeDirectory = "/home/svein";
+          }
+        ];
+        extraSpecialArgs = { isDarwin = false; isStandalone = true; };
       };
     };
 }
