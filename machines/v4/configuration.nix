@@ -1,9 +1,30 @@
-{ pkgs, lib, ... }: {
+{ pkgs, lib, config, ... }: {
   imports = [
     ./hardware-configuration.nix
     ../../modules/v4proxy.nix
+    ../../modules/rendezvous.nix
     ../../modules
   ];
+
+  # IPv4 to IPv6 proxy
+  services.v4proxy = {
+    enable = true;
+    defaultTarget = "direct.brage.info";
+    mappings = [
+      # Minecraft
+      { localPort = 25565; }
+      { localPort = 25566; }
+      # Stationeers
+      { protocol = "udp"; localPort = 27015; target = "saya.brage.info"; }
+      { protocol = "udp"; localPort = 27016; target = "saya.brage.info"; }
+    ];
+  };
+
+  # DessPlay rendezvous server
+  services.rendezvous = {
+    enable = true;
+    passwordFile = config.age.secrets."rendezvous.key".path;
+  };
 
   environment.systemPackages = with pkgs; [
   ];

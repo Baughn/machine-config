@@ -35,6 +35,9 @@
     ganbot.url = "git+file:///home/svein/dev/ganbot?ref=master";
     ganbot.inputs.nixpkgs.follows = "nixpkgs";
 
+    dessplay.url = "git+file:///home/svein/dev/dessplay";
+    dessplay.inputs.nixpkgs.follows = "nixpkgs";
+
     background-process-manager.url = "github:Baughn/background-process-manager";
     background-process-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -77,7 +80,7 @@
             useGlobalPkgs = true;
             useUserPackages = true;
             users.svein = ./home/home.nix;
-            extraSpecialArgs = { isDarwin = false; };
+            extraSpecialArgs = { isDarwin = false; isStandalone = false; };
             # Automatically clobber pre-HM files
             backupFileExtension = "backup";
             sharedModules = [ agenix.homeManagerModules.default ];

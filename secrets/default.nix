@@ -77,6 +77,11 @@ let
       owner = "svein";
       mode = "0400";
     };
+    # DessPlay rendezvous server
+    "rendezvous.key" = {
+      file = ./rendezvous.key.age;
+      hosts = [ "v4" ];
+    };
   };
 in
 {

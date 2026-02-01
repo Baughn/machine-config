@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.32", features = ["derive"] }
+tokio = { version = "1", features = ["rt-multi-thread", "net", "macros", "sync", "time", "io-util"] }

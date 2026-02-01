@@ -37,7 +37,8 @@
       "WebSearch",
       "WebFetch(domain:hydra.nixos.org)",
       "WebFetch(domain:www.kernel.org)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(nix build:*)"
     ],
     "deny": []
   },

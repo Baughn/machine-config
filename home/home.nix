@@ -1,4 +1,4 @@
-{ pkgs, lib, config, isDarwin, isStandalone ? isDarwin, ... }:
+{ pkgs, lib, config, isDarwin, isStandalone, ... }:
 
 let
   # Build the magic-reboot sender
@@ -40,6 +40,12 @@ in
 
   # Program Configurations
   programs = {
+    fish.enable = true;
+    fish.shellInit = "
+      if [ -e /usr/share/cachyos-fish-config/cachyos-config.fish ]
+        source /usr/share/cachyos-fish-config/cachyos-config.fish
+      end
+    ";
     zsh.enable = true;
 
     home-manager.enable = isStandalone;

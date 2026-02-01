@@ -25,15 +25,14 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    networking.firewall.allowedTCPPorts = [ 6379 ];
+
     # Configure Redis using the built-in NixOS module
     services.redis.servers.default = {
       enable = true;
 
-      # Network configuration - bind to WireGuard interface
-      # We need to get the actual IP from the interface
       bind =
-        if config.networking.hostName == "tsugumi" then "10.171.0.1"
-        else if config.networking.hostName == "saya" then "10.171.0.6"
+        if config.networking.hostName == "tsugumi" then "0.0.0.0"
         else "127.0.0.1";
 
       port = 6379;

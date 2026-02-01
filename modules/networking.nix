@@ -67,11 +67,9 @@
     };
 
     # mDNS configuration for local network discovery
-    services.resolved = {
-      extraConfig = ''
-        MulticastDNS = yes
-        LLMNR = yes
-      '';
+    services.resolved.settings = {
+#	MulticastDNS = "yes";
+#	LLMNR = "yes";
     };
   };
 }
