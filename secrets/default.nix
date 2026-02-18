@@ -82,6 +82,10 @@ let
       file = ./rendezvous.key.age;
       hosts = [ "v4" ];
     };
+    "claude-api.key" = {
+      file = ./claude-api.key.age;
+      hosts = [ "v4" ];
+    };
   };
 in
 {

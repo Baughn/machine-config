@@ -130,10 +130,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1771287109,
-        "narHash": "sha256-Q5Xen3J+YXv8/VBl2onZeTRFgfrgt2mO6CVfEfQ4Aq4=",
-        "rev": "4eae7997489308606b7ca5662eb41c3b8d69f1cb",
-        "revCount": 14,
+        "lastModified": 1771453252,
+        "narHash": "sha256-rwbugkw9BINja3Zxd12KEycO5WNxteWPssyPR+i6XZo=",
+        "rev": "706261702cd5f40b6f10bc839bc8242c30caf201",
+        "revCount": 20,
         "type": "git",
         "url": "file:///home/svein/dev/dessplay"
       },

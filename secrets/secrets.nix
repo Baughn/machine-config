@@ -49,4 +49,5 @@ in
 
   # DessPlay rendezvous server
   "rendezvous.key.age".publicKeys = host v4;
+  "claude-api.key.age".publicKeys = host v4;
 }
