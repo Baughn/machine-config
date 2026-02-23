@@ -1,0 +1,35 @@
+---
+- name: Set hostname
+  hostname:
+    name: "{{ hostname }}"
+
+- name: Set timezone
+  timezone:
+    name: "{{ timezone }}"
+
+- name: Set locale
+  locale_gen:
+    name: en_US.UTF-8
+    state: present
+
+- name: Create logind.conf.d directory
+  file:
+    path: /etc/systemd/logind.conf.d
+    state: directory
+    mode: "0755"
+
+- name: Prevent suspend on login screen
+  copy:
+    dest: /etc/systemd/logind.conf.d/idle.conf
+    content: |
+      [Login]
+      IdleAction=ignore
+    mode: "0644"
+  notify: restart logind
+
+- name: Disable sudo password for wheel group
+  copy:
+    dest: /etc/sudoers.d/wheel-nopasswd
+    content: "%wheel ALL=(ALL:ALL) NOPASSWD: ALL\n"
+    mode: "0440"
+    validate: "visudo -cf %s"

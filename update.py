@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#!nix-shell -i python3 --packages python3 nvd
+#!nix-shell -i python3 --packages python3
 
 import json
 import os
@@ -7,7 +7,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 sys.dont_write_bytecode = True
 
@@ -43,29 +43,6 @@ def run_command(cmd, *, fatal: bool = True, **kwargs) -> subprocess.CompletedPro
             sys.exit(result.returncode)
         print_warning(f"Command exited with {result.returncode}")
     return result
-
-
-def ensure_built_system(hostname: str) -> str:
-    result_dir = Path('result') / hostname
-    if result_dir.exists():
-        return os.path.realpath(result_dir)
-
-    build_result = run_command(
-        [
-            'nix',
-            'build',
-            f'.#nixosConfigurations.{hostname}.config.system.build.toplevel',
-            '--print-out-paths',
-        ],
-        capture_output=True,
-        text=True,
-    )
-    return build_result.stdout.strip()
-
-
-def show_system_diff(target_path: str) -> None:
-    print_info('Comparing against the current system...')
-    run_command(['nvd', 'diff', '/run/current-system', target_path], fatal=False)
 
 
 def backup_flake_lock() -> Optional[Path]:
@@ -160,6 +137,58 @@ def build_all_systems(extra_args: List[str]) -> bool:
     return result.returncode == 0
 
 
+# --- Saya (CachyOS) update functions ---
+
+def saya_update() -> None:
+    """Update saya: CachyOS system packages + home-manager + optionally Ansible."""
+    print_info('Updating saya (CachyOS)...')
+
+    # System update via cachy-update
+    print_info('Running CachyOS system update...')
+    run_command(['cachy-update'], fatal=False)
+
+    # Home-manager switch
+    print_info('Applying home-manager configuration...')
+    run_command(['home-manager', 'switch', '--flake', '.#svein'], fatal=False)
+
+    # Optionally run Ansible
+    ansible_dir = Path('ansible')
+    if ansible_dir.exists():
+        print('\nRun Ansible playbook?')
+        print('1) skip')
+        print('2) run (ansible-playbook ansible/site.yml)')
+        print('3) dry-run (--check)')
+        ansible_env = {**os.environ, 'ANSIBLE_CONFIG': str(ansible_dir / 'ansible.cfg')}
+        choice = input('Select [1]: ').strip()
+        if choice == '2':
+            run_command(
+                ['ansible-playbook', 'ansible/site.yml'],
+                fatal=False,
+                env=ansible_env,
+            )
+        elif choice == '3':
+            run_command(
+                ['ansible-playbook', '--check', 'ansible/site.yml'],
+                fatal=False,
+                env=ansible_env,
+            )
+
+
+# --- Remote NixOS deploy functions ---
+
+def deploy_remote(goal: Optional[str]) -> None:
+    """Deploy to remote NixOS machines (tsugumi, v4) via colmena."""
+    if not goal:
+        return
+
+    cmd = ['colmena', 'apply', '--on', '@remote']
+    if goal != 'switch':
+        cmd.append(goal)
+    if goal == 'boot':
+        cmd.append('--reboot')
+    run_command(cmd)
+
+
 def prompt_goal(label: str, default: Optional[str]) -> Optional[str]:
     goal_mapping = {'1': 'switch', '2': 'boot', '3': None}
     default_to_choice = {'switch': '1', 'boot': '2', None: '3'}
@@ -179,42 +208,35 @@ def prompt_goal(label: str, default: Optional[str]) -> Optional[str]:
         print_error('Invalid choice, please try again.')
 
 
-def prompt_deployment() -> Tuple[Optional[str], Optional[str]]:
-    print('\nDeploy?')
+# --- Interactive deployment menu ---
+
+def prompt_deployment() -> None:
+    """Interactive menu for deployment targets."""
+    print('\nWhat to deploy?')
     print('1) exit')
-    print('2) deploy')
+    print('2) deploy remote NixOS machines (colmena)')
+    print('3) update saya (CachyOS + home-manager + Ansible)')
+    print('4) both')
 
     choice = input('Select [1]: ').strip()
-    if choice not in {'2'}:
+
+    if choice == '2':
+        remote_goal = prompt_goal('Remote machines', default='boot')
+        deploy_remote(remote_goal)
+    elif choice == '3':
+        saya_update()
+    elif choice == '4':
+        remote_goal = prompt_goal('Remote machines', default='boot')
+        deploy_remote(remote_goal)
+        saya_update()
+    else:
         print_info('Exiting without deployment.')
-        return None, None
+        return
 
-    local_goal = prompt_goal('Local machine', default='switch')
-    remote_goal = prompt_goal('Remote machines', default='boot')
-    if not local_goal and not remote_goal:
-        print_info('No deployment targets selected.')
-    return local_goal, remote_goal
-
-
-def deploy(local_goal: Optional[str], remote_goal: Optional[str]) -> None:
-    if local_goal:
-        cmd = ['colmena', 'apply-local', '--sudo']
-        if local_goal != 'switch':
-            cmd.append(local_goal)
-        run_command(cmd)
-
-    if remote_goal:
-        cmd = ['colmena', 'apply', '--on', '@remote']
-        if remote_goal != 'switch':
-            cmd.append(remote_goal)
-        if remote_goal == 'boot':
-            cmd.append('--reboot')
-        run_command(cmd)
+    post_deploy_tasks()
 
 
 def post_deploy_tasks() -> None:
-    # Currently handled by determinate nix
-    #run_command(['colmena', 'exec', '--on', '@remote', 'nix-collect-garbage', '-d'], fatal=False)
     run_command(['sudo', 'flatpak', 'update', '-y'], fatal=False)
 
 
@@ -249,16 +271,9 @@ def main() -> None:
 
         commit_flake_lock()
 
-        hostname = subprocess.check_output(['hostname'], text=True).strip()
-        built_system = ensure_built_system(hostname)
-
-        show_system_diff(built_system)
         print('\a', end='', flush=True)
 
-        local_goal, remote_goal = prompt_deployment()
-        if local_goal or remote_goal:
-            deploy(local_goal, remote_goal)
-            post_deploy_tasks()
+        prompt_deployment()
 
         if fallback_used:
             print_warning('Update completed without nixpkgs-lagging input.')

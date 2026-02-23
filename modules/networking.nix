@@ -68,8 +68,8 @@
 
     # mDNS configuration for local network discovery
     services.resolved.settings = {
-#	MulticastDNS = "yes";
-#	LLMNR = "yes";
+      #	MulticastDNS = "yes";
+      #	LLMNR = "yes";
     };
   };
 }

@@ -1,0 +1,38 @@
+---
+- name: Install restic
+  pacman:
+    name: restic
+    state: present
+
+- name: Deploy restic backup service
+  template:
+    src: restic-backup.service.j2
+    dest: /etc/systemd/system/restic-backup.service
+    mode: "0644"
+  notify: reload systemd
+
+- name: Deploy restic backup timer
+  template:
+    src: restic-backup.timer.j2
+    dest: /etc/systemd/system/restic-backup.timer
+    mode: "0644"
+  notify: reload systemd
+
+- name: Ensure restic config directory exists
+  file:
+    path: /etc/restic
+    state: directory
+    mode: "0755"
+
+- name: Deploy restic excludes file
+  template:
+    src: restic-excludes.txt.j2
+    dest: /etc/restic/excludes.txt
+    mode: "0644"
+
+- name: Enable and start restic backup timer
+  systemd:
+    name: restic-backup.timer
+    enabled: true
+    state: started
+    daemon_reload: true

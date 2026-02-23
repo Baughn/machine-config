@@ -1,0 +1,26 @@
+# Managed by Ansible — restic backup service
+[Unit]
+Description=Restic backup to tsugumi
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=svein
+Environment=RESTIC_REPOSITORY={{ restic_repository }}
+Environment=RESTIC_PASSWORD_FILE={{ restic_password_file }}
+
+# Unlock stale locks before backup
+ExecStartPre=/usr/bin/restic unlock
+
+# Run backup
+ExecStart=/usr/bin/restic backup \
+    {{ restic_extra_args }} \
+    --exclude-file=/etc/restic/excludes.txt \
+{% for path in restic_paths %}
+    {{ path }}{{ " \\" if not loop.last else "" }}
+{% endfor %}
+
+
+# Prune old snapshots
+ExecStartPost=/usr/bin/restic forget {{ restic_prune_opts }}

@@ -1,0 +1,21 @@
+# Managed by Ansible — WireGuard VPN
+[NetDev]
+Name=wg0
+Kind=wireguard
+MTUBytes=1350
+
+[WireGuard]
+ListenPort={{ wireguard_listen_port }}
+PrivateKeyFile={{ wireguard_private_key_file }}
+
+{% for peer in wireguard_peers %}
+[WireGuardPeer]
+# {{ peer.name }}
+PublicKey={{ peer.public_key }}
+AllowedIPs={{ peer.allowed_ips | join(', ') }}
+{% if peer.name == 'tsugumi-machine' %}
+Endpoint={{ wireguard_endpoint }}
+{% endif %}
+PersistentKeepalive=25
+
+{% endfor %}

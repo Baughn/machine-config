@@ -1,0 +1,26 @@
+# Managed by Ansible — Background Process Manager for Ganbot
+[Unit]
+Description=Background Process Manager for Ganbot
+After=network.target
+Wants=network-online.target
+
+[Service]
+User=svein
+Group=users
+WorkingDirectory={{ ganbot_dir }}
+Type=simple
+Restart=always
+RestartSec=10s
+
+Environment=RUST_BACKTRACE=1
+Environment=RUST_LOG=background_process_manager=info,ganbot=debug
+
+ExecStart={{ ganbot_dir }}/target/release/ganbot
+
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths={{ ganbot_dir }}
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

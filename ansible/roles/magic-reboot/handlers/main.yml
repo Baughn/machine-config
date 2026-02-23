@@ -1,0 +1,3 @@
+---
+- name: rebuild dkms
+  command: dkms autoinstall

@@ -1,0 +1,28 @@
+---
+- name: Install openssh and google-authenticator
+  pacman:
+    name:
+      - openssh
+      - libpam-google-authenticator
+    state: present
+
+- name: Deploy sshd_config
+  template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    mode: "0644"
+    validate: "sshd -t -f %s"
+  notify: restart sshd
+
+- name: Deploy PAM config for sshd
+  template:
+    src: pam-sshd.j2
+    dest: /etc/pam.d/sshd
+    mode: "0644"
+  notify: restart sshd
+
+- name: Enable and start sshd
+  systemd:
+    name: sshd
+    enabled: true
+    state: started

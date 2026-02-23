@@ -1,0 +1,15 @@
+# Managed by Ansible — PAM config for sshd with Google Authenticator
+#%PAM-1.0
+auth      required  pam_google_authenticator.so nullok
+auth      required  pam_unix.so     try_first_pass
+auth      required  pam_env.so
+
+account   required  pam_unix.so
+account   required  pam_nologin.so
+
+password  required  pam_unix.so
+
+session   required  pam_unix.so
+session   required  pam_loginuid.so
+session   optional  pam_keyinit.so  force revoke
+session   optional  pam_motd.so

@@ -1,0 +1,22 @@
+# Managed by Ansible — ComfyUI image generation server
+[Unit]
+Description=ComfyUI image generation server
+After=network.target
+Wants=network-online.target
+
+[Service]
+User=svein
+Group=users
+WorkingDirectory={{ comfyui_dir }}
+Type=simple
+Restart=always
+RestartSec=10s
+
+Environment=PATH=/home/svein/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/svein/.local/bin/comfy --workspace {{ comfyui_dir }} --skip-prompt launch -- --listen
+
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

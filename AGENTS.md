@@ -2,15 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# Project: NixOS Configuration
+# Project: Hybrid System Configuration
 
 Updates and modifications are handled from saya. tsugumi.local and v4.brage.info
 can be contacted through ssh.
 
-This repository contains NixOS configuration files for three machines:
-- **saya**: Desktop system (AMD 7950X3D + RTX 4090, gaming/workstation)
-- **tsugumi**: Server system (ZFS storage, various services)
-- **v4**: IPv4 proxy server
+This repository manages three machines with a hybrid approach:
+- **saya**: Desktop (AMD 7950X3D + RTX 4090) — **CachyOS** + Ansible + home-manager standalone
+- **tsugumi**: Server (ZFS storage, various services) — **NixOS** via colmena
+- **v4**: IPv4 proxy server — **NixOS** via colmena
 
 ## Important Context
 
@@ -19,17 +19,27 @@ This repository contains NixOS configuration files for three machines:
 All work happens on saya. If you see this, then chances are you're running on saya.
 
 ### Architecture Overview
-The configuration uses:
+
+**saya (CachyOS):**
+- System packages: `pacman`/`paru` (no declarative package list)
+- System config: **Ansible** playbooks in `ansible/` (WireGuard, firewall, users, services)
+- User config: **home-manager standalone** (`home-manager switch --flake .#svein`)
+- Kernel/desktop/drivers: handled natively by CachyOS (sched-ext, gamemode, mhwd)
+
+**tsugumi + v4 (NixOS):**
 - **Nix Flakes** for reproducible builds
 - **Colmena** for deployment management
 - **Modular design** with shared modules in `modules/`
-- **Machine-specific** configurations in `machines/` (saya, tsugumi, v4)
+- Machine-specific configurations in `machines/` (tsugumi, v4)
 - **Agenix** for secrets management (encrypted .age files in `secrets/`)
-- **Custom tools** in `tools/` (Rust-based services and utilities)
+
+**Shared across all:**
+- **home-manager** for user-level config (fish, zsh, git, jujutsu, SSH, neovim, tmux, direnv)
+- Custom tools in `tools/` (Rust-based services and utilities)
 
 ## Essential workflows
 
-### Adding a package, tool, piece of software or service
+### Adding a package to NixOS machines (tsugumi, v4)
 
 1. Use mcp-nixos to check for a NixOS option for the piece of software. Servers are typically in the service hierarchy. Programs (steam, mtr, etc.) are typically under programs.
    ALWAYS do this, even if you think you know the correct config options. Keeping the defaults is often fine.
@@ -38,20 +48,48 @@ The configuration uses:
 
 Note: A programs.<program>.enable entry will do the equivalent of add-package; don't use both.
 
+### Adding a package to saya (CachyOS)
+
+Use `paru -S <package>` or `pacman -S <package>`. No declarative config needed.
+
+### Adding user-level config (applies to saya)
+
+Edit files in `home/`. For saya-only config, guard with `lib.optionals isStandalone` or `lib.optionalAttrs isStandalone`.
+
+### Adding system-level config to saya
+
+Edit Ansible roles in `ansible/roles/` or add new roles to `ansible/site.yml`.
+
 ## Essential Commands
 
-### Build and Deploy
+### Build and Deploy (NixOS machines)
 ```bash
 # Check configuration validity
 nix flake check
 
-# Build and view changes
-colmena apply --on saya    # Deploy to specific machine
-colmena apply              # Deploy to all machines
-colmena apply-local --sudo # Deploy to current machine only
+# Deploy to remote NixOS machines
+colmena apply --on @remote
 
-# View what would change
-nixos-rebuild dry-activate --flake .#hostname
+# Build all NixOS systems
+nom build .#all-systems
+```
+
+### Update saya (CachyOS)
+```bash
+# System update
+sudo cachy-update
+
+# Home-manager
+home-manager switch --flake .#svein
+
+# Ansible (system config)
+ansible-playbook ansible/site.yml
+ansible-playbook --check ansible/site.yml  # dry run
+```
+
+### Full Update (all machines)
+```bash
+python update.py  # Interactive: flake update, build, deploy menu
 ```
 
 ### Linting and Formatting
@@ -66,7 +104,7 @@ nix flake check  # This runs automatically on stop; there is normally no need to
 
 ### Development Tools
 ```bash
-# Add a new package
+# Add a new package (NixOS machines only)
 ./add-package.sh <package-name>
 
 # Access nixpkgs source for reference
@@ -82,65 +120,89 @@ cd ~/dev/nixpkgs/
 - Use `lib.mkIf` for conditional configurations
 
 ### Module Organization
-- Shared modules in `modules/` export options under `me.*`
+- Shared NixOS modules in `modules/` export options under `me.*`
 - Machine configs import modules and set machine-specific values
-- Application lists in `modules/cliApps.json` and `modules/desktopApps.json`
-- Hardware quirks in `quirks/` for specific hardware issues
+- Application lists in `modules/cliApps.json` and `modules/desktopApps.json` (NixOS only)
+- Hardware quirks archived in `archive/saya-nixos/` (reference only)
+
+### Ansible Style
+- Roles in `ansible/roles/`, one per concern
+- Templates use `.j2` extension
+- Variables in `ansible/group_vars/all.yml` and `ansible/host_vars/saya.yml`
+- System secrets via Ansible vault; user secrets via agenix + home-manager
+
+### Home-manager Organization
+- Shared config in `home/home.nix` (used by NixOS, Darwin, and standalone)
+- Standalone-only modules: `home/neovim.nix`, `home/tmux.nix`, `home/zsh-ohmyzsh.nix`
+- Guard saya-specific config with `isStandalone`
 
 ## Secrets Management
-- Secrets are managed with agenix
-- Encrypted `.age` files in `secrets/`
-- Only secrets for the current host are decrypted
+- **NixOS machines**: agenix (encrypted `.age` files in `secrets/`)
+- **saya user secrets**: agenix via home-manager standalone (restic.pw, magic-reboot sender key)
+- **saya system secrets**: Ansible vault (WireGuard private key, magic-reboot listener key)
 - Never commit unencrypted secrets
-- Host public keys in `machines/*/ssh_host_ed25519_key.pub`
 
 ## Machine-Specific Notes
 
-### saya (Desktop)
-- Gaming optimizations with GameMode and AMD X3D quirks
-- Restic backups to tsugumi every 30 minutes
-- Logitech G903 mouse scroll fix applied
-- Core pinning for V-Cache optimization
+### saya (Desktop — CachyOS)
+- CachyOS kernel with sched-ext (replaces NixOS zen kernel + scx_bpfland)
+- GameMode with V-Cache core pinning (via Ansible `gamemode` role)
+- NVIDIA drivers via mhwd (replaces modules/nvidia.nix)
+- Restic backups to tsugumi every 30 minutes (via Ansible `restic-backup` role)
+- Logitech G903 mouse scroll fix (via Ansible `hardware-quirks` role)
+- WireGuard VPN to tsugumi (via Ansible `wireguard` role)
+- G-Sync/VRR and WINE_CPU_TOPOLOGY env vars (via home-manager sessionVariables)
+- Custom Rust tools (ping-discord, network-monitor) via home-manager packages
 
-### tsugumi (Server)
+### tsugumi (Server — NixOS)
 - ZFS filesystem (migration pending)
 - Hosts various services (see MIGRATION_PLANS.md)
 - NVIDIA persistence daemon for GPU
 - Target for backup storage
 
-### v4 (Proxy)
+### v4 (Proxy — NixOS)
 - Simple IPv4 proxy using custom Rust tool
 - Minimal configuration
 
 ## Common Tasks
 
-### Adding a New Module
+### Adding a New NixOS Module
 1. Create module file in `modules/`
 2. Add to imports in `modules/default.nix`
 3. Use `me.*` namespace for options
 4. Run `./tools-for-claude/lint.sh`
 
+### Adding a New Ansible Role
+1. Create role directory in `ansible/roles/<name>/`
+2. Add `tasks/main.yml` (and templates/, handlers/ as needed)
+3. Add role to `ansible/site.yml`
+4. Add variables to `ansible/host_vars/saya.yml`
+
 ### Adding a New Machine
 1. Generate SSH keys: `ssh-keygen -t ed25519`
 2. Create `machines/hostname/configuration.nix`
-3. Add to `flake.nix` under `nixosConfigurations`
-4. Add to `colmena` in `flake.nix`
-5. Configure in `secrets/secrets.nix` if using secrets
+3. Add to `flake.nix` under `machineConfigs`
+4. Configure in `secrets/secrets.nix` if using secrets
 
 ### Updating Dependencies
 ```bash
 python update.py  # Interactive update process; must be run by user on their own
 # OR manually:
 nix flake update
-nix build .#nixosConfigurations.hostname.config.system.build.toplevel
+nom build .#all-systems
 ```
 
 ## Important Files
 - `flake.nix` - Main entry point and system definitions
-- `update.py` - Automated update script with diff viewing
-- `modules/default.nix` - Core module importing all others
+- `update.py` - Automated update script (NixOS + CachyOS dual-mode)
+- `modules/default.nix` - Core NixOS module importing all others
+- `home/home.nix` - Shared home-manager configuration
+- `home/neovim.nix` - Standalone neovim config (saya/Darwin)
+- `home/tmux.nix` - Standalone tmux config (saya/Darwin)
+- `ansible/site.yml` - Ansible master playbook for saya
 - `MIGRATION_PLANS.md` - Critical migration tracking document
 - `secrets/secrets.nix` - Age encryption key management
+- `archive/saya-nixos/` - Archived NixOS config for saya (reference only)
 
 ## Troubleshooting
 - New files break the build until committed with `jj commit`
@@ -148,12 +210,12 @@ nix build .#nixosConfigurations.hostname.config.system.build.toplevel
 - Check `jj status` before committing to ensure all files are tracked
 - For option errors, use `search-options.sh` to verify correct syntax
 - Deployment failures: check machine connectivity and SSH access
+- Ansible dry-run: `ansible-playbook --check ansible/site.yml`
 
 ## Additional Context
 - Jumbo frames enabled for local network (9000 MTU)
-- Distributed builds planned but not yet configured
-- Many services pending migration from old configuration
 - Custom Rust tools in `tools/` have their own Cargo.toml files
+- `machines/saya/` directory still exists but is archived — do not modify
 
 ## Version Control
 **IMPORTANT**: This project uses Jujutsu (jj) instead of Git. DO NOT use git commands.

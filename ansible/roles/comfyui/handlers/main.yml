@@ -1,0 +1,6 @@
+---
+- name: restart comfyui
+  systemd:
+    name: comfyui
+    state: restarted
+    daemon_reload: true

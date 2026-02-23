@@ -6,7 +6,7 @@
     enable = true;
     exports = ''
       # Export home directory only to saya via WireGuard (10.171.0.6)
-      /home/svein 10.171.0.6(rw)
+      /home/svein 10.171.0.6(rw,crossmnt)
     '';
   };
 

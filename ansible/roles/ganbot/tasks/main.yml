@@ -1,0 +1,14 @@
+---
+- name: Deploy ganbot (background-process-manager) service
+  template:
+    src: ganbot.service.j2
+    dest: /etc/systemd/system/ganbot.service
+    mode: "0644"
+  notify: restart ganbot
+
+- name: Enable and start ganbot
+  systemd:
+    name: ganbot
+    enabled: true
+    state: started
+    daemon_reload: true

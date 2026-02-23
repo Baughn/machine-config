@@ -1,0 +1,13 @@
+---
+- name: Deploy Logitech G903 scroll fix
+  copy:
+    src: g903-scroll-fix.quirks
+    dest: /etc/libinput/local-overrides.quirks
+    mode: "0644"
+
+- name: Install openrazer
+  pacman:
+    name:
+      - openrazer-daemon
+      - openrazer-driver-dkms
+    state: present

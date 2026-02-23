@@ -1,0 +1,20 @@
+# Managed by Ansible — sshd configuration
+Port 22
+AddressFamily any
+ListenAddress 0.0.0.0
+ListenAddress ::
+
+PubkeyAuthentication yes
+PasswordAuthentication yes
+KbdInteractiveAuthentication yes
+ChallengeResponseAuthentication yes
+AuthenticationMethods publickey keyboard-interactive:pam
+
+UsePAM yes
+
+X11Forwarding no
+PrintMotd no
+
+AcceptEnv LANG LC_*
+
+Subsystem sftp /usr/lib/ssh/sftp-server

@@ -193,6 +193,7 @@ in
             admin_user = "admin";
             admin_password = "$__file{${config.age.secrets."grafana-admin-password".path}}";
             disable_gravatar = true;
+            secret_key = "$__file{${config.age.secrets."grafana-admin-password".path}}";
           };
 
           # Anonymous access disabled - use Authelia

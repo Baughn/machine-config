@@ -1,0 +1,5 @@
+---
+- name: restart wireguard
+  systemd:
+    name: systemd-networkd
+    state: restarted

@@ -9,9 +9,6 @@
     nixpkgs-lagging.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     # Default channel without local changes (if any)
     nixpkgs-upstream.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    # Master branch (pre-build)
-    nixpkgs-master.url = "github:nixos/nixpkgs?ref=master";
-
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
 
     nix-index-database.url = "github:nix-community/nix-index-database";
@@ -31,18 +28,9 @@
 
     nix-darwin.url = "github:nix-darwin/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs-upstream";
-
-    ganbot.url = "git+file:///home/svein/dev/ganbot?ref=master";
-    ganbot.inputs.nixpkgs.follows = "nixpkgs";
-
-    dessplay.url = "git+file:///home/svein/dev/dessplay";
-    dessplay.inputs.nixpkgs.follows = "nixpkgs";
-
-    background-process-manager.url = "github:Baughn/background-process-manager";
-    background-process-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-master, determinate, nix-index-database, colmena, agenix, home-manager, lanzaboote, nix-darwin, ... }@inputs:
+  outputs = { self, nixpkgs, determinate, nix-index-database, colmena, agenix, home-manager, lanzaboote, nix-darwin, ... }@inputs:
     let
       # Custom library functions
       mylib = import ./lib { lib = nixpkgs.lib; };
@@ -97,15 +85,8 @@
         specialArgs = { inherit inputs mylib; };
       };
 
-      # Machine configurations
+      # Machine configurations (saya removed — now managed by CachyOS + Ansible)
       machineConfigs = {
-        saya = {
-          modules = [ ./machines/saya/configuration.nix ];
-          deployment = {
-            targetHost = "localhost";
-            allowLocalDeployment = true;
-          };
-        };
         testcase = {
           modules = [ ./machines/testcase/configuration.nix ];
           deployment = {
@@ -228,7 +209,11 @@
             home.homeDirectory = "/home/svein";
           }
         ];
-        extraSpecialArgs = { isDarwin = false; isStandalone = true; };
+        extraSpecialArgs = {
+          isDarwin = false;
+          isStandalone = true;
+          colmenaPackage = colmena.packages.x86_64-linux.colmena;
+        };
       };
     };
 }

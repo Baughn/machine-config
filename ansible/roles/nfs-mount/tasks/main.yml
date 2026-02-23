@@ -1,0 +1,19 @@
+---
+- name: Install nfs-utils
+  pacman:
+    name: nfs-utils
+    state: present
+
+- name: Create NFS mount point
+  file:
+    path: "{{ nfs_mount_point }}"
+    state: directory
+    mode: "0755"
+
+- name: Mount NFS share via fstab (systemd automount)
+  ansible.posix.mount:
+    src: "{{ nfs_mount_device }}"
+    path: "{{ nfs_mount_point }}"
+    fstype: nfs4
+    opts: "nfsvers=4.2,_netdev,auto,x-systemd.automount,x-systemd.idle-timeout=600,rsize=1048576,wsize=1048576,timeo=14,intr"
+    state: mounted

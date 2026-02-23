@@ -1,4 +1,4 @@
-{ pkgs, lib, config, isDarwin, isStandalone, ... }:
+{ pkgs, lib, config, isDarwin, isStandalone, colmenaPackage ? null, ... }:
 
 let
   # Build the magic-reboot sender
@@ -8,11 +8,18 @@ let
   magic-reboot = pkgs.writeShellScriptBin "magic-reboot" ''
     exec ${magic-reboot-send}/bin/magic-reboot-send --key ${config.age.secrets.magic-reboot-key.path} "$@"
   '';
+
+  # Custom Rust tools (standalone-only, NixOS machines get these via modules/default.nix)
+  ping-discord = pkgs.callPackage ../tools/ping-discord { };
+  network-monitor = pkgs.callPackage ../tools/network-monitor { };
 in
 
 {
-  # Import Oh My Zsh config only on Darwin (NixOS uses system-wide config)
-  imports = lib.optionals isStandalone [ ./zsh-ohmyzsh.nix ];
+  # Import standalone-only modules:
+  # - zsh-ohmyzsh: NixOS uses system-wide config in modules/zsh.nix
+  # - neovim: NixOS uses modules/neovim.nix
+  # - tmux: NixOS uses modules/tmux.nix
+  imports = lib.optionals isStandalone [ ./zsh-ohmyzsh.nix ./neovim.nix ./tmux.nix ];
 
   # Environment Variables
   home = {
@@ -21,6 +28,12 @@ in
       # Claude
       BASH_DEFAULT_TIMEOUT_MS = 300000;
       BASH_MAX_TIMEOUT_MS = 1800000;
+    } // lib.optionalAttrs isStandalone {
+      # G-Sync/VRR (moved from modules/nvidia.nix)
+      __GL_GSYNC_ALLOWED = "1";
+      __GL_VRR_ALLOWED = "1";
+      # AMD 7950X3D V-Cache core topology for Wine (moved from quirks/amd-x3d.nix)
+      WINE_CPU_TOPOLOGY = "16:0,1,2,3,4,5,6,7,16,17,18,19,20,21,22,23";
     };
 
     # Add directories to PATH
@@ -199,17 +212,45 @@ in
   # Agenix secret decryption
   age = {
     identityPaths = [ "${config.home.homeDirectory}/.ssh/id_ed25519" ];
-    secrets.magic-reboot-key.file = ../secrets/magic-reboot.key.age;
+    secrets.magic-reboot-key = {
+      file = ../secrets/magic-reboot.key.age;
+      path = "${config.home.homeDirectory}/.config/agenix/magic-reboot.key";
+    };
+    secrets.wireguard-saya = {
+      file = ../secrets/wireguard-saya.age;
+      path = "${config.home.homeDirectory}/.config/agenix/wireguard-saya";
+    };
+    secrets.restic-pw = {
+      file = ../secrets/restic.pw.age;
+      path = "${config.home.homeDirectory}/.config/agenix/restic.pw";
+    };
   };
 
   # Additional packages
   home.packages = [
     magic-reboot
-  ];
+    pkgs.nix-output-monitor
+  ] ++ lib.optionals isStandalone ([
+    # Custom Rust tools (NixOS machines get these via modules/default.nix)
+    ping-discord
+    network-monitor
+  ] ++ lib.optional (colmenaPackage != null) colmenaPackage);
 
   # Symlink claude files back to ~/.claude
   home.file = {
-    ".claude/CLAUDE.md".source = ../docs/CLAUDE.md;
+    ".claude/CLAUDE.md".text =
+      let
+        platform =
+          if isStandalone then "The machine runs on CachyOS (Arch-based). Use pacman/paru to install packages. nix-shell is also available."
+          else if isDarwin then "The machine runs on macOS with nix-darwin."
+          else "The machine runs on NixOS. nix-shell is available if a command is missing. If you see 'command not found', try again with nix-shell.";
+      in
+      ''
+        - If there is a battle tested, well known package that can help us, always recommend it. Ask the user's opinion before proceeding.
+        - ${platform}
+        - When working with rust, look in the rust registry if you need more information on a library.
+        - There is project-specific documentation in docs/. Use it when it exists, though bear in mind it may be outdated. Check the 'last updated' tag at the top.
+      '';
     ".claude/agents" = {
       source = ../docs/agents;
       recursive = true;

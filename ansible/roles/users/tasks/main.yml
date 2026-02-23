@@ -1,0 +1,23 @@
+---
+- name: Create user accounts
+  user:
+    name: "{{ item.key }}"
+    uid: "{{ item.value.uid }}"
+    shell: "{{ item.value.shell | default('/bin/zsh') }}"
+    create_home: "{{ item.value.create_home | default(true) }}"
+    groups: "{{ item.value.extra_groups | default([]) }}"
+    append: true
+  loop: "{{ users | dict2items }}"
+
+- name: Set up SSH authorized_keys
+  authorized_key:
+    user: "{{ item.key }}"
+    key: "{{ item.value.ssh_keys | join('\n') }}"
+    exclusive: true
+  loop: "{{ users | dict2items }}"
+  when: item.value.ssh_keys | default([]) | length > 0 and item.key != 'minecraft'
+
+- name: Enable linger for minecraft user
+  command: loginctl enable-linger minecraft
+  changed_when: false
+  when: users.minecraft is defined

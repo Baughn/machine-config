@@ -1,0 +1,10 @@
+# Managed by Ansible — restic backup timer
+[Unit]
+Description=Restic backup timer
+
+[Timer]
+OnCalendar={{ restic_timer_calendar }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target

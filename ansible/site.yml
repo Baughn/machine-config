@@ -1,0 +1,17 @@
+---
+- name: Configure saya (CachyOS desktop)
+  hosts: saya
+  become: true
+
+  roles:
+    - common
+    - wireguard
+    - nfs-mount
+    - users
+    - ssh-server
+    - restic-backup
+    - ganbot
+    - comfyui
+    - gamemode
+    - hardware-quirks
+    - magic-reboot

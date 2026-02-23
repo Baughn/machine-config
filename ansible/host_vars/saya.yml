@@ -1,0 +1,45 @@
+---
+hostname: saya
+timezone: Europe/Dublin
+
+# WireGuard
+wireguard_address: "10.171.0.6/24"
+wireguard_private_key_file: /etc/wireguard/saya.key
+wireguard_listen_port: 51820
+wireguard_endpoint: "tsugumi.local:51820"
+
+# Restic backup
+restic_repository: "sftp:svein@tsugumi.local:short-term/backups/saya"
+restic_password_file: /home/svein/.config/agenix/restic.pw
+restic_paths:
+  - /home/svein
+restic_excludes:
+  - "/home/*/.cache/*"
+  - "!/home/*/.cache/huggingface"
+  - "/home/*/.local/share/baloo/*"
+  - "**/shadercache"
+  - "**/Cache"
+  - "**/cache"
+  - "**/_cacache"
+  - "**/.venv"
+  - "**/venv"
+  - "**/ComfyUI/output"
+restic_extra_args: "--exclude-caches --compression=max --read-concurrency=4"
+restic_timer_calendar: "*:0/30"
+restic_prune_opts: "--keep-hourly=36 --keep-daily=7 --keep-weekly=4 --keep-monthly=3"
+
+# Ganbot / ComfyUI
+comfyui_dir: /home/svein/ai/comfy
+ganbot_dir: /home/svein/dev/ganbot
+
+# NFS mount
+nfs_mount_device: "10.171.0.1:/home/svein"
+nfs_mount_point: /tsugumi
+
+# Firewall
+firewall_tcp_ports: [8188, 8485, 3001, 42420]
+firewall_udp_ports: [34197, 5353, 5355, 51820, 4433, 9099, 999, 42420]
+
+# Magic reboot
+magic_reboot_port: 999
+magic_reboot_key_file: /etc/magic-reboot/key

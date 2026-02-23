@@ -1,0 +1,12 @@
+---
+- name: Ensure gamemode config directory exists
+  file:
+    path: /etc/gamemode.d
+    state: directory
+    mode: "0755"
+
+- name: Deploy GameMode configuration with V-Cache core pinning
+  template:
+    src: gamemode.ini.j2
+    dest: /etc/gamemode.d/gamemode.ini
+    mode: "0644"

@@ -2,7 +2,6 @@
   imports = [
     ./hardware-configuration.nix
     ../../modules/v4proxy.nix
-    ../../modules/rendezvous.nix
     ../../modules
   ];
 
@@ -18,18 +17,6 @@
       { protocol = "udp"; localPort = 27015; target = "saya.brage.info"; }
       { protocol = "udp"; localPort = 27016; target = "saya.brage.info"; }
     ];
-  };
-
-  # DessPlay rendezvous server
-  services.rendezvous = {
-    enable = true;
-    passwordFile = config.age.secrets."rendezvous.key".path;
-  };
-  services.dessplay-claude = {
-    enable = true;
-    server = "localhost";
-    passwordFile = config.age.secrets."rendezvous.key".path;
-    apiKeyFile = config.age.secrets."claude-api.key".path;
   };
 
   environment.systemPackages = with pkgs; [

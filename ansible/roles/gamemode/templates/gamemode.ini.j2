@@ -1,0 +1,8 @@
+; Managed by Ansible — GameMode configuration for AMD 7950X3D
+[general]
+; Pin game threads to the V-Cache cores (Logical cores 0-7 and their SMT siblings 16-23)
+pin_cores=0-7,16-23
+
+; Park the frequency cores (Logical cores 8-15 and their SMT siblings 24-31)
+; This prevents stutter from inter-CCD traffic
+park_cores=8-15,24-31

@@ -1,0 +1,7 @@
+# Managed by Ansible — WireGuard VPN network
+[Match]
+Name=wg0
+
+[Network]
+Address={{ wireguard_address }}
+MulticastDNS=yes
