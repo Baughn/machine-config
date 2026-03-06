@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(for f in /etc/sysctl.d/*.conf)",
+      "Bash(do echo \"=== $f ===\")",
+      "Read(//home/svein/dev/cachy-nix/**)",
+      "Bash(done)",
+      "Bash(systemctl list-unit-files:*)",
+      "Read(//boot/loader/**)",
+      "Read(//boot/**)",
+      "Read(//boot/limine/**)",
+      "Bash(timedatectl:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Read(//usr/lib/systemd/**)",
+      "Bash(zramctl)",
+      "Bash(nvidia-smi --query-gpu=name,driver_version --format=csv)",
+      "Bash(lscpu)",
+      "Bash(cat /etc/NetworkManager/conf.d/*.conf)",
+      "Read(//sys/kernel/debug/sched/**)",
+      "Bash(cat /proc/sys/kernel/sched_*)",
+      "Bash(zcat /proc/config.gz)",
+      "Bash(sysctl vm.swappiness vm.vfs_cache_pressure vm.dirty_ratio vm.dirty_background_ratio net.core.default_qdisc net.ipv4.tcp_congestion_control kernel.sched_autogroup_enabled)",
+      "Read(//sys/kernel/mm/transparent_hugepage/**)",
+      "Bash(sysctl vm.dirty_bytes vm.dirty_background_bytes)",
+      "Bash(sysctl vm.page-cluster vm.page_lock_unfairness)",
+      "Bash(sysctl net.core.somaxconn net.core.netdev_max_backlog net.ipv4.tcp_fastopen net.ipv4.tcp_max_syn_backlog)",
+      "Bash(sysctl kernel.sched_bore)",
+      "Read(//sys/devices/system/cpu/cpufreq/policy0/**)",
+      "Bash(pacman -Qm)",
+      "Bash(for f in /usr/lib/udev/rules.d/20-audio-pm.rules /usr/lib/udev/rules.d/30-zram.rules /usr/lib/udev/rules.d/40-hpet-permissions.rules /usr/lib/udev/rules.d/50-sata.rules /usr/lib/udev/rules.d/60-ioschedulers.rules /usr/lib/udev/rules.d/69-hdparm.rules /usr/lib/udev/rules.d/71-nvidia.rules /usr/lib/udev/rules.d/99-cpu-dma-latency.rules)",
+      "Bash(pacman:*)"
+    ]
+  }
+}
