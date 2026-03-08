@@ -1,16 +1,17 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
-    chaotic.inputs.nixpkgs.follows = "nixpkgs";
+    nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
   };
 
-  outputs = { nixpkgs, chaotic, ... }: {
+  outputs = { nixpkgs, nix-cachyos-kernel, ... }: {
     nixosConfigurations.saya = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
         ./configuration.nix
-        chaotic.nixosModules.default
+        ({ pkgs, ... }: {
+          nixpkgs.overlays = [ nix-cachyos-kernel.overlays.pinned ];
+        })
       ];
     };
   };

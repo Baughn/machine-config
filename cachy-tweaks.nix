@@ -4,15 +4,15 @@
 # sysctl tunables, systemd overrides). These are safe, well-tested defaults
 # used by CachyOS on tens of thousands of desktop/gaming systems.
 #
-# The CachyOS kernel itself is provided by chaotic-cx/nyx via flake.nix.
+# The CachyOS kernel itself is provided by xddxdd/nix-cachyos-kernel via flake.nix.
 
 { config, lib, pkgs, ... }:
 
 {
   # === CachyOS Kernel ========================================================
   # Provides BORE scheduler, sched-ext, BBRv3, NTSync, CAKE qdisc, and more.
-  # Binary cache is available via chaotic-cx infrastructure.
-  boot.kernelPackages = pkgs.linuxPackages_cachyos;
+  # Binary cache available via xddxdd's attic and garnix CI.
+  boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest;
 
   # === ZRAM ==================================================================
   # Compressed swap in RAM using zstd. With compression, effective capacity is
