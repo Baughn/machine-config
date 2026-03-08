@@ -73,12 +73,15 @@
     ];
   };
   environment.systemPackages = with pkgs; [
-    neovim ghostty jujutsu git
+    neovim ghostty jujutsu git firefox
   ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.cores = 16;
   nixpkgs.config.allowUnfree = true;
+  programs.htop.enable = true;
   programs.mtr.enable = true;
   programs.steam.enable = true;
+  programs.tmux.enable = true;
 
   environment.homeBinInPath = true;
   environment.localBinInPath = true;

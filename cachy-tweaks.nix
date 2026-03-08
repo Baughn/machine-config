@@ -15,6 +15,16 @@
     ./znver4.nix
   ];
 
+  # The nix daemon must advertise gccarch-znver4 (and its inferiors) as a
+  # system feature, otherwise it refuses to build derivations that require it.
+  # This has to be done *before* enabling znver4.
+  nix.settings.system-features = [
+    "nixos-test" "benchmark" "big-parallel" "kvm"
+    "gccarch-znver4" "gccarch-znver3" "gccarch-znver2" "gccarch-znver1"
+    "gccarch-x86-64-v4" "gccarch-x86-64-v3" "gccarch-x86-64-v2" "gccarch-x86-64"
+    "gccarch-skylake" "gccarch-broadwell" "gccarch-haswell"
+  ];
+
   # === CachyOS Kernel ========================================================
   # Provides BORE scheduler, sched-ext, BBRv3, NTSync, CAKE qdisc, and more.
   # Binary cache available via xddxdd's attic and garnix CI.

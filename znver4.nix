@@ -19,4 +19,8 @@
     gcc.arch = "znver4";
     gcc.tune = "znver4";
   };
+
+  nixpkgs.overlays = [(self: super: {
+    nix = super.nix.overrideAttrs ({ doCheck = false; });
+  })];
 }
