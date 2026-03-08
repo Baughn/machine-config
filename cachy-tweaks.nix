@@ -9,6 +9,12 @@
 { config, lib, pkgs, ... }:
 
 {
+  imports = [
+    # Compile everything for Zen version 4
+    # This means zero binary cache hits!
+    ./znver4.nix
+  ];
+
   # === CachyOS Kernel ========================================================
   # Provides BORE scheduler, sched-ext, BBRv3, NTSync, CAKE qdisc, and more.
   # Binary cache available via xddxdd's attic and garnix CI.
