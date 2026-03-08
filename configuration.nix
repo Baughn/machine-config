@@ -49,6 +49,7 @@
   };
 
   environment.sessionVariables = {
+    "EDITOR" = "nvim";
     "LESS" = "FRX";
   };
   programs.zsh = {
