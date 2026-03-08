@@ -116,11 +116,11 @@
   # Uncomment to enable. Adjusts nice, ionice, scheduling class, OOM score
   # per-process based on CachyOS community rules.
   #
-  # services.ananicy = {
-  #   enable = true;
-  #   package = pkgs.ananicy-cpp;
-  #   rulesProvider = pkgs.ananicy-cpp;
-  # };
+  services.ananicy = {
+    enable = true;
+    package = pkgs.ananicy-cpp;
+    rulesProvider = pkgs.ananicy-cpp;
+  };
 
   # === Optional: KSM (Kernel Same-page Merging) ==============================
   # Deduplicates identical memory pages. Useful for VMs and similar workloads.
