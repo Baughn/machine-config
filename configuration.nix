@@ -74,6 +74,7 @@
   environment.systemPackages = with pkgs; [
     neovim ghostty jujutsu
   ];
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nixpkgs.config.allowUnfree = true;
   programs.mtr.enable = true;
   programs.steam.enable = true;
