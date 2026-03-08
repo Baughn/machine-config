@@ -77,6 +77,14 @@
   programs.mtr.enable = true;
   programs.steam.enable = true;
 
+  environment.homeBinInPath = true;
+  environment.localBinInPath = true;
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [
+    # Add any missing dynamic libraries for unpackaged programs
+    # here, NOT in environment.systemPackages
+  ];
+
   # This option defines the first version of NixOS you have installed on this particular machine,
   # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.
   #
