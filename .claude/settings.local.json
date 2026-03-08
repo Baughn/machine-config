@@ -29,7 +29,11 @@
       "Read(//sys/devices/system/cpu/cpufreq/policy0/**)",
       "Bash(pacman -Qm)",
       "Bash(for f in /usr/lib/udev/rules.d/20-audio-pm.rules /usr/lib/udev/rules.d/30-zram.rules /usr/lib/udev/rules.d/40-hpet-permissions.rules /usr/lib/udev/rules.d/50-sata.rules /usr/lib/udev/rules.d/60-ioschedulers.rules /usr/lib/udev/rules.d/69-hdparm.rules /usr/lib/udev/rules.d/71-nvidia.rules /usr/lib/udev/rules.d/99-cpu-dma-latency.rules)",
-      "Bash(pacman:*)"
+      "Bash(pacman:*)",
+      "Bash(nixos-option:*)",
+      "Read(//nix/store/p54mlaxa3a2mvd25sw6gjpgpl8d0fwcj-nixos-25.11.7198.71caefce12ba/nixos/nixos/modules/**)",
+      "Read(//nix/store/p54mlaxa3a2mvd25sw6gjpgpl8d0fwcj-nixos-25.11.7198.71caefce12ba/nixos/pkgs/top-level/**)",
+      "Bash(sysctl:*)"
     ]
   }
 }
