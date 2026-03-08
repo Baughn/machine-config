@@ -83,11 +83,11 @@
   '';
 
   # === Systemd ===============================================================
-  systemd.extraConfig = ''
-    DefaultTimeoutStartSec=15s
-    DefaultTimeoutStopSec=10s
-    DefaultLimitNOFILE=2048:2097152
-  '';
+  systemd.settings.Manager = {
+    DefaultTimeoutStartSec = "15s";
+    DefaultTimeoutStopSec = "10s";
+    DefaultLimitNOFILE = "2048:2097152";
+  };
 
   services.journald.extraConfig = ''
     SystemMaxUse=50M
