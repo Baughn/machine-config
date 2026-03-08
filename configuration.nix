@@ -72,7 +72,7 @@
     ];
   };
   environment.systemPackages = with pkgs; [
-    neovim ghostty jujutsu
+    neovim ghostty jujutsu git
   ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nixpkgs.config.allowUnfree = true;
