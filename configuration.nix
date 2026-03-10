@@ -17,6 +17,19 @@
 
   networking.hostName = "saya";
   networking.networkmanager.enable = true;
+  networking.networkmanager.dns = "systemd-resolved";
+
+  # Use systemd-resolved for fast local DNS caching with Google/Cloudflare
+  services.resolved = {
+    enable = true;
+    settings.Resolve = {
+      dnssec = "allow-downgrade";
+      domains = [ "~." ];
+      DNS = "8.8.8.8 8.8.4.4 2001:4860:4860::8888 2001:4860:4860::8844";
+      FallbackDNS = "1.1.1.1 1.0.0.1 2606:4700:4700::1111 2606:4700:4700::1001";
+    };
+  };
+
   time.timeZone = "Europe/Dublin";
 
   # Select internationalisation properties.
@@ -33,11 +46,20 @@
 
   security.sudo.wheelNeedsPassword = false;
   services.openssh.enable = true;
+  services.xserver.enable = true;
   services.xserver.videoDrivers = [ "nvidia" ];
-  hardware.nvidia.open = true;
+  hardware.nvidia = {
+    modesetting.enable = true;
+    open = true;
+    nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.beta;
+  };
   services.displayManager.enable = true;
   services.displayManager.gdm.enable = true;
   services.displayManager.gdm.autoSuspend = false;
+  services.desktopManager.gnome.enable = true;
+  #services.displayManager.sddm.enable = true;
+  #services.displayManager.sddm.wayland.enable = false;
   services.desktopManager.plasma6.enable = true;
 
   users.users.svein = {
@@ -73,7 +95,8 @@
     ];
   };
   environment.systemPackages = with pkgs; [
-    neovim ghostty jujutsu git firefox
+    neovim ghostty jujutsu git firefox discord
+    ripgrep fd
   ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.cores = 16;
@@ -82,6 +105,7 @@
   programs.mtr.enable = true;
   programs.steam.enable = true;
   programs.tmux.enable = true;
+  programs.ssh.askPassword = lib.mkForce "${pkgs.x11_ssh_askpass}/libexec/x11-ssh-askpass";
 
   environment.homeBinInPath = true;
   environment.localBinInPath = true;

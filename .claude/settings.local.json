@@ -33,7 +33,12 @@
       "Bash(nixos-option:*)",
       "Read(//nix/store/p54mlaxa3a2mvd25sw6gjpgpl8d0fwcj-nixos-25.11.7198.71caefce12ba/nixos/nixos/modules/**)",
       "Read(//nix/store/p54mlaxa3a2mvd25sw6gjpgpl8d0fwcj-nixos-25.11.7198.71caefce12ba/nixos/pkgs/top-level/**)",
-      "Bash(sysctl:*)"
+      "Bash(sysctl:*)",
+      "Bash(# Check what DRM formats are available for the NVIDIA card sudo cat /sys/kernel/debug/dri/1/framebuffer)",
+      "Read(//sys/class/drm/**)",
+      "Read(//proc/**)",
+      "WebSearch",
+      "Bash(systemctl is-active:*)"
     ]
   }
 }

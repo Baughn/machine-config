@@ -27,7 +27,8 @@
   boot.kernelParams = [ "nowatchdog" ];
 
   # Disable hardware watchdog modules (Intel iTCO, AMD sp5100)
-  boot.blacklistedKernelModules = [ "iTCO_wdt" "sp5100_tco" ];
+  # And amdgpu, since we have a dGPU and its presence breaks CP2099
+  boot.blacklistedKernelModules = [ "iTCO_wdt" "sp5100_tco" "amdgpu" ];
 
   # === Sysctl tunables =======================================================
   boot.kernel.sysctl = {
@@ -132,7 +133,8 @@
   # The CachyOS kernel includes sched-ext support. Install scx-scheds and run
   # scx_bpfland for improved desktop responsiveness under load:
   #
-  # environment.systemPackages = [ pkgs.scx-scheds ];
-  # Then run: sudo scx_bpfland
-  # Or use scx_loader for D-Bus-managed scheduler switching.
+  services.scx = {
+    enable = true;
+    scheduler = "scx_bpfland";
+  };
 }

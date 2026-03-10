@@ -2,4 +2,4 @@
 #!nix-shell -i bash -p nix-output-monitor
 set -euo pipefail
 
-nixos-rebuild switch --log-format internal-json "$@" |& nom --json
+sudo nixos-rebuild switch --log-format internal-json "$@" |& nom --json
