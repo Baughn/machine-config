@@ -62,6 +62,7 @@
   #services.displayManager.sddm.wayland.enable = false;
   services.desktopManager.plasma6.enable = true;
 
+  users.defaultUserShell = pkgs.zsh;
   users.users.svein = {
     isNormalUser = true;
     extraGroups = [ "wheel" ];
@@ -101,6 +102,7 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.cores = 16;
   nixpkgs.config.allowUnfree = true;
+  programs.direnv.enable = true;
   programs.htop.enable = true;
   programs.mtr.enable = true;
   programs.steam.enable = true;
