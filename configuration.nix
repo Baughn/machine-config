@@ -97,7 +97,8 @@
   };
   environment.systemPackages = with pkgs; [
     neovim ghostty jujutsu git firefox discord
-    ripgrep fd
+    ripgrep fd psmisc uv comma
+    nvtopPackages.nvidia
   ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.cores = 16;
