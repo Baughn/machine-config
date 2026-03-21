@@ -38,7 +38,12 @@
       "Read(//sys/class/drm/**)",
       "Read(//proc/**)",
       "WebSearch",
-      "Bash(systemctl is-active:*)"
+      "Bash(systemctl is-active:*)",
+      "Bash(journalctl:*)",
+      "Read(//nix/store/m1fw8l8y9ycxh5dzispbb7cwl6rra14l-python3-3.13.12/bin/**)",
+      "Read(//home/svein/ai/comfy/**)",
+      "Bash(sudo nixos-rebuild:*)",
+      "Bash(systemctl status:*)"
     ]
   }
 }

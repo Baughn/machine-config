@@ -9,6 +9,7 @@
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
       ./cachy-tweaks.nix
+      ./ganbot.nix
     ];
 
   # Use the systemd-boot EFI boot loader.
