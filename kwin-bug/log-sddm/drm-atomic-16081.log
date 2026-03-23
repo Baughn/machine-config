@@ -1,0 +1,2906 @@
+# drm-atomic-log pid=16081
+
+=== ATOMIC #1 @ 1774310391.926114 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 155
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #2 @ 1774310391.926460 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 155
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #3 @ 1774310391.927283 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #4 @ 1774310391.927636 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #5 @ 1774310391.928265 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #6 @ 1774310391.928609 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #7 @ 1774310391.929060 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 155
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #8 @ 1774310391.929395 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 155
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #9 @ 1774310391.930131 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #10 @ 1774310391.930467 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #11 @ 1774310391.931080 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #12 @ 1774310391.931416 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #13 @ 1774310391.931866 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 155
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #14 @ 1774310391.932200 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 155
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #15 @ 1774310391.932995 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #16 @ 1774310391.933347 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #17 @ 1774310391.933975 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #18 @ 1774310391.934324 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #19 @ 1774310391.934941 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #20 @ 1774310391.935277 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #21 @ 1774310391.935876 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #22 @ 1774310391.936214 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 156
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #23 @ 1774310391.936897 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+
+=== ATOMIC #24 @ 1774310391.937236 ===
+flags: TEST_ONLY | ALLOW_MODESET (0x500)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 161 [blob: 2560x1440@144.00 clock=586580 flags=0x5 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 160 [blob: 2560x1440@143.97 clock=591310 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@359.98 clock=1690000 flags=0x9 type=0x0 "2560x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 165
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  DEGAMMA_LUT [26] = 0
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 162 [blob: 3440x1440@174.96 clock=987000 flags=0x9 type=0x0 "3440x1440"]
+  VRR_ENABLED [24] = 0
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 (Connector) ---
+  CRTC_ID [20] = 82
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 132 (Connector) ---
+  CRTC_ID [20] = 63
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 136 (Connector) ---
+  CRTC_ID [20] = 120
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+--- Object 140 (Connector) ---
+  CRTC_ID [20] = 101
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+  link-status [5] = 0
+result: -1 (errno=22 Invalid argument)
+===
+

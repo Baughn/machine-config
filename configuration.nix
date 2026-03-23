@@ -10,6 +10,7 @@
       ./hardware-configuration.nix
       ./cachy-tweaks.nix
       ./ganbot.nix
+      ./kwin-bug/drm-atomic-log.nix
     ];
 
   # Use the systemd-boot EFI boot loader.
@@ -62,6 +63,8 @@
   services.displayManager.sddm.enable = true;
   services.displayManager.sddm.wayland.enable = true;
   services.desktopManager.plasma6.enable = true;
+
+  #drm-atomic-log.enable = true;
 
   users.defaultUserShell = pkgs.zsh;
   users.users.svein = {

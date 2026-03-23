@@ -43,7 +43,15 @@
       "Read(//nix/store/m1fw8l8y9ycxh5dzispbb7cwl6rra14l-python3-3.13.12/bin/**)",
       "Read(//home/svein/ai/comfy/**)",
       "Bash(sudo nixos-rebuild:*)",
-      "Bash(systemctl status:*)"
+      "Bash(systemctl status:*)",
+      "Bash(sudo cat:*)",
+      "Bash(nvidia-smi:*)",
+      "Bash(sudo dmesg:*)",
+      "Bash(sudo modinfo:*)",
+      "Bash(find /nix/store -path *sddm* -name *.conf -type f)",
+      "Bash(wc:*)",
+      "Bash(cat:*)",
+      "Read(//sys/devices/pci0000:00/0000:00:01.1/0000:01:00.0/**)"
     ]
   }
 }

@@ -1,0 +1,2268 @@
+# drm-atomic-log pid=5465
+
+=== ATOMIC #1 @ 1774311262.155097 ===
+flags: PAGE_FLIP_EVENT | ALLOW_MODESET (0x401)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 162
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+--- Object 57 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 63 (CRTC) ---
+  ACTIVE [22] = 1
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 163 [blob: 2560x1440@59.95 clock=241500 flags=0x9 type=0x8 "2560x1440"]
+--- Object 64 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 160
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+--- Object 76 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 82 (CRTC) ---
+  ACTIVE [22] = 1
+  GAMMA_LUT [29] = 0
+  MODE_ID [23] = 166 [blob: 2560x1440@59.95 clock=241500 flags=0x9 type=0x8 "2560x1440"]
+--- Object 83 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+--- Object 95 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 101 (CRTC) ---
+  ACTIVE [22] = 1
+  GAMMA_LUT [29] = 169
+  MODE_ID [23] = 167 [blob: 3440x1440@59.97 clock=319750 flags=0x9 type=0x8 "3440x1440"]
+--- Object 102 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 161
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+--- Object 114 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 120 (CRTC) ---
+  ACTIVE [22] = 1
+  GAMMA_LUT [29] = 168
+  MODE_ID [23] = 165 [blob: 2560x1440@59.95 clock=241500 flags=0x9 type=0x8 "2560x1440"]
+--- Object 121 (Plane) ---
+  CRTC_ID [20] = 0
+  FB_ID [17] = 0
+--- Object 129 ---
+  CRTC_ID [20] = 63
+  Colorspace [130] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+--- Object 132 ---
+  CRTC_ID [20] = 82
+  Colorspace [133] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+--- Object 136 ---
+  CRTC_ID [20] = 101
+  Colorspace [137] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+--- Object 140 ---
+  CRTC_ID [20] = 120
+  Colorspace [141] = 0
+  HDR_OUTPUT_METADATA [7] = 0
+result: 0 (success)
+===
+
+=== ATOMIC #2 @ 1774311262.156607 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  IN_FENCE_FD [18] = 124
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #3 @ 1774311262.156688 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 82 (CRTC) ---
+  GAMMA_LUT [29] = 152
+result: -1 (errno=16 Device or resource busy)
+===
+
+=== ATOMIC #4 @ 1774311262.157809 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 63 (CRTC) ---
+  GAMMA_LUT [29] = 153
+result: -1 (errno=16 Device or resource busy)
+===
+
+=== ATOMIC #5 @ 1774311262.177183 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 153
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #6 @ 1774311262.177524 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #7 @ 1774311262.177895 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 155
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #8 @ 1774311262.178023 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #9 @ 1774311262.186853 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #10 @ 1774311262.203952 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #11 @ 1774311262.205071 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 157
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #12 @ 1774311262.205379 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 158
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #13 @ 1774311262.205768 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 160
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #14 @ 1774311262.220307 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #15 @ 1774311262.236969 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #16 @ 1774311262.253566 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #17 @ 1774311262.270463 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #18 @ 1774311262.287275 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #19 @ 1774311262.303617 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #20 @ 1774311262.320257 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #21 @ 1774311262.336912 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #22 @ 1774311262.353660 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #23 @ 1774311262.370280 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #24 @ 1774311262.386968 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #25 @ 1774311262.403664 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #26 @ 1774311262.420340 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #27 @ 1774311262.437015 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #28 @ 1774311262.453918 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #29 @ 1774311262.470894 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #30 @ 1774311262.487043 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #31 @ 1774311262.503663 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #32 @ 1774311262.520356 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #33 @ 1774311262.537079 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #34 @ 1774311262.553956 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #35 @ 1774311262.570472 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #36 @ 1774311262.587059 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #37 @ 1774311262.599057 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 153
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #38 @ 1774311262.599422 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #39 @ 1774311262.599723 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 155
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #40 @ 1774311262.605220 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #41 @ 1774311262.609431 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 157
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #42 @ 1774311262.609668 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 158
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #43 @ 1774311262.609927 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 160
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #44 @ 1774311262.620377 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #45 @ 1774311262.637098 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #46 @ 1774311262.638409 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 153
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #47 @ 1774311262.638674 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #48 @ 1774311262.639003 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 155
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #49 @ 1774311262.642534 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 157
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #50 @ 1774311262.642843 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 158
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #51 @ 1774311262.643176 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 160
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #52 @ 1774311262.643584 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 153
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #53 @ 1774311262.653761 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #54 @ 1774311262.655468 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 162
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #55 @ 1774311262.655929 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 161
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #56 @ 1774311262.659817 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #57 @ 1774311262.670419 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #58 @ 1774311262.672152 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 155
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #59 @ 1774311262.672463 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #60 @ 1774311262.676557 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 157
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #61 @ 1774311262.687136 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #62 @ 1774311262.688840 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 160
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #63 @ 1774311262.689164 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 158
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #64 @ 1774311262.693281 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 153
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #65 @ 1774311262.703838 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #66 @ 1774311262.705530 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 162
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #67 @ 1774311262.705903 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 161
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #68 @ 1774311262.709980 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 164
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #69 @ 1774311262.720507 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #70 @ 1774311262.722251 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 155
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #71 @ 1774311262.722587 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #72 @ 1774311262.726712 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 157
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #73 @ 1774311262.737180 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #74 @ 1774311262.738957 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 160
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #75 @ 1774311262.739042 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 158
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #76 @ 1774311262.753886 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #77 @ 1774311262.770537 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #78 @ 1774311262.787215 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #79 @ 1774311262.804095 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #80 @ 1774311262.820818 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #81 @ 1774311262.837269 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #82 @ 1774311262.853938 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #83 @ 1774311262.870775 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #84 @ 1774311262.887456 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #85 @ 1774311262.904421 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #86 @ 1774311262.920643 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #87 @ 1774311262.937236 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #88 @ 1774311262.954213 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #89 @ 1774311262.971134 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #90 @ 1774311262.987786 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #91 @ 1774311263.004185 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #92 @ 1774311263.020862 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #93 @ 1774311263.037555 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #94 @ 1774311263.054258 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #95 @ 1774311263.070691 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #96 @ 1774311263.087383 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #97 @ 1774311263.104235 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #98 @ 1774311264.138525 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #99 @ 1774311264.139269 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #100 @ 1774311264.140309 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #101 @ 1774311264.140666 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 153
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #102 @ 1774311264.141013 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #103 @ 1774311264.141329 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 155
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #104 @ 1774311264.144689 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 158
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #105 @ 1774311264.145122 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 157
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #106 @ 1774311264.154024 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 161
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #107 @ 1774311264.154433 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 160
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #108 @ 1774311264.157061 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #109 @ 1774311264.157202 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 158
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #110 @ 1774311264.163131 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 162
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #111 @ 1774311264.171112 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 153
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #112 @ 1774311264.173519 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #113 @ 1774311264.179873 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #114 @ 1774311264.182214 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #115 @ 1774311264.187789 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 157
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #116 @ 1774311264.190203 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 155
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #117 @ 1774311264.196539 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 160
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #118 @ 1774311264.198900 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #119 @ 1774311264.204473 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 161
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #120 @ 1774311264.207171 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 154
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #121 @ 1774311264.207269 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 158
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #122 @ 1774311264.213271 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 153
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #123 @ 1774311264.221188 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 162
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #124 @ 1774311264.223483 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 152
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #125 @ 1774311264.223670 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 150
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #126 @ 1774311264.229934 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 71 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 82
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 157
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [75] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #127 @ 1774311264.237872 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 90 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 101
+  CRTC_W [15] = 3440
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 160
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 225443840 [16.16: 3440]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [94] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #128 @ 1774311264.240212 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 52 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 63
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 149
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [56] = 1
+result: 0 (success)
+===
+
+=== ATOMIC #129 @ 1774311264.240346 ===
+flags: PAGE_FLIP_EVENT | NONBLOCK (0x201)
+--- Object 109 (Plane) ---
+  CRTC_H [16] = 1440
+  CRTC_ID [20] = 120
+  CRTC_W [15] = 2560
+  CRTC_X [13] = 0
+  CRTC_Y [14] = 0
+  FB_ID [17] = 155
+  SRC_H [12] = 94371840 [16.16: 1440]
+  SRC_W [11] = 167772160 [16.16: 2560]
+  SRC_X [9] = 0
+  SRC_Y [10] = 0
+  rotation [113] = 1
+result: 0 (success)
+===
+
