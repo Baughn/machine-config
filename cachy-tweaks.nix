@@ -130,9 +130,6 @@
   # hardware.ksm.enable = true;
 
   # === Optional: sched-ext (BPF CPU schedulers) ==============================
-  # The CachyOS kernel includes sched-ext support. Install scx-scheds and run
-  # scx_bpfland for improved desktop responsiveness under load:
-  #
   services.scx = {
     enable = true;
     scheduler = "scx_bpfland";

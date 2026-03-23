@@ -56,11 +56,11 @@
     package = config.boot.kernelPackages.nvidiaPackages.beta;
   };
   services.displayManager.enable = true;
-  services.displayManager.gdm.enable = true;
-  services.displayManager.gdm.autoSuspend = false;
-  services.desktopManager.gnome.enable = true;
-  #services.displayManager.sddm.enable = true;
-  #services.displayManager.sddm.wayland.enable = false;
+  #services.displayManager.gdm.enable = true;
+  #services.displayManager.gdm.autoSuspend = false;
+  #services.desktopManager.gnome.enable = true;
+  services.displayManager.sddm.enable = true;
+  services.displayManager.sddm.wayland.enable = true;
   services.desktopManager.plasma6.enable = true;
 
   users.defaultUserShell = pkgs.zsh;
@@ -99,7 +99,7 @@
   environment.systemPackages = with pkgs; [
     neovim ghostty jujutsu git firefox discord
     ripgrep fd psmisc uv comma
-    nvtopPackages.nvidia
+    nvtopPackages.nvidia btop-cuda
   ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.cores = 16;
