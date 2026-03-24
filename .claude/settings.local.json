@@ -60,7 +60,10 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:wiki.archlinux.org)",
       "WebFetch(domain:forums.developer.nvidia.com)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(sudo rm:*)",
+      "Bash(sudo systemctl:*)",
+      "Read(//tmp/**)"
     ]
   }
 }

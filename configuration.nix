@@ -63,8 +63,8 @@
   services.displayManager.sddm.enable = true;
   services.displayManager.sddm.wayland.enable = true;
   services.desktopManager.plasma6.enable = true;
-
-  #drm-atomic-log.enable = true;
+  services.displayManager.sddm.wayland.compositor = "kwin";
+  drm-atomic-log.enable = true;
 
   users.defaultUserShell = pkgs.zsh;
   users.users.svein = {
@@ -103,6 +103,7 @@
     neovim ghostty jujutsu git firefox discord
     ripgrep fd psmisc uv comma
     nvtopPackages.nvidia btop-cuda
+    python3
   ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.cores = 16;
