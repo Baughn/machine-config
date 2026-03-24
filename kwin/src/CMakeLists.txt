@@ -139,6 +139,7 @@ target_sources(kwin PRIVATE
     options.cpp
     osd.cpp
     outline.cpp
+    outputconfigsearch.cpp
     outputconfigurationstore.cpp
     placeholderinputeventfilter.cpp
     placeholderoutput.cpp
@@ -489,6 +490,7 @@ install(FILES
     options.h
     osd.h
     outline.h
+    outputconfigsearch.h
     outputconfigurationstore.h
     placeholderoutput.h
     placement.h

@@ -39,6 +39,14 @@ public:
     std::optional<std::pair<OutputConfiguration, ConfigType>> queryConfig(const QList<BackendOutput *> &outputs, bool isLidClosed, AccelerometerOrientation orientation, bool isTabletMode);
     void storeConfig(const QList<BackendOutput *> &allOutputs, bool isLidClosed, const OutputConfiguration &config);
 
+    /**
+     * Build a full OutputConfiguration from per-output mode and bpc selections.
+     * Reuses existing saved state for scale, transform, position, etc.
+     * Used by the configuration search to turn a CandidateConfig into an applicable config.
+     */
+    OutputConfiguration buildConfigFromModeChoices(const QList<BackendOutput *> &outputs, bool isLidClosed,
+                                                   const std::vector<std::pair<std::shared_ptr<OutputMode>, uint32_t>> &modeAndBpc);
+
     void applyMirroring(OutputConfiguration &config, const QList<BackendOutput *> &outputs);
     bool isAutoRotateActive(const QList<BackendOutput *> &outputs, bool isTabletMode) const;
     bool isAutoBrightnessActive(const QList<BackendOutput *> &outputs) const;

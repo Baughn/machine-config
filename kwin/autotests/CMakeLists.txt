@@ -11,6 +11,15 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 endif()
 
 ########################################################
+# Test OutputConfigSearch
+########################################################
+set(testOutputConfigSearch_SRCS test_outputconfigsearch.cpp)
+add_executable(testOutputConfigSearch ${testOutputConfigSearch_SRCS})
+target_link_libraries(testOutputConfigSearch kwin Qt::Widgets Qt::Test)
+add_test(NAME kwin-testOutputConfigSearch COMMAND testOutputConfigSearch)
+ecm_mark_as_test(testOutputConfigSearch)
+
+########################################################
 # Test WindowPaintData
 ########################################################
 set(testWindowPaintData_SRCS test_window_paint_data.cpp)

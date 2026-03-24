@@ -1,46 +1,68 @@
 # Future Plans
 
-## Immediate: Find or file KWin bug
+## Confirmed: Root Cause
 
-- [ ] Search KDE Bugzilla / KDE Invent for existing reports of this issue
-  - Keywords: "atomic modeset", "NVIDIA", "multi-monitor", "refresh rate",
-    "bandwidth", "EINVAL"
-- [ ] Check KWin's DRM backend source (`src/backends/drm/`) for how it selects
-  initial modes — does it always pick preferred/max modes?
-- [ ] If no existing bug, file one with the data from this investigation
-  - Include: hardware details, log comparison, root cause analysis
+Forcing `chooseMode()` to pick ~60Hz (by flipping the refresh rate comparator)
+makes all 4 monitors work. 229 atomic commits, zero failures.
 
-## Short-term: KWin patch
+Two bugs identified:
 
-The fix should be in KWin's DRM backend. When the initial atomic modeset test
-fails with `EINVAL`, KWin should:
+### Bug 1: No refresh rate fallback on atomic test failure
 
-1. Fall back to lower refresh rates (e.g. 60Hz) for all monitors
-2. If that succeeds, ramp up refresh rates one monitor at a time
-3. Or: start at 60Hz and let the user configure higher rates via display settings
+`chooseMode()` picks the highest refresh rate at native resolution. When the
+combined bandwidth across all monitors exceeds NVIDIA's limits, the atomic
+modeset test fails with EINVAL. The existing fallback
+(`m_forceLowBandwidthMode`) only reduces color depth, not refresh rate.
 
-This matches Gnome/Mutter's behavior, which starts at 60Hz and works.
+KWin then tries all 4! = 24 CRTC-connector permutations, all at the same
+max refresh rates, and all fail. It never tries lower refresh rates.
 
-Relevant KWin source locations to investigate:
-- `src/backends/drm/drm_gpu.cpp` — GPU/output initialization
-- `src/backends/drm/drm_pipeline.cpp` — atomic commit construction
-- `src/backends/drm/drm_output.cpp` — mode selection
+### Bug 2: Config saved before validation
 
-## Medium-term: Determine if NVIDIA or KWin is at fault
+`storeConfig()` in `queryConfig()` persists the output config to
+`kwinoutputconfig.json` *before* the atomic test runs. On subsequent
+startups, `findSetup()` finds this saved config and uses it directly,
+bypassing `chooseMode()` entirely. This means even if the modes were
+never successfully applied, they get reloaded forever.
 
-The NVIDIA driver returning `EINVAL` for a configuration that exceeds bandwidth
-is arguably correct behavior. The question is whether:
+For the SDDM greeter, this file is at:
+`/var/lib/sddm/.config/kwinoutputconfig.json`
 
-1. **KWin should handle this gracefully** — try lower refresh rates when atomic
-   test fails (this is the practical fix)
-2. **NVIDIA should provide better error reporting** — the driver could return a
-   more specific error or expose bandwidth limits via DRM properties
-3. **Both** — KWin should be resilient, and NVIDIA should be informative
+## Next: Proper KWin patch
 
-## Other observations
+### Fix for Bug 1: Refresh rate fallback in `testPendingConfiguration()`
 
-- KWin sets `DEGAMMA_LUT`, `VRR_ENABLED`, and `link-status` on connectors in
-  its initial commit. Gnome omits these. These properties may independently
-  cause EINVAL on this driver version, worth testing in isolation.
-- The shim could be extended to *modify* atomic commits (e.g. force 60Hz modes)
-  as a workaround, but a proper KWin fix is preferable.
+In `drm_gpu.cpp`, after the `m_forceLowBandwidthMode` retry fails, add a
+third fallback that regenerates the config with lower refresh rates.
+
+The cleanest approach: add a `bool preferLowRefreshRate` parameter to
+`chooseMode()` and `generateConfig()`. When set, pick the lowest refresh
+rate >= 50Hz at native resolution instead of the highest.
+
+Flow:
+```
+testPendingConfiguration():
+  1. Try normal                          → EINVAL
+  2. Try m_forceLowBandwidthMode=true    → EINVAL
+  3. NEW: regenerate config with preferLowRefreshRate=true, retry
+```
+
+Files:
+- `src/outputconfigurationstore.cpp` — add `preferLowRefreshRate` param
+- `src/outputconfigurationstore.h` — update signatures
+- `src/backends/drm/drm_gpu.cpp` — add third fallback
+
+### Fix for Bug 2: Don't persist unvalidated configs
+
+`storeConfig()` should only be called after the atomic test succeeds,
+not unconditionally in `queryConfig()`. Or: mark the stored config as
+"unvalidated" and re-test it on load.
+
+## Existing KDE bugs
+
+- [Bug 509635](https://bugs.kde.org/show_bug.cgi?id=509635) — closest match,
+  bandwidth-related black screen, partially fixed but doesn't cover refresh rate
+- [Bug 513601](https://bugs.kde.org/show_bug.cgi?id=513601) — KWin chooses
+  highest refresh rate by default, users want 60Hz fallback
+- [Bug 455532](https://bugs.kde.org/show_bug.cgi?id=455532) — "Failed to find
+  a working setup for new outputs"

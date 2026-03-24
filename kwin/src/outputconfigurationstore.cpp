@@ -59,13 +59,11 @@ std::optional<std::pair<OutputConfiguration, OutputConfigurationStore::ConfigTyp
         auto config = setupToConfig(setup, outputStates);
         applyOrientationReading(config, relevantOutputs, orientation, isTabletMode);
         applyMirroring(config, relevantOutputs);
-        storeConfig(relevantOutputs, isLidClosed, config);
         return std::make_tuple(config, ConfigType::Preexisting);
     }
     auto config = generateConfig(relevantOutputs, isLidClosed);
     applyOrientationReading(config, relevantOutputs, orientation, isTabletMode);
     applyMirroring(config, relevantOutputs);
-    storeConfig(relevantOutputs, isLidClosed, config);
     return std::make_tuple(config, ConfigType::Generated);
 }
 
@@ -710,6 +708,89 @@ OutputConfiguration OutputConfigurationStore::generateConfig(const QList<Backend
     return ret;
 }
 
+OutputConfiguration OutputConfigurationStore::buildConfigFromModeChoices(const QList<BackendOutput *> &outputs, bool isLidClosed,
+                                                                         const std::vector<std::pair<std::shared_ptr<OutputMode>, uint32_t>> &modeAndBpc)
+{
+    registerOutputs(outputs);
+    const auto closestSetup = findPartialSetup(outputs, isLidClosed);
+
+    OutputConfiguration ret;
+    QPoint rightMostPosition(0, 0);
+    int priority = 0;
+
+    for (int i = 0; i < outputs.size(); i++) {
+        BackendOutput *output = outputs[i];
+        const auto &[mode, bpc] = modeAndBpc[i];
+        const bool enable = mode != nullptr;
+
+        std::optional<SetupState> setupState;
+        if (closestSetup.has_value()) {
+            const auto indexIt = closestSetup->globalOutputIndices.find(output);
+            if (indexIt != closestSetup->globalOutputIndices.end()) {
+                const auto &[out, index] = *indexIt;
+                for (const SetupState &state : closestSetup->setup->outputs) {
+                    if (state.outputIndex == index) {
+                        setupState = state;
+                        break;
+                    }
+                }
+            }
+        }
+
+        const auto outputIndex = findOutputIndex(output, outputs);
+        const OutputState existingData = outputIndex ? m_outputs[*outputIndex] : OutputState{};
+
+        // If disabled, use a placeholder mode for changeset but set enabled=false
+        const auto effectiveMode = mode ? mode : chooseMode(output);
+
+        const auto changeset = ret.changeSet(output);
+        *changeset = {
+            .mode = effectiveMode,
+            .desiredModeSize = effectiveMode->size(),
+            .desiredModeRefreshRate = effectiveMode->refreshRate(),
+            .enabled = enable,
+            .pos = enable ? (setupState ? setupState->position : rightMostPosition) : QPoint(0, 0),
+            .scaleSetting = existingData.scaleSetting.value_or(chooseScale(output, effectiveMode.get())),
+            .transform = existingData.transform.value_or(output->panelOrientation()),
+            .manualTransform = existingData.manualTransform.value_or(output->panelOrientation()),
+            .overscan = existingData.overscan.value_or(0),
+            .rgbRange = existingData.rgbRange.value_or(BackendOutput::RgbRange::Automatic),
+            .vrrPolicy = existingData.vrrPolicy.value_or(VrrPolicy::Never),
+            .highDynamicRange = existingData.highDynamicRange.value_or(false),
+            .referenceLuminance = existingData.referenceLuminance.value_or(std::clamp(output->maxAverageBrightnessOverride().value_or(output->advertisedMaxAverageBrightness().value_or(200)), 200.0, 500.0)),
+            .wideColorGamut = existingData.wideColorGamut.value_or(false),
+            .autoRotationPolicy = existingData.autoRotation.value_or(BackendOutput::AutoRotationPolicy::InTabletMode),
+            .colorProfileSource = existingData.colorProfileSource.value_or(BackendOutput::ColorProfileSource::sRGB),
+            .brightness = existingData.brightness.value_or(1.0),
+            .allowSdrSoftwareBrightness = existingData.allowSdrSoftwareBrightness.value_or(output->brightnessDevice() == nullptr),
+            .colorPowerTradeoff = existingData.colorPowerTradeoff.value_or(BackendOutput::ColorPowerTradeoff::PreferEfficiency),
+            .uuid = existingData.uuid,
+            .detectedDdcCi = existingData.detectedDdcCi.value_or(false),
+            .allowDdcCi = existingData.allowDdcCi.value_or(!output->isDdcCiKnownBroken()),
+            .maxBitsPerColor = bpc > 0 ? std::optional<uint32_t>(bpc) : existingData.maxBitsPerColor,
+            .edrPolicy = existingData.edrPolicy.value_or(BackendOutput::EdrPolicy::Always),
+            .sharpness = existingData.sharpness.value_or(0),
+            .priority = setupState ? setupState->priority : priority,
+            .customModes = existingData.customModes,
+            .automaticBrightness = existingData.automaticBrightness.value_or(false),
+            .autoBrightnessCurve = existingData.autoBrightnessCurve,
+        };
+        if (setupState) {
+            priority = std::max(setupState->priority + 1, priority);
+        } else {
+            priority++;
+        }
+        if (enable) {
+            const auto modeSize = changeset->transform->map(effectiveMode->size());
+            const QPoint topRight = QPoint(std::ceil(changeset->pos->x() + modeSize.width() / *changeset->scaleSetting), changeset->pos->y());
+            if (topRight.x() > rightMostPosition.x() || (topRight.x() == rightMostPosition.x() && topRight.y() < rightMostPosition.y())) {
+                rightMostPosition = topRight;
+            }
+        }
+    }
+    return ret;
+}
+
 std::shared_ptr<OutputMode> OutputConfigurationStore::chooseMode(BackendOutput *output) const
 {
     const auto findBiggestFastest = [](const auto &left, const auto &right) {
@@ -780,9 +861,8 @@ std::shared_ptr<OutputMode> OutputConfigurationStore::chooseMode(BackendOutput *
     const auto usable = std::ranges::max_element(usableRefreshRates, findBiggestFastest);
     if (usable != usableRefreshRates.end()) {
         return *usable;
-    } else {
-        return *std::ranges::max_element(notPotentiallyBroken, findBiggestFastest);
     }
+    return *std::ranges::max_element(notPotentiallyBroken, findBiggestFastest);
 }
 
 double OutputConfigurationStore::chooseScale(BackendOutput *output, OutputMode *mode) const

@@ -432,6 +432,39 @@ OutputConfigurationError DrmBackend::applyOutputChanges(const OutputConfiguratio
     return OutputConfigurationError::None;
 }
 
+OutputConfigurationError DrmBackend::testOutputChanges(const OutputConfiguration &config)
+{
+    QList<DrmOutput *> queued;
+    for (const auto &gpu : m_gpus) {
+        const auto outputs = gpu->drmOutputs();
+        for (DrmOutput *output : outputs) {
+            if (output->isNonDesktop()) {
+                continue;
+            }
+            if (const auto changeset = config.constChangeSet(output)) {
+                output->queueChanges(changeset);
+                queued << output;
+            }
+        }
+        const auto error = gpu->testPendingConfiguration();
+        // Always revert — this is test-only
+        for (DrmOutput *output : std::as_const(queued)) {
+            output->revertQueuedChanges();
+        }
+        queued.clear();
+        if (error != DrmPipeline::Error::None) {
+            if (error == DrmPipeline::Error::NotEnoughCrtcs) {
+                return OutputConfigurationError::TooManyEnabledOutputs;
+            } else if (error == DrmPipeline::Error::Timeout) {
+                return OutputConfigurationError::Timeout;
+            } else {
+                return OutputConfigurationError::Unknown;
+            }
+        }
+    }
+    return OutputConfigurationError::None;
+}
+
 void DrmBackend::setRenderBackend(DrmRenderBackend *backend)
 {
     m_renderBackend = backend;

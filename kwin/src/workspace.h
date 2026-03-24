@@ -622,6 +622,7 @@ private:
     void removeWindow(Window *window);
 
     void updateOutputConfiguration();
+    void storeAndNotify(const QList<BackendOutput *> &outputs, OutputConfiguration &cfg, bool isGenerated);
     void updateOutputs();
     void assignBrightnessDevices(OutputConfiguration &outputConfig);
     void updateOutputOrder();

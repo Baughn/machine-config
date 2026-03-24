@@ -48,6 +48,7 @@
 #include "lidswitchtracker.h"
 #include "main.h"
 #include "opengl/eglcontext.h"
+#include "outputconfigsearch.h"
 #include "outputconfigurationstore.h"
 #include "placeholderinputeventfilter.h"
 #include "placeholderoutput.h"
@@ -237,7 +238,13 @@ void Workspace::init()
             return;
         }
         auto &[config, type] = *opt;
-        applyOutputConfiguration(config);
+        if (applyOutputConfiguration(config) == OutputConfigurationError::None) {
+            QList<BackendOutput *> relevantOutputs;
+            std::copy_if(outputs.begin(), outputs.end(), std::back_inserter(relevantOutputs), [](BackendOutput *output) {
+                return !output->isNonDesktop() && !output->isPlaceholder();
+            });
+            m_outputConfigStore->storeConfig(relevantOutputs, m_lidSwitchTracker->isLidClosed(), config);
+        }
     };
     connect(m_lidSwitchTracker.get(), &LidSwitchTracker::lidStateChanged, this, applySensorChanges);
     connect(kwinApp()->tabletModeManager(), &TabletModeManager::tabletModeChanged, this, applySensorChanges);
@@ -624,6 +631,30 @@ void Workspace::updateXwaylandScale()
     }
 }
 
+void Workspace::storeAndNotify(const QList<BackendOutput *> &outputs, OutputConfiguration &cfg, bool isGenerated)
+{
+    QList<BackendOutput *> relevantOutputs;
+    std::copy_if(outputs.begin(), outputs.end(), std::back_inserter(relevantOutputs), [](BackendOutput *output) {
+        return !output->isNonDesktop() && !output->isPlaceholder();
+    });
+    m_outputConfigStore->storeConfig(relevantOutputs, m_lidSwitchTracker->isLidClosed(), cfg);
+
+    if (isGenerated) {
+        const bool hasInternal = std::any_of(outputs.begin(), outputs.end(), [](BackendOutput *o) {
+            return o->isInternal();
+        });
+        if (hasInternal && outputs.size() == 2 && kwinApp()->supportsGlobalShortcuts()
+            && !QStandardPaths::isTestModeEnabled()) {
+            // show the OSD with output configuration presets
+            QDBusMessage message = QDBusMessage::createMethodCall(QStringLiteral("org.kde.kscreen.osdService"),
+                                                                  QStringLiteral("/org/kde/kscreen/osdService"),
+                                                                  QStringLiteral("org.kde.kscreen.osdService"),
+                                                                  QStringLiteral("showActionSelector"));
+            QDBusConnection::sessionBus().asyncCall(message);
+        }
+    }
+}
+
 void Workspace::updateOutputConfiguration()
 {
     const auto outputs = kwinApp()->outputBackend()->outputs();
@@ -636,53 +667,125 @@ void Workspace::updateOutputConfiguration()
     const bool alreadyHaveEnabledOutputs = std::ranges::any_of(outputs, [](BackendOutput *o) {
         return o->isEnabled();
     });
-
-    QList<BackendOutput *> toEnable = outputs;
-    OutputConfigurationError error = OutputConfigurationError::None;
-    do {
-        auto opt = m_outputConfigStore->queryConfig(toEnable, m_lidSwitchTracker->isLidClosed(), m_orientationSensor->reading(), kwinApp()->tabletModeManager()->effectiveTabletMode());
+    if (alreadyHaveEnabledOutputs) {
+        // outputs already configured — just try the saved/generated config
+        auto opt = m_outputConfigStore->queryConfig(outputs, m_lidSwitchTracker->isLidClosed(), m_orientationSensor->reading(), kwinApp()->tabletModeManager()->effectiveTabletMode());
         if (!opt) {
             return;
         }
         auto &[cfg, type] = *opt;
-
-        for (const auto &output : outputs) {
-            if (!toEnable.contains(output)) {
-                cfg.changeSet(output)->enabled = false;
-            }
+        if (applyOutputConfiguration(cfg) == OutputConfigurationError::None) {
+            storeAndNotify(outputs, cfg, type == OutputConfigurationStore::ConfigType::Generated);
         }
+        // keeping old config is preferable to searching
+        return;
+    }
 
-        error = applyOutputConfiguration(cfg);
-        switch (error) {
-        case OutputConfigurationError::None:
-            if (type == OutputConfigurationStore::ConfigType::Generated) {
-                const bool hasInternal = std::any_of(outputs.begin(), outputs.end(), [](BackendOutput *o) {
-                    return o->isInternal();
-                });
-                if (hasInternal && outputs.size() == 2 && kwinApp()->supportsGlobalShortcuts()
-                    && !QStandardPaths::isTestModeEnabled()) {
-                    // show the OSD with output configuration presets
-                    QDBusMessage message = QDBusMessage::createMethodCall(QStringLiteral("org.kde.kscreen.osdService"),
-                                                                          QStringLiteral("/org/kde/kscreen/osdService"),
-                                                                          QStringLiteral("org.kde.kscreen.osdService"),
-                                                                          QStringLiteral("showActionSelector"));
-                    QDBusConnection::sessionBus().asyncCall(message);
+    // No outputs enabled yet (initial setup / hotplug). Try saved config first.
+    auto opt = m_outputConfigStore->queryConfig(outputs, m_lidSwitchTracker->isLidClosed(), m_orientationSensor->reading(), kwinApp()->tabletModeManager()->effectiveTabletMode());
+    if (!opt) {
+        return;
+    }
+    auto &[savedCfg, savedType] = *opt;
+    const bool hasSavedConfig = savedType == OutputConfigurationStore::ConfigType::Preexisting;
+
+    if (applyOutputConfiguration(savedCfg) == OutputConfigurationError::None) {
+        storeAndNotify(outputs, savedCfg, !hasSavedConfig);
+        return;
+    }
+
+    qCDebug(KWIN_CORE) << "Initial output configuration failed, starting configuration search";
+
+    // Build the relevant outputs list (filtering non-desktop/placeholder)
+    QList<BackendOutput *> relevantOutputs;
+    std::copy_if(outputs.begin(), outputs.end(), std::back_inserter(relevantOutputs), [](BackendOutput *output) {
+        return !output->isNonDesktop() && !output->isPlaceholder();
+    });
+
+    // Enumerate candidate configurations
+    std::vector<std::vector<OutputModeOption>> perOutputOptions;
+    for (BackendOutput *output : relevantOutputs) {
+        perOutputOptions.push_back(OutputConfigSearch::pruneModes(output, relevantOutputs.size()));
+    }
+
+    auto candidates = OutputConfigSearch::enumerateCandidates(perOutputOptions);
+    OutputConfigSearch::scoreCandidates(candidates, perOutputOptions);
+    OutputConfigSearch::spaceFillSort(candidates, perOutputOptions);
+
+    qCDebug(KWIN_CORE) << "Configuration search: testing" << candidates.size() << "candidates";
+
+    // Time-budgeted search
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(3);
+    auto nextSavedRetry = std::chrono::steady_clock::now() + std::chrono::seconds(1);
+    int bestIdx = -1;
+    double bestScore = -1;
+    int tested = 0;
+
+    for (size_t i = 0; i < candidates.size(); i++) {
+        const auto now = std::chrono::steady_clock::now();
+
+        // Periodically retry the saved config (cable glitch recovery)
+        if (hasSavedConfig && now >= nextSavedRetry) {
+            if (kwinApp()->outputBackend()->testOutputChanges(savedCfg) == OutputConfigurationError::None) {
+                qCDebug(KWIN_CORE) << "Saved config recovered during search after" << tested << "candidates tested";
+                if (applyOutputConfiguration(savedCfg) == OutputConfigurationError::None) {
+                    storeAndNotify(outputs, savedCfg, false);
+                    return;
                 }
             }
-            return;
-        case OutputConfigurationError::Unknown:
-        case OutputConfigurationError::TooManyEnabledOutputs:
-        case OutputConfigurationError::Timeout:
-            if (alreadyHaveEnabledOutputs) {
-                // just keeping the old output configuration is preferable
-                break;
-            }
-            toEnable.removeLast();
+            nextSavedRetry = now + std::chrono::seconds(1);
+        }
+
+        if (now > deadline) {
+            qCDebug(KWIN_CORE) << "Configuration search: time budget exhausted after" << tested << "candidates";
             break;
         }
-    } while (error == OutputConfigurationError::TooManyEnabledOutputs && !toEnable.isEmpty() && !alreadyHaveEnabledOutputs);
 
-    qCCritical(KWIN_CORE, "Applying output configuration failed!");
+        // Build OutputConfiguration from the candidate
+        const auto &candidate = candidates[i];
+        std::vector<std::pair<std::shared_ptr<OutputMode>, uint32_t>> modeAndBpc;
+        for (size_t j = 0; j < candidate.modeChoices.size(); j++) {
+            const auto &option = perOutputOptions[j][candidate.modeChoices[j]];
+            modeAndBpc.push_back({option.mode, option.maxBpc});
+        }
+        auto cfg = m_outputConfigStore->buildConfigFromModeChoices(relevantOutputs, m_lidSwitchTracker->isLidClosed(), modeAndBpc);
+        m_outputConfigStore->applyMirroring(cfg, relevantOutputs);
+
+        auto error = kwinApp()->outputBackend()->testOutputChanges(cfg);
+        tested++;
+
+        if (error == OutputConfigurationError::None) {
+            if (candidate.score > bestScore) {
+                bestScore = candidate.score;
+                bestIdx = i;
+            }
+            // If this is the first candidate (highest scored), we found the ideal — stop early
+            if (i == 0) {
+                break;
+            }
+        }
+    }
+
+    if (bestIdx >= 0) {
+        // Apply the best working configuration
+        const auto &winner = candidates[bestIdx];
+        std::vector<std::pair<std::shared_ptr<OutputMode>, uint32_t>> modeAndBpc;
+        for (size_t j = 0; j < winner.modeChoices.size(); j++) {
+            const auto &option = perOutputOptions[j][winner.modeChoices[j]];
+            modeAndBpc.push_back({option.mode, option.maxBpc});
+        }
+        auto cfg = m_outputConfigStore->buildConfigFromModeChoices(relevantOutputs, m_lidSwitchTracker->isLidClosed(), modeAndBpc);
+        m_outputConfigStore->applyMirroring(cfg, relevantOutputs);
+
+        if (applyOutputConfiguration(cfg) == OutputConfigurationError::None) {
+            qCDebug(KWIN_CORE) << "Configuration search: applied candidate" << bestIdx
+                               << "with score" << bestScore << "after testing" << tested << "candidates";
+            m_outputConfigStore->storeConfig(relevantOutputs, m_lidSwitchTracker->isLidClosed(), cfg);
+            return;
+        }
+    }
+
+    qCCritical(KWIN_CORE, "Applying output configuration failed after testing %d candidates!", tested);
     // Update the output order to a fallback list, to avoid dangling pointers
     updateOutputOrder();
     // If applying the output configuration failed, brightness devices weren't assigned either.

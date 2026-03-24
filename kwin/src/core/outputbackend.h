@@ -83,6 +83,13 @@ public:
      */
     virtual OutputConfigurationError applyOutputChanges(const OutputConfiguration &config);
 
+    /**
+     * Tests whether an output configuration would succeed, without applying it.
+     * Default implementation returns None (assumes success). DRM backend overrides
+     * this with a real test-only atomic commit.
+     */
+    virtual OutputConfigurationError testOutputChanges(const OutputConfiguration &config);
+
     virtual Session *session() const;
 
 Q_SIGNALS:

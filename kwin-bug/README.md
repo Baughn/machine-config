@@ -24,7 +24,7 @@ well within bandwidth limits.
 ## Symptoms
 
 - SDDM with `sddm.wayland.compositor = "kwin"` shows black screen on all monitors
-- Cursor is visible on one monitor
+- Terminal cursor is visible on one monitor
 - `journalctl` shows: `kwin_wayland_drm: Atomic modeset test failed! Invalid argument`
 - Happens identically in both greeter and full Plasma session
 
@@ -83,8 +83,8 @@ hardware and compared.
 
 ## Raw Logs
 
-- `../log-sddm/` — KWin/SDDM capture (drm-atomic-16081.log)
-- `../log-gdm/` — Gnome/GDM capture (drm-atomic-5465.log)
+- `./log-sddm/` — KWin/SDDM capture (drm-atomic-16081.log)
+- `./log-gdm/` — Gnome/GDM capture (drm-atomic-5465.log)
 
 ## Logger Source
 

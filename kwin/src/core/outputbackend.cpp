@@ -66,6 +66,11 @@ OutputConfigurationError OutputBackend::applyOutputChanges(const OutputConfigura
     return OutputConfigurationError::None;
 }
 
+OutputConfigurationError OutputBackend::testOutputChanges(const OutputConfiguration &config)
+{
+    return OutputConfigurationError::None;
+}
+
 BackendOutput *OutputBackend::findOutput(const QString &name) const
 {
     const auto candidates = outputs();

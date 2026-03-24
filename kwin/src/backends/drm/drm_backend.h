@@ -74,6 +74,7 @@ Q_SIGNALS:
 
 protected:
     OutputConfigurationError applyOutputChanges(const OutputConfiguration &config) override;
+    OutputConfigurationError testOutputChanges(const OutputConfiguration &config) override;
 
 private:
     friend class DrmGpu;
