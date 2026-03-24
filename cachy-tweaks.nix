@@ -14,17 +14,14 @@
     ./znver4.nix
   ];
 
-  # === ZRAM ==================================================================
-  # Compressed swap in RAM using zstd. With compression, effective capacity is
-  # 2-3x the allocated size. CachyOS sizes ZRAM equal to physical RAM.
-  zramSwap = {
-    enable = true;
-    algorithm = "zstd";
-    memoryPercent = 100;
-  };
-
   # === Boot parameters =======================================================
-  boot.kernelParams = [ "nowatchdog" ];
+  boot.kernelParams = [
+    "nowatchdog"
+    "zswap.enabled=1" # enables zswap
+    "zswap.compressor=zstd" # compression algorithm
+    "zswap.max_pool_percent=20" # maximum percentage of RAM that zswap is allowed to use
+    "zswap.shrinker_enabled=1" # whether to shrink the pool proactively on high memory pressure
+  ];
 
   # Disable hardware watchdog modules (Intel iTCO, AMD sp5100)
   # And amdgpu, since we have a dGPU and its presence breaks CP2099
@@ -33,14 +30,11 @@
   # === Sysctl tunables =======================================================
   boot.kernel.sysctl = {
     # -- Memory management --
-    # High swappiness is correct with ZRAM: decompressing from RAM is far
-    # cheaper than dropping file caches and re-reading from disk.
-    "vm.swappiness" = 150;
+    "vm.swappiness" = 100;
     "vm.vfs_cache_pressure" = 50;
     "vm.dirty_bytes" = 268435456;           # 256 MB
     "vm.dirty_background_bytes" = 67108864; # 64 MB
     "vm.dirty_writeback_centisecs" = 1500;
-    "vm.page-cluster" = 0; # No read-ahead for ZRAM (no seek penalty)
 
     # -- Kernel --
     "kernel.nmi_watchdog" = 0;
