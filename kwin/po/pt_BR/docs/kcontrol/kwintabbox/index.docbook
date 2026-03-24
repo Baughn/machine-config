@@ -1,0 +1,275 @@
+<?xml version="1.0" ?>
+<!DOCTYPE article PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN"
+"dtd/kdedbx45.dtd" [
+  <!ENTITY % addindex "IGNORE">
+  <!ENTITY % Brazilian-Portuguese "INCLUDE">
+]>
+<article id="kwintabbox" lang="&language;">
+<articleinfo>
+<title
+>Seletor de tarefas</title>
+<authorgroup>
+<author
+>&Martin.Graesslin;&Martin.Graesslin.mail;</author>
+<othercredit role="translator"
+><firstname
+>Marcus</firstname
+><surname
+>Gama</surname
+><affiliation
+><address
+><email
+>marcus.gama@gmail.com</email
+></address
+></affiliation
+><contrib
+>Tradução</contrib
+></othercredit
+> 
+</authorgroup>
+
+<date
+>30/01/2023</date>
+<releaseinfo
+>&plasma; 5.27</releaseinfo>
+
+<keywordset>
+<keyword
+>KDE</keyword>
+<keyword
+>Configurações do sistema</keyword>
+<keyword
+>área de trabalho</keyword>
+<keyword
+>janela</keyword>
+<keyword
+>navegação</keyword>
+<keyword
+>trocar</keyword>
+<keyword
+>Alt-Tab</keyword>
+</keywordset>
+</articleinfo>
+
+<sect1 id="windows-navigating">
+<title
+>Navegar pelas Janelas</title>
+
+<para
+>O seletor de tarefas permite ao usuário alternar facilmente entre as janelas abertas usando o teclado. Ele é altamente configurável e permite ao usuário controlar seu comportamento, aparência visual, atalhos de teclado e filtragem de janelas.</para>
+
+<para>
+  <screenshot>
+    <screeninfo
+>Captura de tela do seletor de tarefas padrão</screeninfo>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="taskswitcher.png" format="PNG"/>
+      </imageobject>
+    </mediaobject>
+  </screenshot>
+</para>
+
+<para
+>O seletor de tarefas geralmente é invocado usando a combinação de teclas <keycombo
+>&Alt;&Tab;</keycombo
+>, mas isso pode ser alterado. Quando invocado, ele exibe uma lista de todas as janelas abertas no momento, opcionalmente filtrada e complementada de acordo com as configurações. Por exemplo, a lista pode ser filtrada para exibir apenas janelas que atendam a determinados critérios, como janelas que estejam visíveis no momento. Depois que a lista de janelas for exibida, o usuário pode navegar para frente e para trás entre todas as janelas listadas pressionando repetidamente a combinação de teclas do seletor de tarefas. Soltar a combinação de teclas do seletor de tarefas ativará a janela que foi selecionada na lista.</para>
+
+<para
+>Como o seletor de tarefas oferece muitas opções de configuração, duas coleções distintas de configurações podem ser definidas. Essas coleções são chamadas de <guilabel
+>Principal</guilabel
+> e <guilabel
+>Alternativo</guilabel
+>, e cada uma pode ter um conjunto exclusivo de combinações de teclas atribuídas a elas.</para>
+
+<para
+>As opções de configuração para cada uma das coleções Principal e Alternativo são apresentadas em quatro grupos, conforme a seguir:</para>
+
+<sect2 id="visualization">
+<title
+>Visualização</title>
+<para
+>Este grupo de opções de configuração controla como a lista de janelas é exibida na tela. A visualização padrão é chamada de <guilabel
+>Breeze</guilabel
+>. Ela lista todas as janelas abertas na lateral esquerda da tela. Outras visualizações incluem <guilabel
+>Cover Switch</guilabel
+> (um carrossel 3D), <guilabel
+>Flip Switch</guilabel
+> (uma pilha 3D de cartões) e <guilabel
+>Medium Rounded</guilabel
+> (uma lista de ícones no estilo Microsoft Windows). Muitas outras visualizações podem ser baixadas e instaladas clicando no botão <guibutton
+>Baixar novos seletores de tarefas...</guibutton
+> no canto inferior direito da caixa de diálogo.</para>
+
+<para
+>Após selecionar uma visualização na lista suspensa, clique no botão à direita da lista para ver uma pré-visualização ou para configurar opções específicas da visualização.</para>
+
+<para
+>A caixa de seleção <guilabel
+>Mostrar a janela selecionada</guilabel
+> determina a clareza com que o usuário verá qual janela será ativada. Se esta caixa estiver marcada, todas as janelas serão ocultadas, exceto aquela que estiver selecionada no seletor de tarefas.</para>
+
+<note
+><para
+>Pode haver casos em que a visualização desejada do seletor de tarefas não possa ser exibida. Uma dessas situações pode ocorrer quando um processo chamado 'composição' é desativado ou desabilitado. Se isso acontecer, a lista de janelas ainda será exibida, mas em um formato muito simples.</para
+></note>
+</sect2>
+
+<sect2 id="shortcuts">
+<title
+>Atalhos</title>
+<para
+>Esta seção permite definir até quatro atalhos de teclado do seletor de tarefas para a configuração <guilabel
+>Principal</guilabel
+> e mais quatro para a configuração <guilabel
+>Alternativo</guilabel
+>. Os atalhos da configuração <guilabel
+>Principal</guilabel
+> são predefinidos, enquanto os atalhos da configuração <guilabel
+>Alternativo</guilabel
+> precisam ser definidos manualmente.</para>
+<para
+>Na seção <guilabel
+>Todas as janelas</guilabel
+>, os atalhos <guilabel
+>Avançar</guilabel
+> e <guilabel
+>Retroceder</guilabel
+> irão percorrer a lista de janelas abertas, alternando entre elas.</para>
+<para
+>Na seção <guilabel
+>Aplicativo atual</guilabel
+>, os atalhos <guilabel
+>Avançar</guilabel
+> e <guilabel
+>Retroceder</guilabel
+> podem ser configurados para alternar entre as janelas do aplicativo atualmente ativo. Por exemplo, se você tiver três janelas do navegador de arquivos abertas, poderá usar esses atalhos para alternar entre as três janelas.</para>
+<para
+>Para alterar um atalho de teclado, clique no botão <guibutton
+>Avançar</guibutton
+> ou <guibutton
+>Retroceder</guibutton
+> e digite a combinação de teclas desejada. Certifique-se de usar uma tecla modificadora como &Ctrl; ou &Alt; como parte do atalho; caso contrário, você poderá não conseguir percorrer a lista de janelas corretamente.</para>
+
+<note
+><para
+>Qualquer um dos atalhos de teclado definidos pode ser usado para invocar o seletor de tarefas. Para invocar o seletor de tarefas sem usar o teclado, você pode definir ações de borda da tela no módulo &systemsettings; <ulink url="help:/kcontrol/kwinscreenedges/index.html"
+><guilabel
+>Bordas da tela</guilabel
+></ulink
+>.</para
+></note>
+</sect2>
+
+<sect2 id="content">
+<title
+>Conteúdo</title>
+<para
+>As opções nesta seção controlam parcialmente quais janelas aparecerão na lista do seletor de tarefas.</para>
+
+<para
+>A lista suspensa <guilabel
+>Critério de ordenação</guilabel
+> especifica se as janelas devem ser listadas por <guilabel
+>Ordem de empilhamento</guilabel
+> ou em <guilabel
+>Usados recentemente</guilabel
+>. <guilabel
+>Ordem de empilhamento</guilabel
+> é a ordem em que as janelas aparecem umas sobre as outras na tela, enquanto <guilabel
+>Usados recentemente</guilabel
+> é a ordem em que as janelas foram usadas. A ordem <guilabel
+>Usados recentemente</guilabel
+> facilita muito a alternância entre as duas janelas mais usadas, pois elas sempre aparecerão nas duas primeiras posições da lista.</para>
+
+<para
+>A opção <guilabel
+>Incluir ícone "Espiar área de trabalho"</guilabel
+> adicionará uma opção "Espiar área de trabalho" à lista de janelas. Isso permite que o usuário selecione facilmente a área de trabalho como a "janela" a ser exibida.</para>
+
+<para
+>A opção <guilabel
+>Apenas uma janela por aplicativo</guilabel
+> reduz a desordem, mostrando apenas uma janela para cada aplicativo aberto. Se um aplicativo tiver várias janelas abertas, a janela ativada mais recentemente será exibida na lista e as outras não serão mostradas.</para>
+
+<para
+>A opção <guilabel
+>Ordenar as janelas minimizadas após as janelas não minimizadas</guilabel
+> exibirá todas as janelas não minimizadas primeiro, mesmo que sejam menos recentes ou estejam mais abaixo na parte inferior da tela do que algumas das janelas minimizadas.</para>
+</sect2>
+
+<sect2 id="filter-windows-by">
+<title
+>Filtrar janelas por</title>
+<para
+>Esta seção contém opções para filtrar adicionalmente a lista de janelas do seletor de tarefas.</para>
+
+<para
+>A opção <guilabel
+>Áreas de trabalho virtuais</guilabel
+> filtra a lista de janelas de acordo com a área de trabalho virtual que está ativa no momento. Se você costuma colocar janelas específicas em áreas de trabalho virtuais específicas, essa opção de filtragem pode facilitar a troca de janelas dentro ou entre essas áreas de trabalho virtuais. Selecione <guilabel
+>Área de trabalho atual</guilabel
+> para exibir apenas as janelas na área de trabalho virtual atual. Selecione <guilabel
+>Todas as outras áreas de trabalho</guilabel
+> para exibir apenas as janelas nas áreas de trabalho virtuais que não estão ativas no momento.</para>
+
+<para
+>A opção <guilabel
+>Atividades</guilabel
+> filtra a lista de janelas de acordo com a Atividade que está ativa no momento. Assim como na filtragem da área de trabalho virtual, essa opção pode facilitar a troca de aplicativos dentro ou entre todas as Atividades. Selecione <guilabel
+>Atividade atual</guilabel
+> para exibir apenas as janelas que fazem parte da Atividade atual. Selecione <guilabel
+>Todas as outras atividades</guilabel
+> para exibir apenas as janelas que fazem parte das Atividades que não estão ativas no momento.</para>
+
+<para
+>A opção <guilabel
+>Telas</guilabel
+> filtra a lista de janelas de acordo com a tela que está ativa no momento. Selecione <guilabel
+>Tela atual</guilabel
+> para exibir apenas as janelas que estão na tela onde o ponteiro do mouse está posicionado. Selecione <guilabel
+>Todas as outras telas</guilabel
+> para exibir as janelas que estão em todas as outras telas. Essa opção pode ser útil para usuários que desejam alternar rapidamente entre janelas que estão no mesmo monitor em uma configuração com vários monitores.</para>
+<note
+><para
+>A tela ativa é aquela em que o ponteiro do mouse está atualmente, não a tela em que a janela atualmente ativa está.</para
+></note>
+
+<para
+>A opção <guilabel
+>Minimização</guilabel
+> filtra a lista de janelas de acordo com se elas estão ocultas ou não. Selecione <guilabel
+>Janelas visíveis</guilabel
+> para mostrar apenas as janelas que não foram minimizadas. Selecione <guilabel
+>Janelas ocultas</guilabel
+> para mostrar apenas as janelas minimizadas.</para>
+
+<para
+>Se você desmarcar uma opção nesta seção, nenhum filtro será aplicado a essa opção. Por exemplo, se você marcar a opção "Telas" e desmarcar as outras três opções, a lista de janelas do seletor de tarefas será filtrada apenas de acordo com as janelas que estão na tela atual.</para>
+<para
+>Todas as opções descritas nas seções acima funcionam em conjunto para fornecer um controle muito preciso do comportamento e da aparência do seletor de tarefas. Por exemplo, você pode definir a coleção de configurações <guilabel
+>Principal</guilabel
+> para ser invocada com a combinação de teclas <keycombo
+>&Alt;&Tab;</keycombo
+> para exibir as janelas abertas em um carrossel, para exibir apenas uma janela por aplicativo e para listar apenas as janelas que estão na área de trabalho atual e na tela ativa no momento. Isso pode proporcionar uma troca de janelas muito rápida e sensível ao contexto se você tiver áreas de trabalho virtuais 'de trabalho' e 'de casa', e mantiver todas as suas planilhas de trabalho e de casa no mesmo monitor.</para>
+
+<para
+>A disponibilidade da configuração <guilabel
+>Alternativo</guilabel
+> do seletor de tarefas oferece uma segunda maneira de filtrar e navegar facilmente pelas listas de janelas. Com oito combinações de teclas disponíveis nas duas configurações do seletor de tarefas, deve ser possível navegar de forma fácil e rápida por um grande número de janelas.</para>
+</sect2>
+</sect1>
+</article>
+
+<!--
+Local Variables:
+mode: xml
+sgml-minimize-attributes:nil
+sgml-general-insert-case:lower
+sgml-indent-step:0
+sgml-indent-data:nil
+End:
+
+vim:tabstop=2:shiftwidth=2:expandtab
+kate: space-indent on; indent-width 2; tab-width 2; indent-mode none;
+-->

@@ -13,7 +13,16 @@
       modules = [
         ./configuration.nix
         ({ pkgs, ... }: {
-          nixpkgs.overlays = [ nix-cachyos-kernel.overlays.pinned ];
+          nixpkgs.overlays = [
+            nix-cachyos-kernel.overlays.pinned
+            (final: prev: {
+              kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {
+                kwin = kprev.kwin.overrideAttrs (old: {
+                  src = ./kwin;
+                });
+              });
+            })
+          ];
         })
       ];
     };

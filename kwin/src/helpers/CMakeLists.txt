@@ -1,0 +1,3 @@
+add_subdirectory(killer)
+add_subdirectory(wayland_wrapper)
+add_subdirectory(kwindowprop)

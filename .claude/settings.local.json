@@ -51,7 +51,16 @@
       "Bash(find /nix/store -path *sddm* -name *.conf -type f)",
       "Bash(wc:*)",
       "Bash(cat:*)",
-      "Read(//sys/devices/pci0000:00/0000:00:01.1/0000:01:00.0/**)"
+      "Read(//sys/devices/pci0000:00/0000:00:01.1/0000:01:00.0/**)",
+      "WebFetch(domain:invent.kde.org)",
+      "WebFetch(domain:bugs.kde.org)",
+      "WebFetch(domain:forum.manjaro.org)",
+      "WebFetch(domain:discuss.kde.org)",
+      "WebFetch(domain:discuss.cachyos.org)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:wiki.archlinux.org)",
+      "WebFetch(domain:forums.developer.nvidia.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }
