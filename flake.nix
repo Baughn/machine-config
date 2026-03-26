@@ -18,6 +18,7 @@
             (final: prev: {
               kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {
                 kwin = kprev.kwin.overrideAttrs (old: {
+                  # patches = (old.patches or []) ++ [ ./kwin.patch ];
                   src = ./kwin;
                 });
               });

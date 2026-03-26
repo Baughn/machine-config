@@ -1,0 +1,249 @@
+diff --color -ru kwin-6.6.3-original/src/outputconfigurationstore.cpp kwin/src/outputconfigurationstore.cpp
+--- kwin-6.6.3-original/src/outputconfigurationstore.cpp	2026-03-17 11:03:40.000000000 +0000
++++ kwin/src/outputconfigurationstore.cpp	2026-03-24 12:56:28.978252857 +0000
+@@ -43,7 +43,7 @@
+     m_outputs.clear();
+ }
+ 
+-std::optional<std::pair<OutputConfiguration, OutputConfigurationStore::ConfigType>> OutputConfigurationStore::queryConfig(const QList<BackendOutput *> &outputs, bool isLidClosed, AccelerometerOrientation orientation, bool isTabletMode)
++std::optional<std::pair<OutputConfiguration, OutputConfigurationStore::ConfigType>> OutputConfigurationStore::queryConfig(const QList<BackendOutput *> &outputs, bool isLidClosed, AccelerometerOrientation orientation, bool isTabletMode, bool preferLowRefreshRate)
+ {
+     QList<BackendOutput *> relevantOutputs;
+     std::copy_if(outputs.begin(), outputs.end(), std::back_inserter(relevantOutputs), [](BackendOutput *output) {
+@@ -54,18 +54,16 @@
+     }
+     // assigns uuids, if the outputs don't have one yet
+     registerOutputs(outputs);
+-    if (const auto opt = findSetup(relevantOutputs, isLidClosed)) {
++    if (!preferLowRefreshRate) if (const auto opt = findSetup(relevantOutputs, isLidClosed)) {
+         const auto &[setup, outputStates] = *opt;
+         auto config = setupToConfig(setup, outputStates);
+         applyOrientationReading(config, relevantOutputs, orientation, isTabletMode);
+         applyMirroring(config, relevantOutputs);
+-        storeConfig(relevantOutputs, isLidClosed, config);
+         return std::make_tuple(config, ConfigType::Preexisting);
+     }
+-    auto config = generateConfig(relevantOutputs, isLidClosed);
++    auto config = generateConfig(relevantOutputs, isLidClosed, preferLowRefreshRate);
+     applyOrientationReading(config, relevantOutputs, orientation, isTabletMode);
+     applyMirroring(config, relevantOutputs);
+-    storeConfig(relevantOutputs, isLidClosed, config);
+     return std::make_tuple(config, ConfigType::Generated);
+ }
+ 
+@@ -608,7 +606,7 @@
+     }
+ }
+ 
+-OutputConfiguration OutputConfigurationStore::generateConfig(const QList<BackendOutput *> &outputs, bool isLidClosed)
++OutputConfiguration OutputConfigurationStore::generateConfig(const QList<BackendOutput *> &outputs, bool isLidClosed, bool preferLowRefreshRate)
+ {
+     qCDebug(KWIN_OUTPUT_CONFIG, "Generating new config for %lld outputs", outputs.size());
+     if (isLidClosed) {
+@@ -657,7 +655,7 @@
+                 && mode->size() == existingData.mode->size
+                 && mode->refreshRate() == existingData.mode->refreshRate;
+         });
+-        const auto mode = modeIt == modes.end() ? kscreenChangeSet.mode.value_or(chooseMode(output)).lock() : *modeIt;
++        const auto mode = (preferLowRefreshRate || modeIt == modes.end()) ? kscreenChangeSet.mode.value_or(chooseMode(output, preferLowRefreshRate)).lock() : *modeIt;
+ 
+         const auto changeset = ret.changeSet(output);
+         *changeset = {
+@@ -710,7 +708,7 @@
+     return ret;
+ }
+ 
+-std::shared_ptr<OutputMode> OutputConfigurationStore::chooseMode(BackendOutput *output) const
++std::shared_ptr<OutputMode> OutputConfigurationStore::chooseMode(BackendOutput *output, bool preferLowRefreshRate) const
+ {
+     const auto findBiggestFastest = [](const auto &left, const auto &right) {
+         const uint64_t leftPixels = left->size().width() * left->size().height();
+@@ -722,6 +720,19 @@
+         }
+     };
+ 
++    // When preferring low refresh rate for bandwidth reasons, pick biggest resolution
++    // but with the lowest usable refresh rate (>= 50Hz) instead of the highest
++    const auto findBiggestSlowest = [](const auto &left, const auto &right) {
++        const uint64_t leftPixels = left->size().width() * left->size().height();
++        const uint64_t rightPixels = right->size().width() * right->size().height();
++        if (leftPixels == rightPixels) {
++            // reversed: prefer lower refresh rate
++            return left->refreshRate() > right->refreshRate();
++        } else {
++            return leftPixels < rightPixels;
++        }
++    };
++
+     const auto modes = output->modes();
+     auto notPotentiallyBroken = modes | std::ranges::views::filter([](const auto &mode) {
+         // generated modes aren't guaranteed to work, so don't choose one as the default
+@@ -744,7 +755,7 @@
+         return aspectRatio > 31 / 9.0 && aspectRatio < 33 / 9.0;
+     };
+ 
+-    if (nativeSize == preferredOnly.end() || is32by9(*nativeSize)) {
++    if (!preferLowRefreshRate && (nativeSize == preferredOnly.end() || is32by9(*nativeSize))) {
+         // 32:9 displays often advertise a lower resolution mode as preferred, special case them
+         auto only32by9 = notPotentiallyBroken | std::ranges::views::filter(is32by9);
+         const auto best32By9 = std::ranges::max_element(only32by9, findBiggestFastest);
+@@ -761,15 +772,29 @@
+         auto correctSize = notPotentiallyBroken | std::ranges::views::filter([size](const auto &mode) {
+             return mode->size() == size;
+         });
+-        // some high refresh rate displays advertise a 60Hz mode as preferred for compatibility reasons
+-        // ignore that and choose the highest possible refresh rate by default instead
+-        const auto highestRefresh = std::ranges::max_element(correctSize, [](const auto &n, const auto &nPlus1) {
+-            return n->refreshRate() < nPlus1->refreshRate();
+-        });
+-        // if the preferred mode size has a refresh rate that's too low for PCs,
+-        // allow falling back to a mode with lower resolution and a more usable refresh rate
+-        if (highestRefresh != correctSize.end() && (*highestRefresh)->refreshRate() >= 50000) {
+-            return *highestRefresh;
++
++        if (preferLowRefreshRate) {
++            // Bandwidth fallback: pick the lowest refresh rate >= 50Hz at native resolution
++            auto usableAtNative = correctSize | std::ranges::views::filter([](const auto &mode) {
++                return mode->refreshRate() >= 50000;
++            });
++            const auto lowestRefresh = std::ranges::min_element(usableAtNative, [](const auto &a, const auto &b) {
++                return a->refreshRate() < b->refreshRate();
++            });
++            if (lowestRefresh != usableAtNative.end()) {
++                return *lowestRefresh;
++            }
++        } else {
++            // some high refresh rate displays advertise a 60Hz mode as preferred for compatibility reasons
++            // ignore that and choose the highest possible refresh rate by default instead
++            const auto highestRefresh = std::ranges::max_element(correctSize, [](const auto &n, const auto &nPlus1) {
++                return n->refreshRate() < nPlus1->refreshRate();
++            });
++            // if the preferred mode size has a refresh rate that's too low for PCs,
++            // allow falling back to a mode with lower resolution and a more usable refresh rate
++            if (highestRefresh != correctSize.end() && (*highestRefresh)->refreshRate() >= 50000) {
++                return *highestRefresh;
++            }
+         }
+     }
+ 
+@@ -777,12 +802,18 @@
+     auto usableRefreshRates = notPotentiallyBroken | std::ranges::views::filter([](const auto &mode) {
+         return mode->refreshRate() >= 50000;
+     });
+-    const auto usable = std::ranges::max_element(usableRefreshRates, findBiggestFastest);
+-    if (usable != usableRefreshRates.end()) {
+-        return *usable;
++    if (preferLowRefreshRate) {
++        const auto usable = std::ranges::max_element(usableRefreshRates, findBiggestSlowest);
++        if (usable != usableRefreshRates.end()) {
++            return *usable;
++        }
+     } else {
+-        return *std::ranges::max_element(notPotentiallyBroken, findBiggestFastest);
++        const auto usable = std::ranges::max_element(usableRefreshRates, findBiggestFastest);
++        if (usable != usableRefreshRates.end()) {
++            return *usable;
++        }
+     }
++    return *std::ranges::max_element(notPotentiallyBroken, findBiggestFastest);
+ }
+ 
+ double OutputConfigurationStore::chooseScale(BackendOutput *output, OutputMode *mode) const
+diff --color -ru kwin-6.6.3-original/src/outputconfigurationstore.h kwin/src/outputconfigurationstore.h
+--- kwin-6.6.3-original/src/outputconfigurationstore.h	2026-03-17 11:03:40.000000000 +0000
++++ kwin/src/outputconfigurationstore.h	2026-03-24 11:48:26.823248052 +0000
+@@ -36,7 +36,7 @@
+         Preexisting,
+         Generated,
+     };
+-    std::optional<std::pair<OutputConfiguration, ConfigType>> queryConfig(const QList<BackendOutput *> &outputs, bool isLidClosed, AccelerometerOrientation orientation, bool isTabletMode);
++    std::optional<std::pair<OutputConfiguration, ConfigType>> queryConfig(const QList<BackendOutput *> &outputs, bool isLidClosed, AccelerometerOrientation orientation, bool isTabletMode, bool preferLowRefreshRate = false);
+     void storeConfig(const QList<BackendOutput *> &allOutputs, bool isLidClosed, const OutputConfiguration &config);
+ 
+     void applyMirroring(OutputConfiguration &config, const QList<BackendOutput *> &outputs);
+@@ -44,11 +44,11 @@
+     bool isAutoBrightnessActive(const QList<BackendOutput *> &outputs) const;
+ 
+ private:
+-    OutputConfiguration generateConfig(const QList<BackendOutput *> &outputs, bool isLidClosed);
++    OutputConfiguration generateConfig(const QList<BackendOutput *> &outputs, bool isLidClosed, bool preferLowRefreshRate = false);
+     void registerOutputs(const QList<BackendOutput *> &outputs);
+     void applyOrientationReading(OutputConfiguration &config, const QList<BackendOutput *> &outputs, AccelerometerOrientation orientation, bool isTabletMode);
+     std::optional<OutputConfiguration> generateLidClosedConfig(const QList<BackendOutput *> &outputs);
+-    std::shared_ptr<OutputMode> chooseMode(BackendOutput *output) const;
++    std::shared_ptr<OutputMode> chooseMode(BackendOutput *output, bool preferLowRefreshRate = false) const;
+     double chooseScale(BackendOutput *output, OutputMode *mode) const;
+     void load();
+     void save();
+diff --color -ru kwin-6.6.3-original/src/workspace.cpp kwin/src/workspace.cpp
+--- kwin-6.6.3-original/src/workspace.cpp	2026-03-17 11:03:40.000000000 +0000
++++ kwin/src/workspace.cpp	2026-03-24 11:50:10.845154393 +0000
+@@ -237,7 +237,13 @@
+             return;
+         }
+         auto &[config, type] = *opt;
+-        applyOutputConfiguration(config);
++        if (applyOutputConfiguration(config) == OutputConfigurationError::None) {
++            QList<BackendOutput *> relevantOutputs;
++            std::copy_if(outputs.begin(), outputs.end(), std::back_inserter(relevantOutputs), [](BackendOutput *output) {
++                return !output->isNonDesktop() && !output->isPlaceholder();
++            });
++            m_outputConfigStore->storeConfig(relevantOutputs, m_lidSwitchTracker->isLidClosed(), config);
++        }
+     };
+     connect(m_lidSwitchTracker.get(), &LidSwitchTracker::lidStateChanged, this, applySensorChanges);
+     connect(kwinApp()->tabletModeManager(), &TabletModeManager::tabletModeChanged, this, applySensorChanges);
+@@ -654,7 +660,14 @@
+ 
+         error = applyOutputConfiguration(cfg);
+         switch (error) {
+-        case OutputConfigurationError::None:
++        case OutputConfigurationError::None: {
++            // Only persist config after it has been successfully validated and applied
++            QList<BackendOutput *> relevantOutputs;
++            std::copy_if(toEnable.begin(), toEnable.end(), std::back_inserter(relevantOutputs), [](BackendOutput *output) {
++                return !output->isNonDesktop() && !output->isPlaceholder();
++            });
++            m_outputConfigStore->storeConfig(relevantOutputs, m_lidSwitchTracker->isLidClosed(), cfg);
++
+             if (type == OutputConfigurationStore::ConfigType::Generated) {
+                 const bool hasInternal = std::any_of(outputs.begin(), outputs.end(), [](BackendOutput *o) {
+                     return o->isInternal();
+@@ -670,6 +683,7 @@
+                 }
+             }
+             return;
++        }
+         case OutputConfigurationError::Unknown:
+         case OutputConfigurationError::TooManyEnabledOutputs:
+         case OutputConfigurationError::Timeout:
+@@ -682,6 +696,29 @@
+         }
+     } while (error == OutputConfigurationError::TooManyEnabledOutputs && !toEnable.isEmpty() && !alreadyHaveEnabledOutputs);
+ 
++    // Fallback: retry with lower refresh rates to reduce display bandwidth.
++    // This handles NVIDIA GPUs where the combined pixel clock of all monitors
++    // at max refresh rate exceeds the GPU's display bandwidth limits.
++    if (error == OutputConfigurationError::Unknown && !alreadyHaveEnabledOutputs) {
++        qCWarning(KWIN_CORE) << "Output configuration failed, retrying with lower refresh rates";
++        auto opt = m_outputConfigStore->queryConfig(outputs, m_lidSwitchTracker->isLidClosed(),
++            m_orientationSensor->reading(), kwinApp()->tabletModeManager()->effectiveTabletMode(),
++            /*preferLowRefreshRate=*/true);
++        if (opt) {
++            auto &[cfg, type] = *opt;
++            error = applyOutputConfiguration(cfg);
++            if (error == OutputConfigurationError::None) {
++                qCWarning(KWIN_CORE) << "Low refresh rate fallback succeeded";
++                QList<BackendOutput *> relevantOutputs;
++                std::copy_if(outputs.begin(), outputs.end(), std::back_inserter(relevantOutputs), [](BackendOutput *output) {
++                    return !output->isNonDesktop() && !output->isPlaceholder();
++                });
++                m_outputConfigStore->storeConfig(relevantOutputs, m_lidSwitchTracker->isLidClosed(), cfg);
++                return;
++            }
++        }
++    }
++
+     qCCritical(KWIN_CORE, "Applying output configuration failed!");
+     // Update the output order to a fallback list, to avoid dangling pointers
+     updateOutputOrder();

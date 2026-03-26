@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(jj status:*)",
-      "Bash(jj log:*)"
+      "Bash(jj log:*)",
+      "Bash(./rebuild.sh)"
     ]
   }
 }
