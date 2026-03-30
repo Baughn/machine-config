@@ -9,9 +9,9 @@
   outputs = { nixpkgs, nix-cachyos-kernel, ganbot, ... }: {
     nixosConfigurations.saya = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
-      specialArgs = { inherit ganbot; };
+      specialArgs = { inherit ganbot; platform = "nixos"; };
       modules = [
-        ./configuration.nix
+        ./machines/saya
         ({ pkgs, ... }: {
           nixpkgs.overlays = [
             nix-cachyos-kernel.overlays.pinned

@@ -3,7 +3,8 @@
     "allow": [
       "Bash(jj status:*)",
       "Bash(jj log:*)",
-      "Bash(./rebuild.sh)"
+      "Bash(./rebuild.sh)",
+      "Bash(jj snapshot:*)"
     ]
   }
 }
