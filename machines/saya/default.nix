@@ -18,6 +18,27 @@
   networking.networkmanager.enable = true;
   networking.networkmanager.dns = "systemd-resolved";
 
+  # WireGuard hub
+  me.wireguard = {
+    enable = true;
+    address = [ "10.42.0.1/24" "fd10:42::1/64" ];
+    privateKeyFile = "/etc/wireguard/private.key";
+    listenPort = 51820;
+    peers = [
+      # Kim
+      {
+        publicKey = "y4IVDKFfuEoU9Xiq+nmY8wkMUAkE8wfwSpY/p7S+qEk=";
+	allowedIPs = [ "10.42.0.2/32" ];
+      }
+      # jrddunbr
+      {
+        publicKey = "QPSh4TROwtw54n9Xb/VvCHN0TQpm6417p7Gl+//7VVg=";
+	allowedIPs = [ "10.42.0.3/32" ];
+	endpoint = "jump.use1.ja4.org:51280";
+      }
+    ];
+  };
+
   # Locale
   time.timeZone = "Europe/Dublin";
   i18n.defaultLocale = "en_US.UTF-8";
