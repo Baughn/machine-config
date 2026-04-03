@@ -42,6 +42,13 @@
     package = config.boot.kernelPackages.nvidiaPackages.beta;
   };
 
+  # Fonts
+  fonts.fontconfig = {
+    subpixel.rgba = "none";
+    hinting.style = "slight";
+    antialias = true;
+  };
+
   # Desktop environment
   services.displayManager.enable = true;
   services.displayManager.sddm.enable = true;
