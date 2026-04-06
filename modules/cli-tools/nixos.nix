@@ -12,6 +12,8 @@
     pkgs.comma
     pkgs.btop
     pkgs.python3
+    pkgs.tcpdump
+    pkgs.bubblewrap
   ];
 
   programs.htop.enable = true;

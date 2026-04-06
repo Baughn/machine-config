@@ -17,6 +17,7 @@
   networking.hostName = "saya";
   networking.networkmanager.enable = true;
   networking.networkmanager.dns = "systemd-resolved";
+  networking.firewall.allowPing = true;
 
   # WireGuard hub
   me.wireguard = {
@@ -34,7 +35,7 @@
       {
         publicKey = "QPSh4TROwtw54n9Xb/VvCHN0TQpm6417p7Gl+//7VVg=";
 	allowedIPs = [ "10.42.0.3/32" ];
-	endpoint = "jump.use1.ja4.org:51280";
+	endpoint = "ctha.ja4.org:51820";
       }
     ];
   };
@@ -94,7 +95,7 @@
     pkgs.discord
     pkgs.nvtopPackages.nvidia
     pkgs.btop-cuda
-    pkgs.zed
+    pkgs.zed-editor
   ];
 
   # Nix build parallelism (machine-specific: 16-core CPU)
