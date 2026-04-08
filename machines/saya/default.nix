@@ -88,6 +88,22 @@
     ];
   };
 
+  # Home Manager
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+  home-manager.users.svein = { ... }: {
+    home.stateVersion = "24.11";
+
+    home.sessionVariables = {
+      NPM_CONFIG_PREFIX = "$HOME/.npm-global";
+    };
+    home.sessionPath = [ "$HOME/.npm-global/bin" ];
+
+    home.packages = [ pkgs.nodejs ];
+
+    programs.home-manager.enable = true;
+  };
+
   # Desktop packages (not shared across machines)
   environment.systemPackages = [
     pkgs.ghostty
