@@ -1,19 +1,20 @@
 { pkgs, ... }:
 
 {
-  environment.systemPackages = [
-    pkgs.neovim
-    pkgs.jujutsu
-    pkgs.git
-    pkgs.ripgrep
-    pkgs.fd
-    pkgs.psmisc
-    pkgs.uv
-    pkgs.comma
-    pkgs.btop
-    pkgs.python3
-    pkgs.tcpdump
-    pkgs.bubblewrap
+  environment.systemPackages = with pkgs; [
+    neovim
+    jujutsu
+    git
+    ripgrep
+    fd
+    psmisc
+    uv
+    comma
+    btop
+    python3
+    tcpdump
+    bubblewrap
+    socat
   ];
 
   programs.htop.enable = true;
