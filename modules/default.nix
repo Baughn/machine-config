@@ -12,5 +12,6 @@ in
     (mod ./dns)
     (mod ./ssh)
     (mod ./wireguard)
+    (mod ./mdns)
   ];
 }

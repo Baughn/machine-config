@@ -8,5 +8,10 @@
       "Bash(nix eval:*)",
       "Bash(git add:*)"
     ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": true
   }
 }

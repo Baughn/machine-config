@@ -18,6 +18,7 @@
   networking.networkmanager.enable = true;
   networking.networkmanager.dns = "systemd-resolved";
   networking.firewall.allowPing = true;
+  me.mdns.enable = true;
 
   # WireGuard hub
   me.wireguard = {
