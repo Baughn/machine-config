@@ -6,13 +6,14 @@ in
 {
   options.me.mdns = {
     enable = lib.mkEnableOption "mDNS/DNS-SD via Avahi";
+    publish = lib.mkEnableOption "mDNS address publishing (advertises this machine on the local network)";
   };
 
   config = lib.mkIf cfg.enable {
     services.avahi = {
       enable = true;
       nssmdns4 = true;
-      publish = {
+      publish = lib.mkIf cfg.publish {
         enable = true;
         addresses = true;
       };

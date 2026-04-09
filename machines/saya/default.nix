@@ -17,8 +17,11 @@
   networking.hostName = "saya";
   networking.networkmanager.enable = true;
   networking.networkmanager.dns = "systemd-resolved";
-  networking.firewall.allowPing = true;
+  networking.firewall.allowPing = false;
   me.mdns.enable = true;
+  me.mdns.publish = true;
+  me.security.enable = true;
+  me.firejail.enable = true;
 
   # WireGuard hub
   me.wireguard = {
@@ -105,6 +108,14 @@
 
   # Desktop programs
   programs.steam.enable = true;
+
+  # Automatic security updates (no auto-reboot for a desktop)
+  system.autoUpgrade = {
+    enable = true;
+    flake = "/home/svein/cachy-nix#saya";
+    dates = "04:00";
+    allowReboot = false;
+  };
 
   system.stateVersion = "25.11";
 }

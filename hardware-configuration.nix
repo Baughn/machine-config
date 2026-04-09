@@ -25,6 +25,12 @@
       options = [ "subvol=@home" "compress=zstd" "space_cache=v2" "commit=120" ];
     };
 
+  fileSystems."/mnt/btrfs-root" =
+    { device = "/dev/disk/by-uuid/a3ee68b9-4a7b-48f9-8a12-574362cf6542";
+      fsType = "btrfs";
+      options = [ "subvol=/" "compress=zstd" "space_cache=v2" "commit=120" ];
+    };
+
   fileSystems."/boot" =
     { device = "/dev/disk/by-uuid/E83A-EA40";
       fsType = "vfat";

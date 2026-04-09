@@ -13,6 +13,8 @@ in
     (mod ./ssh)
     (mod ./wireguard)
     (mod ./mdns)
+    (mod ./security)
+    (mod ./firejail)
     (mod ./home-manager)
   ];
 }

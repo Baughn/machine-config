@@ -1,8 +1,19 @@
 { lib, pkgs, ... }:
 
 {
-  services.openssh.enable = true;
-  security.sudo.wheelNeedsPassword = false;
+  services.openssh = {
+    enable = true;
+    settings = {
+      PermitRootLogin = "no";
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+      X11Forwarding = false;
+      MaxAuthTries = 3;
+      LoginGraceTime = 30;
+      ClientAliveInterval = 300;
+      ClientAliveCountMax = 2;
+    };
+  };
 
   programs.ssh.askPassword = lib.mkForce "${pkgs.x11_ssh_askpass}/libexec/x11-ssh-askpass";
 }
