@@ -13,5 +13,6 @@ in
     (mod ./ssh)
     (mod ./wireguard)
     (mod ./mdns)
+    (mod ./home-manager)
   ];
 }
