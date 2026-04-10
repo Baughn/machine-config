@@ -66,6 +66,25 @@ in
       };
     };
 
+    # -- LSM ordering --
+    # Place AppArmor ahead of BPF-LSM. BPF-LSM registers stub implementations
+    # for every LSM hook that unconditionally return the hook's default value
+    # (see kernel/bpf/bpf_lsm.c). For `lsmprop_to_secctx` that default is
+    # -EOPNOTSUPP. The single-LSM fast path in `security_lsmprop_to_secctx()`
+    # (security/security.c) returns the first registered hook unconditionally
+    # when called with LSM_ID_UNDEF, so whichever LSM was initialized first
+    # wins slot 0. With the NixOS default (landlock,yama,bpf,apparmor) that's
+    # the BPF stub returning -EOPNOTSUPP, which propagates up through
+    # audit_log_subj_ctx → audit_log_config_change → audit_set_backlog_limit
+    # and makes every AUDIT_SET netlink call (auditctl -b/-f/-r) fail, which
+    # breaks audit-rules-nixos.service on kernel 6.18+. Putting AppArmor
+    # before BPF makes AppArmor claim slot 0 and returns a real subject
+    # context, so the fast path succeeds.
+    #
+    # mkBefore (not mkForce) so other modules can still append LSMs;
+    # lsm_order_append() dedupes the resulting cmdline in the kernel.
+    security.lsm = lib.mkBefore [ "landlock" "yama" "apparmor" "bpf" ];
+
     # -- Audit framework --
     security.auditd.enable = true;
     security.audit = {

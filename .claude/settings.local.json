@@ -6,7 +6,12 @@
       "Bash(./rebuild.sh)",
       "Bash(jj snapshot:*)",
       "Bash(nix eval:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebSearch",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:bbs.archlinux.org)",
+      "Bash(systemctl status:*)"
     ]
   },
   "sandbox": {

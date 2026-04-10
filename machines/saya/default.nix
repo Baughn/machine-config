@@ -117,5 +117,9 @@
     allowReboot = false;
   };
 
+  # nixos-upgrade runs as root but the flake lives in svein's home;
+  # libgit2 refuses cross-user repos unless listed in safe.directory.
+  programs.git.config.safe.directory = "/home/svein/cachy-nix";
+
   system.stateVersion = "25.11";
 }
