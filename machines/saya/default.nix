@@ -110,17 +110,5 @@
   # Desktop programs
   programs.steam.enable = true;
 
-  # Automatic security updates (no auto-reboot for a desktop)
-  system.autoUpgrade = {
-    enable = true;
-    flake = "/home/svein/cachy-nix#saya";
-    dates = "04:00";
-    allowReboot = false;
-  };
-
-  # nixos-upgrade runs as root but the flake lives in svein's home;
-  # libgit2 refuses cross-user repos unless listed in safe.directory.
-  programs.git.config.safe.directory = "/home/svein/cachy-nix";
-
   system.stateVersion = "25.11";
 }

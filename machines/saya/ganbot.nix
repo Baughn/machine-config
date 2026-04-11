@@ -32,6 +32,9 @@
     };
   };
 
+  # ganbot.brage.info
+  networking.firewall.allowedTCPPorts = [ 8485 ];
+
   systemd.services.comfyui = {
     description = "ComfyUI AI Image Generation";
     after = [ "network-online.target" ];
