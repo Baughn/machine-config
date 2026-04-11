@@ -7,6 +7,7 @@
     ./hardware-configuration.nix
     ./cachy-tweaks.nix
     ./ganbot.nix
+    ./game-watcher.nix
   ];
 
   # Boot

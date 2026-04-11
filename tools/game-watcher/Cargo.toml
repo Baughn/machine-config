@@ -1,0 +1,22 @@
+[package]
+name = "game-watcher"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+nvml-wrapper = "0.10"
+serde = { version = "1", features = ["derive"] }
+signal-hook = "0.3"
+toml = "0.8"
+tracing = "0.1"
+tracing-journald = "0.3"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+tracing-test = "0.2"
+
+[profile.release]
+lto = "thin"
+strip = true
