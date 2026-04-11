@@ -2,11 +2,11 @@
 
 {
   imports = [
-    ../../hardware-configuration.nix
     ../../modules
-    ../../cachy-tweaks.nix
-    ../../ganbot.nix
     ../../kwin-bug/drm-atomic-log.nix
+    ./hardware-configuration.nix
+    ./cachy-tweaks.nix
+    ./ganbot.nix
   ];
 
   # Boot
