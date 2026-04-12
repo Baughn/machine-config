@@ -6,6 +6,7 @@ let
 in
 {
   imports = [
+    (mod ./agenix)
     (mod ./shell)
     (mod ./cli-tools)
     (mod ./nix)
