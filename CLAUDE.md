@@ -74,3 +74,8 @@ lib/
 - Machine configs should be thin: set option values, import hardware config, done.
 - No `with pkgs;` at module level — use `pkgs.foo` explicitly for clarity.
 - Keep nixpkgs on unstable channel.
+
+## Practical advice
+
+- If responding to a request from Discord, always end a session with ./rebuild.sh to
+  activate the changes.

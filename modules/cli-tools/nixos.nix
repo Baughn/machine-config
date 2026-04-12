@@ -15,6 +15,7 @@
     tcpdump
     bubblewrap
     socat
+    bun
   ];
 
   programs.htop.enable = true;

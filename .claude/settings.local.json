@@ -11,8 +11,12 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:bbs.archlinux.org)",
-      "Bash(systemctl status:*)"
+      "Bash(systemctl status:*)",
+      "mcp__plugin_discord_discord__reply"
     ]
+  },
+  "enabledPlugins": {
+    "discord@claude-plugins-official": true
   },
   "sandbox": {
     "enabled": false,
