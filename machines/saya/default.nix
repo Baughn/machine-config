@@ -24,11 +24,14 @@
   me.security.enable = true;
   me.firejail.enable = true;
 
+  # WireGuard secret (machine-specific)
+  age.secrets.wireguard-saya.file = ../../secrets/wireguard-saya.age;
+
   # WireGuard hub
   me.wireguard = {
     enable = true;
     address = [ "10.42.0.1/24" "fd10:42::1/64" ];
-    privateKeyFile = "/etc/wireguard/private.key";
+    privateKeyFile = config.age.secrets.wireguard-saya.path;
     listenPort = 51820;
     peers = [
       # Kim

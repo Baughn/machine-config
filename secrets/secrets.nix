@@ -8,5 +8,5 @@ let
   allKeys = [ svein saya ];
 in
 {
-  "test.age".publicKeys = allKeys;
+  "wireguard-saya.age".publicKeys = [ svein saya ];
 }
