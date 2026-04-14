@@ -8,7 +8,7 @@
       PasswordAuthentication = false;
       KbdInteractiveAuthentication = false;
       X11Forwarding = false;
-      MaxAuthTries = 3;
+      MaxAuthTries = 20;
       LoginGraceTime = 30;
       ClientAliveInterval = 300;
       ClientAliveCountMax = 2;

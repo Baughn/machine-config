@@ -5,4 +5,8 @@ set -euo pipefail
 
 MODE=${1:-switch}
 
-sudo nixos-rebuild $MODE --log-format internal-json |& nom --json
+if [ -t 1 ]; then
+  sudo nixos-rebuild $MODE --log-format internal-json |& nom --json
+else
+  sudo nixos-rebuild $MODE
+fi
