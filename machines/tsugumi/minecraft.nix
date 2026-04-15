@@ -24,6 +24,7 @@
   networking.firewall.allowedTCPPorts = [
     25565
     25566
+    25567
   ];
   networking.firewall.allowedUDPPorts = [
     24454 # Simple voice chat
