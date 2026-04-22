@@ -1,6 +1,8 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # Pinned past nixos-unstable to pick up PAM/apparmor fix (PR #511479).
+    # Revert to `nixos-unstable` once the channel advances past 9d5a303.
+    nixpkgs.url = "github:NixOS/nixpkgs/9d5a303cfbebf5931d29d75de01bbfecccf68a0e";
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
