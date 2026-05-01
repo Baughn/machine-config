@@ -1,52 +1,53 @@
-# NixOS/nix-darwin multi-machine configuration
+# NixOS configuration (multi-machine in progress)
+
+## Status
+
+Today this repo configures one NixOS desktop, **saya**. Three more machines
+are being migrated in from a separate repo:
+
+- **saya** — Desktop (NixOS, x86_64-linux). CachyOS kernel, NVIDIA GPU, KDE Plasma 6. *(here today)*
+- **tsugumi** — Server (NixOS, x86_64-linux). IPv6-only. *(planned)*
+- **v4** — IPv4 proxy (NixOS, x86_64-linux). Forwards IPv4 traffic to tsugumi. *(planned)*
+- **kaho** — Laptop (nix-darwin, aarch64-darwin). macOS with home-manager. *(planned)*
+
+Multi-platform support was scaffolded once and removed: the abstraction
+(`mkPlatformModule`, paired `nixos.nix` / `darwin.nix` files) wasn't paying
+for itself with no darwin machine actually present. We'll reintroduce a
+platform split when kaho lands and a real darwin module forces concrete
+requirements.
 
 ## Architecture
 
-Three-layer design supporting NixOS and nix-darwin from a single repo:
-
 ### 1. Machine configurations (`machines/<name>/default.nix`)
-Machine-specific settings: hardware, networking, hostname, and values for custom module options.
-Each machine imports `modules/default.nix` plus its own `hardware-configuration.nix`.
+Machine-specific settings: hardware, networking, hostname, and values for
+custom module options. Each machine imports `modules` (all shared modules)
+plus its own `hardware-configuration.nix` and any machine-only feature
+files (e.g. `machines/saya/steam.nix`).
 
-Machines:
-- **saya** — Desktop (NixOS, x86_64-linux). CachyOS kernel, NVIDIA GPU, KDE Plasma 6.
-- **tsugumi** — Server (NixOS, x86_64-linux). IPv6-only.
-- **v4** — IPv4 proxy (NixOS, x86_64-linux). Forwards IPv4 traffic to tsugumi.
-- **kaho** — Laptop (nix-darwin, aarch64-darwin). macOS with home-manager.
-
-### 2. Module option declarations (`modules/default.nix`)
-Shared entry point imported by all machines regardless of platform.
-This file ONLY imports module subdirectories — it defines no config itself.
-
-### 3. Platform-specific module implementations (`modules/<name>/`)
-Each module subdirectory contains:
-- `nixos.nix` — NixOS implementation (always present for NixOS-only modules)
-- `darwin.nix` — nix-darwin implementation (present when the module supports macOS; assert-false stub when it doesn't make sense on macOS)
-
-A library helper `mkPlatformModule` selects the correct file at eval time. The platform
-(`"nixos"` or `"darwin"`) is passed in via `specialArgs` from `flake.nix` — each flake
-output sets its own value, so a NixOS configuration never sees the darwin file and
-vice versa. The wrong platform's file is never evaluated — this is critical because
-even referencing a nonexistent option (behind mkIf) is a compile error.
-
-Module options should be system-agnostic where feasible. Platform files provide the
-`config` implementation for those options.
+### 2. Shared modules (`modules/<name>.nix`)
+Each module is a single flat NixOS module that declares options under
+`me.*` and provides `config` behind those options. `modules/default.nix`
+is just an `imports` list that pulls them all in.
 
 ### What to modularize
 
-There is exactly one machine of each type (one desktop, one server, one proxy, one laptop).
-Settings specific to a machine *type* are effectively machine-specific and belong in the
-machine config — no module needed. Only extract into a module when the config is genuinely
-shared (or shareable) across machines. Examples:
+There is exactly one machine of each type (one desktop, one server, one
+proxy, one laptop). Settings specific to a machine *type* are effectively
+machine-specific and belong in the machine config — no module needed. Only
+extract into a module when the config is genuinely shared (or shareable)
+across machines.
 
-- **Module-worthy:** shell/zsh setup, CLI tools, nix settings, DNS, SSH auth
+- **Module-worthy:** shell/zsh setup, CLI tools, nix settings, DNS, SSH auth, home-manager
 - **Machine-specific:** desktop environment, GPU drivers, boot loader, game clients, server services
 
 ## Build & Deploy
 
-- **saya (local):** `./rebuild.sh` then `sudo systemctl restart display-manager` if DE changes
-- **Remote machines:** colmena (planned)
-- **kaho:** `darwin-rebuild switch --flake .#kaho`
+- **saya (local):** `./rebuild.sh`, then `sudo systemctl restart display-manager` if DE changes.
+- **Remote machines:** colmena (planned).
+- **kaho (planned):** likely a separate `darwinConfigurations.kaho` output. Adding it will
+  require deciding how Linux-only modules opt out — `lib.mkIf pkgs.stdenv.isLinux` inside
+  each module works; a `pkgs`-conditional `imports` list does *not* (it recurses through
+  config). A separate `modules/darwin.nix` entry point that imports a subset is also viable.
 
 ## Flake structure
 
@@ -54,39 +55,44 @@ shared (or shareable) across machines. Examples:
 flake.nix
 machines/
   saya/default.nix
-  tsugumi/default.nix
-  v4/default.nix
-  kaho/default.nix
+  saya/hardware-configuration.nix
+  saya/<feature>.nix       # cachy-tweaks, ganbot, game-watcher, steam, ...
 modules/
-  default.nix          # imports all module subdirs via mkPlatformModule
-  dns/
-    nixos.nix
-    darwin.nix
-  desktop/
-    nixos.nix
-  ...
-lib/
-  default.nix          # mkPlatformModule and other helpers
+  default.nix              # plain imports list
+  agenix.nix
+  cli-tools.nix
+  dns.nix
+  firejail.nix
+  home-manager.nix
+  mdns.nix
+  nix.nix
+  security.nix
+  shell.nix
+  ssh.nix
+  wireguard.nix
+secrets/
+  secrets.nix
+  *.age
 ```
 
 ## Conventions
 
-- Module options live under the `me.*` namespace (e.g., `me.dns.upstream`).
+- Module options live under the `me.*` namespace (e.g. `me.wireguard.peers`).
 - Options use `mkEnableOption` / `mkOption` with sensible defaults.
 - Machine configs should be thin: set option values, import hardware config, done.
 - No `with pkgs;` at module level — use `pkgs.foo` explicitly for clarity. Exception:
   `with pkgs;` is fine inside a package list (e.g. `environment.systemPackages = with pkgs; [ ripgrep htop ];`)
   where the scope is obvious and limited.
 - Modules that apply identical config to every machine can be unconditional (no
-  `me.X.enable` toggle); add a toggle the day a machine actually wants the module off.
-  TODO: only `saya` is configured today, so this assumption is untested. Revisit when
-  `tsugumi`, `v4`, or `kaho` lands and confirm the unconditional modules really do
+  `me.X.enable` toggle); add a toggle when a machine actually wants the module off.
+  TODO: only saya is configured today, so this assumption is untested. Revisit
+  when tsugumi/v4/kaho lands and confirm the unconditional modules really do
   belong on every machine.
 - Keep nixpkgs on unstable channel.
 
 ## Practical advice
 
-- If responding to a request from Discord, always end a session with ./rebuild.sh to
+- If responding to a request from Discord, always end a session with `./rebuild.sh` to
   activate the changes.
 - Assume this repository was written by an absent-minded programmer in a hurry. The docs
   do not necessarily match reality, and if you spot a mismatch you should always ask

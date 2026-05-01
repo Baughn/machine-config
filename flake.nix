@@ -15,7 +15,7 @@
   outputs = { nixpkgs, nix-cachyos-kernel, home-manager, ganbot, agenix, ... }: {
     nixosConfigurations.saya = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
-      specialArgs = { inherit ganbot agenix; platform = "nixos"; };
+      specialArgs = { inherit ganbot agenix; };
       modules = [
         home-manager.nixosModules.home-manager
         ./machines/saya
