@@ -34,5 +34,14 @@
         })
       ];
     };
+
+    nixosConfigurations.v4 = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = { inherit agenix; };
+      modules = [
+        home-manager.nixosModules.home-manager
+        ./machines/v4
+      ];
+    };
   };
 }

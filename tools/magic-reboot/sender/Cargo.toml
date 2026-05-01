@@ -1,0 +1,9 @@
+[package]
+name = "magic-reboot-send"
+version = "0.1.0"
+edition = "2021"
+description = "Send magic packet to trigger emergency reboot on remote machine"
+license = "MIT"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }

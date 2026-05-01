@@ -154,11 +154,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1777113494,
-        "narHash": "sha256-HwKenQxyFJOqTr8o3QmfzkVA2QGMetvKJ9Sgx9JlNDM=",
+        "lastModified": 1777663280,
+        "narHash": "sha256-OLS4SbWLIoRKfYostmaUpE7ZIXEJHRStXCW9yEGB10U=",
         "ref": "HEAD",
-        "rev": "7e58dcf12c445c733ec7096178509863d4571bc9",
-        "revCount": 187,
+        "rev": "5a876f646b9532b3634f1e4a5723f6ead04f3181",
+        "revCount": 188,
         "type": "git",
         "url": "file:/home/svein/dev/ganbot"
       },
