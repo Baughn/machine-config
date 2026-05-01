@@ -16,7 +16,10 @@
     home.file = {
       ".claude/CLAUDE.md".text =
         let
-          platform = "This machine runs on macOS with nix-darwin. If you see 'command not found', try again with `nix run nixpkgs#package -- args`.";
+          platform =
+            if pkgs.stdenv.isDarwin
+            then "This machine runs on macOS with nix-darwin. If you see 'command not found', try again with `nix run nixpkgs#package -- args`."
+            else "This machine runs on NixOS. If you see 'command not found', try again with `nix run nixpkgs#package -- args`.";
         in
         ''
           - If there is a battle tested, well known package that can help us, you can recommend it. Ask the user's opinion before proceeding.

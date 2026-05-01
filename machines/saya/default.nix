@@ -8,6 +8,7 @@
     ./cachy-tweaks.nix
     ./ganbot.nix
     ./game-watcher.nix
+    ./steam.nix
   ];
 
   # Boot
@@ -110,9 +111,6 @@
 
   # Nix build parallelism (machine-specific: 16-core CPU)
   nix.settings.cores = 16;
-
-  # Desktop programs
-  programs.steam.enable = true;
 
   system.stateVersion = "25.11";
 }

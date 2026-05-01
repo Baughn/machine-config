@@ -23,9 +23,11 @@ Each module subdirectory contains:
 - `nixos.nix` — NixOS implementation (always present for NixOS-only modules)
 - `darwin.nix` — nix-darwin implementation (present when the module supports macOS; assert-false stub when it doesn't make sense on macOS)
 
-A library helper `mkPlatformModule` selects the correct file at eval time based on
-`pkgs.stdenv.isDarwin`. The wrong platform's file is never evaluated — this is critical
-because even referencing a nonexistent option (behind mkIf) is a compile error.
+A library helper `mkPlatformModule` selects the correct file at eval time. The platform
+(`"nixos"` or `"darwin"`) is passed in via `specialArgs` from `flake.nix` — each flake
+output sets its own value, so a NixOS configuration never sees the darwin file and
+vice versa. The wrong platform's file is never evaluated — this is critical because
+even referencing a nonexistent option (behind mkIf) is a compile error.
 
 Module options should be system-agnostic where feasible. Platform files provide the
 `config` implementation for those options.
@@ -72,7 +74,14 @@ lib/
 - Module options live under the `me.*` namespace (e.g., `me.dns.upstream`).
 - Options use `mkEnableOption` / `mkOption` with sensible defaults.
 - Machine configs should be thin: set option values, import hardware config, done.
-- No `with pkgs;` at module level — use `pkgs.foo` explicitly for clarity.
+- No `with pkgs;` at module level — use `pkgs.foo` explicitly for clarity. Exception:
+  `with pkgs;` is fine inside a package list (e.g. `environment.systemPackages = with pkgs; [ ripgrep htop ];`)
+  where the scope is obvious and limited.
+- Modules that apply identical config to every machine can be unconditional (no
+  `me.X.enable` toggle); add a toggle the day a machine actually wants the module off.
+  TODO: only `saya` is configured today, so this assumption is untested. Revisit when
+  `tsugumi`, `v4`, or `kaho` lands and confirm the unconditional modules really do
+  belong on every machine.
 - Keep nixpkgs on unstable channel.
 
 ## Practical advice

@@ -16,6 +16,6 @@ in
     (mod ./mdns)
     (mod ./security)
     (mod ./firejail)
-    (mod ./home-manager)
+    ./home-manager
   ];
 }

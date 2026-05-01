@@ -1,6 +1,24 @@
-{ pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
+let
+  cfg = config.me.shell;
+  userFailedFilter =
+    if cfg.userFailedUnitsExclude == []
+    then "cat"
+    else "grep -Ev '${lib.concatStringsSep "|" cfg.userFailedUnitsExclude}'";
+in
 {
+  options.me.shell.userFailedUnitsExclude = lib.mkOption {
+    type = lib.types.listOf lib.types.str;
+    default = [];
+    description = ''
+      Extended-regex patterns matching user systemd units that should NOT count toward
+      the prompt's failed-units warning. Patterns are OR-joined into a single grep -Ev.
+    '';
+    example = [ "^app-steam[@-]" ];
+  };
+
+  config = {
   users.defaultUserShell = pkgs.zsh;
 
   programs.zsh = {
@@ -35,7 +53,7 @@
         fi
         if [[ "$(systemctl --user is-system-running 2>/dev/null)" == "degraded" ]]; then
           n=$(systemctl --user list-units --state=failed --no-legend --plain 2>/dev/null \
-                | grep -Ev '^app-steam[@-]' | wc -l)
+                | ${userFailedFilter} | wc -l)
           (( n > 0 )) && parts+=("''${n} usr")
         fi
         if (( ''${#parts[@]} > 0 )); then
@@ -68,4 +86,5 @@
   programs.direnv.enable = true;
   environment.homeBinInPath = true;
   environment.localBinInPath = true;
+  };
 }
