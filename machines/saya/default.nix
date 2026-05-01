@@ -86,6 +86,7 @@
   services.displayManager.sddm.wayland.compositor = "kwin";
   services.desktopManager.plasma6.enable = true;
   drm-atomic-log.enable = true;
+  programs.niri.enable = true;
 
   # User
   users.users.svein = {

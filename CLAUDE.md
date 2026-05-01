@@ -79,3 +79,6 @@ lib/
 
 - If responding to a request from Discord, always end a session with ./rebuild.sh to
   activate the changes.
+- Assume this repository was written by an absent-minded programmer in a hurry. The docs
+  do not necessarily match reality, and if you spot a mismatch you should always ask
+  which to fix.
