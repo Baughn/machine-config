@@ -6,13 +6,15 @@
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    codex-cli-nix.url = "github:sadjow/codex-cli-nix";
+    codex-cli-nix.inputs.nixpkgs.follows = "nixpkgs";
     ganbot.url = "git+file:/home/svein/dev/ganbot?ref=HEAD";
     ganbot.inputs.nixpkgs.follows = "nixpkgs";
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { nixpkgs, nix-cachyos-kernel, home-manager, ganbot, agenix, ... }: {
+  outputs = { nixpkgs, nix-cachyos-kernel, home-manager, codex-cli-nix, ganbot, agenix, ... }: {
     nixosConfigurations.saya = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       specialArgs = { inherit ganbot agenix; };
@@ -23,6 +25,7 @@
           nixpkgs.overlays = [
             nix-cachyos-kernel.overlays.pinned
             (final: prev: {
+              codex = codex-cli-nix.packages.${prev.system}.default;
               kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {
                 kwin = kprev.kwin.overrideAttrs (old: {
                   # patches = (old.patches or []) ++ [ ./kwin.patch ];

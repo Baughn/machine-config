@@ -16,6 +16,7 @@
     bubblewrap
     socat
     bun
+    codex
   ];
 
   programs.htop.enable = true;
