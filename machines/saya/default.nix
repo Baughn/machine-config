@@ -111,6 +111,20 @@
 
   # Nix build parallelism (machine-specific: 16-core CPU)
   nix.settings.cores = 16;
+  me.remoteBuilds = {
+    enable = true;
+    builders = [
+      {
+        hostName = "tsugumi.local";
+        sshUser = "svein";
+	sshKey = "/home/svein/.ssh/id_ed25519";
+	maxJobs = 16;
+        protocol = "ssh-ng";
+        systems = [ "x86_64-linux" ];
+	supportedFeatures = [ "kvm" "big-parallel" ];
+      }
+    ];
+  };
 
   system.stateVersion = "25.11";
 }
