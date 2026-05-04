@@ -37,7 +37,7 @@
     peers = [
       # Kim
       {
-        publicKey = "y4IVDKFfuEoU9Xiq+nmY8wkMUAkE8wfwSpY/p7S+qEk=";
+        publicKey = "SKfwxWjSrPiwbLSvvOzkrqub/8iOobwkDKWoiCAsXAo=";
 	allowedIPs = [ "10.42.0.2/32" ];
       }
       # jrddunbr
