@@ -111,7 +111,6 @@
     pkgs.zed-editor
   ];
 
-  # Nix build parallelism (machine-specific: 16-core CPU)
   nix.settings.cores = 16;
   me.remoteBuilds = {
     enable = true;
@@ -123,7 +122,7 @@
 	maxJobs = 16;
         protocol = "ssh-ng";
         systems = [ "x86_64-linux" ];
-	supportedFeatures = [ "kvm" "big-parallel" ];
+	supportedFeatures = [ "nixos-test" "kvm" "big-parallel" ];
       }
     ];
   };

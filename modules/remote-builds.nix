@@ -1,4 +1,4 @@
-{ config, lib, options, ... }:
+{ config, lib, options, pkgs, ... }:
 
 let
   cfg = config.me.remoteBuilds;
@@ -10,7 +10,7 @@ in
     builders = lib.mkOption {
       type = options.nix.buildMachines.type;
       default = [ ];
-      description = "Remote Nix build machines available to this host.";
+      description = "Non-local Nix build machines available to this host. The local host is added automatically.";
     };
 
     trustedUsers = lib.mkOption {
@@ -21,11 +21,12 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    nix.distributedBuilds = cfg.builders != [ ];
+    nix.distributedBuilds = true;
     nix.buildMachines = cfg.builders;
 
     nix.settings = {
-      builders-use-substitutes = true;
+      builders-use-substitutes = false;
+      cores = lib.mkDefault 16;
       trusted-users = cfg.trustedUsers;
     };
   };
