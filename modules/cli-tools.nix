@@ -17,6 +17,7 @@
     socat
     bun
     codex
+    pciutils
   ];
 
   programs.htop.enable = true;
