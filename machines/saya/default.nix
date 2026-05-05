@@ -85,6 +85,8 @@
   services.displayManager.sddm.enable = true;
   services.displayManager.sddm.wayland.enable = true;
   services.displayManager.sddm.wayland.compositor = "kwin";
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = "svein";
   services.desktopManager.plasma6.enable = true;
   drm-atomic-log.enable = true;
   programs.niri.enable = true;
