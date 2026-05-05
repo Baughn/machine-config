@@ -25,7 +25,7 @@
           nixpkgs.overlays = [
             nix-cachyos-kernel.overlays.pinned
             (final: prev: {
-              codex = codex-cli-nix.packages.${prev.system}.default;
+              codex = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
               kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {
                 kwin = kprev.kwin.overrideAttrs (old: {
                   # patches = (old.patches or []) ++ [ ./kwin.patch ];

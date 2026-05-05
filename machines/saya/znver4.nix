@@ -9,8 +9,23 @@
 # standard binary cache. For per-package znver4 optimization, add
 # individual packages to the overlay below.
 
-{ config, lib, pkgs, ... }:
+{ lib, pkgs, ... }:
 
+let
+  baseKernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest-zen4;
+  kernel = baseKernelPackages.kernel.override {
+    structuredExtraConfig = baseKernelPackages.kernel.structuredExtraConfig // (with lib.kernel; {
+      # Compile out AF_ALG, the userspace socket API for the kernel crypto
+      # subsystem. CVE-2026-31431 is in algif_aead; the rest of the family is
+      # disabled with it because nothing on saya depends on AF_ALG.
+      CRYPTO_USER_API = lib.mkForce no;
+      CRYPTO_USER_API_AEAD = lib.mkForce no;
+      CRYPTO_USER_API_HASH = lib.mkForce no;
+      CRYPTO_USER_API_RNG = lib.mkForce no;
+      CRYPTO_USER_API_SKCIPHER = lib.mkForce no;
+    });
+  };
+in
 {
-  boot.kernelPackages = lib.mkForce pkgs.cachyosKernels.linuxPackages-cachyos-latest-zen4;
+  boot.kernelPackages = lib.mkForce (pkgs.linuxPackagesFor kernel);
 }
