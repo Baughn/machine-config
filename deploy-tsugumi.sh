@@ -6,7 +6,7 @@ set -euo pipefail
 MODE=${1:-switch}
 
 if [ -t 1 ]; then
-  nixos-rebuild $MODE --flake .#tsugumi --target-host root@tsugumi.local --log-format internal-json |& nom --json
+  nixos-rebuild $MODE --flake .#tsugumi --sudo --target-host tsugumi.local --log-format internal-json |& nom --json
 else
-  nixos-rebuild $MODE --flake .#tsugumi --target-host root@tsugumi.local
+  nixos-rebuild $MODE --flake .#tsugumi --sudo --target-host tsugumi.local
 fi

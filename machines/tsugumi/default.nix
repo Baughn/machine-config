@@ -72,6 +72,7 @@ in
 
   ## Networking
   networking.hostName = "tsugumi";
+  me.security.enable = true;
 
   ## WireGuard
   me.wireguard = {

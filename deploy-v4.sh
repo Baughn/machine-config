@@ -6,7 +6,7 @@ set -euo pipefail
 MODE=${1:-switch}
 
 if [ -t 1 ]; then
-  nixos-rebuild $MODE --flake .#v4 --target-host root@v4.brage.info --log-format internal-json |& nom --json
+  nixos-rebuild $MODE --flake .#v4 --sudo --target-host v4.brage.info --log-format internal-json |& nom --json
 else
-  nixos-rebuild $MODE --flake .#v4 --target-host root@v4.brage.info
+  nixos-rebuild $MODE --flake .#v4 --sudo --target-host v4.brage.info
 fi

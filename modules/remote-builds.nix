@@ -1,4 +1,4 @@
-{ config, lib, options, pkgs, ... }:
+{ config, lib, options, ... }:
 
 let
   cfg = config.me.remoteBuilds;
@@ -13,11 +13,6 @@ in
       description = "Non-local Nix build machines available to this host. The local host is added automatically.";
     };
 
-    trustedUsers = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ "@wheel" ];
-      description = "Users allowed to talk to the local Nix daemon as trusted users.";
-    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -27,7 +22,6 @@ in
     nix.settings = {
       builders-use-substitutes = false;
       cores = lib.mkDefault 16;
-      trusted-users = cfg.trustedUsers;
     };
   };
 }
