@@ -1,9 +1,9 @@
 { pkgs, ... }:
 
-pkgs.rustPlatform.buildRustPackage {
+pkgs.mkCranePackage {
   pname = "victron-monitor";
   version = "0.1.0";
 
   src = ./.;
-  cargoLock.lockFile = ./Cargo.lock;
+  extraFiles = [ ./example.json ];
 }

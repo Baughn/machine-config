@@ -1,11 +1,10 @@
 { pkgs, ... }:
 
 let
-  game-watcher = pkgs.rustPlatform.buildRustPackage {
+  game-watcher = pkgs.mkCranePackage {
     pname = "game-watcher";
     version = "0.1.0";
     src = ../../tools/game-watcher;
-    cargoLock.lockFile = ../../tools/game-watcher/Cargo.lock;
   };
 
   configFile = (pkgs.formats.toml { }).generate "game-watcher.toml" {

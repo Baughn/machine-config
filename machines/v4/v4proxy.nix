@@ -10,11 +10,10 @@ let
     "udp:27016@saya.brage.info"
   ];
 
-  v4proxy = pkgs.rustPlatform.buildRustPackage {
+  v4proxy = pkgs.mkCranePackage {
     pname = "v4proxy";
     version = "0.1.0";
     src = ./v4proxy;
-    cargoHash = "sha256-ZqrgZtcKR81BTE6Qdt3TbltuKURu6uwWB6LDIyd3VfA=";
     meta = {
       description = "IPv4 to IPv6 proxy (TCP and UDP)";
       platforms = lib.platforms.linux;
