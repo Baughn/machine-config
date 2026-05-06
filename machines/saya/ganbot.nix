@@ -3,8 +3,8 @@
 {
   systemd.services.ganbot = {
     description = "Ganbot Discord/IRC bot";
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
+    after = [ "network-online.target" "wireguard-wg1.target" ];
+    wants = [ "network-online.target" "wireguard-wg1.target" ];
     wantedBy = [ "multi-user.target" ];
     path = [ pkgs.openssh ];
     serviceConfig = {

@@ -4,7 +4,7 @@ let
   sshKeys = import ../../lib/ssh-keys.nix;
   wireguardPeers = [
     {
-      publicKey = "9u3/F1o4ImItDXJCMr06YpEuUKCqX9cuQdG0dlTdQCE=";
+      publicKey = "wjyoTvOuIvfM8NG8CDd2IiHouDp/c9G1Zx0WtFrGUgY=";
       allowedIPs = [ "10.171.0.6/32" ];
       persistentKeepalive = 25;
     }

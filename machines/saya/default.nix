@@ -32,6 +32,8 @@ in
   # WireGuard secret (machine-specific)
   age.secrets.wireguard-saya.file = ../../secrets/wireguard-saya.age;
 
+  networking.hosts."10.171.0.1" = [ "tsugumi.local" ];
+
   # WireGuard hub
   me.wireguard = {
     enable = true;
@@ -49,6 +51,19 @@ in
         publicKey = "QPSh4TROwtw54n9Xb/VvCHN0TQpm6417p7Gl+//7VVg=";
 	allowedIPs = [ "10.42.0.3/32" ];
 	endpoint = "ctha.ja4.org:51820";
+      }
+    ];
+  };
+
+  networking.wireguard.interfaces.wg1 = {
+    ips = [ "10.171.0.6/24" ];
+    privateKeyFile = config.age.secrets.wireguard-saya.path;
+    peers = [
+      {
+        publicKey = "y55YDIReEJ/lWrJiWYhxZ+grCPCJnqYlIN9LU7p6Yk0=";
+        allowedIPs = [ "10.171.0.1/32" ];
+        endpoint = "192.168.0.166:51820";
+        persistentKeepalive = 25;
       }
     ];
   };

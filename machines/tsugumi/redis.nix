@@ -1,7 +1,9 @@
 { config, pkgs, ... }:
 
 {
-  networking.firewall.interfaces.wg0.allowedTCPPorts = [ 6379 ];
+  networking.firewall.interfaces = {
+    wg0.allowedTCPPorts = [ 6379 ];
+  };
 
   services.redis.servers.default = {
     enable = true;
