@@ -1,5 +1,9 @@
 { config, lib, pkgs, ... }:
 
+let
+  sshKeys = import ../../lib/ssh-keys.nix;
+in
+
 {
   imports = [
     ../../modules
@@ -95,9 +99,7 @@
   users.users.svein = {
     isNormalUser = true;
     extraGroups = [ "wheel" ];
-    openssh.authorizedKeys.keys = [
-      "cert-authority ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGfsmAbJ1GKytVA71izC3xvIFYDQVHT2Q5CZPaIA6WqS svein@tsugumi"
-    ];
+    openssh.authorizedKeys.keys = sshKeys.svein;
   };
 
 

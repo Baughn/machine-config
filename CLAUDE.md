@@ -1,13 +1,12 @@
-# NixOS configuration (multi-machine in progress)
+# NixOS configuration
 
 ## Status
 
-Today this repo configures one NixOS desktop, **saya**. Three more machines
-are being migrated in from a separate repo:
+Today this repo configures three NixOS machines:
 
 - **saya** — Desktop (NixOS, x86_64-linux). CachyOS kernel, NVIDIA GPU, KDE Plasma 6. *(here today)*
-- **tsugumi** — Server (NixOS, x86_64-linux). IPv6-only. *(planned)*
-- **v4** — IPv4 proxy (NixOS, x86_64-linux). Forwards IPv4 traffic to tsugumi. *(planned)*
+- **tsugumi** — Server (NixOS, x86_64-linux). ZFS storage, WireGuard hub, web/media/game/bot services.
+- **v4** — IPv4 proxy (NixOS, x86_64-linux). Forwards IPv4 traffic to tsugumi.
 - **kaho** — Laptop (nix-darwin, aarch64-darwin). macOS with home-manager. *(planned)*
 
 Multi-platform support was scaffolded once and removed: the abstraction
@@ -43,7 +42,7 @@ across machines.
 ## Build & Deploy
 
 - **saya (local):** `./rebuild.sh`, then `sudo systemctl restart display-manager` if DE changes.
-- **Remote machines:** colmena (planned).
+- **Remote machines:** plain `nixosConfigurations` outputs today; colmena is not currently wired in.
 - **kaho (planned):** likely a separate `darwinConfigurations.kaho` output. Adding it will
   require deciding how Linux-only modules opt out — `lib.mkIf pkgs.stdenv.isLinux` inside
   each module works; a `pkgs`-conditional `imports` list does *not* (it recurses through
@@ -57,6 +56,12 @@ machines/
   saya/default.nix
   saya/hardware-configuration.nix
   saya/<feature>.nix       # cachy-tweaks, ganbot, game-watcher, steam, ...
+  tsugumi/default.nix
+  tsugumi/hardware-configuration.nix
+  tsugumi/<service>.nix     # caddy, minecraft, monitoring, redis, rendezvous, ...
+  v4/default.nix
+  v4/hardware-configuration.nix
+  v4/v4proxy.nix
 modules/
   default.nix              # plain imports list
   agenix.nix
@@ -70,6 +75,8 @@ modules/
   shell.nix
   ssh.nix
   wireguard.nix
+lib/
+  ssh-keys.nix              # shared authorized-key lists for explicit users
 secrets/
   secrets.nix
   *.age
@@ -85,9 +92,8 @@ secrets/
   where the scope is obvious and limited.
 - Modules that apply identical config to every machine can be unconditional (no
   `me.X.enable` toggle); add a toggle when a machine actually wants the module off.
-  TODO: only saya is configured today, so this assumption is untested. Revisit
-  when tsugumi/v4/kaho lands and confirm the unconditional modules really do
-  belong on every machine.
+  This is now tested against saya, tsugumi, and v4, but still revisit before
+  adding darwin support for kaho.
 - Keep nixpkgs on unstable channel.
 
 ## Practical advice

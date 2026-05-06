@@ -113,6 +113,27 @@
         "type": "github"
       }
     },
+    "dessplay": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1772632054,
+        "narHash": "sha256-FLqEtzZFbMafx8BdbX1uwjLUTxbCV0ZKnEE1WtNAeug=",
+        "ref": "HEAD",
+        "rev": "4ac25b7f62bbdd519c908317c5994580d823cb8d",
+        "revCount": 58,
+        "type": "git",
+        "url": "file:/home/svein/dev/dessplay"
+      },
+      "original": {
+        "ref": "HEAD",
+        "type": "git",
+        "url": "file:/home/svein/dev/dessplay"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -338,6 +359,7 @@
       "inputs": {
         "agenix": "agenix",
         "codex-cli-nix": "codex-cli-nix",
+        "dessplay": "dessplay",
         "ganbot": "ganbot",
         "home-manager": "home-manager_2",
         "nix-cachyos-kernel": "nix-cachyos-kernel",

@@ -1,0 +1,19 @@
+udp_port = 9099
+prometheus_port = 9099
+
+# Device type mappings
+[device_mappings]
+"MultiPlus-II" = "inverter"
+"CAN-SMARTBMS-BAT" = "battery"
+"SmartSolar MPPT" = "charger"
+
+# Unit mappings (from Victron notation to Prometheus suffix)
+[unit_mappings]
+"W" = "watts"
+"A" = "amps"
+"V" = "volts"
+"V DC" = "volts_dc"
+"VAC" = "volts_ac"
+"%" = "percent"
+"Ah" = "amp_hours"
+"kWh" = "kilowatt_hours"

@@ -10,11 +10,13 @@
     codex-cli-nix.inputs.nixpkgs.follows = "nixpkgs";
     ganbot.url = "git+file:/home/svein/dev/ganbot?ref=HEAD";
     ganbot.inputs.nixpkgs.follows = "nixpkgs";
+    dessplay.url = "git+file:/home/svein/dev/dessplay?ref=HEAD";
+    dessplay.inputs.nixpkgs.follows = "nixpkgs";
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { nixpkgs, nix-cachyos-kernel, home-manager, codex-cli-nix, ganbot, agenix, ... }: {
+  outputs = { nixpkgs, nix-cachyos-kernel, home-manager, codex-cli-nix, ganbot, dessplay, agenix, ... }: {
     nixosConfigurations.saya = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       specialArgs = { inherit ganbot agenix; };
@@ -44,6 +46,15 @@
       modules = [
         home-manager.nixosModules.home-manager
         ./machines/v4
+      ];
+    };
+
+    nixosConfigurations.tsugumi = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = { inherit agenix dessplay; };
+      modules = [
+        home-manager.nixosModules.home-manager
+        ./machines/tsugumi
       ];
     };
   };
