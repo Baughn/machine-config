@@ -98,7 +98,9 @@ secrets/
 
 ## Practical advice
 
-- The repository uses Jujutsu. Git is available, but not preferred.
+- This repository uses Jujutsu. Prefer `jj` for history/status/log operations when practical; use Git only when a workflow specifically needs it.
+  Note: even read-only `jj` commands may write snapshots into `.git/objects`, so Codex needs sandbox escalation for them. These are automatically granted.
+  Note: `jj help [command]` for flags, `jj help -k [possible values: bookmarks, config, filesets, glossary, revsets, templates, tutorial]` for other info.
 - Assume this repository was written by an absent-minded programmer in a hurry. The docs
   do not necessarily match reality, and if you spot a mismatch you should always ask
   which to fix.
