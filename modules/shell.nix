@@ -60,10 +60,48 @@ in
             echo -n "%F{red}[failed: ''${(j:, :)parts}]%f "
           fi
         }
+        _jj_prompt_info() {
+          command -v jj >/dev/null 2>&1 || return
+          jj root --quiet >/dev/null 2>&1 || return
+
+          local raw description state
+          raw=$(jj log --ignore-working-copy --no-graph --color never -r @ \
+            -T 'description.first_line() ++ "\n" ++ if(empty, "empty", "dirty")' \
+            2>/dev/null) || return
+
+          description="''${raw%%$'\n'*}"
+          state="''${raw##*$'\n'}"
+
+          local -a words
+          words=( ''${=description} )
+
+          local name dirty
+          if [[ -z "$description" || "$description" == "no description set" ]]; then
+            if [[ "$state" == "empty" ]]; then
+              name="(empty)"
+            else
+              name="(no description)"
+            fi
+          else
+            name="''${(j: :)words[1,4]}"
+          fi
+          [[ "$state" == "dirty" ]] && dirty=" %{$fg[yellow]%}*"
+
+          echo -n "%{$fg[red]%}''${name}''${dirty}%{$reset_color%} "
+        }
+        _vcs_prompt_info() {
+          if jj root --quiet >/dev/null 2>&1; then
+            _jj_prompt_info
+          else
+            git_prompt_info
+          fi
+        }
         # oh-my-zsh sets PROMPT when sourced later in /etc/zshrc, so we
         # can't prepend here directly. Defer the prepend to the first
         # precmd, by which point the theme has loaded.
         _prompt_warnings_install() {
+          local git_prompt='$(git_prompt_info)' vcs_prompt='$(_vcs_prompt_info)'
+          PROMPT="''${PROMPT//$git_prompt/$vcs_prompt}"
           PROMPT='$(_failed_units_warning)$(_flake_age_warning)'"$PROMPT"
           precmd_functions=(''${precmd_functions:#_prompt_warnings_install})
         }
