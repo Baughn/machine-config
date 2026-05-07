@@ -65,7 +65,7 @@ in
           jj root --quiet >/dev/null 2>&1 || return
 
           local raw description state
-          raw=$(jj log --ignore-working-copy --no-graph --color never -r @ \
+          raw=$(jj log --no-graph --color never -r @ \
             -T 'description.first_line() ++ "\n" ++ if(empty, "empty", "dirty")' \
             2>/dev/null) || return
 
