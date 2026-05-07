@@ -42,6 +42,7 @@ in
     # Blacklist uncommon/risky kernel modules
     boot.blacklistedKernelModules = [
       "dccp" "sctp" "rds" "tipc" "n-hdlc"
+      "esp4" "esp6" "rxrpc"
       "ax25" "netrom" "x25" "rose" "decnet" "econet"
       "af_802154" "ipx" "appletalk" "psnap" "p8023" "p8022"
       "can" "atm"

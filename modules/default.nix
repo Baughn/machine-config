@@ -7,6 +7,7 @@
     ./dns.nix
     ./firejail.nix
     ./home-manager.nix
+    ./kernel-modules.nix
     ./magic-reboot.nix
     ./mdns.nix
     ./nix.nix

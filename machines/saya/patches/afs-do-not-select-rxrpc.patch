@@ -1,0 +1,12 @@
+diff --git a/fs/afs/Kconfig b/fs/afs/Kconfig
+index 930d21ed6aa5..398b165022b6 100644
+--- a/fs/afs/Kconfig
++++ b/fs/afs/Kconfig
+@@ -2,7 +2,6 @@
+ config AFS_FS
+ 	tristate "Andrew File System support (AFS)"
+ 	depends on INET
+-	select AF_RXRPC
+ 	select DNS_RESOLVER
+ 	select NETFS_SUPPORT
+ 	select CRYPTO_KRB5

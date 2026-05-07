@@ -14,6 +14,12 @@
 let
   baseKernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest-zen4;
   kernel = baseKernelPackages.kernel.override {
+    kernelPatches = (baseKernelPackages.kernel.kernelPatches or []) ++ [
+      {
+        name = "afs-do-not-select-rxrpc";
+        patch = ./patches/afs-do-not-select-rxrpc.patch;
+      }
+    ];
     structuredExtraConfig = baseKernelPackages.kernel.structuredExtraConfig // (with lib.kernel; {
       # Compile out AF_ALG, the userspace socket API for the kernel crypto
       # subsystem. CVE-2026-31431 is in algif_aead; the rest of the family is
@@ -23,6 +29,13 @@ let
       CRYPTO_USER_API_HASH = lib.mkForce no;
       CRYPTO_USER_API_RNG = lib.mkForce no;
       CRYPTO_USER_API_SKCIPHER = lib.mkForce no;
+
+      # Dirty Frag mitigation: compile out IPsec ESP and RxRPC. saya uses
+      # WireGuard, not IPsec, and has no AFS/RxRPC consumers.
+      INET_ESP = lib.mkForce no;
+      INET6_ESP = lib.mkForce no;
+      AF_RXRPC = lib.mkForce no;
+      AFS_FS = lib.mkForce no;
 
       # saya has an NVIDIA dGPU and the Raphael iGPU is intentionally unused
       # and blacklisted.
