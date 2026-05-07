@@ -73,6 +73,12 @@ in
   ## Networking
   networking.hostName = "tsugumi";
   me.security.enable = true;
+  me.nixBuildBalancer = {
+    enable = true;
+    mode = "agent";
+    listenAddress = "10.171.0.1:8765";
+    openFirewall = true;
+  };
 
   ## WireGuard
   me.wireguard = {

@@ -19,6 +19,7 @@
     codex
     colmena
     pciutils
+    rustup
   ];
 
   programs.htop.enable = true;

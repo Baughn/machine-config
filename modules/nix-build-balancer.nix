@@ -1,0 +1,141 @@
+{ config, lib, pkgs, ... }:
+
+let
+  cfg = config.me.nixBuildBalancer;
+  package = pkgs.callPackage ../tools/nix-build-balancer/default.nix { };
+  endpoint = "unix:${cfg.unixSocket}";
+
+  remoteArgs =
+    lib.concatLists
+      (lib.mapAttrsToList
+        (name: addr: [ "--remote" "${name}=${addr}" ])
+        cfg.remoteAgents);
+
+  serveArgs = [
+    "serve"
+    "--mode" cfg.mode
+    "--host" config.networking.hostName
+    "--data-dir" cfg.dataDir
+    "--poll-interval-ms" (toString cfg.pollIntervalMs)
+  ]
+  ++ lib.optionals (cfg.unixSocket != null) [ "--unix-socket" cfg.unixSocket ]
+  ++ lib.optionals (cfg.listenAddress != null) [ "--listen" cfg.listenAddress ]
+  ++ remoteArgs;
+
+  eventArgs = kind: [
+    "event"
+    "--endpoint" endpoint
+    "--kind" kind
+    "--host" config.networking.hostName
+  ];
+
+  preBuildHook = pkgs.writeShellScript "nix-build-balancer-pre-build-hook" ''
+    set +e
+    drv_path="''${1:-}"
+    if [ -n "$drv_path" ]; then
+      ${lib.escapeShellArgs ([ "${package}/bin/nix-build-balancer" ] ++ eventArgs "start" ++ [ "--drv-path" ])} "$drv_path" >/dev/null 2>&1
+    fi
+    exit 0
+  '';
+
+  postBuildHook = pkgs.writeShellScript "nix-build-balancer-post-build-hook" ''
+    set +e
+    if [ -n "''${DRV_PATH:-}" ]; then
+      ${lib.escapeShellArgs ([ "${package}/bin/nix-build-balancer" ] ++ eventArgs "finish" ++ [ "--drv-path" ])} "$DRV_PATH" \
+        --out-paths "''${OUT_PATHS:-}" \
+        --status success >/dev/null 2>&1
+    fi
+    exit 0
+  '';
+in
+{
+  options.me.nixBuildBalancer = {
+    enable = lib.mkEnableOption "Nix build telemetry daemon";
+
+    mode = lib.mkOption {
+      type = lib.types.enum [ "agent" "controller" ];
+      default = "agent";
+      description = "Whether this host only exports telemetry or also polls remote agents.";
+    };
+
+    dataDir = lib.mkOption {
+      type = lib.types.str;
+      default = "/var/lib/nix-build-balancer";
+      description = "Persistent daemon state directory.";
+    };
+
+    unixSocket = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = "/run/nix-build-balancer/balancer.sock";
+      description = "Local Unix socket used by Nix hooks.";
+    };
+
+    listenAddress = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "10.171.0.1:8765";
+      description = "Optional TCP listen address for remote telemetry polling.";
+    };
+
+    openFirewall = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Open the TCP port from listenAddress in the host firewall.";
+    };
+
+    remoteAgents = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = { };
+      example = { tsugumi = "10.171.0.1:8765"; };
+      description = "Remote agent addresses polled by controller mode.";
+    };
+
+    pollIntervalMs = lib.mkOption {
+      type = lib.types.ints.positive;
+      default = 1000;
+      description = "Telemetry polling interval for controller mode.";
+    };
+
+    installNixHooks = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Install best-effort Nix pre/post build observation hooks.";
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
+    systemd.tmpfiles.rules = [
+      "d ${cfg.dataDir} 0755 root root -"
+    ]
+    ++ lib.optionals (cfg.unixSocket != null) [
+      "d ${dirOf cfg.unixSocket} 0755 root root -"
+    ];
+
+    systemd.services.nix-build-balancer = {
+      description = "Nix build telemetry daemon";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
+
+      serviceConfig = {
+        Type = "simple";
+        ExecStart = lib.escapeShellArgs ([ "${package}/bin/nix-build-balancer" ] ++ serveArgs);
+        Restart = "on-failure";
+        RestartSec = "2s";
+        StateDirectory = "nix-build-balancer";
+        RuntimeDirectory = "nix-build-balancer";
+      };
+    };
+
+    environment.systemPackages = [ package ];
+
+    nix.settings = lib.mkIf cfg.installNixHooks {
+      pre-build-hook = preBuildHook;
+      post-build-hook = postBuildHook;
+    };
+
+    networking.firewall.allowedTCPPorts =
+      lib.optionals (cfg.openFirewall && cfg.listenAddress != null)
+        [ (lib.toInt (lib.last (lib.splitString ":" cfg.listenAddress))) ];
+  };
+}

@@ -129,6 +129,12 @@ in
   ];
 
   nix.settings.cores = 16;
+  me.nixBuildBalancer = {
+    enable = true;
+    mode = "controller";
+    remoteAgents.tsugumi = "10.171.0.1:8765";
+  };
+
   me.remoteBuilds = {
     enable = true;
     builders = [

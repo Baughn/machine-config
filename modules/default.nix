@@ -10,6 +10,7 @@
     ./magic-reboot.nix
     ./mdns.nix
     ./nix.nix
+    ./nix-build-balancer.nix
     ./remote-builds.nix
     ./security.nix
     ./shell.nix
