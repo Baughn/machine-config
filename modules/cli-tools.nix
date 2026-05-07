@@ -17,6 +17,7 @@
     socat
     bun
     codex
+    colmena
     pciutils
   ];
 

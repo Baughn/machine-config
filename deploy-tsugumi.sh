@@ -6,7 +6,9 @@ set -euo pipefail
 MODE=${1:-switch}
 
 if [ -t 1 ]; then
-  nixos-rebuild $MODE --flake .#tsugumi --sudo --target-host tsugumi.local --log-format internal-json |& nom --json
+  nix build .#all-systems --log-format internal-json |& nom --json
 else
-  nixos-rebuild $MODE --flake .#tsugumi --sudo --target-host tsugumi.local
+  nix build .#all-systems
 fi
+
+colmena apply --on tsugumi "$MODE"

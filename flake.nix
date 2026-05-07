@@ -16,9 +16,11 @@
     dessplay.inputs.nixpkgs.follows = "nixpkgs";
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
+    colmena.url = "github:zhaofengli/colmena";
+    colmena.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { nixpkgs, nix-cachyos-kernel, home-manager, codex-cli-nix, crane, ganbot, dessplay, agenix, ... }:
+  outputs = { nixpkgs, nix-cachyos-kernel, home-manager, codex-cli-nix, crane, ganbot, dessplay, agenix, colmena, ... }:
   let
     craneOverlay = final: prev: {
       craneLib = crane.mkLib final;
@@ -28,50 +30,92 @@
     craneModule = {
       nixpkgs.overlays = [ craneOverlay ];
     };
-  in
-  {
-    nixosConfigurations.saya = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      specialArgs = { inherit ganbot agenix; };
-      modules = [
-        home-manager.nixosModules.home-manager
-        craneModule
-        ./machines/saya
-        ({ pkgs, ... }: {
-          nixpkgs.overlays = [
-            nix-cachyos-kernel.overlays.pinned
-            (final: prev: {
-              codex = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
-              kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {
-                kwin = kprev.kwin.overrideAttrs (old: {
-                  # patches = (old.patches or []) ++ [ ./kwin.patch ];
-                  src = ./kwin;
+
+    commonModules = [
+      home-manager.nixosModules.home-manager
+      craneModule
+    ];
+
+    machineConfigs = {
+      saya = {
+        modules = [
+          ./machines/saya
+          ({ pkgs, ... }: {
+            nixpkgs.overlays = [
+              nix-cachyos-kernel.overlays.pinned
+              (final: prev: {
+                codex = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
+                kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {
+                  kwin = kprev.kwin.overrideAttrs (old: {
+                    # patches = (old.patches or []) ++ [ ./kwin.patch ];
+                    src = ./kwin;
+                  });
                 });
-              });
-            })
-          ];
-        })
-      ];
-    };
+              })
+            ];
+          })
+        ];
+        deployment = {
+          targetHost = "localhost";
+          allowLocalDeployment = true;
+          tags = [ "local" ];
+        };
+      };
 
-    nixosConfigurations.v4 = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      specialArgs = { inherit agenix; };
-      modules = [
-        home-manager.nixosModules.home-manager
-        craneModule
-        ./machines/v4
-      ];
-    };
+      tsugumi = {
+        modules = [ ./machines/tsugumi ];
+        deployment = {
+          targetHost = "tsugumi.local";
+          tags = [ "remote" ];
+        };
+      };
 
-    nixosConfigurations.tsugumi = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      specialArgs = { inherit agenix dessplay; };
-      modules = [
-        home-manager.nixosModules.home-manager
-        craneModule
-        ./machines/tsugumi
-      ];
+      v4 = {
+        modules = [ ./machines/v4 ];
+        deployment = {
+          targetHost = "v4.brage.info";
+          tags = [ "remote" ];
+        };
+      };
     };
+  in
+  rec {
+    packages.x86_64-linux.all-systems =
+      nixpkgs.legacyPackages.x86_64-linux.linkFarm "all-systems"
+        (builtins.map
+          (name: {
+            inherit name;
+            path = colmenaHive.nodes.${name}.config.system.build.toplevel;
+          })
+          (builtins.attrNames machineConfigs));
+
+    packages.x86_64-linux.default = packages.x86_64-linux.all-systems;
+
+    colmenaHive = colmena.lib.makeHive ({
+      meta = {
+        nixpkgs = import nixpkgs {
+          system = "x86_64-linux";
+          overlays = [ colmena.overlays.default ];
+        };
+        specialArgs = { inherit agenix dessplay ganbot; };
+      };
+
+      defaults = { ... }: {
+        imports = commonModules;
+
+        deployment = {
+          targetUser = "svein";
+          buildOnTarget = false;
+          replaceUnknownProfiles = true;
+        };
+      };
+    } // (builtins.mapAttrs
+      (name: machine: { ... }: {
+        imports = machine.modules;
+        deployment = machine.deployment;
+      })
+      machineConfigs));
+
+    nixosConfigurations = colmenaHive.nodes;
   };
 }

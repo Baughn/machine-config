@@ -11,4 +11,4 @@ else
   nix build .#all-systems
 fi
 
-colmena apply --on v4 "$MODE"
+colmena apply-local --sudo --node saya "$MODE"
