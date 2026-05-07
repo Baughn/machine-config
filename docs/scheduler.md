@@ -25,9 +25,12 @@ The first implementation is Phase 1 only. Slurm is intentionally skipped.
   - PSI memory pressure when available.
   - active Nix local/remote slots from `/nix/var/nix/current-load`.
   - build start/finish events from Nix `pre-build-hook` and `post-build-hook`.
-- Store build history keyed by normalized `pname` only.
+- Store build history in SQLite, with scheduler-facing duration history keyed
+  by normalized `pname` only.
+- Retain a bounded number of recent completed observations per `pname`, so
+  common packages cannot evict all history for rare packages.
 - Derive initial predictions from rolling per-`pname` quantiles: p50, p80,
-  p95, sample count, and last-seen timestamp.
+  p95, and sample count.
 - Unknown `pname` gets a conservative default p95 so unknown builds cannot be
   treated as trivial.
 
@@ -52,6 +55,18 @@ The first implementation is Phase 1 only. Slurm is intentionally skipped.
   - If daemon is unavailable, Nix hooks exit successfully and only skip
     observation.
   - Phase 2 scheduler will fail closed by declining remote admission.
+
+## Phase 1 Storage
+
+- Use `${dataDir}/history.sqlite3` as the only durable observation store.
+- Track active starts in an `active_builds` table keyed by `drv_path`.
+- Track matched completions in `build_observations`, including host, normalized
+  `pname`, drv path, start/finish timestamps, duration, status, and output
+  paths.
+- `/stats` reads successful `build_observations` only and returns the
+  `pname`-to-duration-quantile mapping needed by the scheduler.
+- Do not migrate historical `events.tsv` or `builds.tsv`; Phase 1 can start a
+  fresh database.
 
 ## Phase 2: Scheduler Hook
 

@@ -17,6 +17,8 @@ let
     "--host" config.networking.hostName
     "--data-dir" cfg.dataDir
     "--poll-interval-ms" (toString cfg.pollIntervalMs)
+    "--max-samples-per-pname" (toString cfg.maxSamplesPerPname)
+    "--stale-start-ms" (toString cfg.staleStartMs)
   ]
   ++ lib.optionals (cfg.unixSocket != null) [ "--unix-socket" cfg.unixSocket ]
   ++ lib.optionals (cfg.listenAddress != null) [ "--listen" cfg.listenAddress ]
@@ -94,6 +96,18 @@ in
       type = lib.types.ints.positive;
       default = 1000;
       description = "Telemetry polling interval for controller mode.";
+    };
+
+    maxSamplesPerPname = lib.mkOption {
+      type = lib.types.ints.unsigned;
+      default = 200;
+      description = "Maximum retained completed build observations per pname. Set to 0 to disable pruning.";
+    };
+
+    staleStartMs = lib.mkOption {
+      type = lib.types.ints.unsigned;
+      default = 24 * 60 * 60 * 1000;
+      description = "Age in milliseconds after which unmatched build starts are removed. Set to 0 to disable cleanup.";
     };
 
     installNixHooks = lib.mkOption {

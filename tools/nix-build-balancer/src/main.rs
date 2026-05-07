@@ -1,7 +1,8 @@
+use rusqlite::{params, Connection, OptionalExtension};
 use std::collections::BTreeMap;
 use std::env;
-use std::fs::{self, File, OpenOptions};
-use std::io::{self, BufRead, BufReader, Read, Write};
+use std::fs;
+use std::io::{self, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::{Path, PathBuf};
@@ -9,6 +10,9 @@ use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const DEFAULT_UNKNOWN_P95_MS: u64 = 30 * 60 * 1000;
+const DEFAULT_STALE_START_MS: u128 = 24 * 60 * 60 * 1000;
+const DEFAULT_MAX_SAMPLES_PER_PNAME: usize = 200;
+const SCHEMA_VERSION: i64 = 1;
 
 #[derive(Clone, Debug)]
 struct Config {
@@ -19,6 +23,8 @@ struct Config {
     listen: Option<String>,
     remote: Vec<String>,
     poll_interval: Duration,
+    max_samples_per_pname: usize,
+    stale_start_ms: u128,
     once: bool,
 }
 
@@ -92,6 +98,8 @@ fn parse_serve_args(args: Vec<String>) -> io::Result<Config> {
         listen: None,
         remote: Vec::new(),
         poll_interval: Duration::from_secs(1),
+        max_samples_per_pname: DEFAULT_MAX_SAMPLES_PER_PNAME,
+        stale_start_ms: DEFAULT_STALE_START_MS,
         once: false,
     };
 
@@ -132,6 +140,18 @@ fn parse_serve_args(args: Vec<String>) -> io::Result<Config> {
                     .parse::<u64>()
                     .map_err(|err| io::Error::new(io::ErrorKind::InvalidInput, err))?;
                 cfg.poll_interval = Duration::from_millis(value);
+            }
+            "--max-samples-per-pname" => {
+                i += 1;
+                cfg.max_samples_per_pname = required(&args, i, "--max-samples-per-pname")?
+                    .parse::<usize>()
+                    .map_err(|err| io::Error::new(io::ErrorKind::InvalidInput, err))?;
+            }
+            "--stale-start-ms" => {
+                i += 1;
+                cfg.stale_start_ms = required(&args, i, "--stale-start-ms")?
+                    .parse::<u128>()
+                    .map_err(|err| io::Error::new(io::ErrorKind::InvalidInput, err))?;
             }
             "--once" => cfg.once = true,
             other => invalid(format!("unknown argument {other}"))?,
@@ -215,7 +235,7 @@ fn invalid<T>(message: impl Into<String>) -> io::Result<T> {
 
 fn serve(cfg: Config) -> io::Result<()> {
     fs::create_dir_all(&cfg.data_dir)?;
-    fs::create_dir_all(cfg.data_dir.join("starts"))?;
+    cleanup_state(&cfg)?;
 
     if cfg.once {
         println!("{}", telemetry_json(&read_telemetry(&cfg.host)?));
@@ -357,7 +377,7 @@ fn handle_stream<S: ReadWrite>(mut stream: S, cfg: &Config) -> io::Result<()> {
             } else {
                 "finish".to_string()
             };
-            record_event(&cfg.data_dir, &event)?;
+            record_event(cfg, &event)?;
             write_response(&mut stream, 200, "application/json", "{\"ok\":true}\n")
         }
         ("POST", "/decision/build-candidate") => {
@@ -495,56 +515,180 @@ fn decode_value(value: &str) -> String {
     String::from_utf8_lossy(&out).to_string()
 }
 
-fn record_event(data_dir: &Path, event: &BuildEvent) -> io::Result<()> {
-    fs::create_dir_all(data_dir)?;
-    fs::create_dir_all(data_dir.join("starts"))?;
-    append_line(
-        &data_dir.join("events.tsv"),
-        &format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
-            event.timestamp_ms,
-            event.host,
-            event.kind,
-            pname_from_drv(&event.drv_path),
-            event.status,
-            event.drv_path,
-            event.out_paths
-        ),
-    )?;
+fn record_event(cfg: &Config, event: &BuildEvent) -> io::Result<()> {
+    let mut conn = open_history_db(&cfg.data_dir)?;
+    cleanup_stale_starts(&conn, cfg.stale_start_ms)?;
 
-    let start_file = data_dir
-        .join("starts")
-        .join(escape_filename(&event.drv_path));
+    let pname = pname_from_drv(&event.drv_path);
     if event.kind == "start" {
-        fs::write(start_file, event.timestamp_ms.to_string())?;
+        conn.execute(
+            "INSERT INTO active_builds (drv_path, host, pname, started_at_ms)
+             VALUES (?1, ?2, ?3, ?4)
+             ON CONFLICT(drv_path) DO UPDATE SET
+               host = excluded.host,
+               pname = excluded.pname,
+               started_at_ms = excluded.started_at_ms",
+            params![
+                event.drv_path,
+                event.host,
+                pname,
+                timestamp_to_i64(event.timestamp_ms)?
+            ],
+        )
+        .map_err(sqlite_error)?;
     } else if event.kind == "finish" {
-        let start_ms = fs::read_to_string(&start_file)
-            .ok()
-            .and_then(|value| value.trim().parse::<u128>().ok());
-        let _ = fs::remove_file(&start_file);
-        if let Some(start_ms) = start_ms {
-            let duration_ms = event.timestamp_ms.saturating_sub(start_ms);
-            append_line(
-                &data_dir.join("builds.tsv"),
-                &format!(
-                    "{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
-                    event.timestamp_ms,
-                    event.host,
-                    pname_from_drv(&event.drv_path),
-                    duration_ms,
-                    event.status,
+        let tx = conn.transaction().map_err(sqlite_error)?;
+        let start = tx
+            .query_row(
+                "SELECT host, pname, started_at_ms FROM active_builds WHERE drv_path = ?1",
+                params![event.drv_path],
+                |row| {
+                    Ok((
+                        row.get::<_, String>(0)?,
+                        row.get::<_, String>(1)?,
+                        row.get::<_, i64>(2)?,
+                    ))
+                },
+            )
+            .optional()
+            .map_err(sqlite_error)?;
+
+        tx.execute(
+            "DELETE FROM active_builds WHERE drv_path = ?1",
+            params![event.drv_path],
+        )
+        .map_err(sqlite_error)?;
+
+        if let Some((start_host, start_pname, start_ms)) = start {
+            let start_ms_u128 = start_ms.max(0) as u128;
+            let duration_ms = event.timestamp_ms.saturating_sub(start_ms_u128);
+            tx.execute(
+                "INSERT INTO build_observations
+                   (host, pname, drv_path, started_at_ms, finished_at_ms, duration_ms, status, out_paths)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+                params![
+                    start_host,
+                    start_pname,
                     event.drv_path,
-                    event.out_paths
-                ),
-            )?;
+                    start_ms,
+                    timestamp_to_i64(event.timestamp_ms)?,
+                    duration_to_i64(duration_ms)?,
+                    event.status,
+                    event.out_paths,
+                ],
+            )
+            .map_err(sqlite_error)?;
+            prune_pname_samples(&tx, &start_pname, cfg.max_samples_per_pname)?;
+            eprintln!(
+                "build_finished host={} pname={} duration_ms={} status={}",
+                event.host, pname, duration_ms, event.status
+            );
+        } else {
+            eprintln!(
+                "build_finish_unmatched host={} pname={} status={}",
+                event.host, pname, event.status
+            );
         }
+        tx.commit().map_err(sqlite_error)?;
     }
     Ok(())
 }
 
-fn append_line(path: &Path, line: &str) -> io::Result<()> {
-    let mut file = OpenOptions::new().create(true).append(true).open(path)?;
-    file.write_all(line.as_bytes())
+fn cleanup_state(cfg: &Config) -> io::Result<()> {
+    let conn = open_history_db(&cfg.data_dir)?;
+    cleanup_stale_starts(&conn, cfg.stale_start_ms)
+}
+
+fn open_history_db(data_dir: &Path) -> io::Result<Connection> {
+    fs::create_dir_all(data_dir)?;
+    let conn = Connection::open(data_dir.join("history.sqlite3")).map_err(sqlite_error)?;
+    conn.busy_timeout(Duration::from_secs(5))
+        .map_err(sqlite_error)?;
+    init_history_schema(&conn)?;
+    Ok(conn)
+}
+
+fn init_history_schema(conn: &Connection) -> io::Result<()> {
+    conn.execute_batch(
+        "
+        PRAGMA journal_mode = WAL;
+        PRAGMA foreign_keys = ON;
+        CREATE TABLE IF NOT EXISTS meta (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS active_builds (
+          drv_path TEXT PRIMARY KEY,
+          host TEXT NOT NULL,
+          pname TEXT NOT NULL,
+          started_at_ms INTEGER NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS build_observations (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          host TEXT NOT NULL,
+          pname TEXT NOT NULL,
+          drv_path TEXT NOT NULL,
+          started_at_ms INTEGER NOT NULL,
+          finished_at_ms INTEGER NOT NULL,
+          duration_ms INTEGER NOT NULL,
+          status TEXT NOT NULL,
+          out_paths TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_build_observations_pname_finished
+          ON build_observations (pname, finished_at_ms DESC, id DESC);
+        CREATE INDEX IF NOT EXISTS idx_build_observations_success_pname
+          ON build_observations (pname, duration_ms)
+          WHERE status = 'success';
+        ",
+    )
+    .map_err(sqlite_error)?;
+    conn.execute(
+        "INSERT INTO meta (key, value) VALUES ('schema_version', ?1)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        params![SCHEMA_VERSION.to_string()],
+    )
+    .map_err(sqlite_error)?;
+    Ok(())
+}
+
+fn cleanup_stale_starts(conn: &Connection, stale_start_ms: u128) -> io::Result<()> {
+    if stale_start_ms == 0 {
+        return Ok(());
+    }
+    let cutoff = timestamp_to_i64(now_ms().saturating_sub(stale_start_ms))?;
+    let removed = conn
+        .execute(
+            "DELETE FROM active_builds WHERE started_at_ms < ?1",
+            params![cutoff],
+        )
+        .map_err(sqlite_error)?;
+    if removed > 0 {
+        eprintln!("stale_starts_removed count={removed}");
+    }
+    Ok(())
+}
+
+fn prune_pname_samples(
+    conn: &Connection,
+    pname: &str,
+    max_samples_per_pname: usize,
+) -> io::Result<()> {
+    if max_samples_per_pname == 0 {
+        return Ok(());
+    }
+    conn.execute(
+        "DELETE FROM build_observations
+         WHERE pname = ?1
+           AND id NOT IN (
+             SELECT id FROM build_observations
+             WHERE pname = ?1
+             ORDER BY finished_at_ms DESC, id DESC
+             LIMIT ?2
+           )",
+        params![pname, max_samples_per_pname as i64],
+    )
+    .map_err(sqlite_error)?;
+    Ok(())
 }
 
 fn read_telemetry(host: &str) -> io::Result<Telemetry> {
@@ -671,20 +815,24 @@ fn telemetry_json(telemetry: &Telemetry) -> String {
 }
 
 fn stats_json(data_dir: &Path) -> io::Result<String> {
-    let builds = data_dir.join("builds.tsv");
+    let conn = open_history_db(data_dir)?;
     let mut durations: BTreeMap<String, Vec<u64>> = BTreeMap::new();
-    if builds.exists() {
-        let file = File::open(builds)?;
-        for line in BufReader::new(file).lines().map_while(Result::ok) {
-            let fields: Vec<&str> = line.split('\t').collect();
-            if fields.len() >= 4 {
-                if let Ok(duration) = fields[3].parse::<u64>() {
-                    durations
-                        .entry(fields[2].to_string())
-                        .or_default()
-                        .push(duration);
-                }
-            }
+    let mut stmt = conn
+        .prepare(
+            "SELECT pname, duration_ms FROM build_observations
+             WHERE status = 'success'
+             ORDER BY pname",
+        )
+        .map_err(sqlite_error)?;
+    let rows = stmt
+        .query_map([], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?))
+        })
+        .map_err(sqlite_error)?;
+    for row in rows {
+        let (pname, duration) = row.map_err(sqlite_error)?;
+        if duration >= 0 {
+            durations.entry(pname).or_default().push(duration as u64);
         }
     }
 
@@ -715,6 +863,20 @@ fn quantile(values: &[u64], q: f64) -> Option<u64> {
     }
     let idx = ((values.len() - 1) as f64 * q).ceil() as usize;
     values.get(idx).copied()
+}
+
+fn timestamp_to_i64(value: u128) -> io::Result<i64> {
+    i64::try_from(value)
+        .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "timestamp is too large"))
+}
+
+fn duration_to_i64(value: u128) -> io::Result<i64> {
+    i64::try_from(value)
+        .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "duration is too large"))
+}
+
+fn sqlite_error(err: rusqlite::Error) -> io::Error {
+    io::Error::new(io::ErrorKind::Other, err)
 }
 
 fn poll_remotes(cfg: Config) {
@@ -785,18 +947,6 @@ fn looks_versionish(part: &str) -> bool {
             .all(|ch| ch.is_ascii_hexdigit() || ch == '.' || ch == '_' || ch == '+')
 }
 
-fn escape_filename(value: &str) -> String {
-    value
-        .bytes()
-        .map(|byte| match byte {
-            b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'.' | b'-' | b'_' => {
-                (byte as char).to_string()
-            }
-            _ => format!("%{byte:02x}"),
-        })
-        .collect()
-}
-
 fn json_escape(value: &str) -> String {
     let mut out = String::new();
     for ch in value.chars() {
@@ -846,6 +996,42 @@ fn hostname_fallback() -> String {
 mod tests {
     use super::*;
 
+    fn test_data_dir(name: &str) -> PathBuf {
+        let dir = env::temp_dir().join(format!(
+            "nix-build-balancer-test-{name}-{}-{}",
+            std::process::id(),
+            now_ms()
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        dir
+    }
+
+    fn test_config(data_dir: PathBuf) -> Config {
+        Config {
+            mode: Mode::Agent,
+            host: "test-host".to_string(),
+            data_dir,
+            unix_socket: None,
+            listen: None,
+            remote: Vec::new(),
+            poll_interval: Duration::from_secs(1),
+            max_samples_per_pname: 200,
+            stale_start_ms: 0,
+            once: true,
+        }
+    }
+
+    fn build_event(kind: &str, drv_path: &str, timestamp_ms: u128, status: &str) -> BuildEvent {
+        BuildEvent {
+            kind: kind.to_string(),
+            drv_path: drv_path.to_string(),
+            out_paths: "/nix/store/out".to_string(),
+            status: status.to_string(),
+            host: "test-host".to_string(),
+            timestamp_ms,
+        }
+    }
+
     #[test]
     fn normalizes_basic_pnames() {
         assert_eq!(pname_from_drv("/nix/store/hash-kwin-6.6.3.drv"), "kwin");
@@ -868,5 +1054,86 @@ mod tests {
         let values = [10, 20, 30, 40];
         assert_eq!(quantile(&values, 0.50), Some(30));
         assert_eq!(quantile(&values, 0.95), Some(40));
+    }
+
+    #[test]
+    fn records_successful_build_stats_from_sqlite() {
+        let dir = test_data_dir("stats");
+        let cfg = test_config(dir.clone());
+        let drv = "/nix/store/hash-kwin-6.6.3.drv";
+
+        record_event(&cfg, &build_event("start", drv, 1_000, "unknown")).unwrap();
+        record_event(&cfg, &build_event("finish", drv, 2_500, "success")).unwrap();
+
+        let stats = stats_json(&dir).unwrap();
+        assert!(stats.contains("\"pname\":\"kwin\""));
+        assert!(stats.contains("\"count\":1"));
+        assert!(stats.contains("\"p50_ms\":1500"));
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn stores_failures_but_excludes_them_from_stats() {
+        let dir = test_data_dir("failure");
+        let cfg = test_config(dir.clone());
+        let drv = "/nix/store/hash-failing-package-1.0.drv";
+
+        record_event(&cfg, &build_event("start", drv, 1_000, "unknown")).unwrap();
+        record_event(&cfg, &build_event("finish", drv, 2_000, "failure")).unwrap();
+
+        let conn = open_history_db(&dir).unwrap();
+        let count: i64 = conn
+            .query_row("SELECT count(*) FROM build_observations", [], |row| {
+                row.get(0)
+            })
+            .unwrap();
+        assert_eq!(count, 1);
+        let stats = stats_json(&dir).unwrap();
+        assert!(!stats.contains("failing-package"));
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn retention_is_per_pname() {
+        let dir = test_data_dir("retention");
+        let mut cfg = test_config(dir.clone());
+        cfg.max_samples_per_pname = 2;
+
+        for i in 0..3 {
+            let drv = format!("/nix/store/hash-kwin-6.6.{i}.drv");
+            record_event(
+                &cfg,
+                &build_event("start", &drv, 1_000 + i * 1_000, "unknown"),
+            )
+            .unwrap();
+            record_event(
+                &cfg,
+                &build_event("finish", &drv, 1_500 + i * 1_000, "success"),
+            )
+            .unwrap();
+        }
+
+        let other_drv = "/nix/store/hash-linux-6.19.5.drv";
+        record_event(&cfg, &build_event("start", other_drv, 10_000, "unknown")).unwrap();
+        record_event(&cfg, &build_event("finish", other_drv, 11_000, "success")).unwrap();
+
+        let conn = open_history_db(&dir).unwrap();
+        let kwin_count: i64 = conn
+            .query_row(
+                "SELECT count(*) FROM build_observations WHERE pname = 'kwin'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        let linux_count: i64 = conn
+            .query_row(
+                "SELECT count(*) FROM build_observations WHERE pname = 'linux'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(kwin_count, 2);
+        assert_eq!(linux_count, 1);
+        let _ = fs::remove_dir_all(dir);
     }
 }
