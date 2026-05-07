@@ -9,7 +9,6 @@
     fd
     psmisc
     uv
-    comma
     btop
     python3
     tcpdump

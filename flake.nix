@@ -18,9 +18,11 @@
     agenix.inputs.nixpkgs.follows = "nixpkgs";
     colmena.url = "github:zhaofengli/colmena";
     colmena.inputs.nixpkgs.follows = "nixpkgs";
+    nix-index-database.url = "github:nix-community/nix-index-database";
+    nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { nixpkgs, nix-cachyos-kernel, home-manager, codex-cli-nix, crane, ganbot, dessplay, agenix, colmena, ... }:
+  outputs = { nixpkgs, nix-cachyos-kernel, home-manager, codex-cli-nix, crane, ganbot, dessplay, agenix, colmena, nix-index-database, ... }:
   let
     craneOverlay = final: prev: {
       craneLib = crane.mkLib final;
@@ -33,7 +35,11 @@
 
     commonModules = [
       home-manager.nixosModules.home-manager
+      nix-index-database.nixosModules.nix-index
       craneModule
+      {
+        programs.nix-index-database.comma.enable = true;
+      }
     ];
 
     machineConfigs = {
