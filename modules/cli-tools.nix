@@ -2,6 +2,7 @@
 
 {
   environment.systemPackages = with pkgs; [
+    binutils  # Provides strings etc.
     neovim
     jujutsu
     git

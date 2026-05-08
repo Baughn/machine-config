@@ -106,6 +106,9 @@ in
           precmd_functions=(''${precmd_functions:#_prompt_warnings_install})
         }
         precmd_functions+=(_prompt_warnings_install)
+
+        bindkey $'\e[13;2u' accept-line
+        bindkey $'\e[27;2;13~' accept-line
       '';
 
       histSize = 100000;
@@ -120,7 +123,15 @@ in
       "LESS" = "FRX";
     };
 
-    programs.tmux.enable = true;
+    programs.tmux = {
+      enable = true;
+      terminal = "tmux-256color";
+      extraConfig = ''
+        set -s extended-keys always
+        set -s extended-keys-format csi-u
+        set -as terminal-features ',xterm-ghostty:extkeys,ghostty:extkeys'
+      '';
+    };
     programs.direnv.enable = true;
     environment.homeBinInPath = true;
     environment.localBinInPath = true;
