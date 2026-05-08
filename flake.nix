@@ -169,6 +169,7 @@
         pkgs.rust-analyzer
         pkgs.rustc
         pkgs.rustfmt
+        pkgs.sqlite
       ];
 
       RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";

@@ -49,6 +49,20 @@ let
     fi
     exit 0
   '';
+
+  schedulerHook = pkgs.writeShellScript "nix-build-balancer-build-hook" ''
+    exec ${lib.escapeShellArgs [
+      "${package}/bin/nix-build-balancer"
+      "hook"
+      "--endpoint" endpoint
+      "--host" config.networking.hostName
+      "--remote-host" cfg.scheduler.remoteHost
+      "--remote-store-uri" cfg.scheduler.remoteStoreUri
+      "--remote-builder" cfg.scheduler.remoteBuilder
+      "--nix-bin" "${config.nix.package}/bin/nix"
+      "--"
+    ]} "$@"
+  '';
 in
 {
   options.me.nixBuildBalancer = {
@@ -115,6 +129,28 @@ in
       default = true;
       description = "Install best-effort Nix pre/post build observation hooks.";
     };
+
+    scheduler = {
+      enable = lib.mkEnableOption "custom Nix remote build scheduler hook";
+
+      remoteHost = lib.mkOption {
+        type = lib.types.str;
+        default = "tsugumi";
+        description = "Remote telemetry/admission host name used by the scheduler.";
+      };
+
+      remoteStoreUri = lib.mkOption {
+        type = lib.types.str;
+        default = "ssh-ng://svein@tsugumi.local";
+        description = "Remote store URI returned by accepted scheduler decisions.";
+      };
+
+      remoteBuilder = lib.mkOption {
+        type = lib.types.str;
+        default = "ssh-ng://svein@tsugumi.local x86_64-linux /home/svein/.ssh/id_ed25519 16 1 nixos-test,kvm,big-parallel - -";
+        description = "Single Nix machine line passed to stock nix __build-remote for accepted builds.";
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -143,10 +179,14 @@ in
 
     environment.systemPackages = [ package ];
 
-    nix.settings = lib.mkIf cfg.installNixHooks {
-      pre-build-hook = preBuildHook;
-      post-build-hook = postBuildHook;
-    };
+    nix.settings =
+      (lib.optionalAttrs cfg.installNixHooks {
+        pre-build-hook = preBuildHook;
+        post-build-hook = postBuildHook;
+      })
+      // (lib.optionalAttrs cfg.scheduler.enable {
+        build-hook = schedulerHook;
+      });
 
     networking.firewall.allowedTCPPorts =
       lib.optionals (cfg.openFirewall && cfg.listenAddress != null)
