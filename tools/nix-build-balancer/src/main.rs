@@ -647,6 +647,11 @@ fn send_event((endpoint, event): (String, BuildEvent)) -> io::Result<()> {
     }
 }
 
+/// Run the Nix build hook loop.
+///
+/// Nix can offer multiple `try` candidates to a build hook. This loop declines
+/// candidates until the local daemon accepts one, then delegates exactly that
+/// candidate to `nix __build-remote`.
 fn run_hook(cfg: HookConfig) -> io::Result<()> {
     let stdin = io::stdin();
     let mut stdin = stdin.lock();
@@ -673,6 +678,10 @@ fn run_hook(cfg: HookConfig) -> io::Result<()> {
     }
 }
 
+/// Read the initial key/value setting stream from Nix's build-hook protocol.
+///
+/// The stream is terminated by a zero marker. Each preceding entry contains a
+/// setting name and value encoded with Nix's padded string format.
 fn read_hook_settings<R: Read>(reader: &mut R) -> io::Result<Vec<(String, String)>> {
     let mut settings = Vec::new();
     loop {
@@ -686,6 +695,10 @@ fn read_hook_settings<R: Read>(reader: &mut R) -> io::Result<Vec<(String, String
     Ok(settings)
 }
 
+/// Read one build candidate from the Nix build-hook protocol.
+///
+/// Returns `Ok(None)` when Nix closes the stream or sends an operation this hook
+/// does not handle. Supported candidates are `try` records.
 fn read_hook_candidate<R: Read>(reader: &mut R) -> io::Result<Option<BuildCandidate>> {
     let op = match read_nix_string(reader) {
         Ok(op) => op,
@@ -712,6 +725,11 @@ fn read_hook_candidate<R: Read>(reader: &mut R) -> io::Result<Option<BuildCandid
     }))
 }
 
+/// Delegate an accepted candidate to the stock Nix remote build helper.
+///
+/// The child process receives the original hook settings plus a replacement
+/// `builders` setting containing only the selected builder line. This keeps Nix
+/// from choosing a different remote host than the scheduler admitted.
 fn delegate_remote_build<R: Read>(
     cfg: &HookConfig,
     settings: &[(String, String)],
@@ -791,13 +809,17 @@ fn delegate_remote_build<R: Read>(
     if status.success() {
         Ok(())
     } else {
-        Err(io::Error::new(
-            io::ErrorKind::Other,
-            format!("delegated nix __build-remote exited with {status}"),
-        ))
+        Err(io::Error::other(format!(
+            "delegated nix __build-remote exited with {status}"
+        )))
     }
 }
 
+/// Proxy child stderr until `nix __build-remote` accepts or declines the build.
+///
+/// Nix communicates hook decisions on stderr. Once the child accepts, the rest
+/// of stderr is copied in a background thread so diagnostics remain visible
+/// while the parent continues forwarding binary protocol data.
 fn proxy_child_until_decision(stderr: ChildStderr) -> io::Result<bool> {
     let mut reader = BufReader::new(stderr);
     let mut accepted = false;
@@ -834,6 +856,11 @@ fn proxy_child_until_decision(stderr: ChildStderr) -> io::Result<bool> {
     Ok(accepted)
 }
 
+/// Write hook settings to a delegated `nix __build-remote` child.
+///
+/// Existing settings are preserved, then `builders` is appended with the single
+/// builder line selected by this balancer. Nix uses the later setting when
+/// evaluating the delegated remote build.
 fn write_hook_settings<W: Write>(
     writer: &mut W,
     settings: &[(String, String)],
@@ -850,6 +877,7 @@ fn write_hook_settings<W: Write>(
     write_nix_u64(writer, 0)
 }
 
+/// Write a `try` build candidate in Nix's build-hook protocol format.
 fn write_hook_candidate<W: Write>(writer: &mut W, candidate: &BuildCandidate) -> io::Result<()> {
     write_nix_string(writer, "try")?;
     write_nix_u64(writer, candidate.am_willing)?;
@@ -858,16 +886,19 @@ fn write_hook_candidate<W: Write>(writer: &mut W, candidate: &BuildCandidate) ->
     write_nix_strings(writer, &candidate.required_features)
 }
 
+/// Read a little-endian 64-bit integer from the Nix hook protocol.
 fn read_nix_u64<R: Read>(reader: &mut R) -> io::Result<u64> {
     let mut buf = [0u8; 8];
     reader.read_exact(&mut buf)?;
     Ok(u64::from_le_bytes(buf))
 }
 
+/// Write a little-endian 64-bit integer to the Nix hook protocol.
 fn write_nix_u64<W: Write>(writer: &mut W, value: u64) -> io::Result<()> {
     writer.write_all(&value.to_le_bytes())
 }
 
+/// Read a Nix protocol string and consume its 8-byte alignment padding.
 fn read_nix_string<R: Read>(reader: &mut R) -> io::Result<String> {
     let len = read_nix_u64(reader)? as usize;
     let mut bytes = vec![0u8; len];
@@ -876,6 +907,7 @@ fn read_nix_string<R: Read>(reader: &mut R) -> io::Result<String> {
     Ok(String::from_utf8_lossy(&bytes).to_string())
 }
 
+/// Write a Nix protocol string with 8-byte alignment padding.
 fn write_nix_string<W: Write>(writer: &mut W, value: &str) -> io::Result<()> {
     let bytes = value.as_bytes();
     write_nix_u64(writer, bytes.len() as u64)?;
@@ -883,6 +915,7 @@ fn write_nix_string<W: Write>(writer: &mut W, value: &str) -> io::Result<()> {
     write_nix_padding(writer, bytes.len())
 }
 
+/// Read a counted list of Nix protocol strings.
 fn read_nix_strings<R: Read>(reader: &mut R) -> io::Result<Vec<String>> {
     let count = read_nix_u64(reader)?;
     let mut values = Vec::new();
@@ -892,6 +925,7 @@ fn read_nix_strings<R: Read>(reader: &mut R) -> io::Result<Vec<String>> {
     Ok(values)
 }
 
+/// Write a counted list of Nix protocol strings.
 fn write_nix_strings<W: Write>(writer: &mut W, values: &[String]) -> io::Result<()> {
     write_nix_u64(writer, values.len() as u64)?;
     for value in values {
@@ -900,6 +934,7 @@ fn write_nix_strings<W: Write>(writer: &mut W, values: &[String]) -> io::Result<
     Ok(())
 }
 
+/// Consume and validate the zero padding after a Nix protocol string.
 fn read_nix_padding<R: Read>(reader: &mut R, len: usize) -> io::Result<()> {
     let padding = padding_len(len);
     if padding > 0 {
@@ -915,6 +950,7 @@ fn read_nix_padding<R: Read>(reader: &mut R, len: usize) -> io::Result<()> {
     Ok(())
 }
 
+/// Write zero padding after a Nix protocol string.
 fn write_nix_padding<W: Write>(writer: &mut W, len: usize) -> io::Result<()> {
     let padding = padding_len(len);
     if padding > 0 {
@@ -923,8 +959,9 @@ fn write_nix_padding<W: Write>(writer: &mut W, len: usize) -> io::Result<()> {
     Ok(())
 }
 
+/// Return the number of padding bytes needed for Nix's 8-byte string alignment.
 fn padding_len(len: usize) -> usize {
-    if len % 8 == 0 {
+    if len.is_multiple_of(8) {
         0
     } else {
         8 - (len % 8)
@@ -943,7 +980,7 @@ fn drain_response<R: Read>(mut stream: R) -> io::Result<()> {
     if response.starts_with("HTTP/1.1 200 ") {
         Ok(())
     } else {
-        Err(io::Error::new(io::ErrorKind::Other, response))
+        Err(io::Error::other(response))
     }
 }
 
@@ -975,7 +1012,7 @@ fn read_http_body<R: Read>(mut stream: R) -> io::Result<String> {
     if headers.starts_with("HTTP/1.1 200 ") {
         Ok(body.to_string())
     } else {
-        Err(io::Error::new(io::ErrorKind::Other, response))
+        Err(io::Error::other(response))
     }
 }
 
@@ -1160,6 +1197,11 @@ fn record_event(cfg: &Config, event: &BuildEvent) -> io::Result<()> {
     Ok(())
 }
 
+/// Decide whether one build candidate should run on the configured remote host.
+///
+/// This is the scheduler's top-level pipeline: load local and remote state,
+/// apply hard safety checks, compare completion predictions, and persist remote
+/// admission only when the final decision accepts remote execution.
 fn decide_build_candidate(cfg: &Config, candidate: &BuildCandidate) -> io::Result<Decision> {
     let scheduler = SchedulerConfig::from_candidate(cfg, candidate);
     let conn = open_history_db(&cfg.data_dir)?;
@@ -1209,6 +1251,10 @@ fn decide_build_candidate(cfg: &Config, candidate: &BuildCandidate) -> io::Resul
     Ok(outcome.decision)
 }
 
+/// Check whether the candidate can be considered by the current single target.
+///
+/// This does not yet inspect per-target feature declarations because the tool
+/// only has one configured remote builder.
 fn evaluate_candidate_compatibility(candidate: &BuildCandidate) -> Eligibility {
     if candidate.needed_system == "x86_64-linux" || candidate.needed_system == "builtin" {
         Eligibility::Accepted
@@ -1219,6 +1265,10 @@ fn evaluate_candidate_compatibility(candidate: &BuildCandidate) -> Eligibility {
     }
 }
 
+/// Load live local telemetry and local package history for a candidate.
+///
+/// Local queue state combines Nix's current slot files with locally observed
+/// active builds recorded by the pre-build hook.
 fn load_local_host_state(
     conn: &Connection,
     candidate: &BuildCandidate,
@@ -1238,6 +1288,10 @@ fn load_local_host_state(
     })
 }
 
+/// Load cached remote telemetry, cached package stats, and active admissions.
+///
+/// Remote data comes from the controller's polling cache. Missing or stale
+/// files are handled by later fail-closed scheduler checks.
 fn load_remote_host_state(
     conn: &Connection,
     cfg: &Config,
@@ -1256,6 +1310,7 @@ fn load_remote_host_state(
     })
 }
 
+/// Apply hard remote health checks before considering queue predictions.
 fn evaluate_remote_health(remote: &HostState, now: u128, policy: &SchedulerPolicy) -> Eligibility {
     if now.saturating_sub(remote.telemetry.timestamp_ms) > policy.stale_telemetry_ms {
         return Eligibility::Declined {
@@ -1282,6 +1337,10 @@ fn evaluate_remote_health(remote: &HostState, now: u128, policy: &SchedulerPolic
     Eligibility::Accepted
 }
 
+/// Build local and remote completion predictions for one candidate.
+///
+/// Package duration and queue delay are kept separate so logs and tests can
+/// explain why a decision was made.
 fn evaluate_predictions(
     local: &HostState,
     remote: &HostState,
@@ -1312,6 +1371,7 @@ fn evaluate_predictions(
     (local_prediction, remote_prediction, unknown)
 }
 
+/// Apply limits that prevent the hook from flooding the remote builder.
 fn evaluate_remote_admission_limits(
     remote: &HostState,
     unknown: bool,
@@ -1350,12 +1410,17 @@ fn evaluate_remote_admission_limits(
     Eligibility::Accepted
 }
 
+/// Estimate how long a new local build would wait behind current local work.
 fn local_queue_ms(local: &HostState, policy: &SchedulerPolicy) -> u64 {
     let local_slot_queue_ms = (local.telemetry.nix_slots_local as u64 * policy.unknown_p95_ms)
         / policy.local_capacity as u64;
     local_slot_queue_ms.max(local.active_queue_ms)
 }
 
+/// Estimate how long a remote build would wait behind current remote work.
+///
+/// Remote queueing includes both Nix slots reported by the agent and
+/// controller-side admissions that have not yet reported completion.
 fn remote_queue_ms(remote: &HostState, target: &BuildTarget, policy: &SchedulerPolicy) -> u64 {
     let remote_existing_ms =
         (remote.telemetry.nix_slots_total as u64 * policy.unknown_p95_ms) / target.capacity as u64;
@@ -1367,6 +1432,7 @@ fn remote_queue_ms(remote: &HostState, target: &BuildTarget, policy: &SchedulerP
     remote_existing_ms + admitted_ms / target.capacity as u64
 }
 
+/// Collect the scheduler fields that are useful for logs and regression tests.
 fn decision_metrics(
     local: &HostState,
     remote: &HostState,
@@ -1389,6 +1455,10 @@ fn decision_metrics(
     }
 }
 
+/// Choose local or remote after all hard eligibility checks have passed.
+///
+/// Remote wins only when its predicted completion is faster, except that the
+/// bounded exploration policy may choose an empty host to refresh sparse data.
 fn compare_predictions(
     candidate: &BuildCandidate,
     target: &BuildTarget,
@@ -1446,6 +1516,10 @@ fn compare_predictions(
     }
 }
 
+/// Record an accepted remote decision until the hook reports completion.
+///
+/// The admission table is a queue-accounting aid. It is intentionally updated
+/// only after all scheduler checks accept the candidate.
 fn record_remote_admission_at(
     conn: &Connection,
     candidate: &BuildCandidate,
@@ -1476,6 +1550,7 @@ fn record_remote_admission_at(
     Ok(())
 }
 
+/// Return whether a sparse-history candidate falls into the stable exploration bucket.
 fn should_explore_empty_host(
     candidate: &BuildCandidate,
     metrics: &DecisionMetrics,
@@ -1522,6 +1597,7 @@ struct Admission {
     unknown: bool,
 }
 
+/// Load active remote admissions for one host in admission order.
 fn remote_admissions(conn: &Connection, remote_host: &str) -> io::Result<Vec<Admission>> {
     let mut stmt = conn
         .prepare(
@@ -1547,6 +1623,10 @@ fn remote_admissions(conn: &Connection, remote_host: &str) -> io::Result<Vec<Adm
     Ok(admissions)
 }
 
+/// Remove admissions old enough that the delegated build likely disappeared.
+///
+/// Normal completions remove admissions by derivation path. This cleanup keeps
+/// the scheduler from permanently reserving capacity after hook or daemon loss.
 fn cleanup_stale_admissions_with_policy(
     conn: &Connection,
     policy: &SchedulerPolicy,
@@ -1560,6 +1640,7 @@ fn cleanup_stale_admissions_with_policy(
     Ok(())
 }
 
+/// Mark a previously admitted remote derivation as no longer queued or running.
 fn finish_admission(data_dir: &Path, drv_path: &str) -> io::Result<()> {
     let conn = open_history_db(data_dir)?;
     conn.execute(
@@ -1570,6 +1651,7 @@ fn finish_admission(data_dir: &Path, drv_path: &str) -> io::Result<()> {
     Ok(())
 }
 
+#[cfg(test)]
 fn paired_predictions(
     local_stats: Option<&PackageStats>,
     remote_stats: Option<&PackageStats>,
@@ -1577,6 +1659,11 @@ fn paired_predictions(
     paired_predictions_with_policy(local_stats, remote_stats, &SchedulerPolicy::default())
 }
 
+/// Predict package durations for local and remote from available p95 samples.
+///
+/// If only one host has history for the package, both hosts use that estimate.
+/// This avoids treating missing remote history as proof that remote is slow or
+/// missing local history as proof that local is slow.
 fn paired_predictions_with_policy(
     local_stats: Option<&PackageStats>,
     remote_stats: Option<&PackageStats>,
@@ -1590,10 +1677,12 @@ fn paired_predictions_with_policy(
     )
 }
 
+/// Convert package stats into a non-zero duration prediction.
 fn sample_prediction_ms(stats: Option<&PackageStats>) -> Option<u64> {
     stats.and_then(|stats| (stats.count > 0).then(|| stats.p95_ms.max(1)))
 }
 
+/// Read local successful build durations for one package and return p95 stats.
 fn local_package_stats_from_conn(
     conn: &Connection,
     pname: &str,
@@ -1621,6 +1710,10 @@ fn local_package_stats_from_conn(
     }))
 }
 
+/// Estimate remaining local work from active build starts recorded in SQLite.
+///
+/// Each active build contributes its predicted remaining duration, divided by
+/// local capacity to approximate parallel slot drain time.
 fn active_local_queue_ms(
     conn: &Connection,
     host: &str,
@@ -1656,6 +1749,7 @@ fn active_local_queue_ms(
     Ok((active_count, remaining_ms / policy.local_capacity as u64))
 }
 
+/// Read one package's latest cached stats from a polled remote agent.
 fn remote_package_stats(
     data_dir: &Path,
     remote_host: &str,
@@ -1670,6 +1764,7 @@ fn remote_package_stats(
     Ok(parse_package_stats(&text, pname))
 }
 
+/// Extract one package's scheduler-facing stats from `/stats` JSON.
 fn parse_package_stats(text: &str, pname: &str) -> Option<PackageStats> {
     let stats: StatsResponse = serde_json::from_str(text).ok()?;
     stats
@@ -1682,6 +1777,7 @@ fn parse_package_stats(text: &str, pname: &str) -> Option<PackageStats> {
         })
 }
 
+/// Read cached telemetry for a remote host from the controller data directory.
 fn read_remote_telemetry(data_dir: &Path, remote_host: &str) -> io::Result<Telemetry> {
     let text = fs::read_to_string(data_dir.join(format!("telemetry-{remote_host}.json")))?;
     let mut telemetry: Telemetry = serde_json::from_str(&text).map_err(json_error)?;
@@ -1696,6 +1792,7 @@ fn cleanup_state(cfg: &Config) -> io::Result<()> {
     cleanup_stale_starts(&conn, cfg.stale_start_ms)
 }
 
+/// Open the history database and ensure the current schema exists.
 fn open_history_db(data_dir: &Path) -> io::Result<Connection> {
     fs::create_dir_all(data_dir)?;
     let conn = Connection::open(data_dir.join("history.sqlite3")).map_err(sqlite_error)?;
@@ -1705,6 +1802,7 @@ fn open_history_db(data_dir: &Path) -> io::Result<Connection> {
     Ok(conn)
 }
 
+/// Create the SQLite schema used by build observation and admission tracking.
 fn init_history_schema(conn: &Connection) -> io::Result<()> {
     conn.execute_batch(
         "
@@ -1758,6 +1856,7 @@ fn init_history_schema(conn: &Connection) -> io::Result<()> {
     Ok(())
 }
 
+/// Remove pre-build starts that never received a matching post-build event.
 fn cleanup_stale_starts(conn: &Connection, stale_start_ms: u128) -> io::Result<()> {
     if stale_start_ms == 0 {
         return Ok(());
@@ -1775,6 +1874,10 @@ fn cleanup_stale_starts(conn: &Connection, stale_start_ms: u128) -> io::Result<(
     Ok(())
 }
 
+/// Keep only the newest successful and failed observations for one package.
+///
+/// Retention is per `pname` so common packages cannot evict all history for
+/// rarely built packages.
 fn prune_pname_samples(
     conn: &Connection,
     pname: &str,
@@ -1798,6 +1901,7 @@ fn prune_pname_samples(
     Ok(())
 }
 
+/// Sample the local host telemetry used by agents and scheduler decisions.
 fn read_telemetry(host: &str) -> io::Result<Telemetry> {
     let (cpu_busy_ratio, _) = read_cpu_busy_ratio()?;
     let (mem_total_kb, mem_available_kb) = read_meminfo()?;
@@ -1817,6 +1921,7 @@ fn read_telemetry(host: &str) -> io::Result<Telemetry> {
     })
 }
 
+/// Estimate CPU busy ratio from two `/proc/stat` samples.
 fn read_cpu_busy_ratio() -> io::Result<(Option<f64>, CpuSample)> {
     let first = read_cpu_sample()?;
     thread::sleep(Duration::from_millis(100));
@@ -1866,6 +1971,10 @@ fn read_psi_memory_some_avg10() -> io::Result<Option<f64>> {
     Ok(Some(pressure.some.avg10.into()))
 }
 
+/// Count currently locked Nix build slot files.
+///
+/// Nix represents active local and remote builds as locked files in
+/// `/nix/var/nix/current-load`; unlocked files are stale and ignored.
 fn read_nix_slots() -> (usize, usize, usize) {
     let dir = Path::new("/nix/var/nix/current-load");
     let mut total = 0;
@@ -1894,6 +2003,10 @@ fn read_nix_slots() -> (usize, usize, usize) {
     (total, local, remote)
 }
 
+/// Return whether a Nix slot file is currently locked by another process.
+///
+/// A successful non-blocking exclusive lock means the file was stale, so this
+/// function unlocks it and reports `false`.
 fn slot_file_is_locked(path: &Path) -> bool {
     let Ok(file) = OpenOptions::new().read(true).write(true).open(path) else {
         return false;
@@ -1909,10 +2022,14 @@ fn slot_file_is_locked(path: &Path) -> bool {
 }
 
 fn try_flock_exclusive(fd: RawFd) -> bool {
+    // SAFETY: `fd` comes from a live `File` in `slot_file_is_locked`, and `flock`
+    // does not take ownership of the descriptor.
     unsafe { flock(fd, LOCK_EX | LOCK_NB) == 0 }
 }
 
 fn unlock_flock(fd: RawFd) -> io::Result<()> {
+    // SAFETY: `fd` comes from a live `File` in `slot_file_is_locked`, and `flock`
+    // does not take ownership of the descriptor.
     if unsafe { flock(fd, LOCK_UN) } == 0 {
         Ok(())
     } else {
@@ -1924,6 +2041,7 @@ fn telemetry_json(telemetry: &Telemetry) -> String {
     json_line(telemetry)
 }
 
+/// Render local successful build history as the remote-agent `/stats` response.
 fn stats_json(data_dir: &Path) -> io::Result<String> {
     let conn = open_history_db(data_dir)?;
     let mut durations: BTreeMap<String, Vec<u64>> = BTreeMap::new();
@@ -1965,6 +2083,7 @@ fn stats_json(data_dir: &Path) -> io::Result<String> {
     }))
 }
 
+/// Return the upper-bucket quantile for already sorted duration values.
 fn quantile(values: &[u64], q: f64) -> Option<u64> {
     if values.is_empty() {
         return None;
@@ -1984,13 +2103,14 @@ fn duration_to_i64(value: u128) -> io::Result<i64> {
 }
 
 fn sqlite_error(err: rusqlite::Error) -> io::Error {
-    io::Error::new(io::ErrorKind::Other, err)
+    io::Error::other(err)
 }
 
 fn proc_error(err: procfs::ProcError) -> io::Error {
-    io::Error::new(io::ErrorKind::Other, err)
+    io::Error::other(err)
 }
 
+/// Poll configured remote agents and cache their latest telemetry and stats.
 fn poll_remotes(cfg: Config) {
     loop {
         for remote in &cfg.remote {
@@ -2033,10 +2153,14 @@ fn get_http_tcp(addr: &str, path: &str) -> io::Result<String> {
     if headers.starts_with("HTTP/1.1 200 ") {
         Ok(body.to_string())
     } else {
-        Err(io::Error::new(io::ErrorKind::Other, response))
+        Err(io::Error::other(response))
     }
 }
 
+/// Extract a normalized package name from a Nix derivation path.
+///
+/// The store hash and `.drv` suffix are removed before version-like suffix
+/// components are stripped.
 fn pname_from_drv(path: &str) -> String {
     let name = path
         .rsplit('/')
@@ -2048,6 +2172,7 @@ fn pname_from_drv(path: &str) -> String {
     normalize_pname(without_hash)
 }
 
+/// Strip trailing version-like components from a derivation output name.
 fn normalize_pname(name: &str) -> String {
     let parts: Vec<&str> = name.split('-').collect();
     if parts.len() <= 1 {
@@ -2061,6 +2186,7 @@ fn normalize_pname(name: &str) -> String {
     parts[..end].join("-")
 }
 
+/// Return whether a hyphen-separated name component looks like a version.
 fn looks_versionish(part: &str) -> bool {
     part.chars().next().is_some_and(|ch| ch.is_ascii_digit())
         || part
