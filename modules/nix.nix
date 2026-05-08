@@ -6,6 +6,11 @@
     trusted-users = [ "@wheel" ];
   };
 
+  nix.optimise = {
+    automatic = true;
+    dates = [ "weekly" ];
+  };
+
   nixpkgs.config.allowUnfree = true;
 
   # nix-ld: allows running unpatched ELF binaries by providing a dynamic linker.
