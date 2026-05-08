@@ -41,8 +41,9 @@ across machines.
 
 ## Build & Deploy
 
-- **saya (local):** `./rebuild.sh`, then `sudo systemctl restart display-manager` if DE changes.
-- **Remote machines:** plain `nixosConfigurations` outputs today; colmena is not currently wired in.
+- **saya (local):** `./deploy-local.sh`, then `sudo systemctl restart display-manager` if DE changes.
+- **Remote machines:** Colmena is wired in through `colmenaHive`; use `./deploy-tsugumi.sh`,
+  `./deploy-v4.sh`, or `./deploy-all.sh`.
 - **kaho (planned):** likely a separate `darwinConfigurations.kaho` output. Adding it will
   require deciding how Linux-only modules opt out — `lib.mkIf pkgs.stdenv.isLinux` inside
   each module works; a `pkgs`-conditional `imports` list does *not* (it recurses through

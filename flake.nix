@@ -24,13 +24,73 @@
 
   outputs = { nixpkgs, nix-cachyos-kernel, home-manager, codex-cli-nix, crane, ganbot, dessplay, agenix, colmena, nix-index-database, ... }:
   let
+    system = "x86_64-linux";
+
     craneOverlay = final: prev: {
       craneLib = crane.mkLib final;
       mkCranePackage = final.callPackage ./lib/mk-crane-package.nix { };
     };
 
+    pkgs = import nixpkgs {
+      inherit system;
+      overlays = [ craneOverlay ];
+    };
+
     craneModule = {
       nixpkgs.overlays = [ craneOverlay ];
+    };
+
+    rustManifestPaths = [
+      "machines/v4/v4proxy/Cargo.toml"
+      "tools/aniwatch/Cargo.toml"
+      "tools/game-watcher/Cargo.toml"
+      "tools/irc-tool/Cargo.toml"
+      "tools/magic-reboot/sender/Cargo.toml"
+      "tools/nix-build-balancer/Cargo.toml"
+      "tools/rolebot/Cargo.toml"
+      "tools/victron-monitor/Cargo.toml"
+    ];
+
+    checkRustTools = pkgs.writeShellApplication {
+      name = "check-rust-tools";
+      runtimeInputs = [
+        pkgs.cargo
+        pkgs.cmake
+        pkgs.git
+        pkgs.pkg-config
+        pkgs.rustc
+        pkgs.stdenv.cc
+      ];
+      text = ''
+        root="$(git rev-parse --show-toplevel)"
+        cd "$root"
+
+        export CARGO_TARGET_DIR="''${CARGO_TARGET_DIR:-$root/target/rust-tools}"
+
+        for manifest in ${pkgs.lib.escapeShellArgs rustManifestPaths}; do
+          echo "==> cargo test --manifest-path $manifest"
+          cargo test --manifest-path "$manifest"
+        done
+      '';
+    };
+
+    rustPackages = {
+      aniwatch = pkgs.callPackage ./tools/aniwatch { };
+      game-watcher = pkgs.mkCranePackage {
+        pname = "game-watcher";
+        version = "0.1.0";
+        src = ./tools/game-watcher;
+      };
+      irc-tool = pkgs.callPackage ./tools/irc-tool { };
+      magic-reboot-send = pkgs.callPackage ./tools/magic-reboot/sender { };
+      nix-build-balancer = pkgs.callPackage ./tools/nix-build-balancer { };
+      rolebot = pkgs.callPackage ./tools/rolebot { };
+      v4proxy = pkgs.mkCranePackage {
+        pname = "v4proxy";
+        version = "0.1.0";
+        src = ./machines/v4/v4proxy;
+      };
+      victron-monitor = pkgs.callPackage ./tools/victron-monitor { };
     };
 
     commonModules = [
@@ -86,21 +146,38 @@
     };
   in
   rec {
-    packages.x86_64-linux.all-systems =
-      nixpkgs.legacyPackages.x86_64-linux.linkFarm "all-systems"
-        (builtins.map
-          (name: {
-            inherit name;
-            path = colmenaHive.nodes.${name}.config.system.build.toplevel;
-          })
-          (builtins.attrNames machineConfigs));
+    packages.x86_64-linux = rustPackages // {
+      all-systems =
+        pkgs.linkFarm "all-systems"
+          (builtins.map
+            (name: {
+              inherit name;
+              path = colmenaHive.nodes.${name}.config.system.build.toplevel;
+            })
+            (builtins.attrNames machineConfigs));
 
-    packages.x86_64-linux.default = packages.x86_64-linux.all-systems;
+      default = packages.x86_64-linux.all-systems;
+    };
+
+    devShells.x86_64-linux.default = pkgs.mkShell {
+      packages = [
+        checkRustTools
+        pkgs.cargo
+        pkgs.clippy
+        pkgs.cmake
+        pkgs.pkg-config
+        pkgs.rust-analyzer
+        pkgs.rustc
+        pkgs.rustfmt
+      ];
+
+      RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
+    };
 
     colmenaHive = colmena.lib.makeHive ({
       meta = {
         nixpkgs = import nixpkgs {
-          system = "x86_64-linux";
+          inherit system;
           overlays = [ colmena.overlays.default ];
         };
         specialArgs = { inherit agenix dessplay ganbot; };
