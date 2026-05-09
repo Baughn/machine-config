@@ -14,6 +14,8 @@ in
   "wireguard-tsugumi.age".publicKeys = [ svein tsugumi ];
   "magic-reboot.key.age".publicKeys = allKeys;
 
+  "restic-password.age".publicKeys = [ svein saya ];
+
   "caddy.env.age".publicKeys = [ svein tsugumi ];
   "authelia-storage-key.age".publicKeys = [ svein tsugumi ];
   "authelia-jwt-key.age".publicKeys = [ svein tsugumi ];

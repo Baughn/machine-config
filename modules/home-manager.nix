@@ -1,9 +1,12 @@
-{ pkgs, ... }:
+{ pkgs, agenix, ... }:
 
 {
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
-  home-manager.users.svein = { ... }: {
+  home-manager.extraSpecialArgs = { inherit agenix; };
+  home-manager.users.svein = { agenix, ... }: {
+    imports = [ agenix.homeManagerModules.default ];
+
     home.stateVersion = "24.11";
 
     home.sessionVariables = {

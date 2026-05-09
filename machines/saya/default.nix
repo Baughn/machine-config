@@ -13,6 +13,7 @@ in
     ./ganbot.nix
     ./game-watcher.nix
     ./steam.nix
+    ./restic.nix
   ];
 
   # Boot
