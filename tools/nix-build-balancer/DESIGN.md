@@ -28,10 +28,18 @@ The binary has four subcommands:
   decision, and invoke `nix __build-remote` only for accepted remote builds.
 - `telemetry`: print a one-shot telemetry JSON payload for diagnostics.
 
-The daemon speaks a tiny internal HTTP subset over Unix sockets or TCP. The TCP
-listener is only for trusted remote telemetry polling over the private network.
-Because this binary only talks to itself, a full HTTP server framework is
-currently unnecessary.
+The daemon serves HTTP over Unix sockets and/or TCP through `axum` on a
+multi-threaded `tokio` runtime. The TCP listener is only for trusted remote
+telemetry polling over the private network. The Unix socket carries
+`event`, `hook`, and (planned) TUI traffic from local processes. Routes,
+request/response types, and the synchronous client used by the CLI
+subcommands all live under `src/api/` so a future TUI binary can depend on
+the same wire contract.
+
+The daemon was originally a small hand-rolled HTTP parser. It moved to axum
+when a real external API consumer (the planned TUI) entered scope; before
+that, the API was only consumed by the binary's own subcommands and a
+framework was unnecessary.
 
 ## NixOS Integration
 
@@ -138,10 +146,13 @@ The binary intentionally uses stdout and stderr directly:
 - CLI JSON output is written to stdout.
 - Nix build-hook directives and delegated `nix __build-remote` output are
   written to stderr because that is the protocol surface Nix expects.
-- daemon diagnostics are simple systemd-captured stderr lines.
+- The daemon uses `tracing` + `tracing-subscriber`, formatted to stderr and
+  captured by systemd. Filtering uses the `NBB_LOG` env var (default `info`).
+  `tower-http`'s `TraceLayer` records each request, and the polling task,
+  listener startup, and shutdown signal go through `tracing` as well.
 
-Adding `tracing` is reasonable if the daemon grows a richer operator-facing log
-surface, but it is not required for the current internal helper.
+Hook diagnostics from `# decline` and the delegated `nix __build-remote`
+child still go directly to stderr because they are protocol output.
 
 ## Current Limits
 
@@ -149,8 +160,10 @@ surface, but it is not required for the current internal helper.
 - Required Nix system/features are not matched against a configured target set.
 - Remote telemetry is cached by polling; there is no push protocol.
 - Admission accounting is best-effort and tied to hook completion reporting.
-- The internal HTTP parser is intentionally minimal and should not be exposed to
-  untrusted clients.
+- The HTTP surface assumes trusted callers (Unix socket peers and the
+  controller's private-network poll). There is no auth on the listeners.
+- SQLite calls run inside `tokio::task::spawn_blocking`; there is no async
+  driver and no connection pool. Each handler opens a fresh connection.
 
 ## Future Options
 
@@ -186,8 +199,11 @@ distribution, but only after the deterministic p95 baseline has enough history
 to evaluate against. Queue prediction should remain arithmetic over active and
 admitted work unless real data shows that is insufficient.
 
-### More Formal Server Stack
+### TUI Frontend
 
-If the API becomes externally consumed or grows beyond this private helper, move
-to a normal async HTTP stack with structured tracing and centralized errors.
-Until then, the current dependency surface is intentionally small.
+A read-only TUI is planned. It will subscribe to the daemon for currently
+running builds and timeline expectations. Implementation will add new
+endpoints (e.g. `/builds/active`, `/builds/timeline`) under `src/api/paths.rs`
+and the corresponding response types under `src/api/types.rs`, then route
+handlers in `src/daemon/routes.rs`. The TUI binary itself will live as a
+sibling `[[bin]]` target in this crate so it shares the wire-types contract.

@@ -23,13 +23,16 @@ sections.
 Keep this tool boring and narrow.
 
 - Prefer the standard library and existing dependencies when they are enough.
-- Do not add `axum`, `tokio`, `tower`, `tracing`, `anyhow`, or `thiserror`
-  just to satisfy generic Rust project conventions. Add them only when the
-  tool's actual complexity warrants them.
-- The current tiny internal HTTP subset is acceptable because the binary only
-  talks to itself over trusted Unix sockets or private-network TCP.
+- The `serve` daemon uses `tokio` + `axum` + `tower` + `tower-http` + `tracing`.
+  This was added when a TUI consumer entered the roadmap, making the API a
+  real external surface. CLI subcommands (`event`, `hook`, `telemetry`) stay
+  synchronous on purpose: the build-hook is stdin/stderr/child-process driven
+  and benefits from no async runtime. Do not push tokio into the hook path.
+- Do not add `anyhow` or `thiserror`. The local `daemon::AppError` plus
+  `io::Error` covers the daemon's needs without the macro surface.
 - Preserve fail-closed behavior: daemon or telemetry failures should make the
-  scheduler decline remote execution and let Nix continue locally.
+  scheduler decline remote execution and let Nix continue locally. The hook
+  client treats any non-200 response as decline.
 - Preserve the single-remote model unless the user explicitly asks for
   multi-builder support and there is a real target to test against.
 - Keep dependencies minimal. Any new crate should solve a concrete problem
@@ -57,14 +60,16 @@ Be careful with stdout and stderr:
 
 - CLI JSON output belongs on stdout.
 - Nix build-hook directives such as `# decline` are protocol output and must
-  remain on stderr.
+  remain on stderr. The `hook` subcommand stays synchronous so this contract
+  is direct.
 - Delegated `nix __build-remote` stderr should continue to be proxied to stderr.
-- Daemon diagnostics may use simple stderr logging because systemd captures it.
-  Do not replace this with a logging framework unless the daemon grows a real
-  operator-facing logging surface.
+- Daemon diagnostics use `tracing` with the `tracing-subscriber` formatter
+  writing to stderr. Filter via the `NBB_LOG` env var (defaults to `info`).
+  Systemd captures this as before.
 
 The Nix hook wire protocol is binary and padding-sensitive. Changes to
-`read_nix_*` or `write_nix_*` helpers need focused tests.
+`read_nix_*` or `write_nix_*` helpers in `src/nix_protocol.rs` need focused
+tests.
 
 ## Scheduler Rules
 
@@ -94,11 +99,34 @@ SQLite is the durable state store. Keep schema changes rare and intentional.
 
 When changing persistence, add tests for the migration or new query behavior.
 
+## Module Layout
+
+`src/main.rs` is a thin dispatcher. Code lives under:
+
+- `api/` — wire types (`BuildEvent`, `BuildCandidate`, `Decision`, …),
+  `paths::*` route constants, and the synchronous `client` used by `event`,
+  `hook`, and the controller's poller. This is the contract the future TUI
+  binary will share.
+- `cli.rs` — clap argument structs and `serve_config`.
+- `config.rs` — `Config`, `Mode`, defaults shared between subcommands.
+- `daemon/` — `serve` entry, `AppState`, axum `Router`, listeners, polling
+  task, `AppError`. SQLite-touching handlers go through `spawn_blocking`.
+- `hook/` — Nix build-hook subcommand: candidate codec, child delegation.
+- `nix_protocol.rs` — Nix wire-format helpers.
+- `persistence/` — SQLite schema, event recording, queries, cleanup.
+- `scheduler/` — decision pipeline (`policy`, `state`, `eligibility`,
+  `host_state`, plus `decide_build_candidate`).
+- `telemetry/` — local procfs/flock collectors and remote cache reader/poller.
+- `util.rs` — pname normalization, hostname, time, error converters.
+- `test_support.rs` — `#[cfg(test)]` fixtures shared across tests.
+
+Tests live alongside the code they exercise via `#[cfg(test)] mod tests`.
+
 ## Testing Expectations
 
-For behavior changes, add or update focused unit tests near the existing test
-module. The highest-value tests are scheduler decisions, Nix protocol
-round-trips, persistence behavior, and `pname` normalization.
+For behavior changes, add or update focused unit tests in the same module as
+the code under change. The highest-value tests are scheduler decisions, Nix
+protocol round-trips, persistence behavior, and `pname` normalization.
 
 Before handing work back, run:
 
