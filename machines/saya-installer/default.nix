@@ -48,6 +48,7 @@ in
   boot.supportedFilesystems.zfs = true;
   boot.supportedFilesystems.btrfs = true;
   boot.zfs.package = config.boot.kernelPackages.zfs_cachyos;
+  boot.zfs.forceImportRoot = false;
 
   system.activationScripts.decryptHostKey = {
     deps = [ "specialfs" ];
