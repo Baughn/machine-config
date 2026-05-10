@@ -22,7 +22,7 @@
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { nixpkgs, nix-cachyos-kernel, home-manager, codex-cli-nix, crane, ganbot, dessplay, agenix, colmena, nix-index-database, ... }:
+  outputs = { self, nixpkgs, nix-cachyos-kernel, home-manager, codex-cli-nix, crane, ganbot, dessplay, agenix, colmena, nix-index-database, ... }:
   let
     system = "x86_64-linux";
 
@@ -170,6 +170,7 @@
         pkgs.rustc
         pkgs.rustfmt
         pkgs.sqlite
+        pkgs.openssl
       ];
 
       RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
@@ -181,7 +182,7 @@
           inherit system;
           overlays = [ colmena.overlays.default ];
         };
-        specialArgs = { inherit agenix dessplay ganbot; };
+        specialArgs = { inherit agenix dessplay ganbot; flakeSelf = self; };
       };
 
       defaults = { ... }: {
@@ -200,6 +201,16 @@
       })
       machineConfigs));
 
-    nixosConfigurations = colmenaHive.nodes;
+    nixosConfigurations = colmenaHive.nodes // {
+      saya-installer = nixpkgs.lib.nixosSystem {
+        inherit system;
+        specialArgs = {
+          inherit agenix nix-cachyos-kernel;
+          sshKeys = import ./lib/ssh-keys.nix;
+          flakeSelf = self;
+        };
+        modules = [ ./machines/saya-installer ];
+      };
+    };
   };
 }

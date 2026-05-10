@@ -1,7 +1,10 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, flakeSelf, ... }:
 
 let
   sshKeys = import ../../lib/ssh-keys.nix;
+  installerCfg = flakeSelf.nixosConfigurations.saya-installer.config;
+  installerKernel = "${installerCfg.system.build.kernel}/${installerCfg.system.boot.loader.kernelFile}";
+  installerInitrd = "${installerCfg.system.build.netbootRamdisk}/initrd";
 in
 
 {
@@ -19,6 +22,18 @@ in
   # Boot
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+
+  boot.loader.systemd-boot.extraFiles = {
+    "efi/saya-installer/kernel" = installerKernel;
+    "efi/saya-installer/initrd" = installerInitrd;
+  };
+  boot.loader.systemd-boot.extraEntries."saya-installer.conf" = ''
+    title  NixOS Installer (saya, in-memory)
+    linux  /efi/saya-installer/kernel
+    initrd /efi/saya-installer/initrd
+    options init=${installerCfg.system.build.toplevel}/init ${toString installerCfg.boot.kernelParams}
+    sort-key z_installer
+  '';
 
   # Network
   networking.hostName = "saya";
