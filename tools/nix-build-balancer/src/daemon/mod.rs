@@ -26,13 +26,14 @@ const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
 pub fn serve(cfg: Config) -> io::Result<()> {
     install_tracing();
-    fs::create_dir_all(&cfg.data_dir)?;
-    cleanup_state(&cfg)?;
 
     if cfg.once {
         println!("{}", telemetry_json(&read_telemetry(&cfg.host)?));
         return Ok(());
     }
+
+    fs::create_dir_all(&cfg.data_dir)?;
+    cleanup_state(&cfg)?;
 
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()

@@ -72,6 +72,15 @@ Successful observations are retained per normalized `pname`, capped by
 `--max-samples-per-pname`. Failed builds stay in history but do not contribute
 to package-duration stats.
 
+Remote admissions are normally removed by `/event/admission-finish`. If that
+callback is missed, the scheduler expires each admission after twice its
+predicted duration, with a one-minute minimum.
+
+Daemon startup clears volatile in-flight state from `active_builds` and
+`remote_admissions`. This matches the operational model where a service restart
+usually follows a system update or reboot, so no previous Nix build session is
+still running. Completed `build_observations` are left intact.
+
 Controller polling writes the latest remote snapshots as:
 
 - `telemetry-<host>.json`

@@ -13,7 +13,7 @@ use crate::util::sqlite_error;
 
 const SCHEMA_VERSION: i64 = 1;
 
-pub use cleanup::cleanup_stale_starts;
+pub use cleanup::{cleanup_stale_starts, clear_ongoing_builds};
 pub use events::{finish_admission, record_event};
 pub use queries::stats_json;
 
@@ -83,5 +83,6 @@ pub fn init_history_schema(conn: &Connection) -> io::Result<()> {
 
 pub fn cleanup_state(cfg: &Config) -> io::Result<()> {
     let conn = open_history_db(&cfg.data_dir)?;
+    clear_ongoing_builds(&conn)?;
     cleanup_stale_starts(&conn, cfg.stale_start_ms)
 }
