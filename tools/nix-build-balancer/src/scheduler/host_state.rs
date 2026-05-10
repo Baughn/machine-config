@@ -1,23 +1,23 @@
 use rusqlite::Connection;
 use std::io;
 
-use crate::api::types::BuildCandidate;
+use crate::api::types::{BuildCandidate, Telemetry};
 use crate::config::Config;
 use crate::persistence::queries::{
     active_local_queue_ms, local_package_stats_from_conn, remote_admissions,
 };
 use crate::scheduler::policy::{BuildTarget, SchedulerConfig};
 use crate::scheduler::state::HostState;
-use crate::telemetry::{read_remote_telemetry, read_telemetry, remote_package_stats};
+use crate::telemetry::{read_remote_telemetry, remote_package_stats};
 
 /// Load live local telemetry and local package history for a candidate.
 pub fn load_local_host_state(
     conn: &Connection,
     candidate: &BuildCandidate,
     scheduler: &SchedulerConfig,
+    telemetry: Telemetry,
     now: u128,
 ) -> io::Result<HostState> {
-    let telemetry = read_telemetry(&scheduler.local_host_name)?;
     let stats = local_package_stats_from_conn(conn, &candidate.pname)?;
     let (active_count, active_queue_ms) =
         active_local_queue_ms(conn, &scheduler.local_host_name, now, &scheduler.policy)?;

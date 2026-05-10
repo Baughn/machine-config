@@ -97,6 +97,11 @@ Each daemon samples:
 - PSI memory pressure from `/proc/pressure/memory` when available.
 - active Nix slot files from `/nix/var/nix/current-load`.
 
+The daemon keeps telemetry in a background sampler thread and serves the latest
+snapshot to `/telemetry` and scheduler decisions. This keeps the synchronous
+build-hook decision path from paying the CPU busy-ratio sampling delay for every
+candidate. The one-shot `telemetry` CLI still samples directly.
+
 Slot files are counted only when they appear locked. The implementation uses
 `flock` for this because Nix exposes slot activity through advisory locks.
 

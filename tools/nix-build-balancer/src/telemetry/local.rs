@@ -4,6 +4,7 @@ use std::fs::OpenOptions;
 use std::io;
 use std::os::fd::{AsRawFd, RawFd};
 use std::path::Path;
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
@@ -36,6 +37,41 @@ pub fn read_telemetry(host: &str) -> io::Result<Telemetry> {
         nix_slots_local,
         nix_slots_remote,
     })
+}
+
+#[derive(Clone)]
+pub struct TelemetryCache {
+    current: Arc<Mutex<Telemetry>>,
+}
+
+impl TelemetryCache {
+    /// Start a background sampler and expose its latest telemetry snapshot.
+    pub fn start(host: String) -> io::Result<Self> {
+        let current = Arc::new(Mutex::new(read_telemetry(&host)?));
+        let thread_current = Arc::clone(&current);
+        thread::spawn(move || loop {
+            match read_telemetry(&host) {
+                Ok(telemetry) => {
+                    if let Ok(mut current) = thread_current.lock() {
+                        *current = telemetry;
+                    }
+                }
+                Err(err) => {
+                    tracing::warn!(?err, "telemetry sampling failed");
+                    thread::sleep(Duration::from_secs(1));
+                }
+            }
+        });
+
+        Ok(Self { current })
+    }
+
+    pub fn get(&self) -> io::Result<Telemetry> {
+        self.current
+            .lock()
+            .map(|current| current.clone())
+            .map_err(|err| io::Error::other(format!("telemetry cache lock poisoned: {err}")))
+    }
 }
 
 #[derive(Debug)]

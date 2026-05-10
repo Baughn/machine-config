@@ -9,8 +9,7 @@ use serde_json::json;
 use crate::api::paths;
 use crate::api::types::{BuildCandidate, BuildEvent, Decision, Telemetry};
 use crate::persistence::{finish_admission, record_event, stats_json};
-use crate::scheduler::{decide_build_candidate, log_scheduler_decision};
-use crate::telemetry::read_telemetry;
+use crate::scheduler::{decide_build_candidate_with_local_telemetry, log_scheduler_decision};
 
 use super::error::AppError;
 use super::state::AppState;
@@ -35,11 +34,7 @@ async fn health() -> Response {
 }
 
 async fn telemetry(State(state): State<AppState>) -> Result<Json<Telemetry>, AppError> {
-    let host = state.config.host.clone();
-    let telemetry = tokio::task::spawn_blocking(move || read_telemetry(&host))
-        .await
-        .map_err(|err| AppError::Internal(format!("telemetry task panic: {err}")))??;
-    Ok(Json(telemetry))
+    Ok(Json(state.telemetry.get()?))
 }
 
 async fn stats(State(state): State<AppState>) -> Result<Response, AppError> {
@@ -97,11 +92,13 @@ async fn decision_build_candidate(
     }
 
     let cfg = state.config.clone();
+    let local_telemetry = state.telemetry.get()?;
     let candidate_for_task = clone_candidate(&candidate);
-    let decision =
-        tokio::task::spawn_blocking(move || decide_build_candidate(&cfg, &candidate_for_task))
-            .await
-            .map_err(|err| AppError::Internal(format!("decision task panic: {err}")))??;
+    let decision = tokio::task::spawn_blocking(move || {
+        decide_build_candidate_with_local_telemetry(&cfg, &candidate_for_task, local_telemetry)
+    })
+    .await
+    .map_err(|err| AppError::Internal(format!("decision task panic: {err}")))??;
 
     log_scheduler_decision(&state.config, &candidate, &decision);
     Ok(Json(decision))

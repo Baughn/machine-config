@@ -5,11 +5,13 @@ pub mod state;
 
 use std::io;
 
-use crate::api::types::{BuildCandidate, Decision};
+use crate::api::types::{BuildCandidate, Decision, Telemetry};
 use crate::config::Config;
 use crate::persistence::cleanup::cleanup_stale_admissions_with_policy;
 use crate::persistence::events::record_remote_admission_at;
 use crate::persistence::open_history_db;
+#[cfg(test)]
+use crate::telemetry::read_telemetry;
 use crate::util::now_ms;
 
 use eligibility::{
@@ -21,7 +23,18 @@ use policy::SchedulerConfig;
 use state::Eligibility;
 
 /// Decide whether one build candidate should run on the configured remote host.
+#[cfg(test)]
 pub fn decide_build_candidate(cfg: &Config, candidate: &BuildCandidate) -> io::Result<Decision> {
+    let local_telemetry = read_telemetry(&cfg.host)?;
+    decide_build_candidate_with_local_telemetry(cfg, candidate, local_telemetry)
+}
+
+/// Decide whether one build candidate should run, using a caller-supplied local telemetry snapshot.
+pub fn decide_build_candidate_with_local_telemetry(
+    cfg: &Config,
+    candidate: &BuildCandidate,
+    local_telemetry: Telemetry,
+) -> io::Result<Decision> {
     let scheduler = SchedulerConfig::from_candidate(cfg, candidate);
     let conn = open_history_db(&cfg.data_dir)?;
     cleanup_stale_admissions_with_policy(&conn, &scheduler.policy)?;
@@ -31,7 +44,13 @@ pub fn decide_build_candidate(cfg: &Config, candidate: &BuildCandidate) -> io::R
         return Ok(decline(reason));
     }
 
-    let local = load_local_host_state(&conn, candidate, &scheduler, decision_time_ms)?;
+    let local = load_local_host_state(
+        &conn,
+        candidate,
+        &scheduler,
+        local_telemetry,
+        decision_time_ms,
+    )?;
     let remote = load_remote_host_state(&conn, cfg, candidate, &scheduler.remote_target)?;
 
     if let Eligibility::Declined { reason } =

@@ -42,7 +42,7 @@ pub fn serve(cfg: Config) -> io::Result<()> {
 }
 
 async fn serve_async(cfg: Config) -> io::Result<()> {
-    let state = AppState::new(cfg);
+    let state = AppState::new(cfg)?;
     let app = routes::router(state.clone())
         .layer(TraceLayer::new_for_http())
         .layer(TimeoutLayer::with_status_code(

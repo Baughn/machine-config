@@ -5,7 +5,7 @@ use crate::config::{
 };
 use crate::util::{hostname_fallback, now_ms};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Telemetry {
     #[serde(default)]
     pub host: String,
