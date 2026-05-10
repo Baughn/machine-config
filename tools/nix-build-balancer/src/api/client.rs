@@ -19,7 +19,7 @@ pub fn send_event((endpoint, event): (String, BuildEvent)) -> io::Result<()> {
 
 pub fn post(endpoint: &str, path: &str, body: &str) -> io::Result<String> {
     let request = format!(
-        "POST {path} HTTP/1.1\r\nhost: nix-build-balancer\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{body}",
+        "POST {path} HTTP/1.1\r\nhost: nix-build-balancer\r\ncontent-type: application/json\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{body}",
         body.len()
     );
 

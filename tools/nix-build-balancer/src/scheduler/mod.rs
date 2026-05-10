@@ -71,53 +71,48 @@ pub fn decide_build_candidate(cfg: &Config, candidate: &BuildCandidate) -> io::R
 }
 
 pub fn log_scheduler_decision(cfg: &Config, candidate: &BuildCandidate, decision: &Decision) {
-    eprintln!("{}", scheduler_decision_log_line(cfg, candidate, decision));
-}
-
-fn scheduler_decision_log_line(
-    cfg: &Config,
-    candidate: &BuildCandidate,
-    decision: &Decision,
-) -> String {
     let required_features = candidate.required_features.join(",");
-    let mut line = format!(
-        "scheduler_decision host={} remote_host={} decision={} reason={} pname={} drv_path={} needed_system={} required_features={} store_uri={}",
-        quoted_log_value(&cfg.host),
-        quoted_log_value(&candidate.remote_host),
-        quoted_log_value(&decision.decision),
-        quoted_log_value(&decision.reason),
-        quoted_log_value(&candidate.pname),
-        quoted_log_value(&candidate.drv_path),
-        quoted_log_value(&candidate.needed_system),
-        quoted_log_value(&required_features),
-        decision
-            .store_uri
-            .as_ref()
-            .map(|value| quoted_log_value(value))
-            .unwrap_or_else(|| "null".to_string())
-    );
-    if let Some(metrics) = &decision.metrics {
-        line.push_str(&format!(
-            " local_samples={} remote_samples={} local_prediction_ms={} remote_prediction_ms={} local_queue_ms={} remote_queue_ms={} local_completion_ms={} remote_completion_ms={} local_slots={} remote_slots={} local_active_count={} admitted_count={}",
-            metrics.local_samples,
-            metrics.remote_samples,
-            metrics.local_prediction_ms,
-            metrics.remote_prediction_ms,
-            metrics.local_queue_ms,
-            metrics.remote_queue_ms,
-            metrics.local_completion_ms,
-            metrics.remote_completion_ms,
-            metrics.local_slots,
-            metrics.remote_slots,
-            metrics.local_active_count,
-            metrics.admitted_count
-        ));
+    let store_uri = decision.store_uri.as_deref().unwrap_or("");
+    match &decision.metrics {
+        Some(metrics) => tracing::info!(
+            target: "scheduler_decision",
+            host = %cfg.host,
+            remote_host = %candidate.remote_host,
+            decision = %decision.decision,
+            reason = %decision.reason,
+            pname = %candidate.pname,
+            drv_path = %candidate.drv_path,
+            needed_system = %candidate.needed_system,
+            required_features = %required_features,
+            store_uri = %store_uri,
+            local_samples = metrics.local_samples,
+            remote_samples = metrics.remote_samples,
+            local_prediction_ms = metrics.local_prediction_ms,
+            remote_prediction_ms = metrics.remote_prediction_ms,
+            local_queue_ms = metrics.local_queue_ms,
+            remote_queue_ms = metrics.remote_queue_ms,
+            local_completion_ms = metrics.local_completion_ms,
+            remote_completion_ms = metrics.remote_completion_ms,
+            local_slots = metrics.local_slots,
+            remote_slots = metrics.remote_slots,
+            local_active_count = metrics.local_active_count,
+            admitted_count = metrics.admitted_count,
+            "scheduler_decision",
+        ),
+        None => tracing::info!(
+            target: "scheduler_decision",
+            host = %cfg.host,
+            remote_host = %candidate.remote_host,
+            decision = %decision.decision,
+            reason = %decision.reason,
+            pname = %candidate.pname,
+            drv_path = %candidate.drv_path,
+            needed_system = %candidate.needed_system,
+            required_features = %required_features,
+            store_uri = %store_uri,
+            "scheduler_decision",
+        ),
     }
-    line
-}
-
-fn quoted_log_value(value: &str) -> String {
-    serde_json::to_string(value).unwrap_or_else(|_| "\"\"".to_string())
 }
 
 #[cfg(test)]
@@ -358,7 +353,7 @@ mod tests {
     }
 
     #[test]
-    fn scheduler_decision_log_includes_candidate_and_reason() {
+    fn log_scheduler_decision_does_not_panic_with_or_without_metrics() {
         let cfg = test_config(PathBuf::from("/tmp/unused"));
         let candidate = BuildCandidate {
             am_willing: 1,
@@ -369,20 +364,33 @@ mod tests {
             remote_host: DEFAULT_REMOTE_HOST.to_string(),
             remote_store_uri: crate::config::DEFAULT_REMOTE_STORE_URI.to_string(),
         };
-        let decision = Decision {
+        let decline = Decision {
             decision: "decline".to_string(),
             reason: "remote cpu is busy".to_string(),
             store_uri: None,
             metrics: None,
         };
+        log_scheduler_decision(&cfg, &candidate, &decline);
 
-        let line = scheduler_decision_log_line(&cfg, &candidate, &decision);
-        assert!(line.contains("scheduler_decision "));
-        assert!(line.contains("remote_host=\"tsugumi\""));
-        assert!(line.contains("decision=\"decline\""));
-        assert!(line.contains("reason=\"remote cpu is busy\""));
-        assert!(line.contains("required_features=\"kvm,big-parallel\""));
-        assert!(line.contains("quoted\\\"package"));
-        assert!(line.contains("store_uri=null"));
+        let accept = Decision {
+            decision: "accept".to_string(),
+            reason: "remote predicted 1000ms vs local 2000ms".to_string(),
+            store_uri: Some("ssh-ng://tsugumi".to_string()),
+            metrics: Some(crate::api::types::DecisionMetrics {
+                local_samples: 4,
+                remote_samples: 2,
+                local_prediction_ms: 2000,
+                remote_prediction_ms: 1000,
+                local_queue_ms: 0,
+                remote_queue_ms: 0,
+                local_completion_ms: 2000,
+                remote_completion_ms: 1000,
+                local_slots: 8,
+                remote_slots: 16,
+                local_active_count: 1,
+                admitted_count: 0,
+            }),
+        };
+        log_scheduler_decision(&cfg, &candidate, &accept);
     }
 }

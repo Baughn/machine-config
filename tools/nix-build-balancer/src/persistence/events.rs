@@ -73,14 +73,21 @@ pub fn record_event(cfg: &Config, event: &BuildEvent) -> io::Result<()> {
             )
             .map_err(sqlite_error)?;
             prune_pname_samples(&tx, &start_pname, cfg.max_samples_per_pname)?;
-            eprintln!(
-                "build_finished host={} pname={} duration_ms={} status={}",
-                event.host, pname, duration_ms, event.status
+            tracing::info!(
+                target: "build_finished",
+                host = %event.host,
+                pname = %pname,
+                duration_ms,
+                status = %event.status,
+                "build_finished",
             );
         } else {
-            eprintln!(
-                "build_finish_unmatched host={} pname={} status={}",
-                event.host, pname, event.status
+            tracing::info!(
+                target: "build_finish_unmatched",
+                host = %event.host,
+                pname = %pname,
+                status = %event.status,
+                "build_finish_unmatched",
             );
         }
         tx.commit().map_err(sqlite_error)?;
