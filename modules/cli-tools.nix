@@ -20,6 +20,8 @@
     colmena
     pciutils
     rustup
+    mpv
+    rtorrent
   ];
 
   programs.htop.enable = true;
