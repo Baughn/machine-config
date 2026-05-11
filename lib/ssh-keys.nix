@@ -3,6 +3,7 @@
     "cert-authority ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGfsmAbJ1GKytVA71izC3xvIFYDQVHT2Q5CZPaIA6WqS svein@tsugumi"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMWPdtIOeHF3TElJxL8gQGyZMErJHY0OdqrRFZFlFdP0 svein@svein-mac.roam.internal"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICeiqQnylmCVUzTNNcYRWKp/38dB5i3aGBs7ZB11MjkS svein@kaho.local"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGppkBITukYVejPl3BiRmCDSfdrItzM59XpwwK7W/mXH svein@saya"
   ];
 
   minecraft = [

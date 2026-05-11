@@ -1,7 +1,6 @@
 { config, lib, pkgs, flakeSelf, ... }:
 
 let
-  sshKeys = import ../../lib/ssh-keys.nix;
   installerCfg = flakeSelf.nixosConfigurations.saya-installer.config;
   installerKernel = "${installerCfg.system.build.kernel}/${installerCfg.system.boot.loader.kernelFile}";
   installerInitrd = "${installerCfg.system.build.netbootRamdisk}/initrd";
@@ -125,14 +124,6 @@ in
   services.desktopManager.plasma6.enable = true;
   drm-atomic-log.enable = true;
   programs.niri.enable = true;
-
-  # User
-  users.users.svein = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" ];
-    openssh.authorizedKeys.keys = sshKeys.svein;
-  };
-
 
   # Desktop packages (not shared across machines)
   environment.systemPackages = [

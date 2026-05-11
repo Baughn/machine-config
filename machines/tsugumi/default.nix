@@ -178,11 +178,9 @@ in
   i18n.defaultLocale = "en_US.UTF-8";
 
   users.users.svein = {
-    isNormalUser = true;
     uid = 1000;
     extraGroups = [ "wheel" "systemd-journal" "dialout" "sonarr" ];
     createHome = false;
-    openssh.authorizedKeys.keys = sshKeys.svein;
   };
 
   users.users.minecraft = {

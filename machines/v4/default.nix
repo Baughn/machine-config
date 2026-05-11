@@ -35,12 +35,6 @@ in
   me.magicReboot.enable = true;
   me.sshAuth.enable = true;
 
-  users.users.svein = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" ];
-    openssh.authorizedKeys.keys = sshKeys.svein;
-  };
-
   # SSH-only landing user for ProxyJump into the IPv6 LAN.
   users.users.minecraft = {
     isNormalUser = true;

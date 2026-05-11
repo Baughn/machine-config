@@ -17,6 +17,7 @@
     ./shell.nix
     ./ssh-auth.nix
     ./ssh.nix
+    ./svein.nix
     ./wireguard.nix
     ./zfs.nix
   ];
