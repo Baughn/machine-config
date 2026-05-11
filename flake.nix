@@ -158,11 +158,34 @@
     };
 
     checks.x86_64-linux = {
-      saya-installer-vm = import ./tests/saya-installer-vm.nix {
-        inherit pkgs;
-        inherit (nixpkgs) lib;
-        installerCfg = nixosConfigurations.saya-installer.config;
-      };
+      saya-installer-vm =
+        let
+          testInstaller = nixpkgs.lib.nixosSystem {
+            inherit system;
+            specialArgs = {
+              inherit agenix nix-cachyos-kernel;
+              sshKeys = import ./lib/ssh-keys.nix;
+              flakeSelf = self;
+            };
+            modules = [
+              ./machines/saya-installer
+              ({ lib, ... }: {
+                # The production activation script blocks on
+                # systemd-ask-password --timeout=0 waiting for the host
+                # key passphrase. There is no operator in the VM test, so
+                # neuter the script and let the system boot to login.
+                system.activationScripts.decryptHostKey.text = lib.mkForce ''
+                  : "saya-installer VM test: host key decryption disabled"
+                '';
+              })
+            ];
+          };
+        in
+        import ./tests/saya-installer-vm.nix {
+          inherit pkgs;
+          inherit (nixpkgs) lib;
+          installerCfg = testInstaller.config;
+        };
     };
 
     devShells.x86_64-linux.default = pkgs.mkShell {

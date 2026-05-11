@@ -56,8 +56,13 @@ in
       set -eu
       mkdir -p /etc/ssh
       if [ ! -s /etc/ssh/ssh_host_ed25519_key ]; then
+        # --console writes/reads directly on /dev/console. Without it,
+        # systemd-ask-password queues a request to /run/systemd/ask-password/
+        # and waits for an agent — but during NixOS activation no agent
+        # is running yet, so the prompt is invisible and the script hangs.
         passphrase=$(${pkgs.systemd}/bin/systemd-ask-password \
           --timeout=0 \
+          --console \
           "Saya host key passphrase: ")
 
         # iter must match the value used to create secrets/saya-host-key.enc.
