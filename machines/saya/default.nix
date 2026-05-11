@@ -147,9 +147,24 @@ in
   nix.settings.cores = 16;
   me.nixBuildBalancer = {
     enable = true;
-    mode = "controller";
-    remoteAgents.tsugumi = "10.171.0.1:8765";
+    role = "both";
     scheduler.enable = true;
+    agentCapacity = 16;
+    targets = {
+      saya = {
+        tcpAddr = "127.0.0.1:8765";
+        capacity = 16;
+        storeUri = "auto";
+        builderLine = "@:auto x86_64-linux - 16 1 - - -";
+        isLocal = true;
+      };
+      tsugumi = {
+        tcpAddr = "10.171.0.1:8765";
+        capacity = 16;
+        storeUri = "ssh-ng://svein@tsugumi.local";
+        builderLine = "ssh-ng://svein@tsugumi.local x86_64-linux /home/svein/.ssh/id_ed25519 16 1 nixos-test,kvm,big-parallel - -";
+      };
+    };
   };
 
   me.remoteBuilds = {

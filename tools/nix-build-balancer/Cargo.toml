@@ -1,0 +1,45 @@
+[package]
+name = "nix-build-balancer"
+version = "0.2.0"
+edition = "2021"
+
+[lib]
+name = "nbb"
+path = "src/lib.rs"
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+opt-level = "z"
+
+[dependencies]
+bincode = { version = "2", features = ["derive"] }
+clap = { version = "4", features = ["derive"] }
+libc = "0.2"
+procfs = { version = "0.18", default-features = false }
+rusqlite = { version = "0.32", features = ["bundled"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "io-util", "sync", "signal", "time", "fs"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+ulid = "1"
+
+[[bin]]
+name = "nbb-agent"
+path = "src/bin/nbb_agent.rs"
+
+[[bin]]
+name = "nbb-controller"
+path = "src/bin/nbb_controller.rs"
+
+[[bin]]
+name = "nbb-hook"
+path = "src/bin/nbb_hook.rs"
+
+[[bin]]
+name = "nbb-event"
+path = "src/bin/nbb_event.rs"
+
+[build-dependencies]
+sha2 = "0.10"

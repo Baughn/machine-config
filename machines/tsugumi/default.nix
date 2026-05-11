@@ -75,8 +75,9 @@ in
   me.security.enable = true;
   me.nixBuildBalancer = {
     enable = true;
-    mode = "agent";
-    listenAddress = "10.171.0.1:8765";
+    role = "agent";
+    agentListen = "10.171.0.1:8765";
+    agentCapacity = 16;
     openFirewall = true;
   };
 
