@@ -18,5 +18,6 @@
     ./ssh-auth.nix
     ./ssh.nix
     ./wireguard.nix
+    ./zfs.nix
   ];
 }
