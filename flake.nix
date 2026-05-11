@@ -157,6 +157,14 @@
       default = packages.x86_64-linux.all-systems;
     };
 
+    checks.x86_64-linux = {
+      saya-installer-vm = import ./tests/saya-installer-vm.nix {
+        inherit pkgs;
+        inherit (nixpkgs) lib;
+        installerCfg = nixosConfigurations.saya-installer.config;
+      };
+    };
+
     devShells.x86_64-linux.default = pkgs.mkShell {
       packages = [
         checkRustTools
