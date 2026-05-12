@@ -1,7 +1,7 @@
-{ pkgs, ... }:
+{ pkgs, diskoInstall, ... }:
 
 {
-  environment.systemPackages = with pkgs; [
+  environment.systemPackages = (with pkgs; [
     binutils  # Provides strings etc.
     neovim
     jujutsu
@@ -22,7 +22,7 @@
     rustup
     mpv
     rtorrent
-  ];
+  ]) ++ [ diskoInstall ];
 
   programs.htop.enable = true;
   programs.mtr.enable = true;

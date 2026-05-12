@@ -18,11 +18,15 @@
     colmena.inputs.nixpkgs.follows = "nixpkgs";
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nix-cachyos-kernel, home-manager, codex-cli-nix, crane, ganbot, dessplay, agenix, colmena, nix-index-database, ... }:
+  outputs = { self, nixpkgs, nix-cachyos-kernel, home-manager, codex-cli-nix, crane, ganbot, dessplay, agenix, colmena, nix-index-database, disko, ... }:
   let
     system = "x86_64-linux";
+
+    diskoInstall = disko.packages.${system}.disko-install;
 
     craneOverlay = final: prev: {
       craneLib = crane.mkLib final;
@@ -163,7 +167,7 @@
           testInstaller = nixpkgs.lib.nixosSystem {
             inherit system;
             specialArgs = {
-              inherit agenix nix-cachyos-kernel;
+              inherit agenix nix-cachyos-kernel diskoInstall;
               sshKeys = import ./lib/ssh-keys.nix;
               flakeSelf = self;
             };
@@ -211,7 +215,7 @@
           inherit system;
           overlays = [ colmena.overlays.default ];
         };
-        specialArgs = { inherit agenix dessplay ganbot; flakeSelf = self; };
+        specialArgs = { inherit agenix dessplay ganbot diskoInstall; flakeSelf = self; };
       };
 
       defaults = { ... }: {
@@ -234,7 +238,7 @@
       saya-installer = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = {
-          inherit agenix nix-cachyos-kernel;
+          inherit agenix nix-cachyos-kernel diskoInstall;
           sshKeys = import ./lib/ssh-keys.nix;
           flakeSelf = self;
         };
