@@ -2,6 +2,7 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
+    nix-cachyos-kernel.inputs.nixpkgs.follows = "nixpkgs";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
@@ -110,7 +111,7 @@
           ./machines/saya
           ({ pkgs, ... }: {
             nixpkgs.overlays = [
-              nix-cachyos-kernel.overlays.pinned
+              nix-cachyos-kernel.overlays.default
               (final: prev: {
                 codex = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
                 kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {

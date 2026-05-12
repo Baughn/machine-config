@@ -22,7 +22,7 @@ in
     agenix.nixosModules.default
   ];
 
-  nixpkgs.overlays = [ nix-cachyos-kernel.overlays.pinned ];
+  nixpkgs.overlays = [ nix-cachyos-kernel.overlays.default ];
 
   # Same kernel family as saya (zen4 cachy) but without saya's aggressive
   # hardware-strip overrides — rescue images want broad driver coverage.
