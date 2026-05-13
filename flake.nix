@@ -8,10 +8,10 @@
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
     codex-cli-nix.inputs.nixpkgs.follows = "nixpkgs";
     crane.url = "github:ipetkov/crane";
-    ganbot.url = "git+file:/home/svein/dev/ganbot?ref=HEAD";
+    ganbot.url = "github:Baughn/ganbot";
     ganbot.inputs.nixpkgs.follows = "nixpkgs";
     ganbot.inputs.crane.follows = "crane";
-    dessplay.url = "git+file:/home/svein/dev/dessplay?ref=HEAD";
+    dessplay.url = "github:Baughn/dessplay";
     dessplay.inputs.nixpkgs.follows = "nixpkgs";
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
@@ -19,15 +19,11 @@
     colmena.inputs.nixpkgs.follows = "nixpkgs";
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
-    disko.url = "github:nix-community/disko";
-    disko.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nix-cachyos-kernel, home-manager, codex-cli-nix, crane, ganbot, dessplay, agenix, colmena, nix-index-database, disko, ... }:
+  outputs = { self, nixpkgs, nix-cachyos-kernel, home-manager, codex-cli-nix, crane, dessplay, ganbot, agenix, colmena, nix-index-database, ... }:
   let
     system = "x86_64-linux";
-
-    diskoInstall = disko.packages.${system}.disko-install;
 
     craneOverlay = final: prev: {
       craneLib = crane.mkLib final;
@@ -168,7 +164,7 @@
           testInstaller = nixpkgs.lib.nixosSystem {
             inherit system;
             specialArgs = {
-              inherit agenix nix-cachyos-kernel diskoInstall;
+              inherit agenix nix-cachyos-kernel;
               sshKeys = import ./lib/ssh-keys.nix;
               flakeSelf = self;
             };
@@ -216,7 +212,7 @@
           inherit system;
           overlays = [ colmena.overlays.default ];
         };
-        specialArgs = { inherit agenix dessplay ganbot diskoInstall; flakeSelf = self; };
+        specialArgs = { inherit agenix dessplay ganbot; flakeSelf = self; };
       };
 
       defaults = { ... }: {
@@ -239,7 +235,7 @@
       saya-installer = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = {
-          inherit agenix nix-cachyos-kernel diskoInstall;
+          inherit agenix nix-cachyos-kernel;
           sshKeys = import ./lib/ssh-keys.nix;
           flakeSelf = self;
         };

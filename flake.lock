@@ -144,37 +144,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1772632054,
-        "narHash": "sha256-FLqEtzZFbMafx8BdbX1uwjLUTxbCV0ZKnEE1WtNAeug=",
-        "ref": "HEAD",
-        "rev": "4ac25b7f62bbdd519c908317c5994580d823cb8d",
-        "revCount": 58,
-        "type": "git",
-        "url": "file:/home/svein/dev/dessplay"
-      },
-      "original": {
-        "ref": "HEAD",
-        "type": "git",
-        "url": "file:/home/svein/dev/dessplay"
-      }
-    },
-    "disko": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1777713215,
-        "narHash": "sha256-8GzXDOXckDWwST8TY5DbwYFjdvQLlP7K9CLSVx6iTTo=",
-        "owner": "nix-community",
-        "repo": "disko",
-        "rev": "63b4e7e6cf75307c1d26ac3762b886b5b0247267",
+        "lastModified": 1772576743,
+        "narHash": "sha256-vrQqigi6y1AmlUQrEmktZSJ1EsnkZbKw9U8Az/HBBbM=",
+        "owner": "Baughn",
+        "repo": "dessplay",
+        "rev": "feaee7ebada03796624ca26b5dc7b0f1dafeced4",
         "type": "github"
       },
       "original": {
-        "owner": "nix-community",
-        "repo": "disko",
+        "owner": "Baughn",
+        "repo": "dessplay",
         "type": "github"
       }
     },
@@ -291,18 +270,17 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1777663280,
-        "narHash": "sha256-OLS4SbWLIoRKfYostmaUpE7ZIXEJHRStXCW9yEGB10U=",
-        "ref": "HEAD",
-        "rev": "5a876f646b9532b3634f1e4a5723f6ead04f3181",
-        "revCount": 188,
-        "type": "git",
-        "url": "file:/home/svein/dev/ganbot"
+        "lastModified": 1778754257,
+        "narHash": "sha256-VbBbJhKbkCS95gdZ7UedGcljpCV64KM4v18A6UuKYMc=",
+        "owner": "Baughn",
+        "repo": "ganbot",
+        "rev": "ba4d92c45205fe86a81d284a8ad0ac23b21d755e",
+        "type": "github"
       },
       "original": {
-        "ref": "HEAD",
-        "type": "git",
-        "url": "file:/home/svein/dev/ganbot"
+        "owner": "Baughn",
+        "repo": "ganbot",
+        "type": "github"
       }
     },
     "home-manager": {
@@ -466,7 +444,6 @@
         "colmena": "colmena",
         "crane": "crane",
         "dessplay": "dessplay",
-        "disko": "disko",
         "ganbot": "ganbot",
         "home-manager": "home-manager_2",
         "nix-cachyos-kernel": "nix-cachyos-kernel",
@@ -479,11 +456,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1769915446,
-        "narHash": "sha256-f1F/umtX3ZD7fF9DHSloVHc0mnAT0ry0YK2jI/6E0aI=",
+        "lastModified": 1778728594,
+        "narHash": "sha256-+gIOsOzqWNfn+ThCXBQGcLHVEnaGQW59XjghE9JUIYk=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "bc00300f010275e46feb3c3974df6587ff7b7808",
+        "rev": "83a17ebffcfacb17b49e1b5e9dc15eed07936648",
         "type": "github"
       },
       "original": {
