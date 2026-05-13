@@ -2,24 +2,42 @@
 
 {
   environment.systemPackages = (with pkgs; [
-    binutils  # Provides strings etc.
+    # Editor & VCS
     neovim
-    jujutsu
     git
+    jujutsu
+
+    # Search & file tools
     ripgrep
     fd
-    psmisc
-    uv
+
+    # System inspection & monitoring
+    binutils  # Provides strings etc.
     btop
-    python3
-    tcpdump
-    bubblewrap
+    pciutils
+    psmisc
+
+    # Networking
     socat
+    tcpdump
+
+    # Sandboxing
+    bubblewrap
+
+    # Languages & runtimes
     bun
+    python3
+    rustup
+    uv
+
+    # Deployment & AI tooling
     codex
     colmena
-    pciutils
-    rustup
+
+    # Boot & disk
+    efibootmgr
+
+    # Media
     mpv
     rtorrent
   ]) ++ [ diskoInstall ];
