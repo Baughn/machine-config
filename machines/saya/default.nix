@@ -21,11 +21,14 @@
     amdgpu = false;
   };
 
+  # Work around ZFS' lack of STATX_MNT_ID_UNIQUE
+  systemd.services.systemd-tmpfiles-clean.environment.SYSTEMD_TMPFILES_BYPASS = "1";
+
   # Network
   networking.hostName = "saya";
   networking.networkmanager.enable = true;
   networking.networkmanager.dns = "systemd-resolved";
-  networking.firewall.allowPing = false;
+  networking.firewall.allowPing = true;
   me.mdns.enable = true;
   me.mdns.publish = true;
   me.security.enable = true;
@@ -57,6 +60,10 @@
     ];
   };
 
+  networking.extraHosts = ''
+    10.42.0.2 escher
+  '';
+
   networking.wireguard.interfaces.wg1 = {
     ips = [ "10.171.0.6/24" ];
     privateKeyFile = config.age.secrets.wireguard-saya.path;
@@ -64,7 +71,7 @@
       {
         publicKey = "y55YDIReEJ/lWrJiWYhxZ+grCPCJnqYlIN9LU7p6Yk0=";
         allowedIPs = [ "10.171.0.1/32" ];
-        endpoint = "192.168.0.166:51820";
+        endpoint = "192.168.1.2:51820";
         persistentKeepalive = 25;
       }
     ];

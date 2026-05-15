@@ -23,6 +23,8 @@
     tcpdump
     wget
     speedtest-cli
+    inetutils
+    weechat
 
     # Sandboxing
     bubblewrap

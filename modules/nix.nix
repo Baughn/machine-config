@@ -1,4 +1,4 @@
-{ ... }:
+{ flakeSelf, config, ... }:
 
 {
   nix.settings = {
@@ -12,6 +12,11 @@
   };
 
   nixpkgs.config.allowUnfree = true;
+
+  nix.channel.enable = false;
+  nix.nixPath = [
+    "nixpkgs=${flakeSelf.inputs.nixpkgs}"
+  ];
 
   # nix-ld: allows running unpatched ELF binaries by providing a dynamic linker.
   # Security note: enables execution of arbitrary downloaded binaries.
