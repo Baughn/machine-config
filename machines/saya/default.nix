@@ -1,36 +1,5 @@
 { config, lib, pkgs, flakeSelf, ... }:
 
-let
-  installerCfg = flakeSelf.nixosConfigurations.saya-installer.config;
-  installerKernel = "${installerCfg.system.build.kernel}/${installerCfg.system.boot.loader.kernelFile}";
-  installerInitrd = "${installerCfg.system.build.netbootRamdisk}/initrd";
-  installerCmdline =
-    "init=${installerCfg.system.build.toplevel}/init "
-    + (toString installerCfg.boot.kernelParams);
-
-  # One UKI serves both the systemd-boot menu (via the .conf below, which
-  # chainloads it with `efi`) and the firmware-level boot entry registered
-  # by the activation script. The UKI bundles kernel+initrd+cmdline into
-  # one PE binary, so there is only one copy of the initrd on the ESP.
-  installerOsRelease = pkgs.writeText "saya-installer-os-release" ''
-    NAME="NixOS Installer (saya)"
-    ID=saya-installer
-    PRETTY_NAME="NixOS Installer (saya, in-memory)"
-    VERSION_ID="${installerCfg.system.nixos.release}"
-  '';
-
-  installerUki = pkgs.runCommand "saya-installer.efi" {
-    nativeBuildInputs = [ pkgs.systemdUkify ];
-  } ''
-    ukify build \
-      --linux=${installerKernel} \
-      --initrd=${installerInitrd} \
-      --cmdline=${lib.escapeShellArg installerCmdline} \
-      --os-release=@${installerOsRelease} \
-      --output=$out
-  '';
-in
-
 {
   imports = [
     ../../modules
@@ -46,36 +15,6 @@ in
   # Boot
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-
-  boot.loader.systemd-boot.extraFiles = {
-    "EFI/saya-installer/saya-installer.efi" = installerUki;
-  };
-  boot.loader.systemd-boot.extraEntries."saya-installer.conf" = ''
-    title  NixOS Installer (saya, in-memory)
-    efi    /EFI/saya-installer/saya-installer.efi
-    sort-key z_installer
-  '';
-
-  # Also expose the installer UKI as a firmware-level boot entry, so it
-  # shows up in the UEFI boot menu (F12 picker) alongside Linux Boot
-  # Manager — not just inside the systemd-boot menu. The loader path
-  # stays stable across generations, so "create if absent by label" is
-  # all we need; we never have to delete and recreate.
-  system.activationScripts.registerInstallerEfiEntry = ''
-    set -eu
-    esp_mount=${config.boot.loader.efi.efiSysMountPoint}
-    esp_dev=$(${pkgs.util-linux}/bin/findmnt -no SOURCE "$esp_mount")
-    esp_disk=/dev/$(${pkgs.util-linux}/bin/lsblk -no PKNAME "$esp_dev" | head -n1)
-    esp_part=$(${pkgs.util-linux}/bin/lsblk -no PARTN "$esp_dev" | head -n1)
-
-    if ! ${pkgs.efibootmgr}/bin/efibootmgr \
-        | ${pkgs.gnugrep}/bin/grep -Eq '^Boot[0-9A-Fa-f]+\*?[[:space:]]+saya-installer([[:space:]]|$)'; then
-      ${pkgs.efibootmgr}/bin/efibootmgr --quiet --create \
-        --disk "$esp_disk" --part "$esp_part" \
-        --label "saya-installer" \
-        --loader '\EFI\saya-installer\saya-installer.efi'
-    fi
-  '';
 
   # Network
   networking.hostName = "saya";
