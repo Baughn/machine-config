@@ -135,7 +135,7 @@
         tcpAddr = "10.171.0.1:8765";
         capacity = 16;
         storeUri = "ssh-ng://svein@tsugumi.local";
-        builderLine = "ssh-ng://svein@tsugumi.local x86_64-linux /home/svein/.ssh/id_ed25519 16 1 nixos-test,kvm,big-parallel - -";
+        builderLine = "ssh-ng://svein@tsugumi.local x86_64-linux /home/svein/.ssh/id_ed25519_nbb_diag 16 1 nixos-test,kvm,big-parallel - -";
       };
     };
   };
@@ -146,7 +146,7 @@
       {
         hostName = "tsugumi.local";
         sshUser = "svein";
-	sshKey = "/home/svein/.ssh/id_ed25519";
+	sshKey = "/home/svein/.ssh/id_ed25519_nbb_diag";
 	maxJobs = 16;
         protocol = "ssh-ng";
         systems = [ "x86_64-linux" ];

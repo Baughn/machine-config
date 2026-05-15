@@ -49,6 +49,7 @@ in
     ./redis.nix
     ./rendezvous.nix
     ./victron-monitor.nix
+    ./nbb-diag.nix
   ];
 
   ## Boot
