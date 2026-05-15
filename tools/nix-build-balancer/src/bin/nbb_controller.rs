@@ -6,6 +6,7 @@ use std::time::Duration;
 use clap::Parser;
 
 use nbb::controller::{run, ControllerConfig};
+use nbb::estimator;
 use nbb::scheduler::{SchedulerPolicy, Target};
 
 #[derive(Parser, Debug)]
@@ -44,6 +45,35 @@ struct Args {
 
     #[arg(long, default_value_t = 200)]
     max_samples_per_pname: u32,
+
+    /// EWMA smoothing factor α for the per-pname duration estimator.
+    /// Must be in (0, 1]. Half-life in observations is ln(0.5)/ln(1−α);
+    /// the default 0.2 → ≈3.1 obs.
+    #[arg(long, default_value_t = estimator::ALPHA_DEFAULT, value_parser = parse_alpha)]
+    ewma_alpha: f64,
+
+    /// Standard-normal quantile multiplier z for the estimator's
+    /// upper-tail read-out. Default 1.645 ≈ Φ⁻¹(0.95). Use 1.96 for
+    /// ≈Φ⁻¹(0.975) if you want extra conservatism at the cost of more
+    /// over-estimation.
+    #[arg(long, default_value_t = estimator::Z_P95, value_parser = parse_z)]
+    ewma_z: f64,
+}
+
+fn parse_alpha(s: &str) -> Result<f64, String> {
+    let v: f64 = s.parse().map_err(|e| format!("bad ewma-alpha: {e}"))?;
+    if !v.is_finite() || v <= 0.0 || v > 1.0 {
+        return Err(format!("ewma-alpha must be in (0, 1], got {v}"));
+    }
+    Ok(v)
+}
+
+fn parse_z(s: &str) -> Result<f64, String> {
+    let v: f64 = s.parse().map_err(|e| format!("bad ewma-z: {e}"))?;
+    if !v.is_finite() || v < 0.0 {
+        return Err(format!("ewma-z must be ≥ 0 and finite, got {v}"));
+    }
+    Ok(v)
 }
 
 fn parse_target(s: &str) -> Result<Target, String> {
@@ -110,6 +140,8 @@ fn main() -> ExitCode {
             unknown_p95_ms: args.unknown_p95_ms,
         },
         max_samples_per_pname: args.max_samples_per_pname,
+        ewma_alpha: args.ewma_alpha,
+        ewma_z: args.ewma_z,
     };
 
     let rt = match tokio::runtime::Builder::new_multi_thread()

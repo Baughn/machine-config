@@ -186,9 +186,10 @@ For each candidate from the hook:
    `PONG` is older than the polling interval × 3 or where
    `mem_available_kb < min_remote_mem_available_kb`.
 3. For each surviving target:
-   - `package_ms = stats[pname].p95_ms` (single global estimate) ×
-     `target.speed_multiplier`, falling back to `unknown_p95_ms` when no
-     observations exist.
+   - `package_ms = predict_ms(pname)` (single global estimate, see "Duration
+     estimator" below) × `target.speed_multiplier`, falling back to
+     `unknown_p95_ms` when the controller has no observations for this
+     pname.
    - `queue_ms = (Σ admissions.predicted_ms) / capacity`. Admissions are the
      authoritative load signal because the controller knows exactly what it
      sent. The agent's `nix_slots_active` is reported in telemetry for
@@ -214,7 +215,41 @@ What is intentionally absent:
 - No staleness window over wall-clock — replaced by `PING`/`PONG` liveness.
 
 The result: one scheduler file, no policy struct knobs other than capacity,
-memory backstop, and `unknown_p95_ms`.
+memory backstop, `unknown_p95_ms`, and the two estimator knobs
+(`ewma_alpha`, `ewma_z`).
+
+### Duration estimator
+
+`predict_ms(pname)` (in `src/persistence/observations.rs`, math in
+`src/estimator.rs`) returns a conservative duration estimate built from
+the per-pname observation history.
+
+Model: build durations are right-skewed and heavy-tailed, so we model
+`Y = ln(D)` as Gaussian (log-normal `D`). For recency bias we use an
+exponentially weighted moving average over `Y` with smoothing α; for the
+spread we use D. H. D. West's (1979) one-pass weighted-variance
+recursion. A floor `MIN_LN_VAR = (ln 1.2)² ≈ 0.0332` keeps us from
+becoming over-confident on identical-looking samples. The read-out is
+`exp(μ + z·√max(S, MIN_LN_VAR))`, the upper-`z`-quantile of the fitted
+log-normal — `z = 1.645` ≈ Φ⁻¹(0.95). One sample is returned as-is
+(skips the floor) so first-contact predictions don't get inflated 35 %.
+
+This replaces the prototype's unweighted sample p95, which was
+recency-blind across the whole `--max-samples-per-pname` window: a step
+change in build cost took ~191 of 200 samples to wash out. With α = 0.2
+the half-life is ~3.1 observations, so optimisations and regressions are
+reflected within a handful of new builds.
+
+References:
+
+- Wikipedia, "Exponential smoothing" (closed-form EWMA).
+- D. H. D. West (1979), "Updating Mean and Variance Estimates: An
+  Improved Method", CACM 22(9):532–535.
+- Limpert, Stahel & Abbt (2001), "Log-normal distributions across the
+  sciences", BioScience 51(5):341–352 (why log-normal is the natural
+  parametric choice).
+- Knuth, TAOCP vol. 2 §4.2.2 (Welford's algorithm, the unweighted
+  analogue).
 
 ## Build observation lifecycle
 
@@ -309,7 +344,14 @@ modes that bit us in the prototype.
 **Stats**
 - `pname` normalization unchanged from today; existing test cases preserved.
 - Capping at `max_samples_per_pname` keeps the newest.
-- `p95_ms` computed against the upper-bucket quantile.
+- Estimator unit tests in `src/estimator.rs` cover: empty/all-zero
+  history → None, single sample short-circuit, identical-sample variance
+  floor, step-change adaptation, heavy-tail robustness, order-sensitivity,
+  α=1 collapse, and a closed-form sanity check against a known log-normal
+  population.
+- Persistence integration in `src/persistence/observations.rs` covers:
+  empty SQL → None, failure rows excluded, chronological-order ordering
+  matches the SQL clause, end-to-end step-change adaptation.
 
 Tests live alongside the module they exercise. Integration tests covering
 the lifecycle invariants live in `tests/lifecycle.rs` and use an in-memory

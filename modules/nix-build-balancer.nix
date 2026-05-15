@@ -28,6 +28,8 @@ let
     "--min-remote-mem-available-kb" (toString cfg.minRemoteMemAvailableKb)
     "--unknown-p95-ms" (toString cfg.unknownP95Ms)
     "--max-samples-per-pname" (toString cfg.maxSamplesPerPname)
+    "--ewma-alpha" (toString cfg.ewmaAlpha)
+    "--ewma-z" (toString cfg.ewmaZ)
   ] ++ targetArgs;
 
   agentArgs = [
@@ -141,11 +143,41 @@ in
     unknownP95Ms = lib.mkOption {
       type = lib.types.ints.positive;
       default = 60000;
+      description = ''
+        Fallback duration (ms) used when the controller has no
+        observations for a pname yet.
+      '';
     };
 
     maxSamplesPerPname = lib.mkOption {
       type = lib.types.ints.positive;
       default = 200;
+      description = ''
+        Per-pname observation cap; oldest rows are pruned beyond this
+        count. The EWMA estimator still walks the surviving rows in
+        chronological order.
+      '';
+    };
+
+    ewmaAlpha = lib.mkOption {
+      type = lib.types.float;
+      default = 0.2;
+      description = ''
+        EWMA smoothing factor for the per-pname duration estimator
+        (log-normal model in `src/estimator.rs`). Must be in (0, 1].
+        Half-life in observations is ln(0.5)/ln(1 − α); the default
+        0.2 → ≈3.1 obs.
+      '';
+    };
+
+    ewmaZ = lib.mkOption {
+      type = lib.types.float;
+      default = 1.645;
+      description = ''
+        Standard-normal quantile read by the estimator;
+        1.645 ≈ Φ⁻¹(0.95). Use 1.96 for ≈Φ⁻¹(0.975) if the scheduler
+        should over-predict more.
+      '';
     };
 
     installNixHooks = lib.mkOption {

@@ -1,5 +1,6 @@
 pub mod agent;
 pub mod controller;
+pub mod estimator;
 pub mod hook;
 pub mod inflight;
 pub mod nix_protocol;

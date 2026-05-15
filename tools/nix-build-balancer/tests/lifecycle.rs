@@ -13,6 +13,7 @@ use nbb::controller::{
     handle_hook_connection, make_decision, now_ms_u64, open_state, record_finish, watchdog_tick,
     ControllerConfig, ControllerState, TargetRuntime,
 };
+use nbb::estimator;
 use nbb::inflight::{drv_filename, write_sentinel, Sentinel};
 use nbb::persistence::admissions;
 use nbb::protocol::frame::{read_frame_async, write_frame_async, Frame};
@@ -57,6 +58,8 @@ fn config(data_dir: PathBuf, inflight_dir: PathBuf, hook_socket: PathBuf) -> Con
             unknown_p95_ms: 60_000,
         },
         max_samples_per_pname: 200,
+        ewma_alpha: estimator::ALPHA_DEFAULT,
+        ewma_z: estimator::Z_P95,
     }
 }
 

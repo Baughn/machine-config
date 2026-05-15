@@ -96,8 +96,10 @@ One function in `src/scheduler.rs`. Deterministic:
 - Drop wrong-system candidates.
 - Drop targets whose last `PONG` is older than `poll_interval × 3` or
   whose `mem_available_kb` is below the configured floor.
-- `package_ms = p95_ms_for_pname × speed_multiplier` (fallback
-  `unknown_p95_ms` when no observations exist).
+- `package_ms = predict_ms(pname) × speed_multiplier` (fallback
+  `unknown_p95_ms` when no observations exist). The estimator is the
+  log-normal EWMA in `src/estimator.rs` — see SPEC §"Duration estimator"
+  for the model, knobs, and references.
 - `queue_ms = Σ admissions_for_target.predicted_ms / target.capacity`.
   Admissions are the **only** load signal. `nix_slots_active` is
   reported in telemetry for observability but never enters the formula.
@@ -106,7 +108,10 @@ One function in `src/scheduler.rs`. Deterministic:
 
 Do not introduce a learned model, random scheduling, global fairness
 policy, exploration percent, or CPU-busy checks. They were removed
-deliberately.
+deliberately. The per-pname log-normal EWMA estimator
+(`src/estimator.rs`) is closed-form statistics, not ML — do not
+generalise it to a multi-feature or trained model; if you need that,
+talk first.
 
 ## Persistence Rules
 
@@ -148,6 +153,7 @@ controller's 5-second watchdog is the time-driven floor:
 - `src/hook/` — Nix build-hook driver, candidate codec, `nix
   __build-remote` delegation.
 - `src/scheduler.rs` — `decide_build_candidate`.
+- `src/estimator.rs` — log-normal EWMA duration estimator (math + tests).
 - `src/persistence/{mod,observations,admissions}.rs` + `schema.sql`.
 - `src/telemetry.rs` — procfs / PSI / flock slot counter.
 - `src/nix_protocol.rs` — Nix wire-format helpers (8-byte-aligned).

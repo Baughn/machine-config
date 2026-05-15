@@ -2,6 +2,7 @@ use std::io;
 
 use rusqlite::{params, Connection};
 
+use crate::estimator;
 use crate::protocol::ops::EventBuildFinish;
 
 /// Insert one row into `build_observations`, then trim the per-pname history
@@ -70,13 +71,24 @@ fn prune_pname(conn: &Connection, pname: &str, keep_newest: u32) -> io::Result<(
     Ok(())
 }
 
-/// p95 of successful build durations for `pname`. None when no rows match.
-pub fn p95_ms(conn: &Connection, pname: &str) -> io::Result<Option<u64>> {
+/// Conservative duration estimate for `pname`, fed straight into the
+/// scheduler as `package_ms` and into the admission row as `predicted_ms`.
+///
+/// Reads every successful observation for `pname` in chronological order
+/// (oldest first — order matters for the EWMA recurrence) and delegates
+/// the arithmetic to [`estimator::predict_lognormal_ms`]. See that module
+/// for the model, the references, and the rationale for picking the
+/// upper-95 % quantile of a fitted log-normal over the unweighted sample
+/// p95 it replaced.
+///
+/// Returns `None` when there are no successful rows, so the caller falls
+/// back to the policy-level `unknown_p95_ms`.
+pub fn predict_ms(conn: &Connection, pname: &str, alpha: f64, z: f64) -> io::Result<Option<u64>> {
     let mut stmt = conn
         .prepare(
             "SELECT duration_ms FROM build_observations
              WHERE status = 'success' AND pname = ?1
-             ORDER BY duration_ms",
+             ORDER BY finished_at_ms ASC, rowid ASC",
         )
         .map_err(io::Error::other)?;
     let rows = stmt
@@ -85,21 +97,16 @@ pub fn p95_ms(conn: &Connection, pname: &str) -> io::Result<Option<u64>> {
     let mut values = Vec::new();
     for row in rows {
         let duration = row.map_err(io::Error::other)?;
-        if duration >= 0 {
+        if duration > 0 {
             values.push(duration as u64);
         }
     }
-    Ok(quantile(&values, 0.95))
-}
-
-/// Upper-bucket quantile for already-sorted duration values.
-/// Returns `None` for an empty slice.
-pub fn quantile(values: &[u64], q: f64) -> Option<u64> {
-    if values.is_empty() {
-        return None;
-    }
-    let idx = ((values.len() - 1) as f64 * q).ceil() as usize;
-    values.get(idx).copied()
+    Ok(estimator::predict_lognormal_ms(
+        &values,
+        alpha,
+        z,
+        estimator::MIN_LN_VAR,
+    ))
 }
 
 #[cfg(test)]
@@ -120,45 +127,89 @@ mod tests {
         }
     }
 
-    #[test]
-    fn quantile_upper_bucket() {
-        let values = [10, 20, 30, 40];
-        assert_eq!(quantile(&values, 0.50), Some(30));
-        assert_eq!(quantile(&values, 0.95), Some(40));
-    }
+    const ALPHA: f64 = estimator::ALPHA_DEFAULT;
+    const Z: f64 = estimator::Z_P95;
 
     #[test]
-    fn quantile_empty_is_none() {
-        assert_eq!(quantile(&[], 0.95), None);
-    }
-
-    #[test]
-    fn p95_none_on_empty_history() {
+    fn predict_ms_none_on_empty_history() {
         let conn = open_in_memory().unwrap();
-        assert_eq!(p95_ms(&conn, "foo").unwrap(), None);
+        assert_eq!(predict_ms(&conn, "foo", ALPHA, Z).unwrap(), None);
     }
 
     #[test]
-    fn p95_returns_upper_bucket() {
+    fn predict_ms_ignores_failure_rows() {
+        // Two rows: one success, one failure. The failure row must not be
+        // visible to the estimator — only the success row contributes.
         let conn = open_in_memory().unwrap();
-        for (i, d) in [10u64, 20, 30, 40].iter().enumerate() {
+        record_finish(&conn, &finish("foo", 5_000, BuildStatus::Success, 100), 0).unwrap();
+        record_finish(&conn, &finish("foo", 999_000, BuildStatus::Failure, 200), 0).unwrap();
+        // With one (positive) success sample the estimator returns it
+        // verbatim — see [`estimator::predict_lognormal_ms`] for why a
+        // single sample short-circuits the variance floor.
+        assert_eq!(predict_ms(&conn, "foo", ALPHA, Z).unwrap(), Some(5_000));
+    }
+
+    #[test]
+    fn predict_ms_reads_rows_in_chronological_order() {
+        // Insert two batches in arbitrary insert order but with distinct
+        // `finished_at_ms`. The SQL clause orders by `finished_at_ms ASC`
+        // so the EWMA sees the older batch first regardless of insert
+        // sequence. We verify by comparing against the same series fed
+        // directly to the estimator.
+        let conn = open_in_memory().unwrap();
+        // Recent: 90s. Old: 144s. Insert recent first so SQL has to do the
+        // work.
+        record_finish(
+            &conn,
+            &finish("foo", 90_000, BuildStatus::Success, 2_000),
+            0,
+        )
+        .unwrap();
+        record_finish(
+            &conn,
+            &finish("foo", 144_000, BuildStatus::Success, 1_000),
+            0,
+        )
+        .unwrap();
+        let got = predict_ms(&conn, "foo", ALPHA, Z).unwrap().unwrap();
+        let direct =
+            estimator::predict_lognormal_ms(&[144_000, 90_000], ALPHA, Z, estimator::MIN_LN_VAR)
+                .unwrap();
+        assert_eq!(got, direct);
+    }
+
+    #[test]
+    fn predict_ms_adapts_to_step_change_after_recovery_window() {
+        // 100 historical builds at 40 minutes, then 30 new builds at
+        // 30 minutes. After the recovery window the EW variance has
+        // decayed and the mean has converged, so the prediction settles
+        // near `1_800_000 × exp(z·√MIN_LN_VAR) ≈ 2.43e6` ms — well below
+        // the *old* steady-state estimate of ≈ 3.24e6 ms. See
+        // [`estimator::predict_lognormal_ms`] tests for the transient.
+        let conn = open_in_memory().unwrap();
+        for i in 0..100u64 {
             record_finish(
                 &conn,
-                &finish("foo", *d, BuildStatus::Success, 1000 + i as u64),
+                &finish("foo", 2_400_000, BuildStatus::Success, 1_000 + i),
                 0,
             )
             .unwrap();
         }
-        assert_eq!(p95_ms(&conn, "foo").unwrap(), Some(40));
-    }
-
-    #[test]
-    fn p95_ignores_failure_rows() {
-        let conn = open_in_memory().unwrap();
-        record_finish(&conn, &finish("foo", 5, BuildStatus::Success, 100), 0).unwrap();
-        record_finish(&conn, &finish("foo", 999, BuildStatus::Failure, 200), 0).unwrap();
-        // Failure row excluded; p95 of [5] is 5.
-        assert_eq!(p95_ms(&conn, "foo").unwrap(), Some(5));
+        for i in 0..30u64 {
+            record_finish(
+                &conn,
+                &finish("foo", 1_800_000, BuildStatus::Success, 10_000 + i),
+                0,
+            )
+            .unwrap();
+        }
+        let got = predict_ms(&conn, "foo", ALPHA, Z).unwrap().unwrap();
+        assert!(
+            got < 2_700_000,
+            "after 30 new fast builds the estimate should settle near 2.43 min, \
+             got {} ms",
+            got
+        );
     }
 
     #[test]

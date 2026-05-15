@@ -54,9 +54,12 @@ pub struct SchedulerInputs<'a> {
     pub policy: &'a SchedulerPolicy,
     pub admissions: &'a [AdmissionRow],
     pub targets: &'a [TargetState],
-    /// Pre-fetched `p95_ms` for `pname_from_drv(candidate.drv_path)`, or
-    /// `None` when the controller has no observations for this pname.
-    pub p95_for_pname: Option<u64>,
+    /// Pre-fetched conservative duration estimate for
+    /// `pname_from_drv(candidate.drv_path)` from
+    /// [`crate::observations::predict_ms`], or `None` when the controller
+    /// has no observations for this pname (the fallback is
+    /// `policy.unknown_p95_ms`). See [`crate::estimator`] for the model.
+    pub duration_estimate_ms: Option<u64>,
 }
 
 /// What the scheduler decided.
@@ -97,7 +100,9 @@ pub fn decide(inputs: &SchedulerInputs) -> SchedulerDecision {
         .filter(|state| is_live(state, inputs.now_ms, stale_after_ms, inputs.policy))
         .collect();
 
-    let package_ms_base = inputs.p95_for_pname.unwrap_or(inputs.policy.unknown_p95_ms);
+    let package_ms_base = inputs
+        .duration_estimate_ms
+        .unwrap_or(inputs.policy.unknown_p95_ms);
 
     let mut best: Option<(&TargetState, u64, u64)> = None;
     for state in live {
@@ -238,7 +243,7 @@ mod tests {
             policy: &pol,
             admissions,
             targets,
-            p95_for_pname: p95,
+            duration_estimate_ms: p95,
         })
     }
 
@@ -260,7 +265,7 @@ mod tests {
             policy: &pol,
             admissions: &[],
             targets: &ts,
-            p95_for_pname: None,
+            duration_estimate_ms: None,
         });
         assert_eq!(decision, SchedulerDecision::Decline);
     }
@@ -367,7 +372,7 @@ mod tests {
             policy: &pol,
             admissions: &[],
             targets: &[a, b],
-            p95_for_pname: Some(10_000),
+            duration_estimate_ms: Some(10_000),
         });
         match decision {
             SchedulerDecision::Accept { target, .. } => assert_eq!(target.name, "kaho"),

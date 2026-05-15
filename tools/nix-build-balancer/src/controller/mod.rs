@@ -54,6 +54,13 @@ pub struct ControllerConfig {
     pub poll_interval: Duration,
     pub policy: SchedulerPolicy,
     pub max_samples_per_pname: u32,
+    /// EWMA smoothing factor for the per-pname duration estimator
+    /// ([`crate::estimator`]). Must be in `(0, 1]`. Lower values favour
+    /// stability over recency; higher values follow the most recent
+    /// observations faster.
+    pub ewma_alpha: f64,
+    /// Standard-normal quantile read by the estimator; `1.645 ≈ Φ⁻¹(0.95)`.
+    pub ewma_z: f64,
 }
 
 /// Tracked liveness per target. Updated by the target poller, read by the
@@ -325,10 +332,10 @@ pub async fn make_decision(
     candidate: &DecideCandidate,
 ) -> io::Result<Decision> {
     let pname = pname_from_drv(&candidate.drv_path);
-    let (p95, admissions_rows) = {
+    let (estimate, admissions_rows) = {
         let conn = state.conn.lock().await;
         (
-            observations::p95_ms(&conn, &pname)?,
+            observations::predict_ms(&conn, &pname, state.config.ewma_alpha, state.config.ewma_z)?,
             admissions::list(&conn)?,
         )
     };
@@ -346,7 +353,7 @@ pub async fn make_decision(
         policy: &state.config.policy,
         admissions: &admissions_rows,
         targets: &target_states,
-        p95_for_pname: p95,
+        duration_estimate_ms: estimate,
     };
 
     match scheduler::decide(&inputs) {
@@ -355,7 +362,7 @@ pub async fn make_decision(
                 drv = %candidate.drv_path,
                 pname = %pname,
                 system = %candidate.system,
-                p95_ms = ?p95,
+                estimate_ms = ?estimate,
                 "decision: decline"
             );
             Ok(Decision::Decline)
@@ -378,7 +385,7 @@ pub async fn make_decision(
                 pname = %pname,
                 target = %target_name,
                 predicted_ms,
-                p95_ms = ?p95,
+                estimate_ms = ?estimate,
                 "decision: route-local (admission recorded; nix builds locally)"
             );
             Ok(Decision::Decline)
@@ -401,7 +408,7 @@ pub async fn make_decision(
                 pname = %pname,
                 target = %target.name,
                 predicted_ms,
-                p95_ms = ?p95,
+                estimate_ms = ?estimate,
                 "decision: accept"
             );
             Ok(Decision::Accept { target })

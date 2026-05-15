@@ -78,8 +78,11 @@ pub fn list(conn: &Connection) -> io::Result<Vec<AdmissionRow>> {
 }
 
 /// Drv paths whose admissions have outlived `max(predicted_ms * 2, 60_000)`.
-/// Watchdog reads this on every tick and synthesises an [`AdmissionFinish`]
-/// for each stale row before retiring it.
+/// The controller's watchdog reads this on every tick and retires each
+/// stale row directly — no synthesised finish event is emitted, so the
+/// load signal disappears immediately. A real `EVENT_BUILD_FINISH` that
+/// arrives later still records an observation row but its `retire` call
+/// is a no-op.
 pub fn stale_drvs(conn: &Connection, now_ms: u64) -> io::Result<Vec<String>> {
     Ok(list(conn)?
         .into_iter()
