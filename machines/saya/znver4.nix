@@ -9,7 +9,7 @@
 # standard binary cache. For per-package znver4 optimization, add
 # individual packages to the overlay below.
 
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   baseKernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest-zen4;
@@ -508,5 +508,6 @@ let
   };
 in
 {
-  boot.kernelPackages = lib.mkForce (pkgs.linuxPackagesFor kernel);
+  boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest;
+  boot.zfs.package = config.boot.kernelPackages.zfs_cachyos;
 }

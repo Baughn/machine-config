@@ -11,4 +11,7 @@
   boot.extraModprobeConfig = ''
     options zfs zfs_txg_timeout=300
   '';
+
+  # We really don't care.
+  networking.hostId = "deafbeef";
 }

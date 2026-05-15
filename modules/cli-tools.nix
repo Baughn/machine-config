@@ -1,7 +1,7 @@
-{ pkgs, diskoInstall, ... }:
+{ pkgs, ... }:
 
 {
-  environment.systemPackages = (with pkgs; [
+  environment.systemPackages = with pkgs; [
     # Editor & VCS
     neovim
     git
@@ -16,10 +16,13 @@
     btop
     pciutils
     psmisc
+    sysstat
 
     # Networking
     socat
     tcpdump
+    wget
+    speedtest-cli
 
     # Sandboxing
     bubblewrap
@@ -37,10 +40,13 @@
     # Boot & disk
     efibootmgr
 
+    # Backups
+    restic
+
     # Media
     mpv
     rtorrent
-  ]) ++ [ diskoInstall ];
+  ];
 
   programs.htop.enable = true;
   programs.mtr.enable = true;

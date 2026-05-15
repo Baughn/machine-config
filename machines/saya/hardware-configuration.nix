@@ -14,31 +14,39 @@
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "/dev/disk/by-uuid/a3ee68b9-4a7b-48f9-8a12-574362cf6542";
-      fsType = "btrfs";
-      options = [ "subvol=@" "compress=zstd" "space_cache=v2" "commit=120" ];
+    { device = "rpool";
+      fsType = "zfs";
+    };
+
+  fileSystems."/etc" =
+    { device = "rpool/etc";
+      fsType = "zfs";
+    };
+
+  fileSystems."/nix" =
+    { device = "rpool/nix";
+      fsType = "zfs";
+    };
+
+  fileSystems."/var" =
+    { device = "rpool/var";
+      fsType = "zfs";
     };
 
   fileSystems."/home" =
-    { device = "/dev/disk/by-uuid/a3ee68b9-4a7b-48f9-8a12-574362cf6542";
-      fsType = "btrfs";
-      options = [ "subvol=@home" "compress=zstd" "space_cache=v2" "commit=120" ];
-    };
-
-  fileSystems."/mnt/btrfs-root" =
-    { device = "/dev/disk/by-uuid/a3ee68b9-4a7b-48f9-8a12-574362cf6542";
-      fsType = "btrfs";
-      options = [ "subvol=/" "compress=zstd" "space_cache=v2" "commit=120" ];
+    { device = "rpool/home";
+      fsType = "zfs";
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/E83A-EA40";
+    { device = "/dev/disk/by-uuid/A8A4-7F3D";
       fsType = "vfat";
-      options = [ "fmask=0022" "dmask=0022" ];
+      options = [ "fmask=0077" "dmask=0077" ];
     };
 
   swapDevices =
-    [ { device = "/dev/disk/by-uuid/600e8cfe-67d7-48d4-ac40-dff374876338"; }
+    [ { device = "/dev/disk/by-uuid/62c3e4f4-5d73-4043-8b2a-2ea96a6e77cc"; }
+      { device = "/dev/disk/by-uuid/8312320d-219c-43cd-b688-dd9e9e89f68f"; }
     ];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
