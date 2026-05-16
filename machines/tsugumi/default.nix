@@ -61,12 +61,9 @@ in
       };
       efi.canTouchEfiVariables = true;
     };
-    # Enable THP
-    postBootCommands = ''
-      echo always > /sys/kernel/mm/transparent_hugepage/enabled
-      echo defer > /sys/kernel/mm/transparent_hugepage/defrag
-    '';
   };
+
+  me.cachy-kernel.enable = true;
 
   ## GPU
   hardware.nvidia.nvidiaPersistenced = true;

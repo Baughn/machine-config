@@ -3,6 +3,7 @@
 {
   imports = [
     ./agenix.nix
+    ./cachy-kernel.nix
     ./cli-tools.nix
     ./dns.nix
     ./firejail.nix

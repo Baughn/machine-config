@@ -107,7 +107,6 @@
           ./machines/saya
           ({ pkgs, ... }: {
             nixpkgs.overlays = [
-              nix-cachyos-kernel.overlays.default
               (final: prev: {
                 codex = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
                 kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {
@@ -217,6 +216,8 @@
 
       defaults = { ... }: {
         imports = commonModules;
+
+        nixpkgs.overlays = [ nix-cachyos-kernel.overlays.default ];
 
         deployment = {
           targetUser = "svein";

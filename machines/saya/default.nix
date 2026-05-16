@@ -5,7 +5,6 @@
     ../../modules
     ../../kwin-bug/drm-atomic-log.nix
     ./hardware-configuration.nix
-    ./cachy-tweaks.nix
     ./ganbot.nix
     ./game-watcher.nix
     ./steam.nix
@@ -15,6 +14,12 @@
   # Boot
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+
+  # NVIDIA dGPU only; iGPU intentionally unused.
+  me.cachy-kernel = {
+    enable = true;
+    amdgpu = false;
+  };
 
   # Network
   networking.hostName = "saya";

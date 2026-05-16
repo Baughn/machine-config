@@ -102,7 +102,7 @@ in
       ];
     };
 
-    # -- Journal retention for forensics (overrides cachy-tweaks 50MB) --
+    # -- Journal retention for forensics (overrides cachy-kernel default) --
     services.journald.extraConfig = lib.mkForce ''
       SystemMaxUse=2G
       MaxRetentionSec=90day

@@ -1,18 +1,25 @@
-# Use the Zen 4 (znver4) optimized CachyOS kernel variant.
+# CachyOS-flavoured kernel and matching system tweaks.
 #
-# The xddxdd/nix-cachyos-kernel flake provides pre-built kernel variants
-# targeting specific architectures. This selects the zen4 variant, which
-# is compiled with -march=znver4 enabling AVX-512, VNNI, and other
-# Zen 4 specific instructions.
+# Wraps the Zen 4 optimized CachyOS kernel variant from
+# xddxdd/nix-cachyos-kernel, overrides its structuredExtraConfig to drop
+# modules that no machine here uses (legacy wireless, SAS/FC/iSCSI HBAs,
+# media capture, virtual-guest DRMs, embedded panel bridges, etc.), and
+# applies the CachyOS-style sysctl/systemd/udev tunings that go with it.
 #
-# Only the kernel is recompiled for znver4. Userspace packages use the
-# standard binary cache. For per-package znver4 optimization, add
-# individual packages to the overlay below.
+# Gated by `me.cachy-kernel.enable`. Per-host knobs:
+#   me.cachy-kernel.amdgpu     — keep AMDGPU enabled and unblacklisted
+#                                (default true; saya sets false because
+#                                its iGPU is intentionally dark behind
+#                                an NVIDIA dGPU).
+#   me.cachy-kernel.scheduler  — sched-ext BPF scheduler, or null.
 
 { config, lib, pkgs, ... }:
 
 let
+  cfg = config.me.cachy-kernel;
+
   baseKernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest-zen4;
+
   disabledKernelConfigPrefixes = [
     "ARCNET"
     "ATH"
@@ -96,14 +103,17 @@ let
     "WWAN"
     "ZD1211RW"
   ];
+
   isDisabledKernelConfig = name:
     lib.any
       (prefix: name == prefix || lib.hasPrefix "${prefix}_" name)
       disabledKernelConfigPrefixes;
+
   baseStructuredExtraConfig =
     lib.filterAttrs
       (name: _: ! isDisabledKernelConfig name)
       baseKernelPackages.kernel.structuredExtraConfig;
+
   baseConfigOptionNames =
     lib.pipe (lib.splitString "\n" (builtins.readFile baseKernelPackages.kernel.cachyosConfigFile)) [
       (map (line:
@@ -113,6 +123,7 @@ let
           if match == null then null else builtins.head match))
       (lib.filter (name: name != null && isDisabledKernelConfig name))
     ];
+
   drmPanelBridgeOptions = [
     "DRM_ANALOGIX_ANX6345"
     "DRM_ANALOGIX_ANX7625"
@@ -277,6 +288,7 @@ let
     "DRM_TOSHIBA_TC358775"
     "DRM_WAVESHARE_BRIDGE"
   ];
+
   forceDisabledKernelOptions =
     lib.genAttrs (lib.unique (baseConfigOptionNames ++ drmPanelBridgeOptions ++ [
       "ARCNET"
@@ -319,46 +331,47 @@ let
       "WWAN"
     ]))
     (_: lib.mkForce lib.kernel.no);
-  kernel = baseKernelPackages.kernel.override {
+
+  amdgpuKernelConfig = lib.optionalAttrs (! cfg.amdgpu) (with lib.kernel; {
+    DRM_AMDGPU = lib.mkForce no;
+  });
+
+  customKernel = baseKernelPackages.kernel.override {
     kernelPatches = (baseKernelPackages.kernel.kernelPatches or []) ++ [
       {
         name = "afs-do-not-select-rxrpc";
         patch = ./patches/afs-do-not-select-rxrpc.patch;
       }
     ];
-    structuredExtraConfig = baseStructuredExtraConfig // forceDisabledKernelOptions // (with lib.kernel; {
-      # Compile out AF_ALG, the userspace socket API for the kernel crypto
-      # subsystem. CVE-2026-31431 is in algif_aead; the rest of the family is
-      # disabled with it because nothing on saya depends on AF_ALG.
+    structuredExtraConfig = baseStructuredExtraConfig // forceDisabledKernelOptions // amdgpuKernelConfig // (with lib.kernel; {
+      # AF_ALG userspace crypto socket. CVE-2026-31431 is in algif_aead; the
+      # rest of the family is disabled with it because no service here uses
+      # AF_ALG.
       CRYPTO_USER_API = lib.mkForce no;
       CRYPTO_USER_API_AEAD = lib.mkForce no;
       CRYPTO_USER_API_HASH = lib.mkForce no;
       CRYPTO_USER_API_RNG = lib.mkForce no;
       CRYPTO_USER_API_SKCIPHER = lib.mkForce no;
 
-      # Dirty Frag mitigation: compile out IPsec ESP and RxRPC. saya uses
-      # WireGuard, not IPsec, and has no AFS/RxRPC consumers.
+      # Dirty Frag mitigation: IPsec ESP and RxRPC. WireGuard is used in
+      # place of IPsec; no AFS/RxRPC consumers anywhere.
       INET_ESP = lib.mkForce no;
       INET6_ESP = lib.mkForce no;
       AF_RXRPC = lib.mkForce no;
       AFS_FS = lib.mkForce no;
 
-      # saya has an NVIDIA dGPU and the Raphael iGPU is intentionally unused
-      # and blacklisted.
-      DRM_AMDGPU = lib.mkForce no;
       DRM_I915 = lib.mkForce no;
       DRM_XE = lib.mkForce no;
       DRM_NOUVEAU = lib.mkForce no;
       DRM_RADEON = lib.mkForce no;
 
-      # No local AI accelerator cards.
       DRM_ACCEL_AMDXDNA = lib.mkForce no;
       DRM_ACCEL_HABANALABS = lib.mkForce no;
       DRM_ACCEL_IVPU = lib.mkForce no;
       DRM_ACCEL_QAIC = lib.mkForce no;
 
-      # Obsolete and virtual display drivers. Keep simpledrm/EFI framebuffer
-      # for early boot and the proprietary NVIDIA kernel module path.
+      # Obsolete and virtual display drivers. simpledrm/EFI framebuffer plus
+      # the proprietary NVIDIA module path stay.
       DRM_AST = lib.mkForce no;
       DRM_BOCHS = lib.mkForce no;
       DRM_CIRRUS_QEMU = lib.mkForce no;
@@ -388,7 +401,7 @@ let
       FB_VIA = lib.mkForce no;
       FB_VOODOO1 = lib.mkForce no;
 
-      # Local PCIe NVMe is used; remote NVMe fabrics and target mode are not.
+      # Local PCIe NVMe only; no fabrics, target mode, or auth.
       NVME_AUTH = lib.mkForce no;
       NVME_FABRICS = lib.mkForce no;
       NVME_FC = lib.mkForce no;
@@ -398,7 +411,7 @@ let
       NVME_TCP = lib.mkForce no;
       NVME_TARGET = lib.mkForce no;
 
-      # Keep SCSI core/libata for SATA and USB mass storage. Drop old and
+      # Keep SCSI core/libata for SATA and USB mass storage. Drop legacy and
       # server-grade SCSI, SAS, Fibre Channel, iSCSI, and RAID adapters.
       ATA_OVER_ETH = lib.mkForce no;
       SCSI_LOWLEVEL = lib.mkForce no;
@@ -474,8 +487,8 @@ let
       PCMCIA_XIRCOM = lib.mkForce no;
       USB_GADGET = lib.mkForce no;
 
-      # TV, radio, capture-card, and media test drivers. Keep generic webcam
-      # support rather than removing the whole media core.
+      # TV, radio, capture-card, and media test drivers. Generic webcam
+      # support is kept.
       DVB_CORE = lib.mkForce no;
       MEDIA_ANALOG_TV_SUPPORT = lib.mkForce no;
       MEDIA_DIGITAL_TV_SUPPORT = lib.mkForce no;
@@ -506,8 +519,126 @@ let
       VIDEO_ZORAN = lib.mkForce no;
     });
   };
+
+  customKernelPackages = baseKernelPackages.extend (_: _: {
+    kernel = customKernel;
+  });
 in
 {
-  boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest;
-  boot.zfs.package = config.boot.kernelPackages.zfs_cachyos;
+  options.me.cachy-kernel = {
+    enable = lib.mkEnableOption "the CachyOS zen4 kernel and matching system tweaks";
+
+    amdgpu = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        When false, DRM_AMDGPU is compiled out and amdgpu is added to
+        boot.blacklistedKernelModules. Set false on hosts where the AMD
+        iGPU is intentionally unused behind a discrete NVIDIA GPU.
+      '';
+    };
+
+    scheduler = lib.mkOption {
+      type = lib.types.nullOr (lib.types.enum [ "scx_bpfland" ]);
+      default = "scx_bpfland";
+      description = ''
+        sched-ext BPF scheduler to enable, or null to leave the default
+        kernel scheduler in place.
+      '';
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
+    boot.kernelPackages = customKernelPackages;
+    boot.zfs.package = config.boot.kernelPackages.zfs_cachyos;
+
+    boot.kernelParams = [
+      "nowatchdog"
+      "zswap.enabled=1"
+      "zswap.compressor=zstd"
+      "zswap.max_pool_percent=20"
+      "zswap.shrinker_enabled=1"
+    ];
+
+    boot.blacklistedKernelModules =
+      [ "iTCO_wdt" "sp5100_tco" ]
+      ++ lib.optional (! cfg.amdgpu) "amdgpu";
+
+    boot.kernel.sysctl = {
+      "vm.swappiness" = 10;
+      "vm.vfs_cache_pressure" = 50;
+      "vm.dirty_bytes" = 268435456;
+      "vm.dirty_background_bytes" = 67108864;
+      "vm.dirty_writeback_centisecs" = 1500;
+
+      "kernel.nmi_watchdog" = 0;
+      "kernel.printk" = "3 3 3 3";
+      "kernel.kptr_restrict" = 2;
+      "kernel.sysrq" = 128;
+      "kernel.split_lock_mitigate" = 0;
+
+      "fs.file-max" = 2097152;
+
+      "net.core.netdev_max_backlog" = 4096;
+      "net.ipv4.tcp_congestion_control" = "bbr";
+      "net.core.default_qdisc" = "cake";
+      "net.ipv4.tcp_fastopen" = 3;
+      "net.core.rmem_max" = 16777216;
+      "net.core.wmem_max" = 16777216;
+      "net.core.somaxconn" = 8192;
+      "net.ipv4.tcp_keepalive_time" = 60;
+      "net.ipv4.tcp_keepalive_intvl" = 10;
+      "net.ipv4.tcp_mtu_probing" = 1;
+    };
+
+    boot.kernel.sysfs = {
+      kernel.mm.transparent_hugepage = {
+        enabled = "always";
+        defrag = "defer+madvise";
+      };
+    };
+
+    services.udev.extraRules = ''
+      ACTION=="add|change", KERNEL=="nvme[0-9]*", ATTR{queue/scheduler}="none"
+      ACTION=="add|change", KERNEL=="sd[a-z]*|mmcblk[0-9]*", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="mq-deadline"
+      ACTION=="add|change", KERNEL=="sd[a-z]*", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"
+    '';
+
+    systemd.settings.Manager = {
+      DefaultTimeoutStartSec = "15s";
+      DefaultTimeoutStopSec = "10s";
+      DefaultLimitNOFILE = "2048:2097152";
+    };
+
+    services.journald.extraConfig = ''
+      SystemMaxUse=1G
+    '';
+
+    boot.extraModprobeConfig = ''
+      options nvidia NVreg_UsePageAttributeTable=1
+      options nvidia NVreg_InitializeSystemMemoryAllocations=0
+      options nvidia NVreg_DynamicPowerManagement=0x02
+    '';
+
+    services.fstrim.enable = true;
+
+    security.pam.loginLimits = [
+      { domain = "@audio"; type = "-"; item = "rtprio";  value = "95"; }
+      { domain = "@audio"; type = "-"; item = "memlock"; value = "unlimited"; }
+      { domain = "@audio"; type = "-"; item = "nice";    value = "-19"; }
+    ];
+
+    users.users.svein.extraGroups = [ "audio" ];
+
+    services.ananicy = {
+      enable = true;
+      package = pkgs.ananicy-cpp;
+      rulesProvider = pkgs.ananicy-cpp;
+    };
+
+    services.scx = lib.mkIf (cfg.scheduler != null) {
+      enable = true;
+      scheduler = cfg.scheduler;
+    };
+  };
 }
