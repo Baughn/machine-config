@@ -332,9 +332,13 @@ let
     ]))
     (_: lib.mkForce lib.kernel.no);
 
-  amdgpuKernelConfig = lib.optionalAttrs (! cfg.amdgpu) (with lib.kernel; {
-    DRM_AMDGPU = lib.mkForce no;
-  });
+# The purpose of not compiling amdgpu is to save time; setting this on just
+# one machine means compiling the kernel twice. blacklisting it will do.
+#
+#  amdgpuKernelConfig = lib.optionalAttrs (! cfg.amdgpu) (with lib.kernel; {
+#    DRM_AMDGPU = lib.mkForce no;
+#  });
+  amdgpuKernelConfig = {};
 
   customKernel = baseKernelPackages.kernel.override {
     kernelPatches = (baseKernelPackages.kernel.kernelPatches or []) ++ [
@@ -532,7 +536,7 @@ in
       type = lib.types.bool;
       default = true;
       description = ''
-        When false, DRM_AMDGPU is compiled out and amdgpu is added to
+        When false, amdgpu is added to
         boot.blacklistedKernelModules. Set false on hosts where the AMD
         iGPU is intentionally unused behind a discrete NVIDIA GPU.
       '';

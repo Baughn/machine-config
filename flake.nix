@@ -40,7 +40,6 @@
     };
 
     rustManifestPaths = [
-      "machines/v4/v4proxy/Cargo.toml"
       "tools/aniwatch/Cargo.toml"
       "tools/game-watcher/Cargo.toml"
       "tools/irc-tool/Cargo.toml"
@@ -84,11 +83,6 @@
       magic-reboot-send = pkgs.callPackage ./tools/magic-reboot/sender { };
       nix-build-balancer = pkgs.callPackage ./tools/nix-build-balancer { };
       rolebot = pkgs.callPackage ./tools/rolebot { };
-      v4proxy = pkgs.mkCranePackage {
-        pname = "v4proxy";
-        version = "0.1.0";
-        src = ./machines/v4/v4proxy;
-      };
       victron-monitor = pkgs.callPackage ./tools/victron-monitor { };
     };
 
@@ -130,14 +124,6 @@
         modules = [ ./machines/tsugumi ];
         deployment = {
           targetHost = "tsugumi.local";
-          tags = [ "remote" ];
-        };
-      };
-
-      v4 = {
-        modules = [ ./machines/v4 ];
-        deployment = {
-          targetHost = "v4.brage.info";
           tags = [ "remote" ];
         };
       };
