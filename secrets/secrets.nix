@@ -28,4 +28,6 @@ in
   "claude-api.key.age".publicKeys = [ svein tsugumi ];
   "anidb-user.age".publicKeys = [ svein tsugumi ];
   "anidb-password.age".publicKeys = [ svein tsugumi ];
+
+  "cloudflare-dyndns-token.age".publicKeys = [ svein saya tsugumi ];
 }

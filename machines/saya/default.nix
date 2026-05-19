@@ -36,6 +36,14 @@
 
   # WireGuard secret (machine-specific)
   age.secrets.wireguard-saya.file = ../../secrets/wireguard-saya.age;
+  age.secrets.cloudflare-dyndns-token.file = ../../secrets/cloudflare-dyndns-token.age;
+
+  me.cloudflareDyndns = {
+    enable = true;
+    hostname = "saya.brage.info";
+    zone = "brage.info";
+    tokenFile = config.age.secrets.cloudflare-dyndns-token.path;
+  };
 
   networking.hosts."10.171.0.1" = [ "tsugumi.local" ];
 

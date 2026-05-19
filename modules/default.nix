@@ -5,6 +5,7 @@
     ./agenix.nix
     ./cachy-kernel.nix
     ./cli-tools.nix
+    ./cloudflare-dyndns.nix
     ./dns.nix
     ./firejail.nix
     ./home-manager.nix

@@ -47,5 +47,7 @@
     "claude-api.key".file = ../../secrets/claude-api.key.age;
     "anidb-user".file = ../../secrets/anidb-user.age;
     "anidb-password".file = ../../secrets/anidb-password.age;
+
+    "cloudflare-dyndns-token".file = ../../secrets/cloudflare-dyndns-token.age;
   };
 }

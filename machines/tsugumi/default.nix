@@ -79,6 +79,13 @@ in
     openFirewall = true;
   };
 
+  me.cloudflareDyndns = {
+    enable = true;
+    hostname = "brage.info";
+    zone = "brage.info";
+    tokenFile = config.age.secrets."cloudflare-dyndns-token".path;
+  };
+
   ## WireGuard
   me.wireguard = {
     enable = true;
