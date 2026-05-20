@@ -3,86 +3,140 @@
 let
   cfg = config.me.cloudflareDyndns;
 
-  script = pkgs.writeShellApplication {
-    name = "cloudflare-dyndns";
-    runtimeInputs = with pkgs; [ iproute2 curl jq ];
-    text = ''
-      set -euo pipefail
+  script = pkgs.writers.writePython3Bin "cloudflare-dyndns" { doCheck = false; } ''
+    """Update a Cloudflare AAAA record with this host's stable public IPv6."""
 
-      : "''${HOSTNAME_FQDN:?HOSTNAME_FQDN must be set}"
-      : "''${ZONE_NAME:?ZONE_NAME must be set}"
+    import json
+    import os
+    import subprocess
+    import sys
+    import urllib.error
+    import urllib.request
 
-      token=$(< "''${CREDENTIALS_DIRECTORY}/token")
+    API = "https://api.cloudflare.com/client/v4"
 
-      iface_filter=()
-      if [[ -n "''${INTERFACE:-}" ]]; then
-        iface_filter=(dev "$INTERFACE")
-      fi
 
-      # Stable public IPv6: scope global, not temporary (RFC 4941),
-      # not deprecated, not ULA (fc00::/7).
-      addr=$(ip -6 -json addr show scope global "''${iface_filter[@]}" \
-        | jq -r '
-            [ .[].addr_info[]?
-              | select(.scope == "global")
-              | select((.temporary // false) | not)
-              | select((.deprecated // false) | not)
-              | select((.local | startswith("fc")) or (.local | startswith("fd")) | not)
-              | .local
-            ][0] // ""')
+    def log(msg):
+        print(msg, flush=True)
 
-      if [[ -z "$addr" ]]; then
-        echo "no global IPv6 address available; skipping"
-        exit 0
-      fi
 
-      api="https://api.cloudflare.com/client/v4"
-      auth_header="Authorization: Bearer $token"
-      type_header="Content-Type: application/json"
+    def die(msg, code=1):
+        print(msg, file=sys.stderr, flush=True)
+        sys.exit(code)
 
-      zone_id=$(curl --fail-with-body --silent --show-error \
-        -H "$auth_header" -H "$type_header" \
-        "$api/zones?name=$ZONE_NAME" | jq -r '.result[0].id // empty')
-      if [[ -z "$zone_id" ]]; then
-        echo "zone $ZONE_NAME not found" >&2
-        exit 1
-      fi
 
-      record=$(curl --fail-with-body --silent --show-error \
-        -H "$auth_header" -H "$type_header" \
-        "$api/zones/$zone_id/dns_records?type=AAAA&name=$HOSTNAME_FQDN")
-      record_id=$(jq -r '.result[0].id // empty' <<<"$record")
-      record_content=$(jq -r '.result[0].content // empty' <<<"$record")
+    def pick_ipv6(interface):
+        cmd = ["ip", "-6", "-json", "addr", "show", "scope", "global"]
+        if interface:
+            cmd += ["dev", interface]
+        out = subprocess.run(cmd, check=True, capture_output=True, text=True).stdout
+        for link in json.loads(out):
+            for a in link.get("addr_info", []):
+                if a.get("scope") != "global":
+                    continue
+                if a.get("temporary") or a.get("deprecated"):
+                    continue
+                local = a.get("local", "")
+                # Skip ULA (fc00::/7).
+                if local.startswith(("fc", "fd")):
+                    continue
+                return local
+        return None
 
-      payload=$(jq -nc \
-        --arg name "$HOSTNAME_FQDN" \
-        --arg content "$addr" \
-        '{type:"AAAA", name:$name, content:$content, ttl:120, proxied:false}')
 
-      if [[ -z "$record_id" ]]; then
-        echo "creating AAAA $HOSTNAME_FQDN -> $addr"
-        resp=$(curl --fail-with-body --silent --show-error \
-          -H "$auth_header" -H "$type_header" \
-          -X POST --data "$payload" \
-          "$api/zones/$zone_id/dns_records")
-      elif [[ "$record_content" == "$addr" ]]; then
-        echo "AAAA $HOSTNAME_FQDN already $addr; unchanged"
-        exit 0
-      else
-        echo "updating AAAA $HOSTNAME_FQDN: $record_content -> $addr"
-        resp=$(curl --fail-with-body --silent --show-error \
-          -H "$auth_header" -H "$type_header" \
-          -X PATCH --data "$payload" \
-          "$api/zones/$zone_id/dns_records/$record_id")
-      fi
+    def api(method, url, token, body=None):
+        data = json.dumps(body).encode() if body is not None else None
+        req = urllib.request.Request(
+            url,
+            method=method,
+            data=data,
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            },
+        )
+        try:
+            with urllib.request.urlopen(req) as resp:
+                return json.loads(resp.read())
+        except urllib.error.HTTPError as e:
+            die(f"{method} {url}: HTTP {e.code}: {e.read().decode(errors='replace')}")
 
-      if [[ "$(jq -r '.success' <<<"$resp")" != "true" ]]; then
-        echo "Cloudflare API error: $resp" >&2
-        exit 1
-      fi
-      echo "ok"
-    '';
-  };
+
+    def main():
+        hostname = os.environ["HOSTNAME_FQDN"]
+        zone_name = os.environ["ZONE_NAME"]
+        interface = os.environ.get("INTERFACE") or None
+        state_dir = os.environ["STATE_DIRECTORY"]
+        cache_path = os.path.join(state_dir, "last.json")
+
+        addr = pick_ipv6(interface)
+        if not addr:
+            log("no global IPv6 address available; skipping")
+            return
+
+        # Skip the Cloudflare round-trip if we already pushed this exact
+        # (hostname, addr) and the last run succeeded.
+        try:
+            with open(cache_path) as f:
+                cached = json.load(f)
+            if cached.get("hostname") == hostname and cached.get("addr") == addr:
+                log(f"AAAA {hostname} already {addr} (cached); skipping API")
+                return
+        except (FileNotFoundError, json.JSONDecodeError):
+            pass
+
+        with open(os.path.join(os.environ["CREDENTIALS_DIRECTORY"], "token")) as f:
+            token = f.read().strip()
+
+        zones = api("GET", f"{API}/zones?name={zone_name}", token)
+        if not zones["result"]:
+            die(f"zone {zone_name} not found")
+        zone_id = zones["result"][0]["id"]
+
+        records = api(
+            "GET",
+            f"{API}/zones/{zone_id}/dns_records?type=AAAA&name={hostname}",
+            token,
+        )
+        existing = records["result"][0] if records["result"] else None
+
+        # ttl: 1 is Cloudflare's sentinel for "auto".
+        body = {
+            "type": "AAAA",
+            "name": hostname,
+            "content": addr,
+            "ttl": 1,
+            "proxied": False,
+        }
+
+        if existing is None:
+            log(f"creating AAAA {hostname} -> {addr}")
+            resp = api("POST", f"{API}/zones/{zone_id}/dns_records", token, body)
+        elif existing["content"] == addr:
+            log(f"AAAA {hostname} already {addr}; unchanged")
+            resp = None
+        else:
+            log(f"updating AAAA {hostname}: {existing['content']} -> {addr}")
+            resp = api(
+                "PATCH",
+                f"{API}/zones/{zone_id}/dns_records/{existing['id']}",
+                token,
+                body,
+            )
+
+        if resp is not None and not resp.get("success"):
+            die(f"Cloudflare API error: {resp}")
+
+        tmp = cache_path + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump({"hostname": hostname, "addr": addr}, f)
+        os.replace(tmp, cache_path)
+        log("ok")
+
+
+    if __name__ == "__main__":
+        main()
+  '';
 in
 {
   options.me.cloudflareDyndns = {
@@ -129,6 +183,7 @@ in
       description = "Update Cloudflare AAAA record for ${cfg.hostname}";
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
+      path = [ pkgs.iproute2 ];
       environment = {
         HOSTNAME_FQDN = cfg.hostname;
         ZONE_NAME = cfg.zone;
@@ -139,6 +194,7 @@ in
         Type = "oneshot";
         ExecStart = lib.getExe script;
         LoadCredential = "token:${cfg.tokenFile}";
+        StateDirectory = "cloudflare-dyndns";
         DynamicUser = true;
         ProtectSystem = "strict";
         ProtectHome = true;
