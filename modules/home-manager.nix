@@ -3,6 +3,7 @@
 {
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
+  home-manager.backupFileExtension = "hm-backup";
   home-manager.extraSpecialArgs = { inherit agenix; };
   home-manager.users.svein = { agenix, ... }: {
     imports = [ agenix.homeManagerModules.default ];
@@ -15,6 +16,22 @@
     home.sessionPath = [ "$HOME/.npm-global/bin" ];
 
     home.packages = [ pkgs.nodejs ];
+
+    programs.jujutsu = {
+      enable = true;
+      package = null;  # jujutsu is installed system-wide via cli-tools
+      settings = {
+        ui = {
+          default-command = "log";
+          diff-formatter = [ "difft" "--color=always" "$left" "$right" ];
+          merge-editor = "mergiraf";
+        };
+        user = {
+          name = "Svein Ove Aas";
+          email = "sveina@gmail.com";
+        };
+      };
+    };
 
     home.file = {
       ".claude/CLAUDE.md".text = ''

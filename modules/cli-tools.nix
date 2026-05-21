@@ -6,6 +6,8 @@
     neovim
     git
     jujutsu
+    difftastic
+    mergiraf
 
     # Search & file tools
     ripgrep
