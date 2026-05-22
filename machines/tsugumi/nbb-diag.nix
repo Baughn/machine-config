@@ -4,12 +4,13 @@ let
   diagPubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDM+kyNji+bKFCVgkhh3CwDJg2ihovEoZ/0hzBU7CQrU nbb-diag@saya";
 
   wrapper = pkgs.writeShellScript "nbb-daemon-wrap" ''
-    # Diagnostic wrapper for nix-daemon over ssh-ng.
-    # Captures stdin/stdout/stderr to /var/log/nbb-trace to identify the source
-    # of bytes being written to ssh stdout before nix-daemon's WORKER_MAGIC_2.
+    # Diagnostic wrapper for ssh sessions arriving via the nbb-diag key.
+    # Every session is captured (any SSH_ORIGINAL_COMMAND), so if the
+    # protocol-mismatch bug recurs we can see exactly which commands ran
+    # and what bytes flowed.
     #
-    # CRITICAL: this script must NOT write to its own stdout until it has
-    # exec'd nix-daemon — any byte we leak corrupts the daemon protocol.
+    # CRITICAL: this script must NOT write to its own stdout/stderr until
+    # exec — any leaked byte corrupts the protocol on the other end.
 
     set -u
     export PATH=${lib.makeBinPath [ pkgs.coreutils pkgs.procps ]}:/run/current-system/sw/bin
@@ -19,12 +20,27 @@ let
     TS=$(date -u +%Y%m%dT%H%M%S.%6N 2>/dev/null)
     LOG="$LOGDIR/$TS-$$"
 
+    # Effective command: SSH_ORIGINAL_COMMAND if set, otherwise login shell.
+    # We deny pty so a true interactive login is unlikely, but handle it.
+    CMD="''${SSH_ORIGINAL_COMMAND:-}"
+    if [ -z "$CMD" ]; then
+      CMD="''${SHELL:-/bin/sh}"
+    fi
+
+    # One-line summary in a tail-able session log. printf of a short string
+    # to an O_APPEND file is atomic under PIPE_BUF, so concurrent sessions
+    # won't interleave.
+    printf '%s pid=%s ppid=%s conn=%s cmd=%s\n' \
+      "$TS" "$$" "$PPID" "''${SSH_CONNECTION:-?}" "$CMD" \
+      >>"$LOGDIR/sessions.log" 2>/dev/null || true
+
     # Snapshot server state to a meta file. All ancillary commands redirect
     # into the meta file — none of this hits stdout.
     {
       echo "=== START $TS pid=$$ ppid=$PPID ==="
       echo "SSH_CONNECTION=''${SSH_CONNECTION:-}"
       echo "SSH_ORIGINAL_COMMAND=''${SSH_ORIGINAL_COMMAND:-}"
+      echo "CMD=$CMD"
       echo "PATH=$PATH"
       echo "--- ps -efH ---"
       ps -efH
@@ -39,19 +55,11 @@ let
       echo "=== BEGIN STREAM ==="
     } >"$LOG.meta" 2>&1
 
-    # If this key is being used for something other than nix-daemon, just
-    # dispatch the original command directly without tracing.
-    if [ "''${SSH_ORIGINAL_COMMAND:-}" != "nix-daemon --stdio" ]; then
-      if [ -n "''${SSH_ORIGINAL_COMMAND:-}" ]; then
-        exec ${pkgs.bash}/bin/bash -c "''${SSH_ORIGINAL_COMMAND}"
-      else
-        exec "''${SHELL:-/bin/sh}"
-      fi
-    fi
-
-    # Tee both directions. stderr also passes through to the client so any
-    # nix-daemon error reaches saya — we just observe it.
-    exec /run/current-system/sw/bin/nix-daemon --stdio \
+    # Tee every session regardless of command. nix-daemon, nix-store --serve,
+    # interactive shell — all get captured. bash -c with a simple command
+    # execs into it in-place, so there's no extra process layer for the
+    # common nix-daemon path.
+    exec ${pkgs.bash}/bin/bash -c "$CMD" \
       < <(tee "$LOG.in.bin") \
       1> >(tee "$LOG.out.bin") \
       2> >(tee "$LOG.err.bin" >&2)
