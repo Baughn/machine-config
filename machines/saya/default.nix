@@ -45,8 +45,6 @@
     tokenFile = config.age.secrets.cloudflare-dyndns-token.path;
   };
 
-  networking.hosts."10.171.0.1" = [ "tsugumi.local" ];
-
   # WireGuard hub
   me.wireguard = {
     enable = true;
