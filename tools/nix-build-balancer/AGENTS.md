@@ -64,8 +64,14 @@ Be careful with stdout and stderr:
 
 - Nix build-hook directives such as `# decline` are protocol output and
   must remain on stderr. `nbb-hook` is synchronous so this is direct.
-- Delegated `nix __build-remote` stderr is proxied to stderr by
-  `nbb-hook`'s `delegate.rs`.
+- **Every `try` candidate gets exactly one directive on stderr.** Missing
+  one crashes the Nix daemon with "unexpected EOF reading a line".
+  Emission is enforced by `hook::guard::DirectiveGuard` — keep that
+  invariant; see SPEC §"Hook directive invariant" for the contract.
+- Delegated `nix __build-remote` stderr is parsed by `delegate.rs`:
+  directive lines (`# accept` / `# decline*` / `# postpone`) are
+  intercepted and re-emitted via the guard; non-directive lines are
+  forwarded to our stderr as build logs.
 - Daemon diagnostics use `tracing` with `tracing-subscriber` writing to
   stderr. Filter via the `NBB_LOG` env var (defaults to `info`).
   systemd captures this.
@@ -150,8 +156,9 @@ controller's 5-second watchdog is the time-driven floor:
 - `src/agent/` — TCP server + spool watcher + telemetry sampler.
 - `src/controller/` — TCP poller, Unix-socket hook server, 5s watchdog,
   scheduler entry.
-- `src/hook/` — Nix build-hook driver, candidate codec, `nix
-  __build-remote` delegation.
+- `src/hook/` — Nix build-hook driver (`mod.rs`), candidate codec
+  (`candidate.rs`), `nix __build-remote` delegation (`delegate.rs`),
+  per-candidate directive guard (`guard.rs`).
 - `src/scheduler.rs` — `decide_build_candidate`.
 - `src/estimator.rs` — log-normal EWMA duration estimator (math + tests).
 - `src/persistence/{mod,observations,admissions}.rs` + `schema.sql`.

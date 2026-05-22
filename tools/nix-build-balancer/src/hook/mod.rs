@@ -7,6 +7,12 @@
 //! `nix __build-remote` with the controller-supplied builder line and
 //! proxies the protocol through.
 //!
+//! Invariant: **every candidate is answered with exactly one directive on
+//! stderr before the hook exits or moves to the next candidate.** A missing
+//! directive crashes the Nix daemon with "unexpected EOF reading a line".
+//! Per-candidate emission is enforced by [`guard::DirectiveGuard`], which
+//! emits `# decline` on Drop unless the code explicitly emitted something.
+//!
 //! Sentinel lifecycle (SPEC §"Build observation lifecycle" item 4): the
 //! hook writes `/run/nbb/inflight/<drv_hash>` after accept and unlinks it
 //! on every exit path via a `Drop` guard. The controller's watchdog sweeps
@@ -14,8 +20,10 @@
 
 pub mod candidate;
 pub mod delegate;
+pub mod guard;
 
 use std::io;
+use std::io::Read;
 use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
 
@@ -26,7 +34,8 @@ use crate::protocol::ops::{op, AdmissionFinish, BuildStatus, DecideCandidate, De
 use crate::util::now_ms_u64;
 
 use candidate::{read_hook_candidate, read_hook_settings, HookCandidate};
-use delegate::delegate_remote_build;
+use delegate::{delegate_remote_build, DelegateOutcome};
+use guard::{DeclineKind, DirectiveGuard};
 
 #[derive(Clone, Debug)]
 pub struct HookConfig {
@@ -36,52 +45,102 @@ pub struct HookConfig {
     pub verbosity: String,
 }
 
-/// Top-level hook loop driven by Nix's stdin.
+enum CandidateOutcome {
+    /// Declined this candidate; continue reading the next `try`.
+    Declined,
+    /// Built (success or failure). The hook exits after one accepted build,
+    /// matching Nix's one-process-per-derivation hook model.
+    Finished(io::Result<()>),
+}
+
 pub fn run_hook(cfg: HookConfig) -> io::Result<()> {
     let stdin = io::stdin();
     let mut stdin = stdin.lock();
     let settings = read_hook_settings(&mut stdin)?;
 
     loop {
-        let Some(candidate) = read_hook_candidate(&mut stdin)? else {
-            return Ok(());
-        };
-
-        let decision = match ask_controller(&cfg, &candidate) {
-            Ok(d) => d,
+        let candidate = match read_hook_candidate(&mut stdin) {
+            Ok(Some(c)) => c,
+            Ok(None) => return Ok(()),
             Err(err) => {
-                tracing::warn!(?err, "controller unreachable; declining");
-                Decision::Decline
+                // Mid-`try` parse failure: Nix may already be waiting for a
+                // directive. Emit decline-permanently so it stops asking us.
+                tracing::warn!(?err, "parser failure reading try; decline-permanently");
+                let mut guard = DirectiveGuard::new();
+                guard.emit_decline(DeclineKind::DeclinePermanently);
+                return Err(err);
             }
         };
 
-        let target = match decision {
-            Decision::Decline => {
-                eprintln!("# decline");
-                continue;
-            }
-            Decision::Accept { target } => target,
-        };
+        let mut guard = DirectiveGuard::new();
+        let outcome = handle_candidate(&cfg, &settings, &candidate, &mut stdin, &mut guard);
+        // Force directive emission before continuing, so the `# decline`
+        // fallback (if any) lands before we read the next candidate.
+        drop(guard);
 
-        let sentinel = inflight::write_sentinel(
-            &cfg.inflight_dir,
-            &Sentinel {
-                pid: std::process::id(),
-                drv_path: candidate.drv_path.clone(),
-                admitted_at_ms: now_ms_u64(),
-                predicted_ms: 0,
-            },
-        )?;
-        let _guard = SentinelGuard { path: sentinel };
-
-        let result = delegate_remote_build(&cfg, &settings, &candidate, &target, &mut stdin);
-        let status = match &result {
-            Ok(()) => BuildStatus::Success,
-            Err(_) => BuildStatus::Failure,
-        };
-        let _ = report_admission_finish(&cfg, &candidate.drv_path, status);
-        return result;
+        match outcome {
+            CandidateOutcome::Declined => continue,
+            CandidateOutcome::Finished(result) => return result,
+        }
     }
+}
+
+fn handle_candidate<R: Read>(
+    cfg: &HookConfig,
+    settings: &[(String, String)],
+    candidate: &HookCandidate,
+    stdin: &mut R,
+    guard: &mut DirectiveGuard,
+) -> CandidateOutcome {
+    let decision = match ask_controller(cfg, candidate) {
+        Ok(d) => d,
+        Err(err) => {
+            tracing::warn!(?err, "controller unreachable; declining");
+            Decision::Decline
+        }
+    };
+
+    let target = match decision {
+        Decision::Decline => {
+            guard.decline();
+            return CandidateOutcome::Declined;
+        }
+        Decision::Accept { target } => target,
+    };
+
+    let sentinel_path = match inflight::write_sentinel(
+        &cfg.inflight_dir,
+        &Sentinel {
+            pid: std::process::id(),
+            drv_path: candidate.drv_path.clone(),
+            admitted_at_ms: now_ms_u64(),
+            predicted_ms: 0,
+        },
+    ) {
+        Ok(p) => p,
+        Err(err) => {
+            tracing::warn!(?err, "sentinel write failed; declining");
+            guard.decline();
+            return CandidateOutcome::Declined;
+        }
+    };
+    let _sentinel_guard = SentinelGuard {
+        path: sentinel_path,
+    };
+
+    let outcome = delegate_remote_build(cfg, settings, candidate, &target, stdin, guard);
+    let (status, candidate_outcome) = match outcome {
+        DelegateOutcome::Built => (BuildStatus::Success, CandidateOutcome::Finished(Ok(()))),
+        DelegateOutcome::BuildFailed => (
+            BuildStatus::Failure,
+            CandidateOutcome::Finished(Err(io::Error::other(
+                "delegated nix __build-remote failed",
+            ))),
+        ),
+        DelegateOutcome::Declined => (BuildStatus::Cancelled, CandidateOutcome::Declined),
+    };
+    let _ = report_admission_finish(cfg, &candidate.drv_path, status);
+    candidate_outcome
 }
 
 fn ask_controller(cfg: &HookConfig, candidate: &HookCandidate) -> io::Result<Decision> {

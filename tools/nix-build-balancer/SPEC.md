@@ -45,7 +45,9 @@ storage, and scheduler code.
 frame (start or finish), exit. No async runtime, no retries.
 
 `nbb-hook` runs on the controller host because that's where the user invokes
-`nixos-rebuild`. It speaks only to the local controller's Unix socket.
+`nixos-rebuild`. It speaks only to the local controller's Unix socket. It
+also speaks Nix's stdin/stderr build-hook protocol; see "Hook directive
+invariant" below for the protocol contract.
 
 The current `telemetry` one-shot diagnostic CLI moves to `nbb-agent --once`.
 
@@ -251,6 +253,54 @@ References:
 - Knuth, TAOCP vol. 2 §4.2.2 (Welford's algorithm, the unweighted
   analogue).
 
+## Hook directive invariant
+
+Nix's build-hook protocol is unforgiving: every `try` candidate the daemon
+sends on the hook's stdin MUST be answered with exactly one directive line
+on the hook's stderr — `# accept`, `# decline`, `# decline-permanently`,
+or `# postpone`. If the hook closes its stderr (or exits) while the daemon
+is waiting for that line, the daemon dies with:
+
+```
+error reading the response from the build hook
+error: unexpected EOF reading a line
+```
+
+…taking the user's `nixos-rebuild` (or whatever invoked Nix) with it. This
+is not recoverable from the user's side; the controller has effectively
+poisoned the daemon.
+
+The hook implementation MUST therefore treat directive emission as a
+hard invariant, not a happy-path concern. Specifically:
+
+1. **Every candidate emits exactly one directive before the hook moves
+   on.** This includes the controller-error path (decline), the
+   sentinel-write-error path (decline), the spawn-failure path
+   (decline), the broken-pipe-to-child path (decline), and the
+   "`nix __build-remote` crashed without emitting" path (decline).
+2. **Errors before commit must be translated to declines, not
+   propagated.** `?`-style propagation of an `io::Error` from a code
+   path that has not yet emitted a directive is a protocol violation
+   even if the process exits with a non-zero status — Nix is reading
+   stderr, not waiting on exit status.
+3. **The implementation enforces (1) and (2) with a per-candidate guard
+   object** (`hook::guard::DirectiveGuard`). The guard tracks an
+   `emitted` flag; explicit `accept` / `decline` / `emit_decline(kind)`
+   set it; `Drop` emits `# decline` if it is still unset. Callers may
+   `?`-propagate freely once a `DirectiveGuard` is in scope — the worst
+   that happens is a fallback decline.
+4. **After `# accept`, the commitment is one-way.** Failures from there
+   on are real build failures (non-zero hook exit), not protocol
+   violations. The daemon is no longer reading stderr for directives.
+5. **Mid-`try` parse failures from Nix's stdin emit
+   `# decline-permanently` before exiting.** A partial `try` means Nix
+   may already be waiting on stderr; declining permanently lets it
+   continue with local builds instead of looping back to a now-dead
+   hook.
+
+The guard pattern is overkill for the happy path and exactly right for
+every other path. Do not "simplify" it away.
+
 ## Build observation lifecycle
 
 Invariants the spec requires; the implementation may choose the mechanism:
@@ -304,6 +354,17 @@ modes that bit us in the prototype.
 - Source-tree-hash mismatch closes connection without further reads.
 - Nix build-hook protocol (`read_nix_*` / `write_nix_*`) round-trips a `try`
   candidate including padding edges (0, 7, 8, 9 byte strings).
+
+**Hook directive guard** (`src/hook/guard.rs`)
+- Explicit `decline()`, `accept(uri)`, and each `emit_decline(kind)`
+  variant write exactly the expected directive bytes.
+- A guard dropped without any explicit emission writes `# decline`. This
+  is the load-bearing invariant: any pre-accept code path that bails out
+  via `?` MUST still leave Nix with a directive.
+- A second emission after the first is a no-op (no double-decline, no
+  accept-then-decline race).
+- The guard takes a `DirectiveSink` so tests capture the bytes without
+  racing against `std::io::stderr()`.
 
 **Scheduler decisions**
 - Empty history → all targets get `unknown_p95_ms`; pick stays deterministic
