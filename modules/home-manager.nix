@@ -17,6 +17,18 @@
 
     home.packages = [ pkgs.nodejs ];
 
+    programs.neovim = {
+      enable = true;
+      withPython3 = false;
+      withRuby = false;
+      extraConfig = ''
+        set expandtab
+        set tabstop=2
+        set softtabstop=2
+        set shiftwidth=2
+      '';
+    };
+
     programs.jujutsu = {
       enable = true;
       package = null;  # jujutsu is installed system-wide via cli-tools

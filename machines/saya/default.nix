@@ -48,20 +48,26 @@
   # WireGuard hub
   me.wireguard = {
     enable = true;
-    address = [ "10.42.0.1/24" "fd10:42::1/64" ];
+    address = [ "10.42.0.1/24" ];
     privateKeyFile = config.age.secrets.wireguard-saya.path;
     listenPort = 51820;
     peers = [
       # Kim
       {
         publicKey = "SKfwxWjSrPiwbLSvvOzkrqub/8iOobwkDKWoiCAsXAo=";
-	allowedIPs = [ "10.42.0.2/32" ];
+        allowedIPs = [ "10.42.0.2/32" ];
       }
       # jrddunbr
       {
         publicKey = "QPSh4TROwtw54n9Xb/VvCHN0TQpm6417p7Gl+//7VVg=";
-	allowedIPs = [ "10.42.0.3/32" ];
-	endpoint = "ctha.ja4.org:51820";
+        allowedIPs = [ "10.42.0.3/32" ];
+        endpoint = "ctha.ja4.org:51820";
+      }
+      # Xon
+      {
+        publicKey = "rPknmibG5ylzOEn//qYUGIdRdKqIUBxihNDzjtjMplI=";
+        allowedIPs = [ "10.42.0.4/32" ];
+        endpoint = "106.68.3.57:51830";
       }
     ];
   };
@@ -164,11 +170,11 @@
       {
         hostName = "tsugumi.local";
         sshUser = "svein";
-	sshKey = "/home/svein/.ssh/id_ed25519_nbb_diag";
-	maxJobs = 16;
+        sshKey = "/home/svein/.ssh/id_ed25519_nbb_diag";
+        maxJobs = 16;
         protocol = "ssh-ng";
         systems = [ "x86_64-linux" ];
-	supportedFeatures = [ "nixos-test" "kvm" "big-parallel" ];
+        supportedFeatures = [ "nixos-test" "kvm" "big-parallel" ];
       }
     ];
   };
