@@ -35,7 +35,7 @@ in
           };
           persistentKeepalive = lib.mkOption {
             type = lib.types.nullOr lib.types.int;
-            default = null;
+            default = 60;
             description = "Seconds between keepalive packets. Set for peers behind NAT.";
           };
         };
