@@ -50,6 +50,7 @@ in
     ./rendezvous.nix
     ./victron-monitor.nix
     ./nbb-diag.nix
+    ./execsnoop.nix
   ];
 
   ## Boot
