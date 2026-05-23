@@ -49,8 +49,8 @@ in
     ./redis.nix
     ./rendezvous.nix
     ./victron-monitor.nix
-    ./nbb-diag.nix
-    ./execsnoop.nix
+    #./nbb-diag.nix
+    #./execsnoop.nix
   ];
 
   ## Boot

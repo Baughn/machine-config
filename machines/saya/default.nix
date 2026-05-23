@@ -137,7 +137,7 @@
 
   nix.settings.cores = 16;
   me.nixBuildBalancer = {
-    enable = true;
+    #enable = true;
     role = "both";
     scheduler.enable = true;
     agentCapacity = 16;
@@ -159,7 +159,7 @@
   };
 
   me.remoteBuilds = {
-    enable = true;
+    #enable = true;
     builders = [
       {
         hostName = "tsugumi.local";
