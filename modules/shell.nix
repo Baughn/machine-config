@@ -6,7 +6,6 @@ let
     if cfg.userFailedUnitsExclude == []
     then "cat"
     else "grep -Ev '${lib.concatStringsSep "|" cfg.userFailedUnitsExclude}'";
-  nixpkgsLastModified = flakeSelf.inputs.nixpkgs.lastModified;
 in
 {
   options.me.shell.userFailedUnitsExclude = lib.mkOption {
@@ -41,7 +40,10 @@ in
           (( EUID == 0 )) && echo -n "%F{red} ROOT%f "
         }
         _flake_age_warning() {
-          local age=$(( ($(date +%s) - ${toString nixpkgsLastModified}) / 86400 ))
+          local last
+          [[ -r /etc/nixpkgs-last-modified ]] || return
+          last=$(< /etc/nixpkgs-last-modified)
+          local age=$(( ($(date +%s) - last) / 86400 ))
           if (( age >= 4 )); then
             echo -n "%F{yellow}[flake ''${age}d old]%f "
           fi
@@ -118,6 +120,9 @@ in
         "HIST_IGNORE_ALL_DUPS"
       ];
     };
+
+    environment.etc."nixpkgs-last-modified".text =
+      toString flakeSelf.inputs.nixpkgs.lastModified;
 
     environment.sessionVariables = {
       "EDITOR" = "nvim";
