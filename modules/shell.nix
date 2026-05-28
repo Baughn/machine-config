@@ -44,7 +44,7 @@ in
           [[ -r /etc/nixpkgs-last-modified ]] || return
           last=$(< /etc/nixpkgs-last-modified)
           local age=$(( ($(date +%s) - last) / 86400 ))
-          if (( age >= 4 )); then
+          if (( age >= 7 )); then
             echo -n "%F{yellow}[flake ''${age}d old]%f "
           fi
         }

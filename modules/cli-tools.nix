@@ -48,8 +48,10 @@
     restic
 
     # Media
+    mediainfo
     mpv
     rtorrent
+    yt-dlp
   ];
 
   programs.htop.enable = true;
