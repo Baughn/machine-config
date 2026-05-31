@@ -45,6 +45,19 @@
       };
     };
 
+    # Force grayscale antialiasing. saya's monitors have mismatched subpixel
+    # layouts (one IPS RGB-stripe, three QD-OLED with triangular subpixels, one
+    # of them rotated to portrait), so no single subpixel order is correct.
+    # Subpixel rendering produced color fringing (thin black lines turning red)
+    # in fontconfig-driven apps like Chrome. "none" => rgba=none via mode=assign,
+    # which overrides any stale/DE-injected value. See also the system-level
+    # fonts.fontconfig.subpixel.rgba in machines/saya/default.nix.
+    fonts.fontconfig = {
+      antialiasing = true;
+      hinting = "slight";
+      subpixelRendering = "none";
+    };
+
     home.file = {
       ".claude/CLAUDE.md".text = ''
         - If there is a battle tested, well known package that can help us, you can recommend it. Ask the user's opinion before proceeding.

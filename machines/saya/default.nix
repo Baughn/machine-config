@@ -132,13 +132,14 @@
   programs.niri.enable = true;
 
   # Desktop packages (not shared across machines)
-  environment.systemPackages = [
-    pkgs.ghostty
-    pkgs.firefox
-    pkgs.discord
-    pkgs.nvtopPackages.nvidia
-    pkgs.btop-cuda
-    pkgs.zed-editor
+  environment.systemPackages = with pkgs; [
+    ghostty
+    google-chrome
+    firefox
+    discord
+    nvtopPackages.nvidia
+    btop-cuda
+    zed-editor
   ];
 
   nix.settings.cores = 16;
