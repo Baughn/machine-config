@@ -131,6 +131,23 @@
   drm-atomic-log.enable = true;
   programs.niri.enable = true;
 
+  # fwupd is pulled in transitively by Plasma. Its fwupd-refresh.timer runs
+  # `fwupdmgr refresh` as the unprivileged `fwupd-refresh` system user, but
+  # fwupd 2.x performs the refresh through the daemon, gated by the polkit
+  # action org.freedesktop.fwupd.refresh-remote (allow_active=yes,
+  # allow_any=auth_admin). A system service has no logind session, so it falls
+  # through to allow_any and the timer fails with "Failed to obtain auth".
+  # Neither fwupd's own polkit rule nor the NixOS module grants this user the
+  # action, so grant it here. TODO: upstream into nixos/modules/services/hardware/fwupd.nix.
+  security.polkit.extraConfig = lib.mkIf config.services.fwupd.enable ''
+    polkit.addRule(function(action, subject) {
+      if (action.id == "org.freedesktop.fwupd.refresh-remote" &&
+          subject.user == "fwupd-refresh") {
+        return polkit.Result.YES;
+      }
+    });
+  '';
+
   # Desktop packages (not shared across machines)
   environment.systemPackages = with pkgs; [
     ghostty
