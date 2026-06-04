@@ -9,6 +9,7 @@
     difftastic
     mergiraf
     gh
+    bat
 
     # Search & file tools
     ripgrep
@@ -58,4 +59,8 @@
 
   programs.htop.enable = true;
   programs.mtr.enable = true;
+
+  environment.sessionVariables = {
+      PAGER = "${pkgs.bat}/bin/bat";
+  };
 }
