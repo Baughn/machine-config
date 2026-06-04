@@ -21,11 +21,19 @@
       enable = true;
       withPython3 = false;
       withRuby = false;
+      plugins = [ pkgs.vimPlugins.nvim-treesitter.withAllGrammars ];
       extraConfig = ''
         set expandtab
         set tabstop=2
         set softtabstop=2
         set shiftwidth=2
+      '';
+      initLua = ''
+        -- Start Treesitter highlighting (and language injections) for any
+        -- buffer whose filetype has a parser. pcall: silently no-op otherwise.
+        vim.api.nvim_create_autocmd('FileType', {
+          callback = function() pcall(vim.treesitter.start) end,
+        })
       '';
     };
 

@@ -35,7 +35,7 @@ in
         ll = "ls -l";
       };
 
-      interactiveShellInit = ''
+      interactiveShellInit = /* bash */ ''
         _root_indicator() {
           (( EUID == 0 )) && echo -n "%F{red} ROOT%f "
         }
