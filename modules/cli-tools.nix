@@ -8,10 +8,12 @@
     jujutsu
     difftastic
     mergiraf
+    gh
 
     # Search & file tools
     ripgrep
     fd
+    jq
 
     # System inspection & monitoring
     binutils  # Provides strings etc.
