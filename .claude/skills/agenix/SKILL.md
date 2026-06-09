@@ -1,7 +1,7 @@
 ---
 name: agenix
 description: >
-  Manage agenix-encrypted secrets in the NixOS repository at ~/cachy-nix.
+  Manage agenix-encrypted secrets in the NixOS repository at ~/nixos.
   Use when: adding a new secret for a NixOS service, changing which hosts
   can decrypt a secret, rekeying secrets after host changes, or wiring
   secrets into NixOS modules/systemd services. Triggers on mentions of
@@ -29,12 +29,8 @@ Always read `secrets/secrets.nix` first. It defines:
 - User SSH keys (for encrypting during development)
 - `allKeys` — convenience list of all keys
 
-Current keys:
-
-```
-saya   = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHkaJd61/WV8hrah8wsuuTVmTBM4JsU1UWJMQyABaHVY
-svein  = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGppkBITukYVejPl3BiRmCDSfdrItzM59XpwwK7W/mXH
-```
+Don't trust any cached key list — secrets.nix is the source of truth for
+which keys exist and which machines they belong to.
 
 ## Adding a new secret
 
@@ -56,8 +52,8 @@ Collect recipient keys from secrets.nix for the entry, then use `age` directly:
 ```bash
 # From a string (use echo -n to avoid trailing newline):
 echo -n "secret value" | nix run nixpkgs#age -- --encrypt \
-  -r "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHkaJd61/WV8hrah8wsuuTVmTBM4JsU1UWJMQyABaHVY" \
-  -r "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGppkBITukYVejPl3BiRmCDSfdrItzM59XpwwK7W/mXH" \
+  -r "ssh-ed25519 <machine host key from secrets.nix>" \
+  -r "ssh-ed25519 <svein user key from secrets.nix>" \
   -o secrets/my-secret.age
 
 # From a file:
@@ -66,17 +62,19 @@ nix run nixpkgs#age -- --encrypt \
   -o secrets/my-secret.age /path/to/plaintext
 ```
 
-Run from repo root (`~/cachy-nix`).
+Run from repo root (`~/nixos`).
 
 ### 3. Declare in NixOS config
 
-For shared secrets, add to `modules/agenix/nixos.nix`:
+For secrets used by a module, declare them inside that module (see
+`modules/magic-reboot.nix` for an example). For tsugumi's service secrets,
+add to `machines/tsugumi/secrets.nix`:
 
 ```nix
-age.secrets.my-secret.file = ../../secrets/my-secret.age;
+age.secrets."my-secret".file = ../../secrets/my-secret.age;
 ```
 
-For machine-specific secrets, add to the machine's `default.nix`:
+For other machine-specific secrets, add to the machine's `default.nix`:
 
 ```nix
 age.secrets.my-secret = {
@@ -112,13 +110,13 @@ The recipient keys must match what `secrets.nix` specifies.
 ## Rekeying (after adding/removing keys in secrets.nix)
 
 ```bash
-cd /home/svein/cachy-nix/secrets && agenix -r
+cd /home/svein/nixos/secrets && agenix -r
 ```
 
 Or without agenix on PATH:
 
 ```bash
-cd /home/svein/cachy-nix/secrets && nix run github:ryantm/agenix -- -r
+cd /home/svein/nixos/secrets && nix run github:ryantm/agenix -- -r
 ```
 
 This decrypts each `.age` file with your SSH key and re-encrypts for the updated

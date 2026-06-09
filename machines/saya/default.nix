@@ -160,42 +160,6 @@
   ];
 
   nix.settings.cores = 16;
-  me.nixBuildBalancer = {
-    #enable = true;
-    role = "both";
-    scheduler.enable = true;
-    agentCapacity = 16;
-    targets = {
-      saya = {
-        tcpAddr = "127.0.0.1:8765";
-        capacity = 16;
-        storeUri = "auto";
-        builderLine = "@:auto x86_64-linux - 16 1 - - -";
-        isLocal = true;
-      };
-      tsugumi = {
-        tcpAddr = "10.171.0.1:8765";
-        capacity = 16;
-        storeUri = "ssh-ng://svein@tsugumi.local";
-        builderLine = "ssh-ng://svein@tsugumi.local x86_64-linux /home/svein/.ssh/id_ed25519_nbb_diag 16 1 nixos-test,kvm,big-parallel - -";
-      };
-    };
-  };
-
-  me.remoteBuilds = {
-    #enable = true;
-    builders = [
-      {
-        hostName = "tsugumi.local";
-        sshUser = "svein";
-        sshKey = "/home/svein/.ssh/id_ed25519_nbb_diag";
-        maxJobs = 16;
-        protocol = "ssh-ng";
-        systems = [ "x86_64-linux" ];
-        supportedFeatures = [ "nixos-test" "kvm" "big-parallel" ];
-      }
-    ];
-  };
 
   system.stateVersion = "25.11";
 }

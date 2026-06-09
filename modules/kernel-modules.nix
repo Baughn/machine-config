@@ -10,7 +10,7 @@ in
   # /bin/false doesn't exist. But that's fine, the command just has to fail.
   boot.extraModprobeConfig = lib.mkIf (hardBlockedModules != [ ]) (
     lib.concatMapStringsSep "\n"
-      (name: "install /bin/false")
+      (name: "install ${name} /bin/false")
       hardBlockedModules
   );
 }

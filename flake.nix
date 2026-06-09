@@ -1,4 +1,6 @@
 {
+  description = "NixOS configuration for saya (desktop) and tsugumi (server)";
+
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";

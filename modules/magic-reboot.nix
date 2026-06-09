@@ -7,7 +7,15 @@ let
 in
 {
   options.me.magicReboot = {
-    enable = lib.mkEnableOption "magic packet emergency reboot";
+    enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Magic packet emergency reboot. On by default: every machine should
+        be remotely rebootable when it wedges, and the packet is
+        authenticated with the shared key in secrets/magic-reboot.key.age.
+      '';
+    };
 
     port = lib.mkOption {
       type = lib.types.port;

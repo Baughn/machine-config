@@ -49,8 +49,6 @@ in
     ./redis.nix
     ./rendezvous.nix
     ./victron-monitor.nix
-    #./nbb-diag.nix
-    #./execsnoop.nix
   ];
 
   ## Boot
@@ -66,19 +64,9 @@ in
 
   me.cachy-kernel.enable = true;
 
-  ## GPU
-  hardware.nvidia.nvidiaPersistenced = true;
-
   ## Networking
   networking.hostName = "tsugumi";
   me.security.enable = true;
-  me.nixBuildBalancer = {
-    enable = true;
-    role = "agent";
-    agentListen = "10.171.0.1:8765";
-    agentCapacity = 16;
-    openFirewall = true;
-  };
 
   me.cloudflareDyndns = {
     enable = true;

@@ -4,8 +4,10 @@
   services.resolved = {
     enable = true;
     settings.Resolve = {
-      dnssec = "yes";
-      domains = [ "~." ];
+      # Keys here are literal resolved.conf INI keys — case matters.
+      # (Lowercase dnssec/domains were silently ignored for months.)
+      DNSSEC = "allow-downgrade";
+      Domains = [ "~." ];
       DNS = [
         "8.8.8.8#dns.google"
         "8.8.4.4#dns.google"
