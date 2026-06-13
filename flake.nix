@@ -13,7 +13,7 @@
     ganbot.url = "github:Baughn/ganbot";
     ganbot.inputs.nixpkgs.follows = "nixpkgs";
     ganbot.inputs.crane.follows = "crane";
-    dessplay.url = "github:Baughn/dessplay";
+    dessplay.url = "github:baughn/dessplay";
     dessplay.inputs.nixpkgs.follows = "nixpkgs";
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";

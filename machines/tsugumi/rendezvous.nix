@@ -2,14 +2,14 @@
 
 let
   cfg = config.services.rendezvous;
-  pkg = dessplay.packages.${pkgs.stdenv.hostPlatform.system}.rendezvous;
+  pkg = dessplay.packages.${pkgs.stdenv.hostPlatform.system}.default;
 in
 {
   options.services.rendezvous = {
     enable = lib.mkEnableOption "DessPlay Rendezvous Server";
     bind = lib.mkOption {
       type = lib.types.str;
-      default = "[::]:4433";
+      default = "[::]:9876";
       description = "Address and port to bind to";
     };
     passwordFile = lib.mkOption {
@@ -36,10 +36,13 @@ in
       script = ''
         export DESSPLAY_PASSWORD="$(< "$CREDENTIALS_DIRECTORY/rendezvous.password")"
         ${lib.optionalString (cfg.anidbUserFile != null) ''
-          export ANIDB_USER="$(< "$CREDENTIALS_DIRECTORY/anidb.user")"
-          export ANIDB_PASSWORD="$(< "$CREDENTIALS_DIRECTORY/anidb.password")"
+          export DESSPLAY_ANIDB_USER="$(< "$CREDENTIALS_DIRECTORY/anidb.user")"
+          export DESSPLAY_ANIDB_PASSWORD="$(< "$CREDENTIALS_DIRECTORY/anidb.password")"
         ''}
-        exec ${pkg}/bin/dessplay-rendezvous --bind ${cfg.bind} --data-dir "$STATE_DIRECTORY"
+        exec ${pkg}/bin/dessplay-rendezvous \
+          --listen ${cfg.bind} \
+          --db "$STATE_DIRECTORY/rendezvous.db" \
+          --cert-dir "$STATE_DIRECTORY"
       '';
       serviceConfig = {
         Restart = "always";
@@ -56,8 +59,9 @@ in
         NoNewPrivileges = true;
         RestrictAddressFamilies = [ "AF_INET" "AF_INET6" ];
       };
+      environment.RUST_LOG = "debug";
     };
 
-    networking.firewall.allowedUDPPorts = [ 4433 ];
+    networking.firewall.allowedUDPPorts = [ 9876 ];
   };
 }

@@ -48,6 +48,7 @@ in
     ./monitoring.nix
     ./redis.nix
     ./rendezvous.nix
+    ./dessplay-seeder.nix
     ./victron-monitor.nix
   ];
 
@@ -90,6 +91,13 @@ in
     passwordFile = config.age.secrets."rendezvous.key".path;
     anidbUserFile = config.age.secrets."anidb-user".path;
     anidbPasswordFile = config.age.secrets."anidb-password".path;
+  };
+
+  ## DessPlay Seeder
+  services.dessplay-seeder = {
+    enable = true;
+    passwordFile = config.age.secrets."rendezvous.key".path;
+    mediaRoots = [ "/home/svein/Sync/Watched" "/home/svein/Anime" ];
   };
 
   # Power management
