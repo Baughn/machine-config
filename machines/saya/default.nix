@@ -1,4 +1,4 @@
-{ config, lib, pkgs, flakeSelf, ... }:
+{ config, lib, pkgs, dessplay, flakeSelf, ... }:
 
 {
   imports = [
@@ -157,6 +157,7 @@
     nvtopPackages.nvidia
     btop-cuda
     zed-editor
+    dessplay.packages.${pkgs.system}.default
   ];
 
   nix.settings.cores = 16;
