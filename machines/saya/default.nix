@@ -157,7 +157,13 @@
     nvtopPackages.nvidia
     btop-cuda
     zed-editor
-    dessplay.packages.${pkgs.system}.default
+    (orca-slicer.override {
+      withNvidiaGLWorkaround = true;  # I have nvidia
+      glew = (glew.override {
+          enableEGL = false;
+      });
+    })
+    prusa-slicer
   ];
 
   nix.settings.cores = 16;
