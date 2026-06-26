@@ -3,7 +3,7 @@
 {
   imports = [
     ../../modules
-    ../../kwin-bug/drm-atomic-log.nix
+    #../../kwin-bug/drm-atomic-log.nix
     ./hardware-configuration.nix
     ./ganbot.nix
     ./game-watcher.nix
@@ -128,7 +128,7 @@
   services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = "svein";
   services.desktopManager.plasma6.enable = true;
-  drm-atomic-log.enable = true;
+  #drm-atomic-log.enable = true;
   programs.niri.enable = true;
 
   # fwupd is pulled in transitively by Plasma. Its fwupd-refresh.timer runs
