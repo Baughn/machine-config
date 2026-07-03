@@ -76,6 +76,20 @@
     10.42.0.2 escher
   '';
 
+  # NFS mount of tsugumi's home export, over WireGuard (wg1)
+  fileSystems."/tsugumi" = {
+    device = "10.171.0.1:/home/svein";
+    fsType = "nfs";
+    options = [
+      "x-systemd.automount"
+      "noauto"
+      "x-systemd.idle-timeout=600"
+      "x-systemd.mount-timeout=10"
+      "_netdev"
+      "nconnect=4"
+    ];
+  };
+
   networking.wireguard.interfaces.wg1 = {
     ips = [ "10.171.0.6/24" ];
     privateKeyFile = config.age.secrets.wireguard-saya.path;
