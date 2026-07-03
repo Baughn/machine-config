@@ -162,6 +162,9 @@
     });
   '';
 
+  # Wooting keyboard (wootility udev access)
+  services.udev.packages = [ pkgs.wooting-udev-rules ];
+
   # Desktop packages (not shared across machines)
   environment.systemPackages = with pkgs; [
     ghostty

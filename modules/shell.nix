@@ -127,6 +127,7 @@ in
     environment.sessionVariables = {
       "EDITOR" = "nvim";
       "LESS" = "FRX";
+      "CLAUDE_AFK_TIMEOUT_MS" = "2147483647";
     };
 
     programs.tmux = {
