@@ -14,6 +14,7 @@
     ./mdns.nix
     ./nix.nix
     ./nix-build-balancer.nix
+    ./nix-deploy.nix
     ./remote-builds.nix
     ./security.nix
     ./shell.nix

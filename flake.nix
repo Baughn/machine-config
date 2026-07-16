@@ -47,6 +47,7 @@
       "tools/irc-tool/Cargo.toml"
       "tools/magic-reboot/sender/Cargo.toml"
       "tools/nix-build-balancer/Cargo.toml"
+      "tools/nix-deploy/Cargo.toml"
       "tools/rolebot/Cargo.toml"
       "tools/victron-monitor/Cargo.toml"
     ];

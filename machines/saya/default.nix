@@ -7,6 +7,7 @@
     ./hardware-configuration.nix
     ./ganbot.nix
     ./game-watcher.nix
+    ./nix-deploy.nix
     ./steam.nix
     ./restic.nix
   ];

@@ -1,0 +1,13 @@
+# Machine manifest for nix-deploy (see docs/nix-deploy-design.md).
+# Machines deploy in `order`; the local machine must sort last.
+
+[settings]
+reboot_timeout_secs = 300
+
+[machines.tsugumi]
+target = "svein@tsugumi.local"
+order = 1
+
+[machines.saya]
+local = true
+order = 2
