@@ -64,6 +64,9 @@ in
   };
 
   me.cachy-kernel.enable = true;
+  # sched_ext's enable path can deadlock against PID 1's cgroup/PSI setup at
+  # boot (hit 2026-07-21, kernel 7.1.3); a server doesn't need bpfland anyway.
+  me.cachy-kernel.scheduler = null;
 
   ## Networking
   networking.hostName = "tsugumi";

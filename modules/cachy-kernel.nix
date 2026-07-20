@@ -575,6 +575,12 @@ in
       "vm.dirty_background_bytes" = 67108864;
       "vm.dirty_writeback_centisecs" = 1500;
 
+      # Panic and reboot instead of hanging forever if the kernel wedges
+      # (hung_task fires on tasks stuck in D state >122s). Both machines can
+      # be headless, so self-recovery beats a preserved hang.
+      "kernel.hung_task_panic" = 1;
+      "kernel.panic" = 30;
+
       "kernel.nmi_watchdog" = 0;
       "kernel.printk" = "3 3 3 3";
       "kernel.kptr_restrict" = 2;
