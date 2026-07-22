@@ -65,10 +65,16 @@ fn structural_reasons(target: &Target, old: &str, new: &str) -> Vec<String> {
         let new_dest = resolve_link(&Target::Local { sudo: false }, &format!("{new}/{link}"));
         match (old_dest, new_dest) {
             (Some(a), Some(b)) if a != b => {
-                reasons.push(format!("{link}: {} -> {}", store_name(&a), store_name(&b)));
+                reasons.push(format!(
+                    "{link}: {} -> {}",
+                    store_entry_name(&a),
+                    store_entry_name(&b)
+                ));
             }
-            (Some(a), None) => reasons.push(format!("{link} removed (was {})", store_name(&a))),
-            (None, Some(b)) => reasons.push(format!("{link} added ({})", store_name(&b))),
+            (Some(a), None) => {
+                reasons.push(format!("{link} removed (was {})", store_entry_name(&a)));
+            }
+            (None, Some(b)) => reasons.push(format!("{link} added ({})", store_entry_name(&b))),
             _ => {}
         }
     }
@@ -151,6 +157,19 @@ pub fn store_name(path: &str) -> &str {
     base.split_once('-').map_or(base, |(_, name)| name)
 }
 
+/// The name of the store entry a path lives under, so files inside a store
+/// directory report the versioned directory rather than the bare file name:
+/// `/nix/store/<hash>-initrd-linux-6.15/initrd` → `initrd-linux-6.15`.
+fn store_entry_name(path: &str) -> &str {
+    match path.strip_prefix("/nix/store/") {
+        Some(rest) => {
+            let entry = rest.split('/').next().unwrap_or(rest);
+            entry.split_once('-').map_or(entry, |(_, name)| name)
+        }
+        None => store_name(path),
+    }
+}
+
 /// Print a human-readable package diff via `nvd`, when it is installed and
 /// the old closure is present locally. Purely informational; never fails.
 pub fn show_nvd_diff(old: &str, new: &str) {
@@ -174,6 +193,23 @@ mod tests {
         assert_eq!(store_name("/nix/store/abc123-kwin-6.6.3"), "kwin-6.6.3");
         assert_eq!(store_name("abc123-linux-6.15.4"), "linux-6.15.4");
         assert_eq!(store_name("no-slash"), "slash");
+    }
+
+    #[test]
+    fn entry_name_uses_store_directory() {
+        assert_eq!(
+            store_entry_name("/nix/store/abc123-initrd-linux-6.15.4/initrd"),
+            "initrd-linux-6.15.4"
+        );
+        assert_eq!(
+            store_entry_name("/nix/store/abc123-linux-6.15.4/bzImage"),
+            "linux-6.15.4"
+        );
+        assert_eq!(
+            store_entry_name("/nix/store/abc123-systemd-257.6"),
+            "systemd-257.6"
+        );
+        assert_eq!(store_entry_name("/run/booted-system/initrd"), "initrd");
     }
 
     fn names(list: &[&str]) -> BTreeSet<String> {
