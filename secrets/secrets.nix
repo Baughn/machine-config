@@ -5,8 +5,10 @@ let
 
   # User keys — for encrypting secrets during development
   svein = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGppkBITukYVejPl3BiRmCDSfdrItzM59XpwwK7W/mXH svein@saya";
+  # kaho has no agenix-managed host key; home-manager decrypts with the user key.
+  sveinKaho = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICeiqQnylmCVUzTNNcYRWKp/38dB5i3aGBs7ZB11MjkS svein@kaho.local";
 
-  allKeys = [ svein saya tsugumi ];
+  allKeys = [ svein sveinKaho saya tsugumi ];
 in
 {
   "wireguard-saya.age".publicKeys = [ svein saya ];

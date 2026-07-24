@@ -2,14 +2,17 @@
 
 ## Status
 
-Today this repo configures two NixOS machines, plus a rescue image:
+Today this repo configures two NixOS machines, one nix-darwin machine, plus a rescue image.
+The repo is checked out on several of them — run `hostname` to see which machine you are on.
 
-- **saya** — Desktop (NixOS, x86_64-linux). CachyOS kernel, NVIDIA GPU, KDE Plasma 6. *(here today)*
+- **saya** — Desktop (NixOS, x86_64-linux). CachyOS kernel, NVIDIA GPU, KDE Plasma 6.
 - **tsugumi** — Server (NixOS, x86_64-linux). ZFS storage, WireGuard hub, web/media/game/bot services.
 - **saya-installer** — Netboot rescue/installer image for saya. Built as a separate
   `nixosConfigurations` output (not a Colmena node) and covered by a VM test in
   `tests/saya-installer-vm.nix` (`nix flake check`).
-- **kaho** — Laptop (nix-darwin, aarch64-darwin). macOS with home-manager. *(planned)*
+- **kaho** — Laptop (nix-darwin, aarch64-darwin). macOS with home-manager, homebrew for
+  GUI apps, Determinate Nix (`nix.enable = false`). Built as `darwinConfigurations.kaho`;
+  entirely self-contained under `machines/kaho/` — it does not import `modules/`.
 
 Former machines: **v4**, an IPv4-proxy VPS forwarding to tsugumi, was dropped
 (flake in May 2026, remaining files in June 2026). Its config and the v4proxy
@@ -18,9 +21,10 @@ Rust crate live on in git history if a successor appears; `modules/ssh-auth.nix`
 
 Multi-platform support was scaffolded once and removed: the abstraction
 (`mkPlatformModule`, paired `nixos.nix` / `darwin.nix` files) wasn't paying
-for itself with no darwin machine actually present. We'll reintroduce a
-platform split when kaho lands and a real darwin module forces concrete
-requirements.
+for itself. Now that kaho exists it is deliberately self-contained instead:
+`modules/` stays NixOS-only, and kaho keeps its own config (including its own
+home-manager setup) under `machines/kaho/`. Extract something into a shared
+cross-platform module only when the duplication actually hurts.
 
 ## Architecture
 
@@ -60,11 +64,9 @@ across machines.
   or `./deploy-all.sh`.
 - **VCS sync:** `./push.sh` (squash into the running "Bumps" commit, set master, git push;
   pings Discord on minecraft/ssh-key changes), `./pull.sh` (fetch + rebase onto trunk).
-- **Tests:** `nix flake check` builds the machines and runs the saya-installer VM test.
-- **kaho (planned):** likely a separate `darwinConfigurations.kaho` output. Adding it will
-  require deciding how Linux-only modules opt out — `lib.mkIf pkgs.stdenv.isLinux` inside
-  each module works; a `pkgs`-conditional `imports` list does *not* (it recurses through
-  config). A separate `modules/darwin.nix` entry point that imports a subset is also viable.
+- **kaho (local):** `./deploy-kaho.sh` on kaho itself (wraps `sudo darwin-rebuild switch --flake .#kaho`).
+- **Tests:** `nix flake check` builds the machines and runs the saya-installer VM test
+  (x86_64-linux only; on kaho, verify with `nix build .#darwinConfigurations.kaho.system`).
 
 ## KWin debugging (temporary)
 
@@ -79,8 +81,13 @@ fix lands upstream, the overlay and the drm-atomic-log import should both go.
 ## Flake structure
 
 ```
-flake.nix                  # inputs, machine list, packages, checks, devShell, colmenaHive
+flake.nix                  # inputs, machine list, packages, checks, devShell, colmenaHive, darwinConfigurations
 machines/
+  kaho/default.nix         # nix-darwin system config (packages, homebrew, user)
+  kaho/home.nix            # home-manager for svein on darwin (zsh, jj, ssh, agenix)
+  kaho/zsh-sunaku-theme.nix
+  kaho/claude/             # ~/.claude files (CLAUDE.md, agents)
+  kaho/terminfo/           # xterm-ghostty terminfo, built at HM activation
   saya/default.nix
   saya/hardware-configuration.nix
   saya/<feature>.nix       # ganbot, game-watcher, steam, restic

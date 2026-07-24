@@ -7,6 +7,8 @@
     nix-cachyos-kernel.inputs.nixpkgs.follows = "nixpkgs";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    nix-darwin.url = "github:nix-darwin/nix-darwin/master";
+    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
     codex-cli-nix.inputs.nixpkgs.follows = "nixpkgs";
     crane.url = "github:ipetkov/crane";
@@ -23,7 +25,7 @@
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nix-cachyos-kernel, home-manager, codex-cli-nix, crane, dessplay, ganbot, agenix, colmena, nix-index-database, ... }:
+  outputs = { self, nixpkgs, nix-cachyos-kernel, home-manager, nix-darwin, codex-cli-nix, crane, dessplay, ganbot, agenix, colmena, nix-index-database, ... }:
   let
     system = "x86_64-linux";
 
@@ -220,6 +222,15 @@
         deployment = machine.deployment;
       })
       machineConfigs));
+
+    darwinConfigurations.kaho = nix-darwin.lib.darwinSystem {
+      modules = [
+        ./machines/kaho
+        home-manager.darwinModules.home-manager
+        craneModule
+      ];
+      specialArgs = { inherit agenix; flakeSelf = self; };
+    };
 
     nixosConfigurations = colmenaHive.nodes // {
       saya-installer = nixpkgs.lib.nixosSystem {
