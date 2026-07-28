@@ -62,6 +62,6 @@ in
       environment.RUST_LOG = "debug";
     };
 
-    networking.firewall.allowedUDPPorts = [ 9876 ];
+    networking.firewall.allowedUDPPorts = [ 9876 9877 ];
   };
 }
