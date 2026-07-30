@@ -1,5 +1,5 @@
 [package]
-name = "nix-deploy"
+name = "deploy"
 version = "0.1.0"
 edition = "2021"
 description = "Build, diff, and deploy the machines in this flake with a single evaluation"
