@@ -22,6 +22,7 @@
     pciutils
     psmisc
     sysstat
+    usbutils
 
     # Networking
     socat

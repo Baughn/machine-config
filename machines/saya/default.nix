@@ -144,7 +144,7 @@
   services.displayManager.autoLogin.user = "svein";
   services.desktopManager.plasma6.enable = true;
   #drm-atomic-log.enable = true;
-  programs.niri.enable = true;
+  #programs.niri.enable = true;
 
   # fwupd is pulled in transitively by Plasma. Its fwupd-refresh.timer runs
   # `fwupdmgr refresh` as the unprivileged `fwupd-refresh` system user, but
@@ -175,12 +175,7 @@
     nvtopPackages.nvidia
     btop-cuda
     zed-editor
-    (orca-slicer.override {
-      withNvidiaGLWorkaround = true;  # I have nvidia
-      glew = (glew.override {
-          enableEGL = false;
-      });
-    })
+    orca-slicer
     prusa-slicer
   ];
 

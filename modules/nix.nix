@@ -1,4 +1,4 @@
-{ flakeSelf, config, ... }:
+{ flakeSelf, config, lib, ... }:
 
 {
   nix.settings = {
@@ -11,7 +11,7 @@
     dates = [ "weekly" ];
   };
 
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.allowUnfree = lib.mkForce true;
 
   nix.channel.enable = false;
   nix.nixPath = [
