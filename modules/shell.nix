@@ -40,11 +40,29 @@ in
           (( EUID == 0 )) && echo -n "%F{red} ROOT%f "
         }
         _flake_age_warning() {
+          # nixpkgs tracks Determinate's nixpkgs-weekly (7-day cooldown), so the
+          # pinned commit is *always* 7-14 days old; absolute age is meaningless.
+          # nixpkgs-lag-check.timer compares our pin against the latest published
+          # release; warn once a newer release has been out for a couple of days.
+          local now=$(date +%s)
+          local checked=0 state="" latest_published=0
+          if [[ -r /var/lib/nixpkgs-lag/status ]]; then
+            source /var/lib/nixpkgs-lag/status
+            if (( now - checked < 2 * 86400 )); then
+              if [[ "$state" == behind ]]; then
+                local days=$(( (now - latest_published) / 86400 ))
+                (( days >= 2 )) && echo -n "%F{yellow}[flake ''${days}d behind]%f "
+              fi
+              return
+            fi
+          fi
+          # No fresh lag data (checker failing?): fall back to absolute pin age,
+          # with the threshold above the ~16d a weekly cooldown pin can reach.
           local last
           [[ -r /etc/nixpkgs-last-modified ]] || return
           last=$(< /etc/nixpkgs-last-modified)
-          local age=$(( ($(date +%s) - last) / 86400 ))
-          if (( age >= 10 )); then
+          local age=$(( (now - last) / 86400 ))
+          if (( age >= 18 )); then
             echo -n "%F{yellow}[flake ''${age}d old]%f "
           fi
         }
@@ -123,6 +141,42 @@ in
 
     environment.etc."nixpkgs-last-modified".text =
       toString flakeSelf.inputs.nixpkgs.lastModified;
+    environment.etc."nixpkgs-rev".text =
+      flakeSelf.inputs.nixpkgs.rev or "";
+
+    # Periodically compare the deployed nixpkgs pin against the latest published
+    # nixpkgs-weekly release on FlakeHub; _flake_age_warning reads the result.
+    # The URL must match the nixpkgs input in flake.nix.
+    systemd.services.nixpkgs-lag-check = {
+      description = "Check deployed nixpkgs against latest nixpkgs-weekly release";
+      path = [ pkgs.curl pkgs.jq ];
+      serviceConfig = {
+        Type = "oneshot";
+        DynamicUser = true;
+        StateDirectory = "nixpkgs-lag";
+      };
+      script = ''
+        set -euo pipefail
+        pinned=$(cat /etc/nixpkgs-rev 2>/dev/null) || exit 0
+        [[ -n "$pinned" ]] || exit 0
+        resp=$(curl -sf --max-time 60 \
+          https://api.flakehub.com/version/DeterminateSystems/nixpkgs-weekly/0.1)
+        latest=$(jq -re .revision <<< "$resp")
+        published=$(date -d "$(jq -re .published_at <<< "$resp")" +%s)
+        state=ok
+        [[ "$latest" == "$pinned" ]] || state=behind
+        printf 'checked=%s\nstate=%s\nlatest_published=%s\n' \
+          "$(date +%s)" "$state" "$published" > "$STATE_DIRECTORY/status"
+      '';
+    };
+    systemd.timers.nixpkgs-lag-check = {
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnBootSec = "10min";
+        OnUnitActiveSec = "6h";
+        RandomizedDelaySec = "20min";
+      };
+    };
 
     environment.sessionVariables = {
       "EDITOR" = "nvim";
