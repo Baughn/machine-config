@@ -10,6 +10,10 @@ in
 
   config = lib.mkIf cfg.enable {
 
+    # -- Microcode --
+    hardware.cpu.amd.updateMicrocode = true;
+    hardware.cpu.intel.updateMicrocode = true;
+
     # -- Kernel sysctl hardening --
     boot.kernel.sysctl = {
       "kernel.dmesg_restrict" = 1;
