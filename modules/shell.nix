@@ -46,8 +46,9 @@ in
           # release; warn once a newer release has been out for a couple of days.
           local now=$(date +%s)
           local checked=0 state="" latest_published=0
-          if [[ -r /var/lib/nixpkgs-lag/status ]]; then
-            source /var/lib/nixpkgs-lag/status
+          local sfile=/var/lib/nixpkgs-lag/status
+          if [[ -r $sfile ]]; then
+            source $sfile
             if (( now - checked < 2 * 86400 )); then
               if [[ "$state" == behind ]]; then
                 local days=$(( (now - latest_published) / 86400 ))
@@ -55,6 +56,12 @@ in
               fi
               return
             fi
+          elif [[ -e $sfile || -h /var/lib/nixpkgs-lag ]]; then
+            # The status exists but we can't read it (wrong permissions, or the
+            # state dir is a symlink into root-only /var/lib/private as under
+            # DynamicUser): that's a config bug, not "no data" — surface it.
+            echo -n "%F{red}[lag status unreadable]%f "
+            return
           fi
           # No fresh lag data (checker failing?): fall back to absolute pin age,
           # with the threshold above the ~16d a weekly cooldown pin can reach.
@@ -152,7 +159,8 @@ in
       path = [ pkgs.curl pkgs.jq ];
       serviceConfig = {
         Type = "oneshot";
-        DynamicUser = true;
+        # No DynamicUser: it would relocate the state under root-only
+        # /var/lib/private, and the prompt needs to read status unprivileged.
         StateDirectory = "nixpkgs-lag";
       };
       script = ''
