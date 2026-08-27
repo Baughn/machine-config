@@ -54,8 +54,9 @@ impl ActiveGames {
 }
 
 /// Scan /proc for processes whose cmdline contains `SteamLaunch AppId=<n>`.
-pub fn scan_proc() -> HashSet<u32> {
-    let mut ids = HashSet::new();
+/// Returns AppId -> reaper PIDs (the roots of each game's process tree).
+pub fn scan_proc() -> HashMap<u32, Vec<u32>> {
+    let mut ids: HashMap<u32, Vec<u32>> = HashMap::new();
     let entries = match fs::read_dir("/proc") {
         Ok(e) => e,
         Err(_) => return ids,
@@ -65,15 +66,15 @@ pub fn scan_proc() -> HashSet<u32> {
         let Some(name_str) = name.to_str() else {
             continue;
         };
-        if !name_str.bytes().all(|b| b.is_ascii_digit()) {
+        let Ok(pid) = name_str.parse::<u32>() else {
             continue;
-        }
+        };
         let cmdline_path = entry.path().join("cmdline");
         let Ok(bytes) = fs::read(&cmdline_path) else {
             continue;
         };
         if let Some(app_id) = extract_app_id(&bytes) {
-            ids.insert(app_id);
+            ids.entry(app_id).or_default().push(pid);
         }
     }
     ids

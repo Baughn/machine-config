@@ -1,3 +1,4 @@
+mod affinity;
 mod config;
 mod detect;
 mod firewall;
@@ -74,13 +75,14 @@ fn main() -> Result<()> {
         let loop_start = Instant::now();
 
         let scanned = detect::scan_proc();
-        let (started, stopped) = active.tick(scanned);
+        let (started, stopped) = active.tick(scanned.keys().copied().collect());
         for id in started {
             engine.on_game_start(id);
         }
         for id in stopped {
             engine.on_game_stop(id);
         }
+        engine.enforce_affinity(&scanned);
 
         if let Some(ref mut gpu) = gpu_monitor {
             if loop_start >= next_gpu_poll {
@@ -130,10 +132,9 @@ fn install_signal_handlers(flag: Arc<AtomicBool>) -> Result<()> {
 
     let mut signals = Signals::new([SIGINT, SIGTERM]).context("registering signal handlers")?;
     std::thread::spawn(move || {
-        for sig in signals.forever() {
+        if let Some(sig) = signals.forever().next() {
             info!(%sig, "signal received");
             flag.store(true, Ordering::Relaxed);
-            break;
         }
     });
     Ok(())

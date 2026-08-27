@@ -8,6 +8,10 @@ pub struct Config {
     pub poll_interval_ms: u64,
     #[serde(default = "default_gpu_poll_interval")]
     pub gpu_poll_interval_ms: u64,
+    /// Cpulist applied to every detected game's process tree, including games
+    /// not listed in `games`. A game's own `cpu_affinity` takes precedence.
+    #[serde(default)]
+    pub default_cpu_affinity: Option<String>,
     #[serde(default)]
     pub games: Vec<Game>,
     #[serde(default)]
@@ -25,6 +29,10 @@ fn default_gpu_poll_interval() -> u64 {
 pub struct Game {
     pub name: String,
     pub app_id: u32,
+    /// Optional cpulist (e.g. "0-7,16-23") to pin the game's process tree to.
+    /// Overrides `default_cpu_affinity`.
+    #[serde(default)]
+    pub cpu_affinity: Option<String>,
     #[serde(default)]
     pub firewall: Vec<FirewallRule>,
 }

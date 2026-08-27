@@ -1,8 +1,10 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
+use nix::sched::CpuSet;
 use std::collections::{HashMap, VecDeque};
 use std::time::{Duration, Instant};
-use tracing::{info, warn};
+use tracing::{debug, info, warn};
 
+use crate::affinity;
 use crate::config::{Config, GuardAction};
 use crate::firewall::{self, InsertedRule, ShellRunner};
 use crate::gpu::{self, GpuMonitor};
@@ -12,12 +14,18 @@ pub struct Engine {
     config: Config,
     /// Resolved guard state, parallel to `config.gpu_guards`.
     guards: Vec<GuardState>,
+    /// Parsed per-game `cpu_affinity` masks, keyed by AppId.
+    affinity: HashMap<u32, CpuSet>,
+    /// Parsed `default_cpu_affinity`, applied to games without their own mask.
+    default_affinity: Option<CpuSet>,
     active: HashMap<u32, GameSession>,
 }
 
 struct GameSession {
     name: String,
     firewall: Vec<InsertedRule>,
+    /// Thread count from the last affinity pass, to log only on change.
+    last_pinned: Option<usize>,
 }
 
 struct GuardState {
@@ -89,27 +97,80 @@ impl Engine {
             });
         }
 
+        let mut affinity = HashMap::new();
+        for g in &config.games {
+            if let Some(list) = &g.cpu_affinity {
+                let set = affinity::parse_cpulist(list)
+                    .with_context(|| format!("game '{}': invalid cpu_affinity", g.name))?;
+                affinity.insert(g.app_id, set);
+            }
+        }
+        let default_affinity = config
+            .default_cpu_affinity
+            .as_ref()
+            .map(|list| affinity::parse_cpulist(list).context("invalid default_cpu_affinity"))
+            .transpose()?;
+
         Ok(Self {
             config,
             guards,
+            affinity,
+            default_affinity,
             active: HashMap::new(),
         })
+    }
+
+    /// Re-pin every active game that has a `cpu_affinity` configured.
+    /// `pids_by_app` is the current scan result: AppId -> reaper PIDs.
+    /// Called every tick; repeat application is what catches threads the game
+    /// spawns after launch.
+    pub fn enforce_affinity(&mut self, pids_by_app: &HashMap<u32, Vec<u32>>) {
+        for (app_id, session) in &mut self.active {
+            let Some(set) = self.affinity.get(app_id).or(self.default_affinity.as_ref()) else {
+                continue;
+            };
+            let Some(roots) = pids_by_app.get(app_id) else {
+                continue;
+            };
+            let pinned: usize = roots
+                .iter()
+                .map(|&pid| affinity::apply_to_tree(pid, set))
+                .sum();
+            if session.last_pinned != Some(pinned) {
+                debug!(
+                    app_id, game = %session.name, pinned,
+                    "affinity enforced on {} threads of {}", pinned, session.name
+                );
+                session.last_pinned = Some(pinned);
+            }
+        }
     }
 
     pub fn on_game_start(&mut self, app_id: u32) {
         let Some(game) = self.config.games.iter().find(|g| g.app_id == app_id) else {
             info!(app_id, "unknown game started (no rules configured): app_id={app_id}");
+            if let Some(list) = &self.config.default_cpu_affinity {
+                info!(app_id, cpus = %list, "pinning app {app_id} process tree to CPUs {list}");
+            }
             self.active.insert(
                 app_id,
                 GameSession {
                     name: format!("<unknown:{app_id}>"),
                     firewall: Vec::new(),
+                    last_pinned: None,
                 },
             );
             return;
         };
         let name = game.name.clone();
         info!(app_id, game = %name, "game started: {name} ({app_id})");
+        let effective_cpus = game
+            .cpu_affinity
+            .as_ref()
+            .or(self.config.default_cpu_affinity.as_ref());
+        if let Some(list) = effective_cpus {
+            info!(app_id, game = %name, cpus = %list, "pinning {name} process tree to CPUs {list}");
+        }
         let firewall = match firewall::apply(app_id, &name, &game.firewall, &ShellRunner) {
             Ok(rules) => rules,
             Err(e) => {
@@ -159,7 +220,14 @@ impl Engine {
             gs.below_since = None;
         }
 
-        self.active.insert(app_id, GameSession { name, firewall });
+        self.active.insert(
+            app_id,
+            GameSession {
+                name,
+                firewall,
+                last_pinned: None,
+            },
+        );
     }
 
     pub fn on_game_stop(&mut self, app_id: u32) {
@@ -363,5 +431,50 @@ fn run_action(service: &str, action: GuardAction) {
             %service, ?action, error = %e,
             "guard action {:?} failed for {service}: {e}", action
         );
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn engine_from(toml_text: &str) -> Result<Engine> {
+        Engine::new(toml::from_str(toml_text).expect("test config must be valid TOML"))
+    }
+
+    #[test]
+    fn default_affinity_applies_with_per_game_override() {
+        let engine = engine_from(
+            r#"
+            default_cpu_affinity = "0-7,16-23"
+            [[games]]
+            name = "special"
+            app_id = 111
+            cpu_affinity = "8-15"
+            [[games]]
+            name = "ordinary"
+            app_id = 222
+            "#,
+        )
+        .unwrap();
+        assert!(engine.default_affinity.is_some());
+        // Override parsed for the game that sets one; the other falls through
+        // to the default at enforcement time.
+        assert!(engine.affinity.get(&111).unwrap().is_set(8).unwrap());
+        assert!(!engine.affinity.get(&111).unwrap().is_set(0).unwrap());
+        assert!(!engine.affinity.contains_key(&222));
+        assert!(engine.default_affinity.unwrap().is_set(16).unwrap());
+    }
+
+    #[test]
+    fn rejects_invalid_default_affinity() {
+        assert!(engine_from(r#"default_cpu_affinity = "banana""#).is_err());
+    }
+
+    #[test]
+    fn no_affinity_config_parses_fine() {
+        let engine = engine_from("").unwrap();
+        assert!(engine.default_affinity.is_none());
+        assert!(engine.affinity.is_empty());
     }
 }

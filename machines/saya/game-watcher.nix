@@ -11,6 +11,12 @@ let
     poll_interval_ms = 1000;
     gpu_poll_interval_ms = 2000;
 
+    # Pin every detected game (listed or not) to the V-cache CCD (7950X3D:
+    # cores 0-7 + SMT siblings 16-23, the 96MB-L3 die). Games rarely scale
+    # past 8 cores and mostly prefer the cache; Steam itself and shader
+    # pre-compilation stay unpinned. Per-game cpu_affinity overrides this.
+    default_cpu_affinity = "0-7,16-23";
+
     games = [
       {
         name = "stationeers";
@@ -75,9 +81,10 @@ in
 
       # Runs as root: needs CAP_NET_ADMIN for firewall and to manage other units
       # via systemctl. CAP_SYS_PTRACE lets us read other users' /proc/<pid>/cmdline.
+      # CAP_SYS_NICE lets us sched_setaffinity other users' processes (cpu_affinity).
       User = "root";
-      AmbientCapabilities = [ "CAP_NET_ADMIN" "CAP_SYS_PTRACE" ];
-      CapabilityBoundingSet = [ "CAP_NET_ADMIN" "CAP_SYS_PTRACE" ];
+      AmbientCapabilities = [ "CAP_NET_ADMIN" "CAP_SYS_PTRACE" "CAP_SYS_NICE" ];
+      CapabilityBoundingSet = [ "CAP_NET_ADMIN" "CAP_SYS_PTRACE" "CAP_SYS_NICE" ];
 
       # Hardening
       ProtectSystem = "strict";
