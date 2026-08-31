@@ -42,8 +42,6 @@
     uv
 
     # Deployment & AI tooling
-    codex
-    colmena
 
     # Boot & disk
     efibootmgr
