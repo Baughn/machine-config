@@ -3,14 +3,15 @@
 
   inputs = {
     nixpkgs.url = "https://flakehub.com/f/DeterminateSystems/nixpkgs-weekly/0.1";
+    # Tracks nixos-unstable directly, for packages where the weekly cooldown
+    # is too slow (currently: google-chrome, security updates).
+    nixpkgs-fast.url = "github:NixOS/nixpkgs/nixos-unstable";
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
     nix-cachyos-kernel.inputs.nixpkgs.follows = "nixpkgs";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-darwin.url = "github:nix-darwin/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
-    codex-cli-nix.url = "github:sadjow/codex-cli-nix";
-    codex-cli-nix.inputs.nixpkgs.follows = "nixpkgs";
     crane.url = "github:ipetkov/crane";
     ganbot.url = "github:Baughn/ganbot";
     ganbot.inputs.nixpkgs.follows = "nixpkgs";
@@ -25,7 +26,7 @@
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nix-cachyos-kernel, home-manager, nix-darwin, codex-cli-nix, crane, dessplay, ganbot, agenix, colmena, nix-index-database, ... }:
+  outputs = { self, nixpkgs, nixpkgs-fast, nix-cachyos-kernel, home-manager, nix-darwin, crane, dessplay, ganbot, agenix, colmena, nix-index-database, ... }:
   let
     system = "x86_64-linux";
 
@@ -107,7 +108,11 @@
           ({ pkgs, ... }: {
             nixpkgs.overlays = [
               (final: prev: {
-                codex = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
+                # Browser security updates can't wait for the weekly cooldown.
+                google-chrome = (import nixpkgs-fast {
+                  inherit (prev.stdenv.hostPlatform) system;
+                  inherit (prev) config;
+                }).google-chrome;
                 kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {
                   kwin = kprev.kwin.overrideAttrs (old: {
                     # patches = (old.patches or []) ++ [ ./kwin.patch ];
