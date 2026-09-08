@@ -15,6 +15,8 @@ let
   );
 in
 {
+  imports = [ ./minecraft-access.nix ];
+
   environment.systemPackages = [ storage ];
   systemd.tmpfiles.rules = [ "d /run/minecraft-snapshot 0755 root root -" ];
   security.sudo.extraRules = [{
@@ -25,14 +27,22 @@ in
       options = [ "NOPASSWD" "NOSETENV" ];
     }];
   }];
-  networking.firewall.allowedTCPPorts = [
+
+  me.minecraft.access = {
+    enable = true;
+    clientId = "1547287991494647939";
+    guildId = "153634590190206977";
+    roleId = "480078714709737473";
+    clientSecretFile = config.age.secrets.minecraft-access-discord-secret.path;
+  };
+
+  me.minecraft.ports.tcp = [
     25565
     25566
     25575
   ];
-  networking.firewall.allowedUDPPorts = [
+  me.minecraft.ports.udp = [
     24454 # Simple voice chat
-    51820 # Wireguard
   ];
   services.prometheus.scrapeConfigs = [
     {

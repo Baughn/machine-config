@@ -40,12 +40,17 @@ let
         app_id = 1594320;
         firewall = [ ];
       }
+      {
+        name = "pacific-drive";
+        app_id = 1458140;
+        firewall = [ ];
+      }
     ];
 
     gpu_guards = [
       {
         name = "stationeers-coi-comfyui";
-        requires_any_of = [ "stationeers" "captain-of-industry" ];
+        requires_any_of = [ "stationeers" "captain-of-industry" "pacific-drive" ];
         service = "comfyui.service";
         gpu_util_threshold_pct = 5;
         settle_seconds = 8;

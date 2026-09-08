@@ -2,6 +2,8 @@
 
 let
   cfg = config.me.cloudflareDyndns;
+  instances = { cloudflare-dyndns = cfg.hostname; } // builtins.listToAttrs
+    (map (hostname: { name = "cloudflare-dyndns-${hostname}"; value = hostname; }) cfg.additionalHostnames);
 
   script = pkgs.writers.writePython3Bin "cloudflare-dyndns" { doCheck = false; } ''
     """Update a Cloudflare AAAA record with this host's stable public IPv6."""
@@ -112,7 +114,7 @@ let
         if existing is None:
             log(f"creating AAAA {hostname} -> {addr}")
             resp = api("POST", f"{API}/zones/{zone_id}/dns_records", token, body)
-        elif existing["content"] == addr:
+        elif existing["content"] == addr and not existing.get("proxied", False):
             log(f"AAAA {hostname} already {addr}; unchanged")
             resp = None
         else:
@@ -147,6 +149,12 @@ in
       description = "FQDN of the AAAA record to keep current (e.g. \"saya.brage.info\").";
     };
 
+    additionalHostnames = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = "Additional AAAA records, each with an independent updater and cache.";
+    };
+
     zone = lib.mkOption {
       type = lib.types.str;
       description = "Cloudflare zone the record belongs to (e.g. \"brage.info\").";
@@ -179,13 +187,20 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    systemd.services.cloudflare-dyndns = {
-      description = "Update Cloudflare AAAA record for ${cfg.hostname}";
+    assertions = [{
+      assertion = builtins.all (host: builtins.match "[a-zA-Z0-9.-]+" host != null)
+        ([ cfg.hostname ] ++ cfg.additionalHostnames)
+        && builtins.length (lib.unique ([ cfg.hostname ] ++ cfg.additionalHostnames))
+          == 1 + builtins.length cfg.additionalHostnames;
+      message = "Cloudflare dynamic DNS hostnames must be valid and unique.";
+    }];
+    systemd.services = lib.mapAttrs (name: hostname: {
+      description = "Update Cloudflare AAAA record for ${hostname}";
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
       path = [ pkgs.iproute2 ];
       environment = {
-        HOSTNAME_FQDN = cfg.hostname;
+        HOSTNAME_FQDN = hostname;
         ZONE_NAME = cfg.zone;
       } // lib.optionalAttrs (cfg.interface != null) {
         INTERFACE = cfg.interface;
@@ -194,7 +209,7 @@ in
         Type = "oneshot";
         ExecStart = lib.getExe script;
         LoadCredential = "token:${cfg.tokenFile}";
-        StateDirectory = "cloudflare-dyndns";
+        StateDirectory = name;
         DynamicUser = true;
         ProtectSystem = "strict";
         ProtectHome = true;
@@ -202,17 +217,17 @@ in
         NoNewPrivileges = true;
         RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_NETLINK" ];
       };
-    };
+    }) instances;
 
-    systemd.timers.cloudflare-dyndns = {
-      description = "Periodic Cloudflare AAAA refresh for ${cfg.hostname}";
+    systemd.timers = lib.mapAttrs (name: hostname: {
+      description = "Periodic Cloudflare AAAA refresh for ${hostname}";
       wantedBy = [ "timers.target" ];
       timerConfig = {
         OnBootSec = "1min";
         OnUnitActiveSec = cfg.interval;
         Persistent = true;
-        Unit = "cloudflare-dyndns.service";
+        Unit = "${name}.service";
       };
-    };
+    }) instances;
   };
 }

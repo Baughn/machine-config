@@ -75,6 +75,7 @@ in
   me.cloudflareDyndns = {
     enable = true;
     hostname = "brage.info";
+    additionalHostnames = [ "v6.brage.info" ];
     zone = "brage.info";
     tokenFile = config.age.secrets."cloudflare-dyndns-token".path;
   };

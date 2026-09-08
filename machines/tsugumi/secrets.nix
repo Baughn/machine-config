@@ -1,7 +1,10 @@
-{ ... }:
+{ config, lib, ... }:
 
 {
   age.secrets = {
+    "minecraft-access-discord-secret" = lib.mkIf config.me.minecraft.access.enable {
+      file = ../../secrets/minecraft-access-discord-secret.age;
+    };
     "wireguard-tsugumi".file = ../../secrets/wireguard-tsugumi.age;
     "caddy.env".file = ../../secrets/caddy.env.age;
 
