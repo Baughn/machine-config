@@ -154,6 +154,23 @@
     };
 
     checks.x86_64-linux = {
+      local-web-access = import ./tests/local-web-access-vm.nix { inherit pkgs; };
+      security-scripts = pkgs.runCommand "security-script-tests" {
+        nativeBuildInputs = [ pkgs.python3 ];
+      } ''
+        export PYTHONDONTWRITEBYTECODE=1
+        cd ${pkgs.lib.fileset.toSource {
+          root = ./.;
+          fileset = pkgs.lib.fileset.unions [
+            ./machines/tsugumi/minecraft-storage.py
+            ./machines/tsugumi/starlink-prefixes.py
+            ./tests/test_minecraft_storage.py
+            ./tests/test_starlink_prefixes.py
+          ];
+        }}
+        python3 -m unittest discover -s tests -p 'test_*.py' -v
+        touch "$out"
+      '';
       saya-installer-vm =
         let
           testInstaller = nixpkgs.lib.nixosSystem {

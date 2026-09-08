@@ -1,6 +1,8 @@
 { config, lib, pkgs, ... }:
 
 {
+  imports = [ ./static-web.nix ./local-web-access.nix ];
+
   services.caddy = {
     enable = true;
     package = pkgs.caddy.withPlugins {
@@ -9,6 +11,10 @@
     };
     email = "sveina@gmail.com";
     environmentFile = config.age.secrets."caddy.env".path;
+    globalConfig = ''
+      admin unix//run/caddy/admin.sock|0600
+      persist_config off
+    '';
     extraConfig = ''
       (headers) {
         header Strict-Transport-Security "max-age=31536000; includeSubdomains"
@@ -51,10 +57,14 @@
         abort @denied
       }
 
+      (readonly-map) {
+        @write not method GET HEAD
+        respond @write "Method not allowed" 405
+      }
+
       brage.info {
-        root * /srv/svein/
         import headers
-        file_server browse
+        reverse_proxy unix//run/caddy-static/http.sock
       }
 
       ganbot.brage.info {
@@ -63,13 +73,12 @@
       }
 
       madoka.brage.info {
-        root * /srv/minecraft/
         import headers
         reverse_proxy /warmroast/* localhost:23000
         handle_path /images/* {
           reverse_proxy localhost:24464
         }
-        file_server browse
+        reverse_proxy unix//run/caddy-static/http.sock
       }
 
       grafana.brage.info {
@@ -79,18 +88,14 @@
 
       map.brage.info {
         import headers
+        import readonly-map
         reverse_proxy http://127.0.0.1:8123
       }
 
       incognito.brage.info {
         import headers
+        import readonly-map
         reverse_proxy http://127.0.0.1:8124
-      }
-
-      home.brage.info {
-        import headers
-        import password
-        reverse_proxy http://localhost:8123
       }
 
       comfyui.brage.info {
@@ -101,6 +106,7 @@
 
       status.brage.info {
         import headers
+        import password
         reverse_proxy http://127.0.0.1:9090
       }
 
@@ -149,9 +155,8 @@
       }
 
       ar-innna.brage.info {
-        root * /srv/aquagon/
         import headers
-        file_server browse
+        reverse_proxy unix//run/caddy-static/http.sock
       }
 
       qbt.brage.info {
@@ -199,6 +204,20 @@
         reverse_proxy http://localhost:32400
       }
     '';
+  };
+
+  systemd.services.caddy = {
+    wants = [ "caddy-static.service" ];
+    after = [ "caddy-static.service" ];
+    serviceConfig = {
+      RuntimeDirectory = "caddy";
+      RuntimeDirectoryMode = "0700";
+      UMask = "0077";
+      ExecReload = lib.mkForce [
+        ""
+        "${lib.getExe config.services.caddy.package} reload --config /etc/caddy/caddy_config --adapter caddyfile --address unix//run/caddy/admin.sock --force"
+      ];
+    };
   };
 
   # Open firewall for HTTP/HTTPS

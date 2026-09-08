@@ -60,8 +60,10 @@
     script = ''
       set -euo pipefail
 
+      export REDISCLI_AUTH="$(cat ${config.age.secrets."redis-password".path})"
+
       timeout=30
-      while ! ${pkgs.redis}/bin/redis-cli -h 10.171.0.1 -p 6379 -a "$(cat ${config.age.secrets."redis-password".path})" ping > /dev/null 2>&1; do
+      while ! ${pkgs.redis}/bin/redis-cli -e -h 127.0.0.1 -p 6379 ping > /dev/null 2>&1; do
         sleep 1
         timeout=$((timeout - 1))
         if [ "$timeout" -eq 0 ]; then
@@ -71,14 +73,11 @@
       done
 
       NIXCHECK_PASSWORD=$(cat ${config.age.secrets."redis-nixcheck-password".path})
-      REDIS_PASSWORD=$(cat ${config.age.secrets."redis-password".path})
-
-      ${pkgs.redis}/bin/redis-cli -h 10.171.0.1 -p 6379 -a "$REDIS_PASSWORD" ACL SETUSER nixcheck \
-        on \
-        ">$NIXCHECK_PASSWORD" \
+      printf '>%s' "$NIXCHECK_PASSWORD" | \
+        ${pkgs.redis}/bin/redis-cli -e -x -h 127.0.0.1 -p 6379 ACL SETUSER nixcheck \
+        reset on \
         "~nix-check:*" \
-        "+get" "+set" "+setex" "+exists" "+del" "+ping" \
-        || true
+        "+get" "+set" "+setex" "+exists" "+del" "+ping"
     '';
   };
 }

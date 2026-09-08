@@ -2,25 +2,29 @@
 , pkgs
 , lib
 , ...
-}: {
+}:
+let
+  storage = pkgs.writeScriptBin "minecraft-storage" (
+    "#!${pkgs.python3}/bin/python3 -I\n"
+    + builtins.replaceStrings
+      [ "@zfs@" "@zpool@" "@mount@" "@umount@" "@path@" ]
+      [ "${config.boot.zfs.package}/bin/zfs" "${config.boot.zfs.package}/bin/zpool"
+        "${pkgs.util-linux}/bin/mount" "${pkgs.util-linux}/bin/umount"
+        (lib.makeBinPath [ config.boot.zfs.package pkgs.util-linux ]) ]
+      (builtins.readFile ./minecraft-storage.py)
+  );
+in
+{
+  environment.systemPackages = [ storage ];
+  systemd.tmpfiles.rules = [ "d /run/minecraft-snapshot 0755 root root -" ];
   security.sudo.extraRules = [{
     users = [ "minecraft" ];
-    commands = [
-      { command = "/run/current-system/sw/bin/zfs list -t snapshot -H"; options = [ "NOPASSWD" ]; }
-      { command = "/run/current-system/sw/bin/zfs rollback rpool/minecraft/* -r"; options = [ "NOPASSWD" ]; }
-      { command = "/run/current-system/sw/bin/mount -t zfs --target /home/minecraft/snapshot --source rpool/minecraft"; options = [ "NOPASSWD" ]; }
-      { command = "/run/current-system/sw/bin/umount /home/minecraft/snapshot"; options = [ "NOPASSWD" ]; }
-    ];
+    runAs = "root";
+    commands = [{
+      command = "${storage}/bin/minecraft-storage";
+      options = [ "NOPASSWD" "NOSETENV" ];
+    }];
   }];
-  security.sudo.extraConfig = ''
-    minecraft ALL= NOPASSWD: /run/current-system/sw/bin/zpool status*
-    minecraft ALL= NOPASSWD: /run/current-system/sw/bin/zpool list*
-    minecraft ALL= NOPASSWD: /run/current-system/sw/bin/zfs list*
-    minecraft ALL= NOPASSWD: /run/current-system/sw/bin/zfs snapshot rpool/minecraft*
-    minecraft ALL= NOPASSWD: /run/current-system/sw/bin/zfs rollback rpool/minecraft*
-    minecraft ALL= NOPASSWD: /run/current-system/sw/bin/mount -t zfs --target /home/minecraft/snapshot --source rpool/minecraft*
-    minecraft ALL= NOPASSWD: /run/current-system/sw/bin/umount /home/minecraft/snapshot
-  '';
   networking.firewall.allowedTCPPorts = [
     25565
     25566

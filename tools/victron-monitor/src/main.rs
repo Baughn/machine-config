@@ -1,19 +1,16 @@
 use anyhow::{anyhow, bail, Result};
-use axum::{routing::get, Router};
+use axum::{extract::State, http::StatusCode, routing::get, Router};
 use clap::Parser;
 use config::Config;
-use lazy_static::lazy_static;
-use prometheus::{register_gauge_vec, Encoder, GaugeVec, TextEncoder};
+use prometheus::{GaugeVec, Opts, Registry, TextEncoder};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::net::{Ipv6Addr, SocketAddr};
 use std::sync::Arc;
 use tokio::net::UdpSocket;
 use tokio::sync::RwLock;
-use tower::ServiceBuilder;
-use tower_http::cors::CorsLayer;
-use tracing::{debug, error, info, instrument, trace, warn};
+use tracing::{debug, error, info};
 
 #[derive(Parser)]
 #[command(name = "victron-monitor")]
@@ -32,9 +29,51 @@ struct AppConfig {
     unit_mappings: HashMap<String, String>,
 }
 
-lazy_static! {
-    static ref METRICS: Arc<RwLock<HashMap<String, GaugeVec>>> =
-        Arc::new(RwLock::new(HashMap::new()));
+const MAX_SERIES: usize = 1024;
+const MAX_METRIC_KEY_BYTES: usize = 256;
+
+#[derive(Default)]
+struct Metrics {
+    registry: Registry,
+    gauges: HashMap<String, GaugeVec>,
+    series: HashSet<(String, Vec<String>)>,
+}
+
+impl Metrics {
+    fn update(&mut self, data: HashMap<String, Value>, config: &AppConfig) -> Result<()> {
+        for (key, value) in data {
+            let value = match value {
+                Value::Bool(value) => f64::from(value),
+                Value::Number(value) => value.as_f64().ok_or(anyhow!("Invalid number"))?,
+                _ => bail!("Expected numeric or boolean measurement"),
+            };
+            let Some((name, labels)) = parse_metric_name(&key, config) else {
+                continue;
+            };
+            let mut labels: Vec<_> = labels.into_iter().collect();
+            labels.sort_unstable_by(|a, b| a.0.cmp(&b.0));
+            let label_values: Vec<_> = labels.iter().map(|(_, value)| value.clone()).collect();
+            let series = (name.clone(), label_values);
+            if !self.series.contains(&series) && self.series.len() >= MAX_SERIES {
+                bail!("Metric series limit reached");
+            }
+            // Construct and validate before registering; malformed input must
+            // neither panic nor grow the registry on a failed update.
+            if let Some(gauge) = self.gauges.get(&name) {
+                let values: Vec<_> = labels.iter().map(|(_, value)| value.as_str()).collect();
+                gauge.get_metric_with_label_values(&values)?.set(value);
+            } else {
+                let names: Vec<_> = labels.iter().map(|(key, _)| key.as_str()).collect();
+                let gauge = GaugeVec::new(Opts::new(&name, "Victron monitoring metric"), &names)?;
+                let values: Vec<_> = labels.iter().map(|(_, value)| value.as_str()).collect();
+                gauge.get_metric_with_label_values(&values)?.set(value);
+                self.registry.register(Box::new(gauge.clone()))?;
+                self.gauges.insert(name, gauge);
+            }
+            self.series.insert(series);
+        }
+        Ok(())
+    }
 }
 
 #[tokio::main(flavor = "multi_thread", worker_threads = 1)]
@@ -45,7 +84,7 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "victron_monitor=debug".into()),
+                .unwrap_or_else(|_| "victron_monitor=info".into()),
         )
         .init();
 
@@ -62,30 +101,27 @@ async fn main() -> Result<()> {
 
     let config = Arc::new(app_config);
 
-    // Start UDP listener
-    let udp_config = config.clone();
-    tokio::spawn(async move {
-        if let Err(e) = udp_listener(udp_config).await {
-            error!("UDP listener error: {}", e);
-        }
-    });
+    let metrics = Arc::new(RwLock::new(Metrics::default()));
 
     // Start Prometheus HTTP server
-    let http_addr = SocketAddr::from(([0, 0, 0, 0], config.prometheus_port));
+    let http_addr = SocketAddr::from(([127, 0, 0, 1], config.prometheus_port));
 
     let app = Router::new()
         .route("/metrics", get(metrics_handler))
-        .layer(ServiceBuilder::new().layer(CorsLayer::permissive()));
+        .with_state(metrics.clone());
 
     info!("Starting Prometheus metrics server on {}", http_addr);
 
     let listener = tokio::net::TcpListener::bind(http_addr).await?;
-    axum::serve(listener, app).await?;
+    tokio::select! {
+        result = udp_listener(config, metrics) => result?,
+        result = axum::serve(listener, app) => result?,
+    }
 
     Ok(())
 }
 
-async fn udp_listener(config: Arc<AppConfig>) -> Result<()> {
+async fn udp_listener(config: Arc<AppConfig>, metrics: Arc<RwLock<Metrics>>) -> Result<()> {
     let addr = SocketAddr::from((Ipv6Addr::UNSPECIFIED, config.udp_port));
     let socket = UdpSocket::bind(addr).await?;
     info!("UDP listener started on {}", addr);
@@ -96,68 +132,32 @@ async fn udp_listener(config: Arc<AppConfig>) -> Result<()> {
         match socket.recv_from(&mut buf).await {
             Ok((len, addr)) => {
                 debug!("Received {} bytes from {}", len, addr);
-                trace!("Content: {}", String::from_utf8_lossy(&buf[..len]));
 
                 if let Ok(data) = serde_json::from_slice::<HashMap<String, Value>>(&buf[..len]) {
-                    if let Err(e) = update_metrics(data, &config).await {
-                        warn!("Failed to update metrics: {}", e);
+                    if let Err(e) = metrics.write().await.update(data, &config) {
+                        debug!("Rejected metrics: {}", e);
                     }
                 } else {
-                    warn!("Failed to parse JSON from {}", addr);
-                    let kinda_string = String::from_utf8_lossy(&buf[..len]);
-                    warn!("{}", kinda_string);
+                    debug!("Rejected invalid JSON from {}", addr);
                 }
             }
             Err(e) => {
-                error!("UDP receive error: {}", e);
+                return Err(e.into());
             }
         }
     }
-}
-
-#[instrument(skip_all)]
-async fn update_metrics(data: HashMap<String, Value>, config: &AppConfig) -> Result<()> {
-    for (key, value) in data {
-        let value = match value {
-            Value::Bool(b) => if b {1.0} else {0.0},
-            Value::Number(n) => n.as_f64().ok_or(anyhow!("Could not parse number"))?,
-            x => bail!("Cannot parse value {}", x),
-        };
-        if let Some((metric_name, labels)) = parse_metric_name(&key, config) {
-            let mut metrics = METRICS.write().await;
-
-            let gauge = metrics.entry(metric_name.clone()).or_insert_with(|| {
-                let mut label_names: Vec<&str> = labels.keys().map(|s| s.as_str()).collect();
-                label_names.sort(); // Ensure consistent ordering
-                let gauge_vec = register_gauge_vec!(
-                    metric_name.as_str(),
-                    "Victron monitoring metric",
-                    &label_names
-                )
-                .unwrap();
-                gauge_vec
-            });
-
-            let mut label_pairs: Vec<(&str, &str)> = labels.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
-            label_pairs.sort_by_key(|(k, _)| *k); // Sort by key to match label_names order
-            let label_values: Vec<&str> = label_pairs.iter().map(|(_, v)| *v).collect();
-            gauge.with_label_values(&label_values).set(value);
-
-            debug!("Updated metric {} with value {}", metric_name, value);
-        }
-    }
-
-    Ok(())
 }
 
 fn parse_metric_name(
     raw_name: &str,
     config: &AppConfig,
 ) -> Option<(String, HashMap<String, String>)> {
+    if raw_name.len() > MAX_METRIC_KEY_BYTES {
+        return None;
+    }
     // Split by " - " to separate device from measurement
     let parts: Vec<&str> = raw_name.split(" - ").collect();
     if parts.len() != 2 {
-        warn!("Unexpected metric format: {}", raw_name);
         return None;
     }
 
@@ -166,11 +166,7 @@ fn parse_metric_name(
 
     // Find device type
     let mut device_type = None;
-    let device_model = device_part
-        .to_lowercase()
-        .replace(" ", "_")
-        .replace("-", "_")
-        .replace("/", "_");
+    let device_model = device_part.to_lowercase().replace([' ', '-', '/'], "_");
 
     for (pattern, mapped_type) in &config.device_mappings {
         if device_part.contains(pattern) {
@@ -179,12 +175,12 @@ fn parse_metric_name(
         }
     }
 
-    let device_type = device_type.unwrap_or(device_part.to_string());
+    let device_type = device_type?;
 
     // Parse measurement and unit
     let (measurement, unit) = if let Some(idx) = measurement_part.rfind(" (") {
         let measurement = &measurement_part[..idx];
-        let unit_part = &measurement_part[idx + 2..measurement_part.len() - 1];
+        let unit_part = measurement_part.get(idx + 2..)?.strip_suffix(')')?;
         (measurement, Some(unit_part))
     } else {
         (measurement_part, None)
@@ -193,9 +189,15 @@ fn parse_metric_name(
     // Convert measurement to snake_case
     let mut metric_name = measurement
         .to_lowercase()
-        .replace(" ", "_")
-        .replace(";", "")
-        .replace(",", "");
+        .replace(' ', "_")
+        .replace([';', ','], "");
+    if metric_name.is_empty()
+        || !metric_name
+            .bytes()
+            .all(|ch| ch.is_ascii_alphanumeric() || ch == b'_')
+    {
+        return None;
+    }
 
     // Build full metric name
     let mut full_metric_name = format!("{}_{}", device_type, metric_name);
@@ -215,7 +217,7 @@ fn parse_metric_name(
     // Check for phase number
     if let Some(phase_match) = metric_name.find("phase_") {
         if let Some(phase_num) = metric_name.chars().nth(phase_match + 6) {
-            if phase_num.is_numeric() {
+            if phase_num.is_ascii_digit() {
                 labels.insert("phase".to_string(), phase_num.to_string());
                 // Remove phase from metric name
                 metric_name = metric_name.replace(&format!("_phase_{}", phase_num), "");
@@ -233,14 +235,16 @@ fn parse_metric_name(
     Some((full_metric_name, labels))
 }
 
-async fn metrics_handler() -> String {
-    let encoder = TextEncoder::new();
-    let metric_families = prometheus::gather();
-
-    let mut buffer = Vec::new();
-    encoder.encode(&metric_families, &mut buffer).unwrap();
-
-    String::from_utf8(buffer).unwrap()
+async fn metrics_handler(
+    State(metrics): State<Arc<RwLock<Metrics>>>,
+) -> Result<String, StatusCode> {
+    let families = metrics.read().await.registry.gather();
+    TextEncoder::new()
+        .encode_to_string(&families)
+        .map_err(|error| {
+            error!(%error, "Cannot encode metrics");
+            StatusCode::INTERNAL_SERVER_ERROR
+        })
 }
 
 #[cfg(test)]
@@ -360,7 +364,7 @@ mod tests {
         }
 
         // Verify all metrics from example.json can be parsed
-        for (key, _value) in &data {
+        for key in data.keys() {
             let result = parse_metric_name(key, &config);
             assert!(
                 result.is_some(),
@@ -386,5 +390,79 @@ mod tests {
             labels.get("device"),
             Some(&"multiplus_ii_48_5000_70_50".to_string())
         );
+    }
+    #[test]
+    fn malformed_measurements_do_not_panic() {
+        let config = test_config();
+        for raw in [
+            "MultiPlus-II - Power (",
+            "MultiPlus-II - Power (é",
+            "MultiPlus-II - !invalid",
+            "unknown - Power (W)",
+            "MultiPlus-II - phase_é",
+            "MultiPlus-II - ",
+        ] {
+            assert!(parse_metric_name(raw, &config).is_none(), "{raw}");
+        }
+        assert!(parse_metric_name(&"a".repeat(MAX_METRIC_KEY_BYTES + 1), &config).is_none());
+    }
+
+    #[test]
+    fn series_limit_bounds_metrics_and_labels() {
+        let config = test_config();
+        let mut metrics = Metrics::default();
+        for index in 0..MAX_SERIES {
+            metrics
+                .update(
+                    HashMap::from([(
+                        format!("MultiPlus-II {index} - Power (W)"),
+                        Value::from(index),
+                    )]),
+                    &config,
+                )
+                .unwrap();
+        }
+        assert!(metrics
+            .update(
+                HashMap::from([("MultiPlus-II extra - Power (W)".to_string(), Value::from(1)),]),
+                &config
+            )
+            .is_err());
+        assert!(metrics
+            .update(
+                HashMap::from([("MultiPlus-II - New metric (W)".to_string(), Value::from(1)),]),
+                &config
+            )
+            .is_err());
+        metrics
+            .update(
+                HashMap::from([("MultiPlus-II 0 - Power (W)".to_string(), Value::from(2))]),
+                &config,
+            )
+            .unwrap();
+        assert_eq!(metrics.series.len(), MAX_SERIES);
+        assert_eq!(metrics.gauges.len(), 1);
+    }
+
+    #[test]
+    fn conflicting_labels_return_an_error() {
+        let config = test_config();
+        let mut metrics = Metrics::default();
+        metrics
+            .update(
+                HashMap::from([("MultiPlus-II - Power (W)".to_string(), Value::from(1))]),
+                &config,
+            )
+            .unwrap();
+        assert!(metrics
+            .update(
+                HashMap::from([(
+                    "MultiPlus-II - Power phase 1 (W)".to_string(),
+                    Value::from(2)
+                ),]),
+                &config
+            )
+            .is_err());
+        assert_eq!(metrics.series.len(), 1);
     }
 }

@@ -1,0 +1,134 @@
+--- a/src/util/image_compression.rs
++++ b/src/util/image_compression.rs
+@@ -38,16 +38,19 @@
+         }
+     };
+ 
++    let new_width = (rgb_img.width() as f32 * scale).round() as u32;
++    let new_height = (rgb_img.height() as f32 * scale).round() as u32;
++    if !scale.is_finite()
++        || new_width == 0 || new_height == 0
++        || new_width > 4096 || new_height > 4096
++        || u64::from(new_width) * u64::from(new_height) > 16 * 1024 * 1024
++    {
++        anyhow::bail!("Requested image exceeds the output dimension limit");
++    }
++
+     // Resize if scale is not 1.0
+     let final_img = if (scale - 1.0).abs() > 0.001 {
+         // Not equal to 1.0, need to resize
+-        let new_width = (rgb_img.width() as f32 * scale).round() as u32;
+-        let new_height = (rgb_img.height() as f32 * scale).round() as u32;
+-
+-        if new_width == 0 || new_height == 0 {
+-            anyhow::bail!("Scale factor {} results in zero dimensions", scale);
+-        }
+-
+         image::imageops::resize(&rgb_img, new_width, new_height, FilterType::Lanczos3)
+     } else {
+         // Scale is 1.0, use original image
+@@ -167,4 +170,13 @@
+         let result = compress_image(&invalid_data, ResizeMode::Scale(1.0), 75);
+         assert!(result.is_err());
+     }
++    #[test]
++    fn rejects_oversized_output_before_resizing() {
++        let original = create_test_jpeg(1, 1, 75);
++        assert!(compress_image(&original, ResizeMode::TargetResolution(100_000), 75).is_err());
++        assert!(compress_image(&original, ResizeMode::Scale(f32::INFINITY), 75).is_err());
++        let tall = create_test_jpeg(1, 10, 75);
++        assert!(compress_image(&tall, ResizeMode::TargetResolution(4096), 75).is_err());
++    }
++
+ }
+--- a/src/network/webserver.rs
++++ b/src/network/webserver.rs
+@@ -37,6 +37,10 @@
+ 
+ // Lazy-loaded font for filtered placeholder text
+ lazy_static! {
++    // Bound downloads and CPU/memory-heavy conversions, including requests
++    // whose HTTP clients disconnect while blocking work is still running.
++    static ref IMAGE_CONVERSIONS: Arc<tokio::sync::Semaphore> =
++        Arc::new(tokio::sync::Semaphore::new(2));
+     static ref GALLERY_FONT: FontRef<'static> = {
+         let font_data = include_bytes!("../../fonts/gallery.ttf");
+         FontRef::try_from_slice(font_data).expect("Failed to load embedded gallery font")
+@@ -1019,16 +1023,21 @@
+     Path(params): Path<ImagePathParams>,
+     State(mut state): State<AppState>,
+ ) -> Response {
++    let permit = match IMAGE_CONVERSIONS.clone().try_acquire_owned() {
++        Ok(permit) => permit,
++        Err(_) => return (StatusCode::TOO_MANY_REQUESTS, "Image server busy").into_response(),
++    };
++
+     // Strip .webp suffix from uuid if present
+     let uuid = params.uuid.strip_suffix(".webp").unwrap_or(&params.uuid);
+ 
+     // Parse size parameter (can be resolution in pixels or scale multiplier)
+-    let size_value: f32 = match params.size.parse() {
+-        Ok(s) if s > 0.0 => s,
++    let size_value: f32 = match params.size.parse::<f32>() {
++        Ok(s) if s.is_finite() && s > 0.0 && s <= 4096.0 => s,
+         _ => {
+             return (
+                 StatusCode::BAD_REQUEST,
+-                "Invalid size parameter (must be > 0.0)",
++                "Invalid size parameter (must be finite and 0 < size <= 4096)",
+             )
+                 .into_response();
+         }
+@@ -1089,8 +1098,12 @@
+     debug!("Fetching original image from: {}", original_url);
+ 
+     // Fetch original JPEG
+-    let original_bytes = match reqwest::get(&original_url).await {
+-        Ok(response) => {
++    let client = match reqwest::Client::builder().timeout(Duration::from_secs(30)).build() {
++        Ok(client) => client,
++        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
++    };
++    let original_bytes = match client.get(&original_url).send().await {
++        Ok(mut response) => {
+             if !response.status().is_success() {
+                 error!("Failed to fetch original image: HTTP {}", response.status());
+                 return (
+@@ -1099,15 +1112,15 @@
+                 )
+                     .into_response();
+             }
+-            match response.bytes().await {
+-                Ok(bytes) => bytes.to_vec(),
+-                Err(e) => {
+-                    error!("Failed to read image bytes: {:#}", e);
+-                    return (
+-                        StatusCode::INTERNAL_SERVER_ERROR,
+-                        "Failed to read image data",
+-                    )
+-                        .into_response();
++            let mut bytes = Vec::new();
++            loop {
++                match response.chunk().await {
++                    Ok(Some(chunk)) if bytes.len() + chunk.len() <= 32 * 1024 * 1024 => {
++                        bytes.extend_from_slice(&chunk);
++                    }
++                    Ok(Some(_)) => return StatusCode::PAYLOAD_TOO_LARGE.into_response(),
++                    Ok(None) => break bytes,
++                    Err(_) => return StatusCode::BAD_GATEWAY.into_response(),
+                 }
+             }
+         }
+@@ -1145,7 +1158,11 @@
+     };
+ 
+     // Compress the image
+-    let compressed_bytes = match compress_image(&original_bytes, resize_mode, quality) {
++    let conversion = tokio::task::spawn_blocking(move || {
++        let _permit = permit;
++        compress_image(&original_bytes, resize_mode, quality)
++    }).await.context("Image conversion task failed").and_then(|result| result);
++    let compressed_bytes = match conversion {
+         Ok(bytes) => bytes,
+         Err(e) => {
+             error!("Failed to compress image {}: {:#}", uuid, e);

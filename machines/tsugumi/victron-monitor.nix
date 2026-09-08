@@ -3,6 +3,11 @@
 let
   victronMonitor = pkgs.callPackage ../../tools/victron-monitor { };
   prometheusPort = 9101;
+  prefixUpdater = pkgs.writeScript "victron-starlink-prefixes" (
+    "#!${pkgs.python3}/bin/python3 -I\n"
+    + builtins.replaceStrings [ "@nft@" ] [ "${pkgs.nftables}/bin/nft" ]
+      (builtins.readFile ./starlink-prefixes.py)
+  );
   configFile = pkgs.writeText "victron-monitor-config.toml" ''
     udp_port = 9099
     prometheus_port = ${toString prometheusPort}
@@ -47,10 +52,51 @@ in
       RestrictSUIDSGID = true;
       RemoveIPC = true;
       PrivateTmp = true;
+      MemoryMax = "128M";
+      TasksMax = 16;
     };
   };
 
-  networking.firewall.allowedUDPPorts = [ 9099 ];
+  # The nft input hook filters before the NixOS firewall's loopback and
+  # established-connection exceptions, including packets from local users.
+  networking.firewall = {
+    allowedUDPPorts = [ 9099 ];
+    extraCommands = ''
+      ${prefixUpdater} --restore
+    '';
+    # Keep the independent nft guard across stop/reload, including the old
+    # firewall's loopback/established allowances. Replacement is atomic.
+  };
+
+  systemd.services.victron-starlink-prefixes = {
+    description = "Refresh Starlink's announced prefixes for Victron ingress";
+    after = [ "network-online.target" "firewall.service" ];
+    wants = [ "network-online.target" ];
+    environment.SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = prefixUpdater;
+      StateDirectory = "victron-prefixes";
+      StateDirectoryMode = "0700";
+      UMask = "0077";
+      NoNewPrivileges = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      PrivateTmp = true;
+      CapabilityBoundingSet = [ "CAP_NET_ADMIN" ];
+      RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" "AF_NETLINK" ];
+      TimeoutStartSec = "90s";
+      MemoryMax = "128M";
+    };
+  };
+  systemd.timers.victron-starlink-prefixes = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "30s";
+      OnUnitActiveSec = "1h";
+      RandomizedDelaySec = "30s";
+    };
+  };
 
   services.prometheus.scrapeConfigs = lib.mkAfter [{
     job_name = "victron-monitor";

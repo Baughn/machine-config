@@ -1,5 +1,10 @@
 { pkgs, ganbot, ... }:
 
+let
+  ganbotPackage = ganbot.packages.x86_64-linux.default.overrideAttrs (old: {
+    patches = (old.patches or [ ]) ++ [ ./patches/ganbot-image-limits.patch ];
+  });
+in
 {
   systemd.services.ganbot = {
     description = "Ganbot Discord/IRC bot";
@@ -11,7 +16,7 @@
       Type = "simple";
       User = "svein";
       WorkingDirectory = "/home/svein/dev/ganbot";
-      ExecStart = "${ganbot.packages.x86_64-linux.default}/bin/ganbot";
+      ExecStart = "${ganbotPackage}/bin/ganbot";
       Restart = "on-failure";
       RestartSec = "5s";
       StateDirectory = "ganbot";
@@ -29,6 +34,7 @@
       ProtectKernelTunables = true;
       ProtectControlGroups = true;
       RestrictSUIDSGID = true;
+      MemoryMax = "2G";
     };
   };
 

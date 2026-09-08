@@ -641,7 +641,7 @@ in
     users.users.svein.extraGroups = [ "audio" ];
 
     services.ananicy = {
-      enable = true;
+      #enable = true;
       package = pkgs.ananicy-cpp;
       rulesProvider = pkgs.ananicy-cpp;
     };
