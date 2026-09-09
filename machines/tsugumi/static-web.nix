@@ -6,12 +6,44 @@ let
     "madoka.brage.info" = "/srv/minecraft";
     "ar-innna.brage.info" = "/srv/aquagon";
   };
+  # Content negotiation for markdown: browsers (Accept: text/html) get the
+  # file rendered through this wrapper; everything else gets the raw .md.
+  # readFile is rooted at the site root and does not evaluate the file as a
+  # template, so `{{` inside documents is safe.
+  markdownWrapper = pkgs.writeTextDir "_md.html" ''
+    <!doctype html>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ .OriginalReq.URL.Path }}</title>
+    <style>
+      body { max-width: 50em; margin: 2em auto; padding: 0 1em; font-family: system-ui, sans-serif; line-height: 1.5; }
+      pre { overflow-x: auto; padding: 0.5em; background: #f4f4f4; }
+      code { font-family: ui-monospace, monospace; }
+      table { border-collapse: collapse; }
+      td, th { border: 1px solid #ccc; padding: 0.2em 0.5em; }
+    </style>
+    <main>{{ markdown (readFile .OriginalReq.URL.Path) }}</main>
+  '';
   configFile = pkgs.writeText "caddy-static.json" (builtins.toJSON {
     admin.disabled = true;
     apps.http.servers.static = {
       listen = [ "unix//run/caddy-static/http.sock|0660" ];
       automatic_https.disable = true;
       routes = (pkgs.lib.mapAttrsToList (host: root: {
+        match = [{
+          host = [ host ];
+          path = [ "*.md" ];
+          header.Accept = [ "*text/html*" ];
+          file = { inherit root; try_files = [ "{http.request.uri.path}" ]; };
+        }];
+        handle = [
+          { handler = "rewrite"; uri = "/_md.html"; }
+          { handler = "headers"; response.set.Vary = [ "Accept" ]; }
+          { handler = "templates"; file_root = root; }
+          { handler = "file_server"; root = "${markdownWrapper}"; }
+        ];
+        terminal = true;
+      }) roots) ++ (pkgs.lib.mapAttrsToList (host: root: {
         match = [{ host = [ host ]; }];
         handle = [{ handler = "file_server"; inherit root; browse = { }; }];
         terminal = true;
