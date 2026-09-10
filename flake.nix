@@ -170,6 +170,7 @@
       '';
       punch-vm = import ./tests/punch-vm.nix { inherit pkgs; };
       local-web-access = import ./tests/local-web-access-vm.nix { inherit pkgs; };
+      minecraft-storage-vm = import ./tests/minecraft-storage-vm.nix { inherit pkgs; };
       security-scripts = pkgs.runCommand "security-script-tests" {
         nativeBuildInputs = [ pkgs.python3 ];
       } ''
