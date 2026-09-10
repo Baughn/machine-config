@@ -15,6 +15,7 @@
     ./nix.nix
     ./nix-build-balancer.nix
     ./nix-deploy.nix
+    ./punch.nix
     ./remote-builds.nix
     ./security.nix
     ./shell.nix

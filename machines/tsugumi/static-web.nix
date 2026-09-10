@@ -3,6 +3,7 @@
 let
   roots = {
     "brage.info" = "/srv/svein";
+    "minecraft.brage.info" = "/srv/minecraft";
     "madoka.brage.info" = "/srv/minecraft";
     "ar-innna.brage.info" = "/srv/aquagon";
   };

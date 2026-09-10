@@ -8,6 +8,7 @@
     ./ganbot.nix
     ./game-watcher.nix
     ./nix-deploy.nix
+    ./stationeers.nix
     ./steam.nix
     ./restic.nix
   ];

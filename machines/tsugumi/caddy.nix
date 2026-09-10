@@ -72,6 +72,11 @@
         reverse_proxy http://saya.local:8485
       }
 
+      minecraft.brage.info {
+        import headers
+        reverse_proxy unix//run/caddy-static/http.sock
+      }
+
       madoka.brage.info {
         import headers
         reverse_proxy /warmroast/* localhost:23000

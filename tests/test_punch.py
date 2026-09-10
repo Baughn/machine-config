@@ -1,4 +1,5 @@
 import importlib.util
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -11,7 +12,7 @@ import aiohttp
 from aiohttp import web
 from aiohttp.test_utils import TestClient, TestServer
 
-SOURCE = Path(__file__).resolve().parents[1] / "machines/tsugumi/minecraft-access"
+SOURCE = Path(__file__).resolve().parents[1] / "modules/punch"
 
 
 def module(name):
@@ -25,16 +26,26 @@ def module(name):
 server = module("server")
 firewall = module("firewall")
 CONFIG = {
-    "hostname": "minecraft.brage.info",
+    "hostname": "punch.brage.info",
     "ipv4Hostname": "v4.brage.info",
     "ipv6Hostname": "v6.brage.info",
     "clientId": "1",
     "guildId": "2",
-    "roleId": "3",
     "sessionSeconds": 90 * 86400,
     "leaseSeconds": 14 * 86400,
     "maxAddresses": 16,
-    "ports": {"tcp": [25565, 25566], "udp": [24454]},
+    "groups": {
+        "minecraft": {
+            "label": "Minecraft",
+            "roleIds": ["3"],
+            "ports": {"tcp": [25565, 25566], "udp": [24454]},
+        },
+        "stationeers": {
+            "label": "Stationeers",
+            "roleIds": ["4"],
+            "ports": {"tcp": [25566, 25568], "udp": [27016]},
+        },
+    },
 }
 
 
@@ -47,29 +58,31 @@ class GrantTests(unittest.TestCase):
         self.addCleanup(patch.stopall)
 
     def test_renewal_shared_ip_and_restore_remaining_lifetime(self):
-        self.grants.run("1", "192.0.2.1", now=100)
-        self.grants.run("2", "192.0.2.1", now=200)
-        self.grants.run("1", "2001:db8::1", now=300)
+        self.grants.run("1", "192.0.2.1", groups=["minecraft"], now=100)
+        self.grants.run("2", "192.0.2.1", groups=["minecraft"], now=200)
+        self.grants.run("1", "2001:db8::1", groups=["minecraft"], now=300)
         self.grants.run(now=400)
         rules = self.nft.call_args.kwargs["input"]
         self.assertIn("192.0.2.1 timeout 1209400s", rules)
         self.assertIn("2001:db8::1 timeout 1209500s", rules)
         self.assertIn("tcp dport { 25565, 25566 }", rules)
         self.assertIn("udp dport { 24454 }", rules)
-        self.assertEqual(len(self.grants.run("1", now=400)), 2)
+        self.assertIn("destroy table inet minecraft_access", rules)
+        self.assertEqual(len(self.grants.run("1", groups=["minecraft"], now=400)), 2)
         self.grants.run(now=300 + CONFIG["leaseSeconds"])
         self.assertNotIn("elements", self.nft.call_args.kwargs["input"])
 
     def test_limit_and_no_extension_on_failed_update(self):
         self.grants.config = CONFIG | {"maxAddresses": 1}
-        self.grants.run("1", "192.0.2.1", now=100)
+        self.grants.run("1", "192.0.2.1", groups=["minecraft"], now=100)
         with self.assertRaises(ValueError):
-            self.grants.run("1", "192.0.2.2", now=200)
+            self.grants.run("1", "192.0.2.2", groups=["minecraft"], now=200)
         self.nft.side_effect = subprocess.CalledProcessError(1, "nft")
         with self.assertRaises(subprocess.CalledProcessError):
-            self.grants.run("1", "192.0.2.1", now=200)
+            self.grants.run("1", "192.0.2.1", groups=["minecraft"], now=200)
         self.assertEqual(
-            self.grants.run("1", now=300)[0]["expires"], 100 + CONFIG["leaseSeconds"]
+            self.grants.run("1", groups=["minecraft"], now=300)[0]["expires"],
+            100 + CONFIG["leaseSeconds"],
         )
 
     def test_rejects_networks_commands_and_invalid_accounts(self):
@@ -80,11 +93,57 @@ class GrantTests(unittest.TestCase):
             "::1%; flush ruleset",
         ):
             with self.assertRaises(ValueError):
-                self.grants.run("1", address)
+                self.grants.run("1", address, groups=["minecraft"])
         for user in ("", "not-an-id", "1" * 21):
             with self.assertRaises(ValueError):
-                self.grants.run(user, "192.0.2.1")
+                self.grants.run(user, "192.0.2.1", groups=["minecraft"])
         self.nft.assert_not_called()
+
+    def test_group_expiry_is_independent_and_unknown_groups_rejected(self):
+        self.grants.run("1", "192.0.2.1", groups=["minecraft"], now=100)
+        self.grants.run("1", "192.0.2.1", groups=["stationeers"], now=200)
+        with self.assertRaises(ValueError):
+            self.grants.run("1", "192.0.2.1", groups=["admin"], now=300)
+        self.grants.run(now=100 + CONFIG["leaseSeconds"])
+        grants = self.grants.run("1", now=100 + CONFIG["leaseSeconds"])
+        self.assertEqual([g["group"] for g in grants], ["stationeers"])
+        self.grants.config = CONFIG | {
+            "groups": {"minecraft": CONFIG["groups"]["minecraft"]}
+        }
+        self.grants.run(now=100 + CONFIG["leaseSeconds"])
+        self.assertEqual(self.grants.run("1", now=100 + CONFIG["leaseSeconds"]), [])
+
+    def test_family_changes_prune_existing_grants_and_do_not_restore_them(self):
+        self.grants.run("1", "192.0.2.1", groups=["minecraft", "stationeers"], now=100)
+        self.grants.run("1", "2001:db8::1", groups=["minecraft"], now=100)
+        self.grants.config = CONFIG | {
+            "groups": CONFIG["groups"]
+            | {"minecraft": CONFIG["groups"]["minecraft"] | {"addressFamilies": [6]}}
+        }
+        self.nft.side_effect = subprocess.CalledProcessError(1, "nft")
+        with self.assertRaises(subprocess.CalledProcessError):
+            self.grants.run(now=200)
+        with sqlite3.connect(Path(self.temp.name) / "grants.sqlite") as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM grants").fetchone()[0], 3)
+        self.nft.side_effect = None
+        # A listing that prunes policy-incompatible grants must also update nftables.
+        result = self.grants.run("1", now=200)
+        self.assertEqual(
+            {(g["group"], g["ip"]) for g in result},
+            {("minecraft", "2001:db8::1"), ("stationeers", "192.0.2.1")},
+        )
+        rules = self.nft.call_args.kwargs["input"]
+        self.assertNotIn("elements", rules.split("set g0_v4", 1)[1].split("}", 1)[0])
+        self.assertIn("192.0.2.1 timeout", rules.split("set g1_v4", 1)[1])
+        self.grants.config = CONFIG
+        self.grants.run(now=300)
+        self.assertEqual(len(self.grants.run("1", now=300)), 2)
+        self.assertNotIn(
+            "elements",
+            self.nft.call_args.kwargs["input"]
+            .split("set g0_v4", 1)[1]
+            .split("}", 1)[0],
+        )
 
 
 class FrontendTests(unittest.IsolatedAsyncioTestCase):
@@ -102,7 +161,7 @@ class FrontendTests(unittest.IsolatedAsyncioTestCase):
             data = await request.post()
             self.assertEqual(data["client_secret"], "test-secret")
             self.assertEqual(
-                data["redirect_uri"], "https://minecraft.brage.info/oauth/callback"
+                data["redirect_uri"], "https://punch.brage.info/oauth/callback"
             )
             return web.json_response(
                 {
@@ -140,7 +199,7 @@ class FrontendTests(unittest.IsolatedAsyncioTestCase):
                     self.broker_server.make_url(urlparse(url).path), **kwargs
                 )
 
-        frontend = server.Frontend(
+        frontend = self.frontend = server.Frontend(
             CONFIG | {"discordApi": str(self.discord.make_url(""))},
             self.store,
             "test-secret",
@@ -155,8 +214,94 @@ class FrontendTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(self.client.close)
         self.headers = {
             "Host": CONFIG["hostname"],
-            "X-Minecraft-Client-IP": "192.0.2.1",
+            "X-Punch-Client-IP": "192.0.2.1",
         }
+
+    async def test_remote_broker_authentication_isolation_and_partial_failure(self):
+        remote_config = CONFIG | {
+            "groups": {
+                "stationeers": CONFIG["groups"]["stationeers"]
+                | {"addressFamilies": [6]}
+            }
+        }
+        remote_grants = firewall.Grants(
+            remote_config, Path(self.temp.name) / "remote", "/nft"
+        )
+        remote = TestServer(firewall.create_app(remote_grants, "test-token"))
+        await remote.start_server()
+        self.addAsyncCleanup(remote.close)
+        url = str(remote.make_url(""))
+        data = {"user": "42", "ip": "2001:db8::1", "groups": ["stationeers"]}
+        for headers in ({}, {"Authorization": "Bearer wrong"}):
+            response = await self.http.post(url + "/grant", json=data, headers=headers)
+            self.assertEqual(response.status, 401)
+        headers = {"Authorization": "Bearer test-token"}
+        for invalid in (data | {"ip": "192.0.2.1"}, data | {"groups": ["minecraft"]}):
+            response = await self.http.post(
+                url + "/grant", json=invalid, headers=headers
+            )
+            self.assertEqual(response.status, 400)
+        self.frontend.config = self.frontend.config | {
+            "remoteBrokers": {"saya": {"url": url, "token": "test-token"}},
+            "groups": CONFIG["groups"]
+            | {
+                "stationeers": remote_config["groups"]["stationeers"] | {"host": "saya"}
+            },
+        }
+        both = ["minecraft", "stationeers"]
+        result = await self.frontend.brokers_call(
+            "grant", "42", both, server.ipaddress.ip_address("192.0.2.1")
+        )
+        self.assertEqual(result["enabled"], ["minecraft"])
+        result = await self.frontend.brokers_call(
+            "grant", "42", both, server.ipaddress.ip_address("2001:db8::1")
+        )
+        self.assertEqual(set(result["enabled"]), set(both))
+        self.assertEqual(result["errors"], [])
+        self.assertEqual({g["group"] for g in remote_grants.run("42")}, {"stationeers"})
+        await remote.close()
+        result = await self.frontend.brokers_call(
+            "grant", "42", both, server.ipaddress.ip_address("2001:db8::2")
+        )
+        self.assertEqual(result["enabled"], ["minecraft"])
+        self.assertEqual(result["errors"][0]["groups"], ["stationeers"])
+        result = await self.frontend.brokers_call("list", "42", both)
+        self.assertTrue(result["grants"])
+        self.assertEqual(result["errors"][0]["groups"], ["stationeers"])
+
+    async def test_broker_errors_distinguish_limits_and_configuration(self):
+        self.grants.config = CONFIG | {
+            "maxAddresses": 1,
+            "groups": {
+                "minecraft": CONFIG["groups"]["minecraft"] | {"addressFamilies": [6]}
+            },
+        }
+        data = {"user": "42", "ip": "2001:db8::1", "groups": ["minecraft"]}
+        await self.frontend.broker_call("grant", data)
+        for payload, message in (
+            (data | {"ip": "2001:db8::2"}, "Active address limit reached"),
+            (data | {"groups": ["stationeers"]}, "Game configuration differs"),
+            (data | {"ip": "192.0.2.1"}, "does not accept this IP version"),
+            (data | {"ip": "invalid"}, "rejected the access request"),
+        ):
+            with self.assertRaises(web.HTTPServiceUnavailable) as caught:
+                await self.frontend.broker_call("grant", payload)
+            self.assertIn(message, caught.exception.text)
+        with sqlite3.connect(Path(self.temp.name) / "grants" / "grants.sqlite") as db:
+            db.executemany(
+                "INSERT INTO grants VALUES (?, ?, ?, ?)",
+                [
+                    (str(user), "2001:db8::1", "minecraft", server.time.time() + 3600)
+                    for user in range(100, 4195)
+                ],
+            )
+        with self.assertRaises(web.HTTPServiceUnavailable) as caught:
+            await self.frontend.broker_call("grant", data | {"user": "99"})
+        self.assertIn("grant capacity", caught.exception.text)
+        self.nft.side_effect = subprocess.CalledProcessError(1, "nft")
+        with self.assertRaises(web.HTTPServiceUnavailable) as caught:
+            await self.frontend.broker_call("grant", data)
+        self.assertIn("could not update its firewall", caught.exception.text)
 
     async def login(self):
         response = await self.client.get(
@@ -196,12 +341,12 @@ class FrontendTests(unittest.IsolatedAsyncioTestCase):
 
     async def authorize(self, ticket, address, **extra):
         return await self.client.post(
-            "/minecraft-access/authorize",
+            "/punch/authorize",
             json={"ticket": ticket["ticket"]},
             headers={
                 "Host": urlparse(ticket["url"]).hostname,
                 "Origin": "https://" + CONFIG["hostname"],
-                "X-Minecraft-Client-IP": address,
+                "X-Punch-Client-IP": address,
                 **extra,
             },
         )
@@ -308,7 +453,7 @@ class FrontendTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_preflight_expired_ticket_and_private_broker_validation(self):
         response = await self.client.options(
-            "/minecraft-access/authorize",
+            "/punch/authorize",
             headers={
                 "Host": CONFIG["ipv4Hostname"],
                 "Origin": "https://" + CONFIG["hostname"],
@@ -353,6 +498,40 @@ class FrontendTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status, 503)
         self.assertEqual(
             self.store.db.execute("SELECT count(*) FROM logins").fetchone()[0], 4096
+        )
+
+    async def test_multiple_roles_grant_union_and_client_cannot_choose_groups(self):
+        self.roles = ["3", "4"]
+        response, _ = await self.login()
+        self.assertEqual(response.status, 302)
+        response, status = await self.tickets()
+        self.assertTrue(all(group["eligible"] for group in status["groups"]))
+        tickets = await response.json()
+        response = await self.authorize(tickets[0], "192.0.2.1")
+        self.assertEqual(response.status, 200)
+        self.assertEqual(
+            {g["group"] for g in (await response.json())["grants"]},
+            {"minecraft", "stationeers"},
+        )
+
+    async def test_stationeers_role_does_not_grant_minecraft(self):
+        self.roles = ["4"]
+        response, _ = await self.login()
+        self.assertEqual(response.status, 302)
+        response, _ = await self.tickets()
+        ticket = (await response.json())[0]
+        response = await self.client.post(
+            "/punch/authorize",
+            json={"ticket": ticket["ticket"], "groups": ["minecraft"]},
+            headers={
+                "Host": CONFIG["ipv4Hostname"],
+                "Origin": "https://" + CONFIG["hostname"],
+                "X-Punch-Client-IP": "192.0.2.1",
+            },
+        )
+        self.assertEqual(response.status, 200)
+        self.assertEqual(
+            {g["group"] for g in (await response.json())["grants"]}, {"stationeers"}
         )
 
 

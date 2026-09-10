@@ -2,7 +2,7 @@
 
 {
   age.secrets = {
-    "minecraft-access-discord-secret" = lib.mkIf config.me.minecraft.access.enable {
+    "minecraft-access-discord-secret" = lib.mkIf config.me.punch.enable {
       file = ../../secrets/minecraft-access-discord-secret.age;
     };
     "wireguard-tsugumi".file = ../../secrets/wireguard-tsugumi.age;

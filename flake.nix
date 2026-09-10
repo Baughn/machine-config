@@ -154,21 +154,21 @@
     };
 
     checks.x86_64-linux = {
-      minecraft-access = pkgs.runCommand "minecraft-access-tests" {
+      punch = pkgs.runCommand "punch-tests" {
         nativeBuildInputs = [ (pkgs.python3.withPackages (p: [ p.aiohttp ])) ];
       } ''
         export PYTHONDONTWRITEBYTECODE=1
         cd ${pkgs.lib.fileset.toSource {
           root = ./.;
           fileset = pkgs.lib.fileset.unions [
-            ./machines/tsugumi/minecraft-access
-            ./tests/test_minecraft_access.py
+            ./modules/punch
+            ./tests/test_punch.py
           ];
         }}
-        python3 -m unittest discover -s tests -p 'test_minecraft_access.py' -v
+        python3 -m unittest discover -s tests -p 'test_punch.py' -v
         touch "$out"
       '';
-      minecraft-access-vm = import ./tests/minecraft-access-vm.nix { inherit pkgs; };
+      punch-vm = import ./tests/punch-vm.nix { inherit pkgs; };
       local-web-access = import ./tests/local-web-access-vm.nix { inherit pkgs; };
       security-scripts = pkgs.runCommand "security-script-tests" {
         nativeBuildInputs = [ pkgs.python3 ];

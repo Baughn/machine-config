@@ -42,6 +42,7 @@ in
     ./irctool.nix
     ./aniwatch.nix
     ./minecraft.nix
+    ./punch-remote.nix
     ./syncthing.nix
     ./silverbullet.nix
     ./nfs.nix
@@ -67,6 +68,13 @@ in
   # sched_ext's enable path can deadlock against PID 1's cgroup/PSI setup at
   # boot (hit 2026-07-21, kernel 7.1.3); a server doesn't need bpfland anyway.
   me.cachy-kernel.scheduler = null;
+
+  me.punch = {
+    enable = true;
+    clientId = "1547287991494647939";
+    guildId = "153634590190206977";
+    clientSecretFile = config.age.secrets.minecraft-access-discord-secret.path;
+  };
 
   ## Networking
   networking.hostName = "tsugumi";

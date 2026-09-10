@@ -2,21 +2,22 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Minecraft access</title>
+<title>Game access</title>
 <style>
   body { max-width: 42rem; margin: 4rem auto; padding: 0 1.5rem; font: 18px/1.6 system-ui; color: #eee; background: #17221b; }
   a { color: #a9e2b7; } button { font: inherit; padding: .4rem .8rem; cursor: pointer; }
   td, th { padding: .4rem 1rem .4rem 0; text-align: left; overflow-wrap: anywhere; }
   .muted { color: #bdc8c0; } [hidden] { display: none; }
 </style>
-<h1>Minecraft access</h1>
-<p id="login"><a href="/login">Log in with Discord</a> to enable access for 14 days. You need the Minecraft players role on our Discord server.</p>
+<h1>Game access</h1>
+<p id="login"><a href="/login">Log in with Discord</a> to enable access for 14 days. Your Discord roles determine which games you can access.</p>
 <section id="account" hidden>
   <p>Open this page on the machine and network you play from. Each visit renews access for the addresses we can detect, for another 14 days.</p>
-  <p class="muted">Browser VPNs and privacy proxies may use a different address from Minecraft. Revisit after changing networks, or if you cannot connect.</p>
+  <p class="muted">Browser VPNs and privacy proxies may use a different address from your game. Revisit after changing networks, or if you cannot connect.</p>
+  <p id="games"></p>
   <p id="status" role="status">Checking your connection…</p>
   <h2>Your allowed addresses</h2>
-  <table><thead><tr><th>IP address</th><th>Access expires</th></tr></thead><tbody id="grants"></tbody></table>
+  <table><thead><tr><th>Game</th><th>IP address</th><th>Access expires</th></tr></thead><tbody id="grants"></tbody></table>
   <p id="session" class="muted"></p>
   <button id="retry">Check again</button> <button id="logout">Log out</button>
 </section>

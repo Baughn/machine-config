@@ -1,6 +1,7 @@
 """Discord login, remembered sessions, and dual-stack address discovery."""
 
 import argparse
+import asyncio
 import hashlib
 import ipaddress
 import json
@@ -15,8 +16,8 @@ from urllib.parse import urlencode
 import aiohttp
 from aiohttp import web
 
-COOKIE = "__Host-minecraft-session"
-LOGIN_COOKIE = "__Host-minecraft-login"
+COOKIE = "__Host-punch-session"
+LOGIN_COOKIE = "__Host-punch-login"
 logger = logging.getLogger(__name__)
 
 
@@ -29,7 +30,7 @@ class Store:
         self.db = sqlite3.connect(path)
         self.db.executescript("""
             CREATE TABLE IF NOT EXISTS sessions (
-                id TEXT PRIMARY KEY, user TEXT, csrf TEXT, expiry REAL);
+                id TEXT PRIMARY KEY, user TEXT, csrf TEXT, expiry REAL, roles TEXT);
             CREATE TABLE IF NOT EXISTS logins (
                 state TEXT PRIMARY KEY, browser TEXT, expiry REAL);
             CREATE TABLE IF NOT EXISTS tickets (
@@ -53,7 +54,7 @@ class Store:
 
     def session(self, token, now):
         return self.db.execute(
-            "SELECT user, csrf, expiry FROM sessions WHERE id=? AND expiry>?",
+            "SELECT user, csrf, expiry, roles FROM sessions WHERE id=? AND expiry>?",
             (digest(token), now),
         ).fetchone()
 
@@ -69,11 +70,18 @@ class Frontend:
         self.origin = "https://" + config["hostname"]
         self.hosts = {4: config["ipv4Hostname"], 6: config["ipv6Hostname"]}
 
+    def groups_for_roles(self, roles):
+        return [
+            name
+            for name, group in self.config["groups"].items()
+            if set(group["roleIds"]).intersection(roles)
+        ]
+
     def source(self, request):
         # Only Caddy can connect to the service's Unix socket. Caddy overwrites
         # this header from its TCP peer, independently of X-Forwarded-For.
         try:
-            value = request.headers.get("X-Minecraft-Client-IP", "")
+            value = request.headers.get("X-Punch-Client-IP", "")
             if "%" in value:
                 raise ValueError("Scoped address")
             return ipaddress.ip_address(value)
@@ -195,16 +203,17 @@ class Frontend:
             ) as response:
                 if response.status in (403, 404):
                     raise web.HTTPForbidden(
-                        text="Join the Discord server and obtain the Minecraft players role first."
+                        text="Join the Discord server and obtain a role for the game you want to play."
                     )
                 if response.status != 200:
                     raise web.HTTPBadGateway(
                         text="Discord is unavailable. Please try again later."
                     )
                 member = await response.json()
-            if self.config["roleId"] not in member.get("roles", []):
+            roles = member.get("roles", [])
+            if not self.groups_for_roles(roles):
                 raise web.HTTPForbidden(
-                    text="You need the Minecraft players role to enable access."
+                    text="You need a Discord role for one of the configured games to enable access."
                 )
             user = member["user"]["id"]
             if (
@@ -236,8 +245,8 @@ class Frontend:
                 (user,),
             )
             self.store.db.execute(
-                "INSERT INTO sessions VALUES (?, ?, ?, ?)",
-                (digest(token), user, csrf, now + duration),
+                "INSERT INTO sessions VALUES (?, ?, ?, ?, ?)",
+                (digest(token), user, csrf, now + duration, json.dumps(roles)),
             )
         result = web.HTTPFound("/")
         result.set_cookie(
@@ -254,18 +263,40 @@ class Frontend:
         )
         return result
 
-    async def broker_call(self, path, data):
+    async def broker_call(self, path, data, host=None):
+        client = self.broker
+        url = "http://localhost"
+        headers = {}
+        if host in self.config.get("remoteBrokers", {}):
+            remote = self.config["remoteBrokers"][host]
+            client = self.http
+            url = remote["url"]
+            headers["Authorization"] = "Bearer " + remote["token"]
         try:
-            async with self.broker.post(
-                "http://localhost/" + path, json=data
+            async with client.post(
+                url + "/" + path,
+                json=data,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=5),
+                allow_redirects=False,
             ) as response:
-                if response.status == 400:
-                    raise web.HTTPBadRequest(
-                        text="Active address limit reached. Wait for an old address to expire."
-                    )
                 if response.status != 200:
+                    messages = {
+                        "address_limit": "Active address limit reached. Wait for an old address to expire.",
+                        "grant_limit": "The access service has reached its grant capacity. Contact the server administrator.",
+                        "invalid_groups": "Game configuration differs between the portal and game host. Contact the server administrator.",
+                        "unsupported_family": "The game host does not accept this IP version. Contact the server administrator.",
+                        "invalid_request": "The game host rejected the access request. Contact the server administrator.",
+                        "firewall_unavailable": "The game host could not update its firewall. Please try again.",
+                    }
+                    try:
+                        error = await response.json()
+                    except (aiohttp.ContentTypeError, ValueError):
+                        error = {}
+                    code = error.get("error") if isinstance(error, dict) else None
+                    message = messages.get(code) if isinstance(code, str) else None
                     raise web.HTTPServiceUnavailable(
-                        text="Access could not be updated. Please try again."
+                        text=message or "Access service unavailable. Please try again."
                     )
                 return await response.json()
         except (aiohttp.ClientError, TimeoutError):
@@ -273,11 +304,61 @@ class Frontend:
                 text="Access service unavailable. Please try again."
             ) from None
 
+    async def brokers_call(self, path, user, groups, address=None):
+        hosts = {}
+        for name in groups:
+            group = self.config["groups"][name]
+            if address is not None and address.version not in group.get(
+                "addressFamilies", [4, 6]
+            ):
+                continue
+            hosts.setdefault(
+                group.get("host", self.config.get("firewallHost", "local")), []
+            ).append(name)
+
+        async def call(host, names):
+            data = {"user": user}
+            if address is not None:
+                data.update(ip=str(address), groups=names)
+            try:
+                return names, await self.broker_call(path, data, host), None
+            except web.HTTPException as error:
+                return names, [], error.text
+
+        results = await asyncio.gather(
+            *(call(host, names) for host, names in hosts.items())
+        )
+        return {
+            "grants": [grant for _, grants, _ in results for grant in grants],
+            "enabled": [
+                name for names, _, error in results if error is None for name in names
+            ],
+            "errors": [
+                {"groups": names, "message": error}
+                for names, _, error in results
+                if error is not None
+            ],
+        }
+
     async def status(self, request):
-        user, csrf, expiry = self.session(request)
-        grants = await self.broker_call("list", {"user": user})
+        user, csrf, expiry, roles = self.session(request)
+        result = await self.brokers_call("list", user, list(self.config["groups"]))
         return web.json_response(
-            {"csrf": csrf, "sessionExpires": expiry, "grants": grants}
+            {
+                "csrf": csrf,
+                "sessionExpires": expiry,
+                "grants": result["grants"],
+                "errors": result["errors"],
+                "groups": [
+                    {
+                        "id": name,
+                        "label": group["label"],
+                        "addressFamilies": group.get("addressFamilies", [4, 6]),
+                        "eligible": name in self.groups_for_roles(json.loads(roles)),
+                    }
+                    for name, group in self.config["groups"].items()
+                ],
+            }
         )
 
     async def visit(self, request):
@@ -298,7 +379,7 @@ class Frontend:
                 tickets.append(
                     {
                         "family": family,
-                        "url": "https://" + host + "/minecraft-access/authorize",
+                        "url": "https://" + host + "/punch/authorize",
                         "ticket": token,
                     }
                 )
@@ -340,14 +421,14 @@ class Frontend:
                 text="Authorization ticket expired or used on the wrong network."
             )
         session = self.store.db.execute(
-            "SELECT user FROM sessions WHERE id=? AND expiry>?", (ticket[0], now)
+            "SELECT user, roles FROM sessions WHERE id=? AND expiry>?", (ticket[0], now)
         ).fetchone()
         if session is None:
             raise web.HTTPUnauthorized(text="Please log in again.")
-        grants = await self.broker_call(
-            "grant", {"user": session[0], "ip": str(address)}
+        result = await self.brokers_call(
+            "grant", session[0], self.groups_for_roles(json.loads(session[1])), address
         )
-        return web.json_response({"ip": str(address), "grants": grants})
+        return web.json_response({"ip": str(address), **result})
 
     async def logout(self, request):
         session = self.session(request)
@@ -388,7 +469,7 @@ def create_app(frontend):
             }
         )
         if (
-            request.path == "/minecraft-access/authorize"
+            request.path == "/punch/authorize"
             and request.headers.get("Origin") == frontend.origin
         ):
             response.headers["Access-Control-Allow-Origin"] = frontend.origin
@@ -405,8 +486,8 @@ def create_app(frontend):
             web.get("/api/status", frontend.status),
             web.post("/api/visit", frontend.visit),
             web.post("/api/logout", frontend.logout),
-            web.post("/minecraft-access/authorize", frontend.authorize),
-            web.options("/minecraft-access/authorize", frontend.authorize),
+            web.post("/punch/authorize", frontend.authorize),
+            web.options("/punch/authorize", frontend.authorize),
         ]
     )
     return app
@@ -418,14 +499,18 @@ async def application(config):
         .read_text()
         .strip()
     )
+    for name, remote in config.get("remoteBrokers", {}).items():
+        remote["token"] = (
+            (Path(os.environ["CREDENTIALS_DIRECTORY"]) / ("broker-" + name))
+            .read_text()
+            .strip()
+        )
     store = Store(Path(os.environ["STATE_DIRECTORY"]) / "sessions.sqlite")
     http = aiohttp.ClientSession(
         timeout=aiohttp.ClientTimeout(total=15), raise_for_status=False
     )
     broker = aiohttp.ClientSession(
-        connector=aiohttp.UnixConnector(
-            path="/run/minecraft-access-firewall/http.sock"
-        ),
+        connector=aiohttp.UnixConnector(path="/run/punch-firewall/http.sock"),
         timeout=aiohttp.ClientTimeout(total=15),
     )
     app = create_app(
@@ -449,7 +534,7 @@ def main():
     os.umask(0o007)
     web.run_app(
         application(config),
-        path="/run/minecraft-access/http.sock",
+        path="/run/punch/http.sock",
         access_log=None,
         print=None,
     )

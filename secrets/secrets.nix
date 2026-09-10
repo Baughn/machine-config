@@ -21,6 +21,7 @@ in
   "authelia-storage-key.age".publicKeys = [ svein tsugumi ];
   "authelia-jwt-key.age".publicKeys = [ svein tsugumi ];
   "rolebot-config.json.age".publicKeys = [ svein tsugumi ];
+  "punch-saya-token.age".publicKeys = [ svein saya tsugumi ];
   "minecraft-access-discord-secret.age".publicKeys = [ svein tsugumi ];
   "irc-tool.env.age".publicKeys = [ svein tsugumi ];
   "grafana-admin-password.age".publicKeys = [ svein tsugumi ];
