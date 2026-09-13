@@ -70,13 +70,16 @@ across machines.
 
 ## KWin debugging (temporary)
 
-saya currently builds KWin from the local `kwin/` checkout (source override in
-the saya overlay in `flake.nix`) as part of an active investigation into an
-NVIDIA atomic-modeset failure — see `kwin-bug/README.md` and `kwin-bug/TODO.md`.
-saya also imports `kwin-bug/drm-atomic-log.nix`, an LD_PRELOAD shim that logs
-DRM atomic ioctls from the compositor. Don't touch `kwin/`,
-`kwin-6.6.3-original/`, or `kwin.patch` unless working on that bug; when the
-fix lands upstream, the overlay and the drm-atomic-log import should both go.
+saya currently uses KWin from nixpkgs. The local `kwin/` source override and
+`kwin.patch` entry in the saya overlay in `flake.nix` are commented out.
+The `kwin-bug/drm-atomic-log.nix` import and `drm-atomic-log.enable` setting
+in `machines/saya/default.nix` are also commented out, so DRM ioctl logging
+is disabled.
+
+The NVIDIA atomic-modeset investigation files remain — see
+`kwin-bug/README.md` and `kwin-bug/TODO.md`. Don't touch `kwin/`,
+`kwin-6.6.3-original/`, or `kwin.patch` unless working on that bug. When the
+fix lands upstream, remove the unused override and logging configuration.
 
 ## Flake structure
 

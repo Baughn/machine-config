@@ -13,7 +13,7 @@ in
     pkgs.nvd # nix-deploy shells out to it for the human-readable diff
   ];
 
-  # KWin is under active local development (kwin-bug/); a changed KWin can't
-  # be picked up by a live switch.
+  # A changed KWin can't be picked up by a live switch. Keep recommending
+  # a reboot even while the local source override (kwin-bug/) is disabled.
   me.deploy.rebootPatterns = [ "kwin" ];
 }

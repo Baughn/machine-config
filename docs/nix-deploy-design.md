@@ -153,7 +153,8 @@ toplevels (`readlink`, remote via ssh for the old side):
 closures; a pattern whose matched set differs between old and new is
 reboot-worthy. Built-in defaults: `nvidia-x11`, `linux-firmware`. Per-machine
 extras come from the machine config (see next section) — e.g. saya adds
-`kwin` while the local-KWin-build investigation is live.
+`kwin` so compositor updates trigger a reboot recommendation. This remains
+configured even though the local KWin source override is currently disabled.
 
 The verdict plus its reasons ("kernel 6.15.4 → 6.15.6", "kwin changed") is
 printed alongside a short human diff. For the human diff, shell out to
