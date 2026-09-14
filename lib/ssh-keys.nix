@@ -1,4 +1,4 @@
-{
+rec {
   svein = [
     "cert-authority ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGfsmAbJ1GKytVA71izC3xvIFYDQVHT2Q5CZPaIA6WqS svein@tsugumi"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMWPdtIOeHF3TElJxL8gQGyZMErJHY0OdqrRFZFlFdP0 svein@svein-mac.roam.internal"
@@ -7,9 +7,6 @@
   ];
 
   minecraft = [
-    "cert-authority ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGfsmAbJ1GKytVA71izC3xvIFYDQVHT2Q5CZPaIA6WqS svein@tsugumi"
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMWPdtIOeHF3TElJxL8gQGyZMErJHY0OdqrRFZFlFdP0 svein@svein-mac.roam.internal"
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICeiqQnylmCVUzTNNcYRWKp/38dB5i3aGBs7ZB11MjkS svein@kaho.local"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPi0pCZqmvbObrDkAg28EBwt/hriKcCXRlEreexhoNJd bloxgate-ed25519-2018"
     "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQChK01jTMsMS0sz7DOpArK6QyGd0vheV6gARoB5z6V/U5Y2Q6eXWnO1V4ZaE6HRQCBWp1KdwrqSSLUu9gS5kJTb1n+FsLx4wloCA1LggRSeQWinftZGxavhgdXm6/rnyDsnB42aHqusLiYaBL6OdlqFHiH916xzPxFktqd23rW64B1TV8VYcWa5ZxM8xd1n7svGfTXdb0O+w/RHIOLv4qKUmSmyJGPX7fGg+omHpPnTUpYV9CYInbWdy2nUoeiZU1TibkHuYaXaWLIzoWjIpuJqZdwqOkaK1e3WOrzkSYRHxteoNbzgcvQtdPAqM57TLM0Jwa3uJ5EiX6FCBaX0mZOZdZrNdQhQp0Yw3rkSKh7UySGimIBqFrJK9czVNbQBUUfllPL7x0zR8+PswYThpTecvfMoOoQoAVA2NQGSeglfeTQTgKxa/b85kdezMHoX+o/7hiItyez5tHmRbgfXxy2/8wco/w6hIhAujTeiUAMTu7xR0V8intUEXSuiI/arCJ0= lridge@kirin.local"
     "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDLaHJT3oeYGloSHBzyy1ZX2EqGMcdF0/qneIbabQIBWXfS4hbYff63qrl58GxCaj5wlF9oCMf3OHxExI8ojH4LCKzQfocgW9j+ZbQC/UJjBSitFCcw9SqIHcOdaqLV9WnZOu1W2vcpAwwe6+nTmkmc+5uno0ChaWTh4SPLCfWWkSiTxeJlL1iF8adMGEeC8LpTyjZzjmh/GlG1lIwnInm98U9ipOdNRRR18jD13udu53xQTkY4LwqyYH49VsNXb4Rb673QyM8bwJ527keFZXQ430MKw8qj4NSnqpJDmOWUqqRLRczmOR473vRvUNT6u0cKMQI8McjdIAPoFevhEjUt/n56i1jFef1b9sMsNXYnpEkm9KM0SVnJ1im1jPkQQa6WneYwzxlkMh7V9XGnypB8d8W7IgD5X38NXzzHcDhCjIuL1huXFD8dleWVR78llz+QBmOGwb4er4fP/X+D0IvSz42FXGxmok9ulLgrFpVpCNQWIW9pcER2jrQMaKf/kTk= darqen@MAINCENTER"
@@ -27,5 +24,5 @@
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBpUHboM5fNLogflF/9EEklCgAvmE08L1lmT696UIwSW jared@arch01l.ctha.ja4.org"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG5nvmj3DlRnRJqsvdizUOMcQH71XQxew5jI6WW65Gpv jared@win01d.ctha.ja4.org"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKXD8KKr1XyV3aOsb9eeagSrLY3A5L1nPgXnLO6XpSwc maxwell.lt@maxwell-nixos"
-  ];
+  ] ++ svein;
 }
