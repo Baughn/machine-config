@@ -1,5 +1,40 @@
 # Minecraft snapshot storage
 
+## Saving around automatic snapshots
+
+The `rpool` zrepl job runs `minecraft-snapshot.py` around snapshots of direct
+children of `rpool/minecraft`, including new servers. Each dataset name maps
+to `/home/minecraft/NAME`; the hook reads its RCON port and password from
+`server.properties` at runtime as the `minecraft` user. Credentials are not
+embedded in the Nix store or passed on the command line.
+
+Before the snapshot it sends `save-off` and `save-all flush`, checking for
+the Minecraft 1.12.2 success replies. Afterwards it sends `save-on`. A refused
+connection or absent local TCP listener means the server is off and allows
+the snapshot without a save. The listener check also handles closed ports
+that the local firewall silently drops instead of rejecting.
+Other failures (including authentication errors, timeouts, and incomplete
+saves) skip that dataset's snapshot. A pre-existing manual `save-off` also
+skips the snapshot without re-enabling saving.
+
+Failed preparation attempts `save-on` itself, since zrepl does not run the
+post hook after a failed pre hook. Before sending `save-off` it also records
+a recovery lease under `/run/minecraft-save-hook/NAME`. The independent
+`minecraft-save-recovery.timer` checks each minute and retries `save-on`
+after three minutes if cleanup or the post hook was interrupted. Failed
+recovery retains the lease for another attempt. Check the zrepl and
+`minecraft-save-recovery` service journals for failures. If snapshotting
+itself stalls past the lease, recovery prioritizes restoring automatic
+saving over keeping that snapshot's save window open.
+
+This reduces skew but is not a transactional backup: player logouts and
+independent mod writers can still change files after the flush. Ordinary
+manual `minecraft-storage snapshot` calls do not run these zrepl hooks.
+An RCON command/translation change on a Minecraft upgrade may require
+updating the recognized success replies.
+
+## Storage and rollback helper
+
 `minecraft-storage` is the narrow root helper used by the Minecraft account's
 `mount-snapshot.py` and `rollback-to-snapshot.py`. Its commands remain:
 

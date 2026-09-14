@@ -15,6 +15,7 @@
     ripgrep
     fd
     jq
+    file
 
     # System inspection & monitoring
     binutils  # Provides strings etc.

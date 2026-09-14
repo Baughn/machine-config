@@ -164,6 +164,13 @@ in
             type = "periodic";
             prefix = "zrepl_";
             interval = "15m";
+            hooks = [{
+              type = "command";
+              path = "${config.system.build.minecraft-snapshot-hook}";
+              filesystems."rpool/minecraft<" = true;
+              timeout = "2m";
+              err_is_fatal = true;
+            }];
           };
           filesystems = {
             "rpool/minecraft/erisia/dynmap" = false;

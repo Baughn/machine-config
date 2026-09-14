@@ -59,9 +59,15 @@ across machines.
 
 ## Build & Deploy
 
-- **saya (local):** `./deploy-local.sh`, then `sudo systemctl restart display-manager` if DE changes.
-- **tsugumi (remote):** Colmena is wired in through `colmenaHive`; use `./deploy-tsugumi.sh`
-  or `./deploy-all.sh`.
+- **NixOS deployment:** use `deploy` (the `tools/nix-deploy` tool), which reads
+  `deploy.toml`. `deploy tsugumi` targets the server, `deploy saya` targets the
+  desktop, and bare `deploy` deploys all listed machines in order. The old
+  `deploy-local.sh`, `deploy-tsugumi.sh`, and `deploy-all.sh` workflows are obsolete.
+  Use `deploy --mode switch tsugumi` for noninteractive activation without rebooting.
+  After completing and validating a requested NixOS configuration change, deploy
+  it to the affected machine unless the user asks to leave it undeployed.
+- **saya desktop changes:** restart the display manager with
+  `sudo systemctl restart display-manager` after deploying if needed.
 - **VCS sync:** `./push.sh` (squash into the running "Bumps" commit, set master, git push;
   pings Discord on minecraft/ssh-key changes), `./pull.sh` (fetch + rebase onto trunk).
 - **kaho (local):** `./deploy-kaho.sh` on kaho itself (wraps `sudo darwin-rebuild switch --flake .#kaho`).

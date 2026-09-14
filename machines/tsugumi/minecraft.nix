@@ -1,6 +1,6 @@
 { ... }:
 {
-  imports = [ ./minecraft-storage.nix ];
+  imports = [ ./minecraft-storage.nix ./minecraft-snapshot.nix ];
 
   me.punch.groups.minecraft = {
     label = "Minecraft";

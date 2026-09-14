@@ -1,12 +1,12 @@
-# nix-deploy: unified build + deploy tool
+# deploy: unified build + deploy tool
 
-*Last updated: 2026-07-16. Status: implemented (v1); this doc matches the
-code.*
+*Deployment workflow updated: 2026-09-14. Status: implemented (v1). The
+crate lives in `tools/nix-deploy/`; the installed command is `deploy`.*
 
 ## Problem
 
-`deploy-all.sh` today does `nix build .#all-systems | nom --json` followed by
-`colmena apply`. This has two costs:
+The former `deploy-all.sh` workflow did `nix build .#all-systems | nom --json`
+followed by `colmena apply`. This had two costs:
 
 1. **Double evaluation.** The flake is evaluated once for the `nix build` and
    again inside colmena — ~20 seconds each.
@@ -41,13 +41,12 @@ state where a reboot is needed but nothing says so.
 
 ## Shape
 
-A Rust crate at `tools/nix-deploy/` (the existing directory is an abandoned
-scaffold containing only a `target/` dir — delete and reuse the name), built
-with `pkgs.mkCranePackage` like the other tools, installed on saya via
-`environment.systemPackages`. Binary name: `nix-deploy`.
+A Rust crate at `tools/nix-deploy/`, built with `pkgs.mkCranePackage` like
+the other tools, installed on saya via `environment.systemPackages`.
+Binary name: `deploy`.
 
 ```
-nix-deploy [MACHINE...] [--mode switch|boot]
+deploy [MACHINE...] [--mode switch|boot]
 ```
 
 - No machine arguments: deploy every machine in the manifest, remotes first,
@@ -57,8 +56,8 @@ nix-deploy [MACHINE...] [--mode switch|boot]
   Never auto-reboots anything; with `--mode switch` the reboot verdict is
   still printed as a warning.
 
-Must be run from the repo root (or with the repo as an argument later, if
-ever needed — not in v1).
+Run from the repository or a subdirectory; the tool locates the repository
+root. For unattended activation of the server, use `deploy --mode switch tsugumi`.
 
 ## Machine manifest
 
@@ -263,14 +262,11 @@ covers the crate like every other tool. `agents/rust.md` applies.
 
 ## Migration
 
-1. Land the crate + `modules/nix-deploy.nix` + `deploy.toml`; install the
-   binary on saya.
-2. Run it alongside the scripts for a while. `deploy-all.sh` shrinks to
-   `exec nix-deploy "$@"`; `deploy-tsugumi.sh` → `exec nix-deploy tsugumi`;
-   `deploy-local.sh` → `exec nix-deploy saya`.
-3. Once trusted: remove colmena and `colmenaHive` from `flake.nix`, drop the
-   nom dependency from the scripts (or the scripts entirely), delete the
-   untracked `nix-output-monitor/` checkout.
+`deploy` is now the normal NixOS deployment workflow. Use `deploy tsugumi`,
+`deploy saya`, or bare `deploy` for all manifest machines. The old
+`deploy-all.sh`, `deploy-tsugumi.sh`, and `deploy-local.sh` scripts are
+obsolete. Colmena and `colmenaHive` remain in the flake; their eventual
+removal is separate cleanup. Darwin still uses `deploy-kaho.sh`.
 
 ## Open questions
 
