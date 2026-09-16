@@ -21,6 +21,8 @@ in
   config = {
     users.defaultUserShell = pkgs.zsh;
 
+    environment.systemPackages = [ pkgs.ghostty.terminfo ];
+
     programs.zsh = {
       enable = true;
       enableCompletion = true;
