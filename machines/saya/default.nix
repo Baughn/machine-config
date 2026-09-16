@@ -178,6 +178,7 @@
     zed-editor
     orca-slicer
     prusa-slicer
+    prismlauncher
   ];
 
   nix.settings.cores = 16;
