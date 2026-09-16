@@ -2,6 +2,9 @@
 
 {
   environment.systemPackages = with pkgs; [
+    # Conveniences / terminal management
+    zellij
+
     # Editor & VCS
     neovim
     git
