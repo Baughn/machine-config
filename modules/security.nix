@@ -107,10 +107,10 @@ in
     };
 
     # -- Journal retention for forensics (overrides cachy-kernel default) --
-    services.journald.extraConfig = lib.mkForce ''
-      SystemMaxUse=2G
-      MaxRetentionSec=90day
-    '';
+    services.journald.settings.Journal = {
+      SystemMaxUse = "2G";
+      MaxRetentionSec = "90day";
+    };
 
     # Passwordless sudo scoped to svein only (not the entire wheel group).
     security.sudo.wheelNeedsPassword = true;

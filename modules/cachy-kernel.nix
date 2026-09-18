@@ -620,10 +620,6 @@ in
       DefaultLimitNOFILE = "2048:2097152";
     };
 
-    services.journald.extraConfig = ''
-      SystemMaxUse=1G
-    '';
-
     boot.extraModprobeConfig = ''
       options nvidia NVreg_UsePageAttributeTable=1
       options nvidia NVreg_InitializeSystemMemoryAllocations=0
