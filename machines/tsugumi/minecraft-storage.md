@@ -8,8 +8,14 @@ to `/home/minecraft/NAME`; the hook reads its RCON port and password from
 `server.properties` at runtime as the `minecraft` user. Credentials are not
 embedded in the Nix store or passed on the command line.
 
-Before the snapshot it sends `save-off` and `save-all flush`, checking for
-the Minecraft 1.12.2 success replies. Afterwards it sends `save-on`. A refused
+Before the snapshot it sends `save-off`, `save-all` and `save-wait 90`,
+checking for the Minecraft 1.12.2 and save-threading success replies.
+`save-wait` comes from the erisia-save-threading mod: it blocks only the
+RCON connection until every dimension's queued chunks are on disk, so the
+server keeps ticking instead of stalling as it would under `save-all flush`.
+Any reply other than `Save queue drained in ...` (timeout, dead File IO
+Thread, etc.) skips the snapshot. Every running server must have the mod.
+Afterwards it sends `save-on`. A refused
 connection or absent local TCP listener means the server is off and allows
 the snapshot without a save. The listener check also handles closed ports
 that the local firewall silently drops instead of rejecting.
@@ -28,7 +34,8 @@ itself stalls past the lease, recovery prioritizes restoring automatic
 saving over keeping that snapshot's save window open.
 
 This reduces skew but is not a transactional backup: player logouts and
-independent mod writers can still change files after the flush. Ordinary
+independent mod writers can still change files after the save; save-wait
+covers only chunks, like save-all flush. Ordinary
 manual `minecraft-storage snapshot` calls do not run these zrepl hooks.
 An RCON command/translation change on a Minecraft upgrade may require
 updating the recognized success replies.

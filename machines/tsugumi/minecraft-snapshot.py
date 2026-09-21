@@ -20,6 +20,9 @@ TCP_TABLES = (Path("/proc/net/tcp"), Path("/proc/net/tcp6"))
 # Longer than zrepl's two-minute hook timeout; the independent timer retries
 # save-on even when zrepl kills the hook or disappears between its two edges.
 RECOVERY_DELAY = 180
+# Server-side save-wait limit. Together with save-off, save-all and the
+# RCON read margin it must fit within zrepl's two-minute hook timeout.
+SAVE_WAIT = 90
 
 
 class Rcon:
@@ -136,11 +139,17 @@ class SnapshotHook:
                         raise ValueError("Saving was already disabled; snapshot skipped")
                     if reply != "Turned off world auto-saving":
                         raise ValueError("Minecraft did not confirm save-off")
-                    reply = client.command("save-all flush")
-                    if ("Flushing completed" not in reply or "Saved the world" not in reply
-                            or "Saving failed" in reply):
-                        raise ValueError("Minecraft did not confirm a completed save-all flush")
-                    print(f"{self.world.name}: save-all flush completed; ready for snapshot", flush=True)
+                    # Plain save-all takes the consistent cut on the server
+                    # thread; save-wait (erisia-save-threading) then waits on
+                    # the RCON thread for the queued chunks to reach disk,
+                    # without the tick stall of save-all flush.
+                    reply = client.command("save-all")
+                    if "Saved the world" not in reply or "Saving failed" in reply:
+                        raise ValueError("Minecraft did not confirm save-all")
+                    reply = client.command(f"save-wait {SAVE_WAIT}", timeout=SAVE_WAIT + 10)
+                    if not reply.startswith("Save queue drained in "):
+                        raise ValueError(f"Minecraft did not confirm save-wait: {reply[:200]!r}")
+                    print(f"{self.world.name}: {reply}; ready for snapshot", flush=True)
                 except Exception:
                     if self.pending():
                         try:
