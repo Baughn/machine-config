@@ -50,6 +50,7 @@ in
     ./redis.nix
     ./rendezvous.nix
     ./dessplay-seeder.nix
+    ./dessplay-oracle.nix
     ./victron-monitor.nix
   ];
 
@@ -110,6 +111,13 @@ in
     enable = true;
     passwordFile = config.age.secrets."rendezvous.key".path;
     mediaRoots = [ "/home/svein/Sync/Watched" "/home/svein/Anime" ];
+  };
+
+  ## DessPlay Oracle
+  services.dessplay-oracle = {
+    enable = true;
+    passwordFile = config.age.secrets."rendezvous.key".path;
+    anthropicKeyFile = config.age.secrets."claude-api.key".path;
   };
 
   # Power management
