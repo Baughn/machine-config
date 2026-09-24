@@ -17,6 +17,9 @@ spec.loader.exec_module(snapshot)
 OFF = "Turned off world auto-saving"
 ON = "Turned on world auto-saving"
 SAVED = "Saving...Flushing all saves...Flushing completedSaved the world"
+SAVE_ALL = "Saving...Saved the world"
+DRAINED = "Save queue drained in 42 ms"
+SAVE_WAIT = f"save-wait {snapshot.SAVE_WAIT}"
 
 
 class SnapshotTests(unittest.TestCase):
@@ -45,15 +48,15 @@ class SnapshotTests(unittest.TestCase):
     def commands(self):
         return [c.args[0] for c in self.client.command.call_args_list]
 
-    def test_save_flush_snapshot_then_resume(self):
-        self.client.command.side_effect = [OFF, SAVED, ON]
+    def test_save_wait_snapshot_then_resume(self):
+        self.client.command.side_effect = [OFF, SAVE_ALL, DRAINED, ON]
         self.hook.run("pre_snapshot", "test")
-        self.assertEqual(self.commands(), ["save-off", "save-all flush"])
+        self.assertEqual(self.commands(), ["save-off", "save-all", SAVE_WAIT])
         self.assertTrue(self.hook.record.exists())
         self.hook.run("recover")  # Timer must leave a fresh save alone.
-        self.assertEqual(len(self.commands()), 2)
+        self.assertEqual(len(self.commands()), 3)
         self.hook.run("post_snapshot", "test")
-        self.assertEqual(self.commands(), ["save-off", "save-all flush", "save-on"])
+        self.assertEqual(self.commands(), ["save-off", "save-all", SAVE_WAIT, "save-on"])
         self.assertFalse(self.hook.record.exists())
 
     def test_closed_port_allows_snapshot(self):
@@ -69,14 +72,29 @@ class SnapshotTests(unittest.TestCase):
                 with self.assertRaises(type(error)):
                     self.hook.run("pre_snapshot", "test")
 
-    def test_failed_or_incomplete_flush_restores_saving_and_fails(self):
-        for reply in ("Saving failed: disk full", "Saved the world", "Unknown command"):
+    def test_failed_save_all_restores_saving_and_fails(self):
+        for reply in ("Saving failed: disk full", "Saved the worldSaving failed", "Unknown command"):
             with self.subTest(reply=reply):
                 self.client.command.side_effect = [OFF, reply, ON]
-                with self.assertRaisesRegex(ValueError, "completed save-all"):
+                with self.assertRaisesRegex(ValueError, "confirm save-all"):
                     self.hook.run("pre_snapshot", "test")
                 self.assertEqual(self.commands()[-1], "save-on")
                 self.assertFalse(self.hook.record.exists())
+
+    def test_failed_or_timed_out_save_wait_restores_saving_and_fails(self):
+        for reply in ("Timed out after 90s waiting for save queue", "Unknown command", ""):
+            with self.subTest(reply=reply):
+                self.client.command.side_effect = [OFF, SAVE_ALL, reply, ON]
+                with self.assertRaisesRegex(ValueError, "confirm save-wait"):
+                    self.hook.run("pre_snapshot", "test")
+                self.assertEqual(self.commands()[-1], "save-on")
+                self.assertFalse(self.hook.record.exists())
+
+    def test_save_wait_uses_extended_rcon_timeout(self):
+        self.client.command.side_effect = [OFF, SAVE_ALL, DRAINED]
+        self.hook.run("pre_snapshot", "test")
+        call = self.client.command.call_args_list[2]
+        self.assertEqual(call.kwargs["timeout"], snapshot.SAVE_WAIT + 10)
 
     def test_lost_save_off_reply_still_attempts_recovery(self):
         self.client.command.side_effect = [TimeoutError(), ON]
@@ -111,9 +129,9 @@ class SnapshotTests(unittest.TestCase):
 
     def test_new_snapshot_recovers_abandoned_save_first(self):
         self.record(name="old")
-        self.client.command.side_effect = [ON, OFF, SAVED]
+        self.client.command.side_effect = [ON, OFF, SAVE_ALL, DRAINED]
         self.hook.run("pre_snapshot", "new")
-        self.assertEqual(self.commands(), ["save-on", "save-off", "save-all flush"])
+        self.assertEqual(self.commands(), ["save-on", "save-off", "save-all", SAVE_WAIT])
         self.assertEqual(self.hook.pending()["snapshot"], "new")
 
     def test_stopped_server_needs_no_recovery(self):

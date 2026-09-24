@@ -1,6 +1,6 @@
 # deploy: unified build + deploy tool
 
-*Deployment workflow updated: 2026-09-14. Status: implemented (v1). The
+*Deployment workflow updated: 2026-09-24. Status: implemented (v1). The
 crate lives in `tools/nix-deploy/`; the installed command is `deploy`.*
 
 ## Problem
@@ -36,8 +36,8 @@ state where a reboot is needed but nothing says so.
 - Rollback automation. `nixos-rebuild --rollback` / boot-menu rollback and the
   existing `magic-reboot` module remain the recovery story.
 - Secrets, provisioning, multi-user deploys, non-NixOS targets.
-- Removing colmena from `flake.nix` immediately — it stays as a fallback until
-  the tool has earned trust (see Migration).
+- Removing colmena from `flake.nix` immediately — it stayed as a fallback until
+  the tool had earned trust (see Migration). It has since been removed.
 
 ## Shape
 
@@ -263,10 +263,11 @@ covers the crate like every other tool. `agents/rust.md` applies.
 ## Migration
 
 `deploy` is now the normal NixOS deployment workflow. Use `deploy tsugumi`,
-`deploy saya`, or bare `deploy` for all manifest machines. The old
-`deploy-all.sh`, `deploy-tsugumi.sh`, and `deploy-local.sh` scripts are
-obsolete. Colmena and `colmenaHive` remain in the flake; their eventual
-removal is separate cleanup. Darwin still uses `deploy-kaho.sh`.
+`deploy saya`, or bare `deploy` for all manifest machines. Colmena, the
+`colmenaHive` output, and the old `deploy-all.sh` / `deploy-tsugumi.sh` /
+`deploy-local.sh` scripts have been removed; `nixosConfigurations` is now
+built directly with `nixpkgs.lib.nixosSystem`. Darwin still uses
+`deploy-kaho.sh`.
 
 ## Open questions
 

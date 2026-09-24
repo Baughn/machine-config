@@ -20,13 +20,11 @@
     dessplay.inputs.nixpkgs.follows = "nixpkgs";
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
-    colmena.url = "github:zhaofengli/colmena";
-    colmena.inputs.nixpkgs.follows = "nixpkgs";
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-fast, nix-cachyos-kernel, home-manager, nix-darwin, crane, dessplay, ganbot, agenix, colmena, nix-index-database, ... }:
+  outputs = { self, nixpkgs, nixpkgs-fast, nix-cachyos-kernel, home-manager, nix-darwin, crane, dessplay, ganbot, agenix, nix-index-database, ... }:
   let
     system = "x86_64-linux";
 
@@ -123,21 +121,22 @@
             ];
           })
         ];
-        deployment = {
-          targetHost = "localhost";
-          allowLocalDeployment = true;
-          tags = [ "local" ];
-        };
       };
 
       tsugumi = {
         modules = [ ./machines/tsugumi ];
-        deployment = {
-          targetHost = "tsugumi.local";
-          tags = [ "remote" ];
-        };
       };
     };
+
+    nixosMachines = builtins.mapAttrs
+      (name: machine: nixpkgs.lib.nixosSystem {
+        inherit system;
+        specialArgs = { inherit agenix dessplay ganbot; flakeSelf = self; };
+        modules = commonModules ++ [
+          { nixpkgs.overlays = [ nix-cachyos-kernel.overlays.default ]; }
+        ] ++ machine.modules;
+      })
+      machineConfigs;
   in
   rec {
     packages.x86_64-linux = rustPackages // {
@@ -146,7 +145,7 @@
           (builtins.map
             (name: {
               inherit name;
-              path = colmenaHive.nodes.${name}.config.system.build.toplevel;
+              path = nixosMachines.${name}.config.system.build.toplevel;
             })
             (builtins.attrNames machineConfigs));
 
@@ -237,33 +236,6 @@
       RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
     };
 
-    colmenaHive = colmena.lib.makeHive ({
-      meta = {
-        nixpkgs = import nixpkgs {
-          inherit system;
-          overlays = [ colmena.overlays.default ];
-        };
-        specialArgs = { inherit agenix dessplay ganbot; flakeSelf = self; };
-      };
-
-      defaults = { ... }: {
-        imports = commonModules;
-
-        nixpkgs.overlays = [ nix-cachyos-kernel.overlays.default ];
-
-        deployment = {
-          targetUser = "svein";
-          buildOnTarget = false;
-          replaceUnknownProfiles = true;
-        };
-      };
-    } // (builtins.mapAttrs
-      (name: machine: { ... }: {
-        imports = machine.modules;
-        deployment = machine.deployment;
-      })
-      machineConfigs));
-
     darwinConfigurations.kaho = nix-darwin.lib.darwinSystem {
       modules = [
         ./machines/kaho
@@ -273,7 +245,7 @@
       specialArgs = { inherit agenix; flakeSelf = self; };
     };
 
-    nixosConfigurations = colmenaHive.nodes // {
+    nixosConfigurations = nixosMachines // {
       saya-installer = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = {

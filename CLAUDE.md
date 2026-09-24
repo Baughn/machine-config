@@ -8,7 +8,7 @@ The repo is checked out on several of them — run `hostname` to see which machi
 - **saya** — Desktop (NixOS, x86_64-linux). CachyOS kernel, NVIDIA GPU, KDE Plasma 6.
 - **tsugumi** — Server (NixOS, x86_64-linux). ZFS storage, WireGuard hub, web/media/game/bot services.
 - **saya-installer** — Netboot rescue/installer image for saya. Built as a separate
-  `nixosConfigurations` output (not a Colmena node) and covered by a VM test in
+  `nixosConfigurations` output (not in `deploy.toml`) and covered by a VM test in
   `tests/saya-installer-vm.nix` (`nix flake check`).
 - **kaho** — Laptop (nix-darwin, aarch64-darwin). macOS with home-manager, homebrew for
   GUI apps, Determinate Nix (`nix.enable = false`). Built as `darwinConfigurations.kaho`;
@@ -61,8 +61,7 @@ across machines.
 
 - **NixOS deployment:** use `deploy` (the `tools/nix-deploy` tool), which reads
   `deploy.toml`. `deploy tsugumi` targets the server, `deploy saya` targets the
-  desktop, and bare `deploy` deploys all listed machines in order. The old
-  `deploy-local.sh`, `deploy-tsugumi.sh`, and `deploy-all.sh` workflows are obsolete.
+  desktop, and bare `deploy` deploys all listed machines in order.
   Use `deploy --mode switch tsugumi` for noninteractive activation without rebooting.
   After completing and validating a requested NixOS configuration change, deploy
   it to the affected machine unless the user asks to leave it undeployed.
@@ -90,7 +89,7 @@ fix lands upstream, remove the unused override and logging configuration.
 ## Flake structure
 
 ```
-flake.nix                  # inputs, machine list, packages, checks, devShell, colmenaHive, darwinConfigurations
+flake.nix                  # inputs, machine list, packages, checks, devShell, nixosConfigurations, darwinConfigurations
 machines/
   kaho/default.nix         # nix-darwin system config (packages, homebrew, user)
   kaho/home.nix            # home-manager for svein on darwin (zsh, jj, ssh, agenix)
