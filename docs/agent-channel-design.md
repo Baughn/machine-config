@@ -1,9 +1,10 @@
 # Agent channel: Claude Code agents as Discord members
 
-*Status: design, 2026-09-24. Nothing implemented or deployed. Written from a
-cloud session without access to saya or tsugumi, so every claim about Claude
-Code's headless interface is marked where it needs confirming by the contract
-tests below.*
+*Status: design, 2026-09-24 (revised the same day from a Rust/CLI-driven
+bridge to a Python bridge on the Claude Agent SDK). Nothing implemented or
+deployed. Written from a cloud session without access to saya or tsugumi. SDK
+facts were checked against `claude-agent-sdk` 0.2.159 (bundled CLI 2.1.281);
+whatever the contract tests below must confirm is marked as such.*
 
 ## Problem
 
@@ -32,8 +33,8 @@ for the agent, and invisible to the other server admins.
 
 ## Non-goals
 
-- Replacing Claude Code's agent loop, or using the Agent SDK (no Rust SDK; we
-  drive the CLI).
+- Replacing Claude Code's agent loop. The Agent SDK drives the same `claude`
+  binary; the bridge only adds Discord, policy and visibility around it.
 - Multi-guild or multi-channel routing. One guild, one channel (plus threads).
 - Defending against a hostile admin. The Discord server is small and
   whitelisted. The design limits accidents and prompt injection, not insiders.
@@ -55,6 +56,38 @@ for the agent, and invisible to the other server admins.
    what an agent is doing is generated from tool-call events, so it cannot be
    skipped or embellished.
 
+## Implementation choice: Python on the Claude Agent SDK
+
+The first draft was a Rust daemon driving `claude -p` directly. That meant
+relying on undocumented CLI surfaces (stream-json input, the permission-prompt
+protocol), plus a hook subprocess, an MCP shim and a Unix socket to connect
+them back to the daemon. The Agent SDK (`claude-agent-sdk`, Python) speaks that
+same protocol to the same binary, and Anthropic maintains it. It provides,
+in-process:
+
+- `ClaudeSDKClient`: one long-lived session, `query()` to send messages,
+  `interrupt()`, `resume=`.
+- `can_use_tool`: an async permission callback that may stay pending
+  indefinitely. That is the Discord approval gate.
+- `create_sdk_mcp_server` + `@tool`: the bridge's own tools as plain async
+  functions.
+- `hooks`: async callbacks (PreToolUse, PostToolUse, Stop, …) that feed the
+  live status message.
+
+Python rather than TypeScript: `interrupt()` is documented for the Python
+client, discord.py is mature, and `minecraft-storage` already sets a Python
+precedent. This is a deliberate exception to the repo's "tools are Rust crates"
+convention. It is justified by the SDK, and `CLAUDE.md` should say so once it
+lands.
+
+**Subscription auth.** The SDK quickstart asks third-party developers not to
+"offer claude.ai login" in their products. Here, the bridge runs on Baughn's
+own token and collects nobody else's credentials. Both SDKs contain deliberate
+support for exactly this: they read `CLAUDE_CODE_OAUTH_TOKEN`, and they strip
+`claudeAiOauth.refreshToken` when copying credentials for a resumed session so
+that they don't revoke the caller's login. The token comes from
+`claude setup-token` and is stored in agenix.
+
 ## Architecture
 
 One `agent-bridge` process per identity, running as that identity's Unix user.
@@ -62,71 +95,71 @@ Bridges don't talk to each other. They coordinate only through the Discord
 channel, so a bridge on one machine going down affects only that identity.
 
 ```
-                    Discord channel (humans + bot users)
-                       ▲ gateway / REST (serenity)
-                       │
- ┌─────────────────────┴───────────────────────────────┐
- │ agent-bridge daemon  (user: minecraft / mclab / svein)│
- │  router ─ policy (pure) ─ rate limiter ─ approvals    │
- │  renderer (structured posts, live status message)     │
- │  unix socket /run/agent-bridge/<id>/sock  (0600)      │
- └──────┬──────────────────────────────▲──────────────┘
-        │ spawn per turn               │ socket RPC
-        ▼                              │
- claude -p --resume <sid> ...          │
-   ├─ MCP server:  agent-bridge mcp ───┤  (post, history, inbox, fetch-attachment)
-   └─ PreToolUse:  agent-bridge hook ──┘  (approval gate, status updates)
+              Discord channel (humans + bot users)
+                    ▲ gateway / REST (discord.py)
+                    │
+ ┌──────────────────┴──────────────────────────────────────┐
+ │ agent-bridge  (one process; user: minecraft/mclab/svein)  │
+ │  router ─ policy (pure) ─ rate limiter ─ approvals        │
+ │  renderer (structured posts, live status message)         │
+ │                                                           │
+ │  ClaudeSDKClient (long-lived session)                     │
+ │   ├─ in-process MCP "bridge": post, history, inbox, …     │
+ │   ├─ can_use_tool  → Discord approval (awaits reaction)   │
+ │   └─ hooks         → live status message                  │
+ └──────────────────┬──────────────────────────────────────┘
+                    │ stdio, SDK control protocol
+                    ▼
+            claude (nixpkgs claude-code, via cli_path)
 ```
 
-The same binary provides three subcommands:
-
-- `agent-bridge daemon --config <toml>` is the long-running service.
-- `agent-bridge mcp` is a stdio MCP server started by Claude Code. It forwards
-  every call to the daemon's socket.
-- `agent-bridge hook` is the PreToolUse hook command. It reads the hook JSON
-  on stdin, asks the daemon, and prints the decision.
-
-The socket is owned by the identity's user with mode 0600, so a lab agent
-cannot drive the minecraft bridge.
+There is no socket and there are no helper subprocesses of our own. Everything
+that makes a decision runs in the bridge process, as the identity's user.
 
 ### Driving Claude Code
 
-**v1: one process per turn.** Each turn runs:
-
+```python
+options = ClaudeAgentOptions(
+    cwd=instance.workdir,
+    cli_path=NIX_CLAUDE,                 # nixpkgs claude-code, not the wheel's bundled binary
+    resume=state.session_id,             # None on first start / after !reset
+    system_prompt={"type": "preset", "preset": "claude_code",
+                   "append": base_prompt + identity_prompt + roster},
+    setting_sources=["project"],         # workdir CLAUDE.md; never "user" (see Approvals)
+    mcp_servers={"bridge": bridge_server},
+    allowed_tools=["mcp__bridge__*", *instance.auto_allow],
+    disallowed_tools=instance.deny,
+    permission_mode="default",           # never bypassPermissions: it skips can_use_tool
+    can_use_tool=approvals.decide,
+    hooks={"PreToolUse": [HookMatcher(hooks=[status.on_tool])],
+           "PostToolUse": [HookMatcher(hooks=[status.on_tool_done])]},
+    env={"CLAUDE_CODE_OAUTH_TOKEN": token},
+)
 ```
-claude -p --resume <session-id> \
-  --output-format stream-json --verbose \
-  --mcp-config <generated> --settings <generated> \
-  --append-system-prompt <base + identity + roster> \
-  "<rendered turn input>"
-```
 
-The daemon reads the stream-json output to capture the session ID and usage,
-and to drive the live status message. Per-turn processes rely only on
-documented behavior (`-p`, `--resume`, stream-json *output*).
+**The session stays alive.** The bridge keeps one connected client per
+identity. A turn is one `query()` followed by draining `receive_response()`
+until the `ResultMessage`. That message carries the session ID (persisted to
+`$STATE` for `resume=` after a restart), usage and cost.
 
-Keeping one process alive and feeding it user messages via
-`--input-format stream-json` would avoid per-turn startup, but that input
-protocol is currently undocumented. Leave it as an optimization for once the
-contract tests pin it down.
+**Messages arriving mid-turn** are queued by the bridge. The agent learns about
+them in two ways: every bridge tool result carries an `unread: N` field, and an
+`inbox` tool returns the queued messages. When a turn ends with messages still
+queued that would start a turn, the next `query()` goes out immediately. The
+contract tests should check what the CLI does with a `query()` sent mid-turn.
+If it's sensible, the bridge can feed messages directly and drop `inbox`.
 
-**Messages arriving mid-turn** are queued. The agent learns about them in two
-ways: every MCP tool result carries an `unread: N` field, and an `inbox` tool
-returns the queued messages. When a turn ends with messages still queued that
-would start a turn, the next turn starts immediately with them.
-
-**Sessions** persist across turns (`--resume`), and Claude Code's
-auto-compaction handles growth. `!reset <id>` starts a fresh session. Each
-agent keeps its durable notes in files in its working directory (e.g.
+**Sessions** are resumed across bridge restarts. Claude Code's auto-compaction
+handles growth. `!reset <id>` disconnects and reconnects with `resume=None`.
+Each agent keeps its durable notes in files in its working directory (e.g.
 `notes/`), not in conversation memory.
 
 **Interrupts:** `!stop <id>`, or a 🛑 reaction from an approver on any message
-from that agent, sends SIGINT to the claude process group. The session stays
-resumable.
+from that agent, calls `client.interrupt()` and fails any pending approval
+with a deny. The session continues.
 
-**Auth:** a long-lived subscription token from `claude setup-token`, stored as
-an agenix secret and given to the process as `CLAUDE_CODE_OAUTH_TOKEN`. All
-identities share the one subscription.
+**Auth:** `CLAUDE_CODE_OAUTH_TOKEN` from agenix, passed via the SDK's `env`.
+All identities share the one subscription.
 
 ### Identities and the roster
 
@@ -162,7 +195,8 @@ me.agentChannel.instances.tsugumi-minecraft = {
   tokenSecret = "agent-tsugumi-minecraft-discord";   # agenix
   triggers  = [ "owner" "admin" "agent" ];            # who can start a turn
   approvers = [ "owner" "admin" ];                    # who can approve tool calls
-  autoAllow = [ "Read" "Grep" "Glob" "Bash(journalctl --user *)" /* … */ ];
+  autoAllow = [ "Read" "Grep" "Glob" "Bash(journalctl --user:*)" /* … */ ];
+  deny = [ /* … */ ];
   promptFile = ./agents/tsugumi-minecraft.md;
 };
 
@@ -263,30 +297,41 @@ it in place**. Edits don't notify anyone, so this adds no noise. Example:
   12 tool calls · 1 approval pending
 ```
 
-The message is updated from PreToolUse events (rate-limited to one edit every
+The message is updated from the PreToolUse/PostToolUse hook callbacks (rate-limited to one edit every
 few seconds) and finalized when the turn ends: ✓ done, ✗ error, ⏹ stopped, or
 💤 no post. The full per-turn tool log is kept in `$STATE/turns/` and posted
 as an attachment when someone runs `!status <id> log`.
 
 ### Approvals
 
-PreToolUse hooks are documented and can deterministically allow or deny a
-call, so they are the gate. The undocumented `--permission-prompt-tool`
-interface is not used. The generated `--settings` allow tools broadly, and
-the hook is the single policy point:
+Claude Code's own permission engine does the matching. The bridge supplies the
+rules and answers the questions:
 
-1. The call matches `deny` → deny with a reason.
-2. The call matches `autoAllow` → allow.
-3. Otherwise the bridge posts an approval request as a reply in the turn's
-   status thread: the tool, its input (as an attachment if long), and the
-   agent's stated reason. An approver reacts ✅ or ❌. Reactions from bots or
-   non-approvers are ignored. Deny after a timeout (default 15 min). The hook's
-   own `timeout` is set above that.
+1. `disallowed_tools` (the instance's `deny`) are refused outright.
+2. `allowed_tools` (the bridge's own `mcp__bridge__*` tools plus the
+   instance's `autoAllow`) run without asking.
+3. Everything else reaches `can_use_tool`. The bridge posts an approval
+   request as a reply to the turn's status message: the tool, its input (as an
+   attachment if long), and the agent's stated reason. An approver reacts ✅ or
+   ❌. Reactions from bots or non-approvers are ignored. After a timeout
+   (default 15 min) the call is denied. `PermissionResultDeny(message=…)` tells
+   the agent why. The callback may stay pending indefinitely, so the timeout is
+   ours, not the SDK's.
 
-Bash prefix matching is weak: `a && b` defeats a naive prefix. `autoAllow`
-Bash rules are therefore limited to commands the Unix user could not do
-damage with anyway, and compound commands always require approval. This is
-the "guardrail, not boundary" principle in practice.
+Two settings keep that list authoritative:
+
+- **`setting_sources=["project"]`**, never `"user"`: a permissive
+  `~/.claude/settings.json` (e.g. `"defaultMode": "bypassPermissions"`) must
+  not widen an agent's rules. The SDK's default (`None`) loads *all* sources,
+  so this must be set explicitly. Project settings in the workdir can still
+  add allow rules. The bridge refuses to start if `.claude/settings*.json`
+  under the workdir contains `permissions.allow` or `defaultMode`, so
+  `autoAllow` in Nix stays the single list.
+- **Never `bypassPermissions`.** It auto-approves before `can_use_tool` is
+  consulted (the SDK warns about this).
+
+Allow rules are guardrails, not the boundary. `autoAllow` Bash rules are
+limited to commands the Unix user could not do damage with anyway.
 
 ### Loops and rate limits
 
@@ -361,36 +406,46 @@ Draft; identity files add their own role and tools.
 > - Before anything destructive or visible to players, say what you're about
 >   to do and why.
 
-## Crate layout
+## Code layout
 
 ```
 tools/agent-bridge/
-  src/main.rs        # subcommands: daemon | mcp | hook
-  src/config.rs      # TOML config, ownerOnly validation
-  src/policy.rs      # PURE: route(message, state) -> Trigger|Context|Ignore
-  src/limits.rs      # PURE: rate limiter + bot-streak breaker, injected clock
-  src/approval.rs    # PURE: approval state machine
-  src/render.rs      # PURE: post{} -> Discord message(s), validation errors
-  src/filter.rs      # PURE: outbound secret filter
-  src/turn.rs        # claude process lifecycle, stream-json parsing
-  src/discord.rs     # serenity adapter behind a `Chat` trait
-  src/socket.rs      # daemon <-> mcp/hook RPC
-  src/mcp.rs         # stdio MCP server (rmcp), forwards to socket
-  src/hook.rs        # PreToolUse hook protocol
-  tests/fixtures/    # recorded hook inputs, stream-json transcripts
+  pyproject.toml
+  agent_bridge/
+    __main__.py      # load config, start discord.py client + agent session
+    config.py        # TOML config, ownerOnly + workdir-settings validation
+    policy.py        # PURE: route(message, state) -> Trigger|Context|Ignore
+    limits.py        # PURE: rate limiter + bot-streak breaker, injected clock
+    approval.py      # PURE: approval state machine
+    render.py        # PURE: post{} -> Discord message(s), validation errors
+    filter.py        # PURE: outbound secret filter
+    tools.py         # @tool definitions (post, history, inbox, fetch_attachment)
+    session.py       # AgentSession protocol + ClaudeSDKClient adapter
+    discord_io.py    # discord.py adapter behind a Chat protocol
+  tests/
 ```
 
-Everything that makes a decision is in the pure modules. `discord.rs` and
-`turn.rs` are thin adapters behind traits (`Chat`, `AgentProcess`, `Clock`),
-so the daemon can run against fakes.
+Everything that makes a decision is in the pure modules, type-checked with
+mypy in strict mode. `session.py` and `discord_io.py` are thin adapters
+behind `typing.Protocol`s (`AgentSession`, `Chat`, `Clock`), so the bridge can
+run against fakes.
+
+**Packaging.** discord.py is in nixpkgs. The SDK is packaged from its source
+release with `buildPythonPackage`, since the wheel bundles a ~100 MB
+dynamically linked `claude` that won't run on NixOS unpatched. `cli_path`
+points at nixpkgs `claude-code`. Each SDK release names the CLI version it
+was built against (`_cli_version.py`). The package derivation pins the SDK,
+and the contract tests (layer 3) are the gate for pairing it with the
+nixpkgs CLI.
 
 ## Testing strategy
 
 The layers are ordered from cheapest and most deterministic to most
-realistic. Layers 1, 2 and 4 run in `nix flake check`. Layers 3 and 5 need
-real credentials and are run by hand, with a checklist.
+realistic. Layers 1, 2 and 4 run in `nix flake check` (pytest in the package's
+`checkPhase`, plus the VM test). Layers 3 and 5 need real credentials and are
+run by hand, with a checklist.
 
-### 1. Unit tests (cargo test, pure modules)
+### 1. Unit tests (pytest, pure modules)
 
 - **Routing table.** Table-driven cases covering every combination of author
   kind (owner / admin / other human / agent / self), mention form (direct,
@@ -410,40 +465,49 @@ real credentials and are run by hand, with a checklist.
   what to move into an attachment, path attachments outside the allowed roots
   are rejected.
 - **Secret filter.** Positive and negative fixtures.
-- **Protocol fixtures.** Hook input/output and stream-json transcripts
-  recorded from the real CLI (layer 3), parsed and round-tripped. When the
-  CLI's shapes change, these fixtures are what break.
+- **Config guards.** A workdir whose `.claude/settings*.json` has
+  `permissions.allow` or `defaultMode` is refused. Options built from the config
+  never contain `bypassPermissions` and always set `setting_sources`.
 
-### 2. Daemon integration with fakes (cargo test)
+### 2. Bridge integration with fakes (pytest)
 
-Run the real daemon with an in-memory `Chat` and a **fake `claude`**: a small
-test binary that parses the same arguments and replays a scripted scenario.
-It can emit stream-json, invoke the configured hook command with fixture
-input, call the MCP server, sleep, or ignore SIGINT. Scenarios:
+Run the real bridge with an in-memory `Chat` and a **fake `AgentSession`**
+that replays scripted scenarios. The fake can call the bridge's tool
+functions, invoke the `can_use_tool` callback and hooks with realistic
+arguments, emit a `ResultMessage`, stall, or ignore an interrupt. Scenarios:
 
 - A turn that posts, a turn that posts nothing (status shows 💤, nothing else
   appears), a turn that errors.
 - Messages arriving mid-turn: `unread` count, `inbox`, the follow-up turn.
-- An approval round-trip through the real hook subprocess and socket.
-- `!stop` during a tool call, then resume on the next turn.
+- An approval round-trip: ✅, ❌, timeout, a non-approver's ✅ ignored, and
+  `!stop` while an approval is pending.
+- `!stop` during a tool call, then the next turn on the same session.
 - Two fake agents in one fake channel told to reply to each other. The streak
   breaker stops them at 12, and the circuit breaker stops a single runaway.
-- Daemon restart mid-turn keeps the session ID.
+- Bridge restart: the persisted session ID is passed as `resume=`.
 
-### 3. Contract tests against the real CLI (manual, per claude-code bump)
+### 3. Contract tests against the real SDK and CLI (manual, per version bump)
 
-A script (`agent-bridge contract-test`) that runs the pinned `claude` with a
-throwaway workdir and a tiny prompt. It confirms that:
+A script (`agent-bridge contract-test`) runs the pinned SDK against the
+nixpkgs `claude`, with a throwaway workdir and a tiny prompt. It confirms
+that:
 
-- `--resume` continues a session, and the session ID appears in the stream.
-- The MCP server is started and its tools are called.
-- The PreToolUse hook sees the expected JSON, a deny blocks the call, and a
-  long-running hook up to the configured timeout is honoured.
-- Stream-json event shapes match the fixtures. It re-records them on request,
-  and the diff shows what changed.
+- The SDK and CLI versions talk to each other at all. This is the pairing gate.
+- Subscription auth via `CLAUDE_CODE_OAUTH_TOKEN` works.
+- `can_use_tool` is called for a tool outside `allowed_tools` and *not* for
+  one inside it, and `disallowed_tools` wins over both.
+- A `can_use_tool` that waits 20 minutes before allowing still works.
+- A user `settings.json` with `bypassPermissions` has no effect under
+  `setting_sources=["project"]`.
+- In-process MCP tools are callable, and hooks fire with the expected fields.
+- `interrupt()` stops a long Bash call, and the session accepts the next
+  `query()`.
+- `resume=` after a disconnect continues the conversation.
+- What a mid-turn `query()` does. This is recorded and decides whether
+  `inbox` stays.
 
-Run it whenever `nix-deploy`'s closure diff shows a claude-code version
-change. This is where the doc's unconfirmed CLI assumptions get settled.
+Run it whenever the SDK is bumped or `deploy`'s closure diff shows a
+claude-code version change.
 
 ### 4. NixOS VM test (nix flake check)
 
@@ -457,10 +521,10 @@ which the design depends on most:
   cleans up.
 - `mclab` cannot read `/home/minecraft`, cannot write the source dataset, and
   cannot connect to the production RCON port (nftables).
-- Bridge units start as the right users. Credentials are not readable by other
-  users. Each socket is reachable only by its own user.
-- The bridges run with the fake Chat and fake claude here (a `--chat fake`
-  build flag), since the VM has no network.
+- Bridge units start as the right users. Credentials and each bridge's
+  `$STATE` (session transcripts included) are not readable by other users.
+- The bridges run with the fake `Chat` and fake `AgentSession` here (selected
+  by a test-only config switch), since the VM has no network.
 
 ### 5. Staged live rollout (test guild first)
 
@@ -495,7 +559,7 @@ the real model against the lab, and re-run after prompt changes.
 
 ## Migration and rollout
 
-Nothing existing changes. New pieces: `tools/agent-bridge/`,
+Nothing existing changes. New pieces: `tools/agent-bridge/` (Python),
 `modules/agent-channel.nix`, `lib/agent-roster.nix`,
 `machines/tsugumi/minecraft-lab.nix` (helper, user, dataset, firewall), agenix
 secrets per identity (Discord token) plus one shared Claude token, and the
@@ -503,19 +567,14 @@ VM test.
 
 ## Open questions
 
-- **Discord library:** serenity 0.12 (rolebot uses 0.11) vs twilight.
-  Serenity is the default for consistency.
-- **Lab helper language:** Python like `minecraft-storage`, or a Rust
-  subcommand? Sharing snapshot resolution with `minecraft-storage` argues for
-  Python, or for extending that helper directly.
+- **Lab helper:** a separate script, or new subcommands on `minecraft-storage`?
+  Sharing snapshot resolution argues for extending it.
 - **`rpool/minecraft/testing`:** does the lab replace it, or coexist with it?
 - **tsugumi-minecraft's workdir:** is there an existing `CLAUDE.md` or agent
   usage under `/home/minecraft` that the identity prompt should build on?
 - **Threads by default:** should every agent-started task open a thread, or
   only when the agent chooses to?
-- **Subscription terms** for an always-on, multi-identity setup on one
-  subscription: worth a read before production.
-- **Headless CLI details** to settle in the contract tests: stream-json input
-  (for a persistent process), the maximum hook timeout, and whether
-  PostToolUse can inject context (a cleaner way to announce unread messages
-  than the `unread` field).
+- **Other admins spending Baughn's quota:** the SDK supports running on
+  one's own subscription token. Whether other admins' requests should run on
+  it (as opposed to an API key for the shared identities) is Baughn's call.
+- **Mid-turn delivery:** settled by the contract test above.
