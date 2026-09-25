@@ -3,6 +3,7 @@
 {
   imports = [
     ./agenix.nix
+    ./agent-channel.nix
     ./cachy-kernel.nix
     ./cli-tools.nix
     ./cloudflare-dyndns.nix

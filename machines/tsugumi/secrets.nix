@@ -51,6 +51,8 @@
     "anidb-user".file = ../../secrets/anidb-user.age;
     "anidb-password".file = ../../secrets/anidb-password.age;
 
+    "minecraft-watch-webhook".file = ../../secrets/minecraft-watch-webhook.age;
+
     "cloudflare-dyndns-token".file = ../../secrets/cloudflare-dyndns-token.age;
   };
 }

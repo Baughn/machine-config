@@ -1,0 +1,3 @@
+interface:
+  display_name: "Minecraft Tick Debugging"
+  short_description: "Collect and analyze server tick-time evidence"

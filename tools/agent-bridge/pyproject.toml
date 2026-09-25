@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-bridge"
+version = "0.1.0"
+description = "Claude Code agents as members of a Discord channel"
+requires-python = ">=3.12"
+dependencies = ["discord.py", "claude-agent-sdk"]
+
+[project.scripts]
+agent-bridge = "agent_bridge.__main__:main"
+
+[tool.setuptools]
+packages = ["agent_bridge"]
+
+[tool.setuptools.package-data]
+agent_bridge = ["base-prompt.md", "py.typed"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.mypy]
+strict = true
+packages = ["agent_bridge"]
+
+[[tool.mypy.overrides]]
+module = ["discord", "discord.*"]
+ignore_missing_imports = true

@@ -46,6 +46,10 @@ Tools are wired into machines by `machines/<machine>/<tool>.nix` or a
 `modules/<tool>.nix` module. `nix develop` provides a Rust toolchain and a
 `check-rust-tools` script that runs `cargo test` across every crate.
 
+One deliberate exception: `tools/agent-bridge/` is Python, because it is built
+on the Claude Agent SDK (Python). It is a `buildPythonApplication` whose
+checkPhase runs pytest and `mypy --strict`; see `docs/agent-channel-design.md`.
+
 ### What to modularize
 
 There is exactly one machine of each type (one desktop, one server, one
@@ -106,6 +110,7 @@ machines/
 modules/
   default.nix              # plain imports list
   agenix.nix
+  agent-channel.nix        # Discord agent bridges (me.agentChannel.instances)
   cachy-kernel.nix         # CachyOS kernel + tuning, heavily stripped config
   cli-tools.nix
   cloudflare-dyndns.nix
@@ -127,9 +132,11 @@ modules/
   zfs.nix
 lib/
   ssh-keys.nix             # shared authorized-key lists for explicit users
+  agent-roster.nix         # Discord IDs of the agent channel's humans and agents
   mk-crane-package.nix     # crane wrapper behind pkgs.mkCranePackage
 tools/                     # Rust crates: aniwatch, game-watcher, irc-tool,
-                           # magic-reboot, nix-build-balancer, rolebot, victron-monitor
+                           # magic-reboot, nix-build-balancer, rolebot, victron-monitor;
+                           # plus agent-bridge (Python)
 tests/
   saya-installer-vm.nix
 secrets/

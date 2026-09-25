@@ -124,7 +124,21 @@
       };
 
       tsugumi = {
-        modules = [ ./machines/tsugumi ];
+        modules = [
+          ./machines/tsugumi
+          {
+            nixpkgs.overlays = [
+              (final: prev: {
+                # The agent bridge's CLI: new models need a newer Claude Code
+                # than the weekly cooldown gives (Opus 5.5 needs >= 2.1.280).
+                claude-code = (import nixpkgs-fast {
+                  inherit (prev.stdenv.hostPlatform) system;
+                  inherit (prev) config;
+                }).claude-code;
+              })
+            ];
+          }
+        ];
       };
     };
 
@@ -140,6 +154,7 @@
   in
   rec {
     packages.x86_64-linux = rustPackages // {
+      agent-bridge = pkgs.callPackage ./tools/agent-bridge { };
       all-systems =
         pkgs.linkFarm "all-systems"
           (builtins.map
@@ -153,6 +168,8 @@
     };
 
     checks.x86_64-linux = {
+      # pytest and mypy --strict run in the package's checkPhase.
+      agent-bridge = packages.x86_64-linux.agent-bridge;
       punch = pkgs.runCommand "punch-tests" {
         nativeBuildInputs = [ (pkgs.python3.withPackages (p: [ p.aiohttp ])) ];
       } ''
@@ -171,6 +188,11 @@
       local-web-access = import ./tests/local-web-access-vm.nix { inherit pkgs; };
       minecraft-storage-vm = import ./tests/minecraft-storage-vm.nix { inherit pkgs; };
       minecraft-servers-vm = import ./tests/minecraft-servers-vm.nix { inherit pkgs; };
+      minecraft-watch-vm = import ./tests/minecraft-watch-vm.nix { inherit pkgs; };
+      agent-channel-vm = import ./tests/agent-channel-vm.nix {
+        # The bridge's CLI, claude-code, is unfree.
+        pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
+      };
       security-scripts = pkgs.runCommand "security-script-tests" {
         nativeBuildInputs = [ (pkgs.python3.withPackages (p: [ p.javaproperties ])) ];
       } ''
@@ -180,9 +202,11 @@
           fileset = pkgs.lib.fileset.unions [
             ./machines/tsugumi/minecraft-storage.py
             ./machines/tsugumi/minecraft-snapshot.py
+            ./machines/tsugumi/minecraft-watch.py
             ./machines/tsugumi/starlink-prefixes.py
             ./tests/test_minecraft_storage.py
             ./tests/test_minecraft_snapshot.py
+            ./tests/test_minecraft_watch.py
             ./tests/test_starlink_prefixes.py
           ];
         }}

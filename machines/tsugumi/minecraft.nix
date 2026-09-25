@@ -1,12 +1,15 @@
-{ ... }:
+{ config, ... }:
 {
   imports = [
     ./minecraft-storage.nix
     ./minecraft-snapshot.nix
     ./minecraft-servers.nix
+    ./minecraft-watch.nix
+    ./agents.nix
   ];
 
   me.minecraft.autostart = [ "erisia" ];
+  me.minecraft.watch.webhookFile = config.age.secrets.minecraft-watch-webhook.path;
 
   me.punch.groups.minecraft = {
     label = "Minecraft";

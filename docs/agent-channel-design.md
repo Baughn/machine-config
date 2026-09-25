@@ -1,10 +1,14 @@
 # Agent channel: Claude Code agents as Discord members
 
-*Status: design, 2026-09-24; revised 2026-09-25 after a review against the
-tsugumi config, with Baughn's comments folded in. Nothing implemented or
-deployed. SDK facts were checked against `claude-agent-sdk` 0.2.159 (bundled
-CLI 2.1.281) and the Claude Code docs; whatever the contract tests below must
-confirm is marked as such.*
+*Status: design 2026-09-24, revised 2026-09-25; updated 2026-09-26 as the
+pieces landed. Implemented: the server lifecycle (deployed), the snapshot
+watchdog (deployed), and the bridge with the tsugumi-minecraft identity
+(deployed 2026-09-26: observer mode in the test channel briefly, then `auto`
+in #auto-admin the same day, with `ask` rules on starting/stopping/restarting
+servers; contract test passed). Not started: the lab and the saya identity. SDK facts were checked
+against `claude-agent-sdk` 0.2.152 from nixpkgs, paired with `claude-code`
+2.1.280 from `nixpkgs-fast` (see Packaging), and the Claude Code docs; whatever the contract tests
+below must confirm is marked as such.*
 
 ## Problem
 
@@ -103,8 +107,7 @@ in-process:
 Python rather than TypeScript: `interrupt()` is documented for the Python
 client, discord.py is mature, and `minecraft-storage` already sets a Python
 precedent. This is a deliberate exception to the repo's "tools are Rust crates"
-convention. It is justified by the SDK, and `CLAUDE.md` should say so once it
-lands.
+convention. It is justified by the SDK, and `CLAUDE.md` says so.
 
 **Subscription auth.** The SDK quickstart asks third-party developers not to
 "offer claude.ai login" in their products. Here, the bridge runs on Baughn's
@@ -216,7 +219,7 @@ Config is split in two:
 # lib/agent-roster.nix
 {
   guildId = "…";
-  channelId = "…";
+  channels = { main = "…"; test = "…"; };   # #auto-admin, and one for staging
   adminRoleId = "…";          # Discord role that marks server admins
   watchdogWebhookId = "…";    # messages from it are context, never triggers
   humans = {
@@ -236,7 +239,8 @@ Config is split in two:
 me.agentChannel.instances.tsugumi-minecraft = {
   user = "minecraft";
   workdir = "/home/minecraft/agent";
-  tokenSecret = "agent-tsugumi-minecraft-discord";   # agenix
+  channel = "test";                                   # or "main"
+  tokenFile = config.age.secrets.agent-tsugumi-minecraft-discord.path;
   triggers  = [ "owner" "admin" "agent" ];            # who can start a turn
   approvers = [ "owner" "admin" ];                    # who can approve / answer questions
   permissionMode = "auto";
@@ -336,8 +340,41 @@ post {
   guarantee (see Principle 1).
 
 Other MCP tools: `history(n)` fetches recent channel messages, labelled like
-context. `inbox()` returns the queued messages. `fetch_attachment(id)`
-downloads an attachment.
+context. `inbox()` returns the queued messages. There is no attachment tool:
+inbound attachments are already downloaded (above).
+
+`rcon(world, command)` (only where `rcon.root` is set; tsugumi-minecraft)
+runs a console command over RCON, with the port and password from
+`<root>/<world>/server.properties`, and returns the server's reply. The
+builder's `control` can't: it has no generic command with output. Commands
+whose leading words are on `rcon.readOnly` (`list`, `tps`, `forge tps`,
+`spark tps`, `forge entity list`, …) run at once. Commands on `rcon.ask`
+(`stop`, `save-off`, `op`, `ban`, `whitelist`, `kill`, `gamerule`, …) always
+go to an approver, through the same flow as a tool call, from inside the
+tool; the read-only list wins over it (`whitelist list`). Anything else
+depends on the mode: in `auto` mode the tool isn't allow-listed, so Claude
+Code's classifier approves or blocks each call first, as it does for Bash
+(the contract test's `auto_mcp` check saw it pass `forge entity list`
+without a prompt); in `default` mode an approver decides.
+
+**Extra directories.** Claude Code runs read-only commands without asking
+only inside the working directories. `extraDirs` (the SDK's `add_dirs`) adds
+to them: for tsugumi-minecraft, `/home/minecraft`, so reading the worlds
+beside its workdir needs no approver (checked by the contract test). Without
+it, every `cat` in a world directory asked.
+
+**Skills.** An instance's `skills` (name → path in the repo) are symlinked
+from the Nix store into `<workdir>/.claude/skills/`, where Claude Code
+discovers project skills, and passed as the SDK's `skills`, which
+pre-approves `Skill(name)`. The agent can use them but not edit them; it can
+only remove or replace the link in its own workdir. tsugumi-minecraft has
+`minecraft-tick-debug` (Baughn's tick-debugging workflow, copied from the
+prototype on tsugumi into `machines/tsugumi/agents/skills/`); its case
+records stay in `/home/minecraft/agent-debugging`. Its read-only Flare and
+`erisia-inspect` queries are on the default `rcon.readOnly` list. The skill
+says not to post reports to Discord unless separately instructed; the
+identity prompt says a request in the channel is that instruction, and that
+raw profiles and logs never go there.
 
 **Threads:** not used by default; the `thread` field exists but agents are not
 told to open threads. Revisit if channel volume makes it necessary.
@@ -385,8 +422,11 @@ reaches `can_use_tool`, and only Baughn can approve.
 
 **The approval flow.** The bridge posts an approval request as a reply to the
 turn's status message: the tool, its input (as an attachment if long), and the
-agent's stated reason. An approver reacts ✅ or ❌. Reactions from bots or
-non-approvers are ignored. After a timeout (default 15 min) the call is
+agent's stated reason, with **Allow** and **Deny** buttons. A click from a bot
+or non-approver is ignored (they get a private "only approvers can decide"),
+and the settled request is edited to say who decided, with the buttons
+removed. (The first version used ✅/❌ reactions; buttons are clearer and
+don't need the bot to pre-add reactions.) After a timeout (default 15 min) the call is
 denied. `PermissionResultDeny(message=…)` tells the agent why. The callback
 may stay pending indefinitely, so the timeout is ours, not the SDK's.
 
@@ -612,32 +652,50 @@ crashes), and existing `crash-analysis/*.md` reports.
 
 ## Snapshot watchdog
 
+*Implemented and deployed 2026-09-26 (`machines/tsugumi/minecraft-watch.{nix,py}`,
+unit tests `tests/test_minecraft_watch.py`, VM test `tests/minecraft-watch-vm.nix`).*
+
 A root system service on tsugumi (`minecraft-watch.service` + timer, every
 5 minutes), defined in the Nix config so no agent can change it. It is useful
-on its own and is built first. The old Prometheus/Alertmanager route took far
+on its own and was built first. The old Prometheus/Alertmanager route took far
 more ceremony than this needs; the watchdog posts straight to the agent
 channel instead.
 
 Checks:
 
-- Every direct child of `rpool/minecraft` has a `zrepl_` snapshot newer than
-  45 minutes (three snapshot intervals).
-- Each of those has been replicated to `stash/zrepl/…` within the last 2 hours.
-- No save-hook lease in `/run/minecraft-save-hook/` is older than
-  10 minutes (saving stuck off).
-- `/var/lib/minecraft-storage/rollback.json` is absent (an interrupted rollback
-  blocks zrepl), and `zrepl.service` is active.
-- Every autostarted `minecraft@*.service` is active and not restart-looping.
-- No lab clone has outlived its expiry (the expiry timer is working).
+- `snapshot:<world>`: every direct child of `rpool/minecraft` (stopped worlds
+  included; the save hook skips them but they are still snapshotted) has a
+  `zrepl_` snapshot, by `creation`, newer than 45 minutes.
+- `replica:<world>`: each world that the zrepl filter replicates has a
+  `zrepl_` snapshot on `stash/zrepl/rpool/…` newer than 2 hours.
+- `lease:<world>`: no save-hook lease (`/run/minecraft-save-hook/*/pending.json`)
+  is older than 10 minutes (saving stuck off); `lease:recovery`:
+  `minecraft-save-recovery.service` hasn't failed.
+- `zrepl:rollback` / `zrepl:restart`: `rollback.json` and `complete.json` are
+  absent from `/var/lib/minecraft-storage` (a rollback in progress fires too,
+  which is fine: it is worth announcing). `zrepl:active`: zrepl is running,
+  unless a rollback explains why not.
+- `world:<world>`: every autostarted `minecraft@` unit is active and hasn't
+  restarted 3 or more times within an hour (`NRestarts` history in the state
+  file; the units have no start limit, so a loop never reaches "failed").
+- Later, with the lab: no clone has outlived its expiry.
 
-It posts via a Discord webhook (URL in agenix, readable only by root) on state
-*changes* only: a firing message that mentions the owner, and a resolved
-message. State lives in `/var/lib/minecraft-watch`. Webhook messages are
-context for the agents, so they see alerts on their next turn.
+Snapshot and replica verdicts wait until 45 minutes after boot. A check that
+throws becomes an `error:<check>` key and leaves that check's keys as they
+were.
 
-It is a single Python script beside `minecraft-storage.py`, with checks
-written as a list of (name, function → ok/failing + detail), so it can grow
-into a general dashboard later.
+A key fires after failing on two consecutive runs, so a world's few seconds
+of downtime at a daily restart don't page anyone, and resolves on the first
+passing run. It posts via a Discord webhook (URL in agenix, readable only by
+root) on those *changes* only, one message per run: firing lines mention the
+owner, resolved lines don't. A failed post is retried on the next run. State
+lives in `/var/lib/minecraft-watch`. Webhook messages are context for the
+agents, so they see alerts on their next turn.
+
+`minecraft-watch status` (as root) prints every check; `minecraft-watch test`
+posts a test message. The script sits beside `minecraft-storage.py` and
+mirrors its helpers; checks are a list of (name, function → {key: ok/failing
++ detail}), so it can grow into a general dashboard later.
 
 ## The saya identity
 
@@ -810,9 +868,11 @@ tools/agent-bridge/
     approval.py      # PURE: approval + AskUserQuestion state machine
     render.py        # PURE: post{} / questions -> Discord message(s), validation errors
     filter.py        # PURE: outbound secret filter
-    tools.py         # @tool definitions (post, history, inbox, fetch_attachment)
-    session.py       # AgentSession protocol + ClaudeSDKClient adapter
+    prompt.py        # PURE: system prompt (base-prompt.md + roster + identity) and turn input
+    bridge.py        # the core: turns, status message, approvals, commands, tool handlers
+    session.py       # AgentSession protocol + ClaudeSDKClient adapter + the bridge MCP tools
     discord_io.py    # discord.py adapter behind a Chat protocol
+    contract.py      # `agent-bridge contract-test` (layer 3)
   tests/
 machines/tsugumi/
   minecraft-watch.{nix,py}   # snapshot watchdog
@@ -822,17 +882,24 @@ machines/tsugumi/
 ```
 
 Everything that makes a decision is in the pure modules, type-checked with
-mypy in strict mode. `session.py` and `discord_io.py` are thin adapters
-behind `typing.Protocol`s (`AgentSession`, `Chat`, `Clock`), so the bridge can
-run against fakes.
+mypy in strict mode (the whole package is, in the package's checkPhase).
+`session.py` and `discord_io.py` are thin adapters behind `typing.Protocol`s
+(`AgentSession`, `Chat`; the clock is an injected callable), so the bridge
+runs against fakes.
 
-**Packaging.** discord.py is in nixpkgs. The SDK is packaged from its source
-release with `buildPythonPackage`, since the wheel bundles a ~100 MB
-dynamically linked `claude` that won't run on NixOS unpatched. `cli_path`
-points at nixpkgs `claude-code`. Each SDK release names the CLI version it
-was built against (`_cli_version.py`). The package derivation pins the SDK,
-and the contract tests (layer 3) are the gate for pairing it with the
-nixpkgs CLI.
+**Packaging.** Both discord.py and `claude-agent-sdk` are in nixpkgs; the
+latter is built from the source release, so it carries no bundled binary.
+`tools/agent-bridge/default.nix` is a `buildPythonApplication` on those, and
+`cli_path` points at nixpkgs `claude-code`. Each SDK release names the CLI
+version it was built against (`_cli_version.py`); a nixpkgs bump can move
+either one, and the contract tests (layer 3) are the gate for pairing them.
+
+On tsugumi, `claude-code` comes from `nixpkgs-fast` (an overlay in
+`flake.nix`, like saya's `google-chrome`): tsugumi-minecraft is pinned to
+`claude-opus-5-5`, which needs Claude Code 2.1.280, newer than the weekly
+nixpkgs had. With an older CLI every turn fails with an API 400 ("does not
+support this model"), so rerun the contract test (`CONTRACT_MODEL=…`) before
+changing either the model or the CLI source.
 
 ## Testing strategy
 
@@ -923,7 +990,37 @@ that:
   `inbox` stays.
 
 Run it whenever the SDK is bumped or `deploy`'s closure diff shows a
-claude-code version change.
+claude-code version change. On tsugumi, as the bridge's user with its token
+and CLI (`CONTRACT_ONLY="name …"` picks checks, `CONTRACT_LONG=1` adds the
+20-minute wait):
+
+```sh
+u=agent-bridge-tsugumi-minecraft
+exe=$(systemctl show -P ExecStart $u | grep -o '/nix/store/[^ ;]*/bin/agent-bridge' | head -1)
+cfg=$(systemctl show -P Environment $u | tr ' ' '\n' | sed -n 's/^AGENT_BRIDGE_CONFIG=//p')
+cli=$(sed -n 's/^cli_path = "\(.*\)"/\1/p' $cfg)
+cd /tmp && sudo systemd-run --quiet --pipe --wait --uid=minecraft --gid=users \
+  -p NoNewPrivileges=yes -p LoadCredential=claude-token:/run/agenix/agent-claude-token \
+  -E PATH=/run/current-system/sw/bin -E HOME=/home/minecraft -E AGENT_BRIDGE_CLI=$cli \
+  $exe contract-test
+```
+
+The permission checks use `touch`, not `echo`: Claude Code runs read-only
+commands (echo, ls, cat, …) without consulting `can_use_tool` at all.
+
+**Results, 2026-09-26** (SDK 0.2.152; CLI 2.1.268 with the default model,
+then CLI 2.1.280 with `claude-opus-5-5`): every check passed both times; the
+20-minute wait was not run. Recorded behaviour:
+
+- A project allow rule written to the workdir's `.claude/settings.json`
+  mid-session was *not* picked up (within a few seconds, at least). A restart
+  would pick it up, which is what the start-up guard refuses.
+- A `query()` sent mid-turn is folded into the running turn: one
+  `ResultMessage`, and the model acted on both messages. So the bridge could
+  feed mid-turn messages straight in and drop `inbox`; for now it keeps
+  `inbox`, which works either way.
+- Not covered: whether an auto-mode classifier block ever reaches
+  `can_use_tool`. Watch for it in the observer phase.
 
 ### 4. NixOS VM tests (nix flake check)
 
@@ -952,15 +1049,19 @@ tests cover the OS-level boundary, which the design depends on most:
   `$STATE` (session transcripts included) are not readable by other users.
 - The saya unit sees `/home/svein/nixos` and its workspace, and nothing else
   under `/home/svein`.
-- The watchdog fires on a stale snapshot, a stuck save lease and a rollback
-  journal, and resolves when they clear (webhook pointed at a local stub).
-- The bridges run with the fake `Chat` and fake `AgentSession` here (selected
-  by a test-only config switch), since the VM has no network.
+- The watchdog fires on a down world, a stale snapshot, a stuck save lease and
+  a rollback journal, resolves when they clear, and retries a failed post
+  (`minecraft-watch-vm`, webhook pointed at a local stub). *Done.*
+- The bridge runs in a test-only `fake` mode here (no Discord, no Claude),
+  since the VM has no network (`agent-channel-vm`). *Done:* it runs as its
+  user with `NoNewPrivileges`, its credentials and state are private, and a
+  workdir whose settings add permission rules is refused.
 
-### 5. Staged live rollout (test guild first)
+### 5. Staged live rollout (test channel first)
 
-A separate test guild with its own set of bot applications. Everything here
-runs there before it reaches the real channel.
+A test channel in the same guild (`roster.channels.test`), with the same bot
+applications; each instance's `channel` says which one it lives in.
+Everything here runs there before it reaches #auto-admin.
 
 1. **Render check:** `agent-bridge selftest` posts one of each `kind`, with
    attachments, a question with buttons and a status message. Check it on
@@ -989,9 +1090,11 @@ runs there before it reaches the real channel.
    - tsugumi-minecraft restarts a server via `systemctl`; the server survives
      a bridge restart.
 4. **Production, in order:** the watchdog and the `minecraft@` cutover
-   (both standalone, first) → tsugumi-lab
-   (cannot hurt anything) → tsugumi-minecraft (`ask` rules on everything that
-   is not read-only for the first weeks) → saya.
+   (both standalone, first; done) → tsugumi-minecraft in observer mode in
+   the test channel (done) → tsugumi-minecraft in `auto` mode in #auto-admin
+   (done 2026-09-26, earlier than planned, since observer mode went well:
+   `ask` rules on server start/stop/restart, `control.sh stop|say` and
+   recursive deletes, plus the rcon ask list) → tsugumi-lab → saya.
 
 The injection scenarios in step 3 can be scripted as a small eval set using
 the real model against the lab, and re-run after prompt changes.
@@ -1003,7 +1106,9 @@ New pieces: `tools/agent-bridge/` (Python), `modules/agent-channel.nix`,
 `machines/tsugumi/minecraft-lab.nix` (user, dataset, namespace, nft table,
 expiry timer, lab server units), `machines/tsugumi/minecraft-servers.nix`, `lab` subcommands in `minecraft-storage`, agenix secrets per
 identity (Discord token) plus one shared Claude token and the watchdog
-webhook, and the VM test additions.
+webhook, and the VM test additions. Done so far: the watchdog, roster,
+module, bridge and their tests, and the tsugumi-minecraft instance (auto mode,
+test channel). The lab and saya bots have no token secrets yet.
 
 Changes to existing config:
 
@@ -1019,8 +1124,12 @@ Changes to existing config:
 ## Open questions
 
 - **Mod credentials in lab clones:** check whether any production mod config
-  carries an outbound credential.
-- **Mid-turn delivery:** settled by the contract test above.
+  carries an outbound credential. Likely yes: erisia has a
+  `DiscordIntegration-Data` directory, and `/home/minecraft` holds a
+  `Discord-Integration.toml`, i.e. a chat bridge with a bot token.
+- **Mid-turn delivery:** the contract test showed a mid-turn `query()` is
+  folded into the running turn. Whether to switch from `inbox` to direct
+  delivery is open; `inbox` works either way.
 
 ## Future plans
 
@@ -1040,4 +1149,6 @@ Changes to existing config:
 - Agent-initiated rollback behind a ✅, which needs the bridge and the agent
   to run as different users.
 - Threads, if channel volume demands them.
+- Discord application (slash) commands in place of `!stop`/`!status`, and a
+  richer UI with buttons (stop, status, log) on the status message.
 - Idmapped mounts for lab clones instead of chown.
