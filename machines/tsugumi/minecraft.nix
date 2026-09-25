@@ -1,11 +1,17 @@
 { ... }:
 {
-  imports = [ ./minecraft-storage.nix ./minecraft-snapshot.nix ./minecraft-shutdown.nix ];
+  imports = [
+    ./minecraft-storage.nix
+    ./minecraft-snapshot.nix
+    ./minecraft-servers.nix
+  ];
+
+  me.minecraft.autostart = [ "erisia" ];
 
   me.punch.groups.minecraft = {
     label = "Minecraft";
     roleIds = [ "480078714709737473" ];
-    ports.tcp = [ 25565 25566 25575 ];
+    ports.tcp = [ 25565 25566 ];
     ports.udp = [ 24454 ]; # Simple voice chat
   };
   services.prometheus.scrapeConfigs = [
