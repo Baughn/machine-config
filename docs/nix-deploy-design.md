@@ -216,7 +216,9 @@ confirm-or-exit (or nothing at all — see Open questions).
 
 Per machine, in manifest order (tsugumi, then saya):
 
-1. `nix copy --to ssh://root@tsugumi <toplevel>` (skipped for local).
+1. `nix copy --to ssh://<target>?max-connections=8 <toplevel>` with ssh
+   multiplexing disabled via `NIX_SSHOPTS`, so paths copy in parallel over
+   separate ssh processes (skipped for local).
 2. Prompt (above) unless `--mode` given.
 3. Set the profile so rollback and GC behave:
    `nix-env --profile /nix/var/nix/profiles/system --set <toplevel>`

@@ -87,6 +87,8 @@
           ConnectTimeout 30
           TCPKeepAlive yes
           ConnectionAttempts 2
+          # Prefer hardware AES over OpenSSH's chacha default (see modules/ssh.nix).
+          Ciphers aes128-gcm@openssh.com,aes256-gcm@openssh.com,chacha20-poly1305@openssh.com
         '';
         matchBlocks = {
           "*" = {
