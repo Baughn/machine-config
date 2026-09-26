@@ -53,14 +53,16 @@ class Pending:
     future: asyncio.Future[Any]
     questions: list[dict[str, Any]] | None = None
     selections: dict[int, list[str]] = field(default_factory=dict)
+    answered_by: dict[int, str] = field(default_factory=dict)
     decided_by: str | None = None
 
-    def select(self, index: int, labels: list[str]) -> bool:
+    def select(self, index: int, labels: list[str], by: str) -> bool:
         """Record an approver's selection. True once every question is answered."""
         assert self.questions is not None
         if not 0 <= index < len(self.questions):
             return False
         self.selections[index] = labels
+        self.answered_by[index] = by
         if len(self.selections) < len(self.questions):
             return False
         try:

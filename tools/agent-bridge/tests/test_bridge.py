@@ -259,6 +259,9 @@ async def test_ask_user_question(harness: Harness) -> None:
     assert asker.result is not None and asker.result.allow
     assert asker.result.updated_input == {"questions": QUESTIONS, "answers": {
         "Restart now?": "Tonight", "Which worlds?": ["erisia", "incognito"]}}
+    # The channel records who chose what.
+    assert harness.chat.final(request).endswith(
+        "✅ answered:\n**1.** → Tonight (alice)\n**2.** → erisia, incognito (baughn)")
 
 
 async def test_ask_user_question_times_out(tmp_path: Path) -> None:

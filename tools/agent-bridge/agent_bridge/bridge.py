@@ -20,8 +20,8 @@ from .limits import Breaker, Streak
 from .policy import (Attachment, Author, Command, Incoming, Kind, Route, command_applies,
                      may_approve, parse_command, route)
 from .prompt import HANDOFF_FILE, handoff_prompt, new_session_preamble, turn_prompt
-from .render import (File, Outgoing, PostError, Roots, Status, approval_request, context_line,
-                     is_status, question_text, render_post, summarize_tool)
+from .render import (File, Outgoing, PostError, Roots, Status, answer_footer, approval_request, context_line,
+                     is_status, question_text, render_post, settled, summarize_tool)
 from .session import AgentSession, Permission, ToolError, TurnResult
 
 log = logging.getLogger(__name__)
@@ -256,8 +256,7 @@ class Bridge:
         pending = self.pending.get(message_id)
         if pending is None or pending.questions is None:
             return "This question is no longer open."
-        pending.decided_by = reactor.name
-        if pending.select(index, labels):
+        if pending.select(index, labels, reactor.name):
             return "Answer sent."
         return "Recorded; answer the remaining questions too."
 
@@ -508,14 +507,14 @@ class Bridge:
                 result, footer = Permission(False, f"Denied by {by}."), f"❌ denied by {by}"
             else:
                 result = Permission(True, updated_input={**tool_input, "answers": outcome})
-                footer = f"✅ answered by {by}"
+                footer = answer_footer(pending.questions or [], outcome, pending.answered_by)
         finally:
             self.pending.pop(message_id, None)
             if self.status is not None:
                 self.status.pending -= 1
         self.note(f"{name}: {footer}")
         with contextlib.suppress(Exception):
-            await self.chat.edit(message_id, f"{text}\n{footer}"[:2000])
+            await self.chat.edit(message_id, settled(text, footer))
         return result
 
     def unread(self) -> str:

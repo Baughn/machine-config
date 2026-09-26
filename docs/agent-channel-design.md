@@ -482,7 +482,10 @@ Discord message with buttons or a select menu, and returns the answers via
 `updated_input` (`answers: {question text: label | [labels]}`). Only
 approvers' answers count, so "ask permission" can't be answered by injected
 text or a bystander. The same timeout applies; on timeout the tool is denied
-with "no answer".
+with "no answer". Once settled, the question message is edited to record the
+outcome, since the channel doubles as the audit log: each answer, with who
+chose it (approvals likewise say who approved or denied). The question text
+is shortened if needed; the record never is.
 
 **Settings.** `setting_sources=["project"]`, never `"user"`, and never
 `bypassPermissions` (it auto-approves before `can_use_tool` is consulted). At

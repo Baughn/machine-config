@@ -190,6 +190,26 @@ def question_text(identity: str, questions: list[dict[str, Any]]) -> str:
     return text if len(text) <= MESSAGE_LIMIT else text[:MESSAGE_LIMIT - 1] + "…"
 
 
+def answer_footer(questions: list[dict[str, Any]], answers: dict[str, Any],
+                  answered_by: dict[int, str]) -> str:
+    """How answered questions are recorded on the question message: who chose what."""
+    lines = ["✅ answered:"]
+    for index, question in enumerate(questions):
+        chosen = answers.get(question.get("question", ""), [])
+        chosen = chosen if isinstance(chosen, list) else [chosen]
+        lines.append(f"**{index + 1}.** → {', '.join(str(c) for c in chosen)} "
+                     f"({answered_by.get(index, 'an approver')})")
+    return "\n".join(lines)
+
+
+def settled(text: str, footer: str) -> str:
+    """A request or question with its outcome appended; the outcome always fits."""
+    room = MESSAGE_LIMIT - len(footer) - 1
+    if len(text) > room:
+        text = text[:max(0, room - 1)] + "…"
+    return f"{text}\n{footer}"[:MESSAGE_LIMIT]
+
+
 def context_line(message: Incoming, trigger: bool, attachments: list[str]) -> str:
     """How a channel message appears in the agent's input."""
     where = f" in thread {message.thread_id}" if message.thread_id else ""

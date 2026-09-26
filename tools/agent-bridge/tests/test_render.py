@@ -118,3 +118,11 @@ def test_breaker_trips_once_and_stays_tripped() -> None:
     breaker.reset()
     assert breaker.turn(0) and breaker.turn(1) and breaker.post(5000)
     assert breaker.turn(3601)
+
+
+def test_settled_keeps_the_outcome() -> None:
+    from agent_bridge import render
+    footer = "✅ answered:\n**1.** → Yes (baughn)"
+    text = render.settled("x" * 5000, footer)
+    assert len(text) == render.MESSAGE_LIMIT and text.endswith("…\n" + footer)
+    assert render.settled("short", footer) == "short\n" + footer
