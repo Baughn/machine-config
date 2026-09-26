@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 import json
 import logging
@@ -173,7 +174,10 @@ def options_kwargs(*, workdir: Path, state: Path, cli_path: str | None, model: s
         disallowed_tools=list(deny),
         env={"CLAUDE_CODE_OAUTH_TOKEN": token, "CLAUDE_CONFIG_DIR": str(state / "claude"),
              # ask_agent holds its tool call open for up to an hour.
-             "MCP_TOOL_TIMEOUT": str(MCP_TOOL_TIMEOUT_MS)},
+             "MCP_TOOL_TIMEOUT": str(MCP_TOOL_TIMEOUT_MS),
+             # A background task's completion restarts the agent after its turn
+             # has ended, where no turn reads its output (see SdkSession.drain).
+             "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1"},
         # Read-only commands run without asking only inside these and cwd.
         add_dirs=[str(d) for d in add_dirs],
     )
@@ -198,6 +202,7 @@ class SdkSession:
         self.ship = ship
         self.kwargs = kwargs
         self.client: Any = None
+        self.drainer: asyncio.Task[None] | None = None
 
     async def connect(self, resume: str | None) -> None:
         from claude_agent_sdk import (CanUseToolShadowedWarning, ClaudeAgentOptions, ClaudeSDKClient,
@@ -234,25 +239,60 @@ class SdkSession:
         )
         self.client = ClaudeSDKClient(options)
         await self.client.connect()
+        self.start_drain()
 
     async def turn(self, prompt: str) -> TurnResult:
         from claude_agent_sdk import ResultMessage
 
-        await self.client.query(prompt)
-        async for message in self.client.receive_response():
-            if isinstance(message, ResultMessage):
-                interrupted = message.terminal_reason in INTERRUPTED
-                error = None
-                if message.is_error and not interrupted:
-                    error = "; ".join(message.errors or []) or message.subtype
-                return TurnResult(message.session_id, error, interrupted, message.total_cost_usd)
-        return TurnResult(None, "the session ended without a result")
+        await self.stop_drain()
+        try:
+            await self.client.query(prompt)
+            async for message in self.client.receive_response():
+                if isinstance(message, ResultMessage):
+                    interrupted = message.terminal_reason in INTERRUPTED
+                    error = None
+                    if message.is_error and not interrupted:
+                        error = "; ".join(message.errors or []) or message.subtype
+                    return TurnResult(message.session_id, error, interrupted, message.total_cost_usd)
+            return TurnResult(None, "the session ended without a result")
+        finally:
+            self.start_drain()
+
+    def start_drain(self) -> None:
+        if self.client is not None and self.drainer is None:
+            self.drainer = asyncio.create_task(self.drain(self.client))
+
+    async def stop_drain(self) -> None:
+        if self.drainer is not None:
+            drainer, self.drainer = self.drainer, None
+            drainer.cancel()
+            try:
+                await drainer
+            except asyncio.CancelledError:
+                pass
+
+    async def drain(self, client: Any) -> None:
+        """Read the CLI's output between turns.
+
+        The SDK buffers only 100 messages. Once that fills, it stops reading the
+        CLI altogether, so hook and permission callbacks go unanswered and every
+        tool call hangs (2026-09-26: a background Bash task's completion restarted
+        the lab agent after its turn). Nothing should arrive between turns; log it.
+        """
+        try:
+            async for message in client.receive_messages():
+                log.warning("CLI output outside a turn: %s", type(message).__name__)
+        except asyncio.CancelledError:
+            raise
+        except Exception as error:
+            log.warning("draining the CLI's output failed: %s", error)
 
     async def interrupt(self) -> None:
         if self.client is not None:
             await self.client.interrupt()
 
     async def disconnect(self) -> None:
+        await self.stop_drain()
         if self.client is not None:
             client, self.client = self.client, None
             await client.disconnect()
