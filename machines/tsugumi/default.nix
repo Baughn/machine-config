@@ -184,6 +184,8 @@ in
             "rpool/minecraft/erisia/dynmap" = false;
             "rpool/minecraft/incognito/dynmap" = false;
             "rpool/minecraft/testing/dynmap" = false;
+            # Lab clones are disposable, and each would be sent in full.
+            "rpool/minecraft-lab<" = false;
             "rpool/root/nix<" = false;
             "rpool<" = true;
           };

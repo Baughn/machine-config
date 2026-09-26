@@ -16,6 +16,7 @@ import time
 import urllib.request
 
 ROOT = "rpool/minecraft"
+LAB_ROOT = "rpool/minecraft-lab"
 BACKUP_PREFIX = "stash/zrepl/rpool/"
 PREFIX = "zrepl_"
 STATE = Path("/var/lib/minecraft-watch")
@@ -150,6 +151,29 @@ def check_zrepl(now, state):
     }
 
 
+def lab_clones():
+    """{name: lab:expires} for the lab clones."""
+    if not exists(LAB_ROOT):
+        return {}
+    output = zfs("list", "-Hp", "-t", "filesystem", "-d", "1", "-o", "name,lab:expires", LAB_ROOT)
+    clones = {}
+    for line in output.splitlines():
+        name, expires = line.split("\t")
+        if name.startswith(LAB_ROOT + "/") and expires.isdigit():
+            clones[name.rpartition("/")[2]] = int(expires)
+    return clones
+
+
+def check_lab(now, state):
+    results = {}
+    for name, expires in lab_clones().items():
+        over = now - expires
+        results[name] = Result(over <= SETTINGS["labGrace"],
+                               f"lab clone {name} expired {age(over)} ago and still exists "
+                               "(minecraft-lab-expire.timer)")
+    return results
+
+
 def check_worlds(now, state):
     history = state.setdefault("restarts", {})
     results = {}
@@ -181,6 +205,7 @@ CHECKS = [
     ("lease", check_leases),
     ("zrepl", check_zrepl),
     ("world", check_worlds),
+    ("lab", check_lab),
 ]
 
 

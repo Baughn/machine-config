@@ -7,7 +7,9 @@ watchdog (deployed), and the bridge with the tsugumi-minecraft identity
 in #auto-admin the same day, with `ask` rules on starting/stopping/restarting
 servers; contract test passed), and the saya identity (deployed 2026-09-26, as a dedicated
 `saya-agent` user rather than `svein`, triggered by Baughn and the agents,
-shipping through `agent-ship` after Baughn's ✅; see its section). Not started: the lab. SDK facts were checked
+shipping through `agent-ship` after Baughn's ✅; see its section), and the lab
+identity (deployed 2026-09-26: pasta instead of veth + NAT, a socket instead
+of sudo; a clone of erisia takes about 1.5 s; see its section). SDK facts were checked
 against `claude-agent-sdk` 0.2.152 from nixpkgs, paired with `claude-code`
 2.1.280 from `nixpkgs-fast` (see Packaging), and the Claude Code docs; whatever the contract tests
 below must confirm is marked as such.*
@@ -721,7 +723,7 @@ Checks:
 - `world:<world>`: every autostarted `minecraft@` unit is active and hasn't
   restarted 3 or more times within an hour (`NRestarts` history in the state
   file; the units have no start limit, so a loop never reaches "failed").
-- Later, with the lab: no clone has outlived its expiry.
+- `lab:<name>`: no lab clone has outlived its expiry by more than 2 hours.
 
 Snapshot and replica verdicts wait until 45 minutes after boot. A check that
 throws becomes an `error:<check>` key and leaves that check's keys as they
@@ -832,109 +834,154 @@ waiting for the reply), so two agents can't deadlock asking each other.
 
 ## The lab identity (tsugumi-lab)
 
-A narrow root helper that the unprivileged user calls via a sudo rule, as new
-subcommands of `minecraft-storage` (sharing its snapshot handling):
+tsugumi-lab runs as `mclab`, a system user (home `/var/lib/mclab`, no login
+shell, not in `users`), and works on writable ZFS clones of the worlds'
+snapshots. Everything lives in `machines/tsugumi/minecraft-lab.nix`, apart
+from the clone helper, which is `minecraft-storage lab …`.
+
+### Clones
+
+`minecraft-storage lab` subcommands, run by root under the helper's lock
+and refused while a rollback is pending:
 
 ```
 minecraft-storage lab list
-minecraft-storage lab clone [rpool/minecraft/DATASET@SNAPSHOT] NAME   # default: newest snapshot
+minecraft-storage lab clone WORLD|rpool/minecraft/WORLD@SNAPSHOT NAME   # WORLD: its newest snapshot
 minecraft-storage lab destroy NAME
+minecraft-storage lab expire     # the hourly timer
+minecraft-storage lab boot       # at boot: create rpool/minecraft-lab, remount clones
 ```
 
-`mclab` gets a sudo rule for the helper. The helper checks `SUDO_USER` per
-subcommand: `mclab` may only run `lab …`. The helper needs to be root because
-Linux cannot mount ZFS datasets as an unprivileged user, even with
-`zfs allow mount`.
+**How mclab reaches it: a socket, not sudo.** `minecraft-lab-control.socket`
+(`/run/minecraft-lab.sock`, `0660 root:mclab`, `Accept=yes`) starts a root
+`minecraft-lab-control@` instance per connection. The instance checks the
+peer (`SO_PEERCRED`: mclab or root), reads one JSON argv line, accepts only
+`lab list|clone|destroy`, and replies with the output and a final
+`exit: N`. The agent uses the `minecraft-lab` client, which sends
+`["lab", …]`. Compared with the sudo rule planned earlier:
 
-`clone`:
+- the lab units keep `NoNewPrivileges` (sudo would need it off);
+- the helper runs in the host's mount namespace, so no `nsenter` is needed
+  for the mounts to be visible host-wide.
 
-1. Takes an **SSD snapshot only** (`rpool/minecraft/…`); HDD-only snapshots
-   are refused. Nearly every use is "the newest snapshot" anyway. `NAME` must
-   match `^[a-z0-9][a-z0-9-]{0,31}$`. Clones go to `rpool/minecraft-lab/NAME`
-   (rpool has over 1 TB free). The parent has a `quota` and the helper
-   enforces a maximum number of clones. It sets a `lab:expires` user property.
-2. Mounts the clone at `/srv/minecraft-lab/NAME`, `nosuid,nodev`.
-3. Chowns the clone to `mclab`. This only touches metadata, and the dataset is
-   copy-on-write.
-4. Re-randomizes `rcon.password`. `start.py` does this on every start
-   anyway; doing it at clone time means the production password never sits
-   in a lab-readable file. Ports are left alone; the network namespace
-   (below) keeps them from colliding with production.
-5. Prints every existing clone with its age and time left, so the agent sees
-   what it should clean up.
+Admins run `sudo minecraft-storage lab …`. `minecraft`'s sudo rule on the
+whole helper covers `lab` too.
 
-**Expiry:** 5 days, with no renewal. A root timer destroys expired clones.
-Data that has to live longer is copied out of the clone first.
+**`clone`:**
+
+1. It accepts only snapshots of a world, `rpool/minecraft/WORLD@…`, that are
+   on the SSD. HDD-only snapshots are refused, and so are child datasets.
+   `NAME` must match `^[a-z0-9][a-z0-9-]{0,31}$`.
+2. It allows at most 3 clones, under a 200 GB `quota` on the parent
+   `rpool/minecraft-lab` (which `lab boot` creates, `mountpoint=none`).
+3. The clone is `rpool/minecraft-lab/NAME`, with `mountpoint=legacy` and
+   `lab:expires` set to now + 5 days.
+4. It is prepared in a root-only staging mount under
+   `/var/lib/minecraft-storage`, because the source's files belong to
+   `minecraft`, who could otherwise swap in symlinks while root works on
+   them. Preparation:
+   - re-randomize `rcon.password` (mode 0600);
+   - blank the scrub list's credentials (`me.minecraft.lab.scrub`: the
+     Discord integration's `botToken`, thump's IRC passwords), which keeps
+     the lines;
+   - chown the tree to mclab without following symlinks;
+   - add GC roots (`/nix/var/nix/gcroots/minecraft-lab/NAME-{server,pack}`)
+     for the clone's `server` and `pack` links, so its build survives
+     production moving on.
+5. The clone is then mounted `nosuid,nodev` at `/srv/minecraft-lab/NAME`, and
+   `clone` prints the list.
+
+The clone of `WORLD` doesn't include its `dynmap` child dataset, so the
+clone's `dynmap/` is empty.
+
+**Expiry:** 5 days, with no renewal. `minecraft-lab-expire.timer` runs
+`lab expire` hourly. Data that has to live longer is copied out of the clone
+first. The watchdog's `lab:<name>` key fires for a clone that has outlived its
+expiry by more than 2 hours.
 
 **`destroy`** only touches datasets that are direct children of
-`rpool/minecraft-lab`, are clones (`origin` is set) and carry the `lab:`
-property. It never touches anything else, whatever it is given.
+`rpool/minecraft-lab`, are clones (`origin` is set) and carry `lab:expires`.
+It stops `minecraft-lab@NAME`, unmounts, destroys the dataset and removes
+the GC roots.
 
-**Clones pin their origin snapshot.** While a clone exists, zrepl cannot prune
-that snapshot, and `minecraft-storage rollback` refuses to run past it. The
-5-day expiry (shorter than the SSD's 7-day retention) keeps pruning conflicts
-rare. `rollback` destroys lab clones that block it, stopping
-`minecraft-lab@NAME` first so no lab server holds the mount. Lab data is
-disposable by definition.
+**Clones pin their origin snapshot.** While a clone exists, zrepl cannot
+prune that snapshot. The 5-day expiry is shorter than the SSD's 7-day
+retention, which keeps that rare. When a lab clone blocks
+`minecraft-storage rollback`, the rollback destroys it once every other
+check has passed; any other clone or hold still blocks. zrepl skips
+`rpool/minecraft-lab<` entirely: it takes no snapshots of the clones and
+doesn't replicate them.
 
-**Lab servers** are units too: `minecraft-lab@NAME.service`, the same shape
-as `minecraft@` but with `User=mclab`, `WorkingDirectory=/srv/minecraft-lab/%i`,
-`NetworkNamespacePath=/run/netns/mclab`, `Slice=minecraft-lab.slice`, the lab
-`resolv.conf` bind, no autostart and `Restart=no`. `ExecStart` is the clone's
-`server/start.py` directly: `update-and-start.sh` links into the builder
-checkout under `/home/minecraft`, which `mclab` can't read. The `server`
-symlink points into the Nix store, which production's own link keeps alive. A
-polkit rule lets `mclab` start and stop `minecraft-lab@*` and nothing else.
+### Lab servers
 
-**zrepl** must not replicate the lab: add `"rpool/minecraft-lab<" = false` to
-the `rpool` job's filesystems. Otherwise every clone is snapshotted every
-15 minutes and sent in full to the HDD.
+Lab servers are `minecraft-lab@NAME.service`, shaped like `minecraft@`:
+
+- `User=mclab`, `WorkingDirectory=/srv/minecraft-lab/%i`, with `ExecStart`
+  the clone's `server/start.py` directly. `update-and-start.sh` links into
+  the builder checkout under `/home/minecraft`.
+- `MINECRAFT_UNIT` is set, so Java is launched directly. `CRASH_ANALYSIS=0`.
+- `Slice=mclab.slice` (`MemoryMax=16G` for all lab servers together, since
+  production runs `-Xmx8G` with `AlwaysPreTouch`; `CPUQuota=800%`).
+- `Restart=no`, no autostart, never restarted by a deploy. start.py's daily
+  restart thread therefore just stops a lab server.
+- The lab sandbox, shared with the bridge unit (`me.minecraft.lab.serviceConfig`):
+  `NetworkNamespacePath=/run/netns/mclab`, `ProtectHome=true`,
+  `PrivateTmp`, `NoNewPrivileges`, and a `resolv.conf` bind.
+
+A polkit rule lets mclab start, stop and restart `minecraft-lab@*` and
+nothing else. One lab server runs at a time, because they share the
+namespace's ports.
+
+`/home/minecraft` is `drwx---r-x` (others may read it; group `users` may
+not), so modes alone don't keep mclab out. `ProtectHome=true` in the lab
+sandbox hides it from both lab units.
 
 ### Network namespace
 
-The tsugumi-lab bridge unit and every `minecraft-lab@` unit run in a network
-namespace `mclab` (`NetworkNamespacePath=`), so the agent and the lab servers
-share it:
+The bridge and every lab server share the network namespace
+`/run/netns/mclab`. Lab servers use their normal ports on the namespace's
+own addresses, colliding with nothing in production (the game port, voice
+chat's UDP 24454, the Prometheus exporter's 1224, dynmap, RCON).
 
-- Lab servers use their normal ports on the namespace's own loopback. Nothing
-  collides with production: not the game port, and not the ports mods open
-  (voice chat on UDP 24454, the Prometheus exporter on 1224, dynmap).
-- A root oneshot unit creates the namespace and a veth pair (e.g.
-  `10.233.0.1` host / `10.233.0.2` lab) with outbound NAT, so the bridge can
-  reach Discord and the Anthropic API, and servers can reach Mojang's session
-  servers.
-- A dedicated nft table (like the punch module's) drops everything from the
-  lab veth to host addresses and to private ranges (LAN, WireGuard), allowing
-  only forwarded traffic to the internet. This is what keeps the lab from
-  production RCON. RCON is only supposed to listen locally, but vanilla RCON
-  binds to `server-ip` (all interfaces if unset), and 25575 was mistakenly
-  added to the `minecraft` punch group (to be removed).
-- DNS: resolved's stub (`127.0.0.53`) is unreachable from inside the
-  namespace. The unit bind-mounts a `resolv.conf` pointing at public
-  resolvers.
-- One lab server runs at a time; they'd share ports inside the namespace.
-- **Login:** `ssh -L 25565:10.233.0.2:25565 <account>@tsugumi`, from any
-  account an admin can ssh to. Skipping ssh (host-side DNAT with an offset the
-  server can't see, plus a punch group) is in Future plans.
+tsugumi runs with `net.ipv4.ip_forward = 0`, so the namespace is connected
+by **pasta** (user-mode networking, `pkgs.passt`), not veth + NAT:
 
-Other constraints on the lab unit:
+- `minecraft-lab-pasta.service` runs pasta **as mclab**. pasta creates the
+  namespace itself: started as root with `--runas`, it can't re-enter a
+  root-owned namespace after dropping privileges (VM-tested). A root
+  `ExecStartPost` bind-mounts the namespace at `/run/netns/mclab`, and the
+  lab units bind to the pasta unit.
+- Options: `--config-net --ipv4-only --no-map-gw -u none -T none -U none`.
+  Nothing from the namespace reaches the host's ports through pasta, and the
+  gateway address isn't mapped to the host.
+- `-t 127.0.0.1/25665:25565` is the one forward into the namespace: the
+  login port.
+- Every lab packet leaves as a socket of mclab's. The **fence**, a
+  dedicated nft table `inet mclab-fence` (loaded by
+  `minecraft-lab-fence.service`, beside the iptables firewall as punch
+  does), jumps from its output chain to a `lab` chain for `meta skuid mclab`.
+  It is a positive match on purpose: packets without a socket (NDP, IGMP,
+  WireGuard's kernel socket) match no skuid, and fall through to accept. The
+  `lab` chain:
+  - replies pass (`ct direction reply`);
+  - all IPv6 is dropped;
+  - so is anything for a local address of the host (`fib daddr type
+    local`) or a private or special range (RFC 1918, CGNAT, link-local,
+    loopback, multicast).
 
-- **Mounts go in the host namespace.** The `resolv.conf` bind (and any other
-  sandboxing) gives the unit its own mount namespace, with mounts propagating
-  from the host into the unit but not back out. The helper is called from
-  inside the unit, so it mounts and unmounts clones via
-  `nsenter --mount=/proc/1/ns/mnt`. That way they are visible host-wide, to
-  admins and to the expiry timer, and propagate into the unit.
-  `/srv/minecraft-lab` must stay visible and writable inside the unit.
-- `MemoryMax`/`CPUQuota` on `minecraft-lab.slice`, which contains every lab
-  server, so an experiment can't starve production.
-- `mclab` has no read access to `/home/minecraft`. It sees worlds only through
-  clones. `meta skuid mclab` drops to production ports stay as a second fence
-  for `mclab` processes outside the namespace (e.g. ssh sessions).
-- Outbound internet is open, so a mod config carrying an outbound credential
-  (e.g. a chat bridge's Discord token) would run as production in the lab.
-  Whether any exist is to be checked during implementation; if so, `clone`
-  scrubs them.
+  The fence also covers mclab processes outside the namespace. This is
+  what keeps the lab from production RCON, which vanilla binds on every
+  address.
+- A side effect of pasta making the namespace: it belongs to a user
+  namespace owned by mclab, so mclab's processes hold capabilities within
+  that network namespace. They can reconfigure the namespace, but not the
+  host, and everything still leaves through pasta, so the fence holds.
+  Unprivileged user namespaces allow as much to any user anyway.
+- DNS: glibc resolves through nscd over a Unix socket, which works from the
+  namespace. `resolv.conf` is bind-mounted to public resolvers for anything
+  that reads it directly.
+- **Login:** `ssh -L 25565:localhost:25665 <account>@tsugumi`, then connect
+  to `localhost`. Skipping ssh (a punch group) is in Future plans.
 
 ## System prompt (base, shared by all identities)
 
@@ -987,9 +1034,9 @@ tools/agent-bridge/
   tests/
 machines/tsugumi/
   minecraft-watch.{nix,py}   # snapshot watchdog
-  minecraft-lab.nix          # mclab user, dataset, netns, nft table, expiry timer, minecraft-lab@
+  minecraft-lab.nix          # mclab user, control socket, pasta netns, nft fence, expiry timer, minecraft-lab@
   minecraft-servers.nix      # minecraft@ units, restart timers, console socket, polkit rules
-  minecraft-storage.py       # + lab subcommands, rollback clears blocking clones
+  minecraft-storage.py       # + lab subcommands and lab-socket, rollback clears blocking clones
 ```
 
 Everything that makes a decision is in the pure modules, type-checked with
@@ -1049,9 +1096,10 @@ run by hand, with a checklist.
 - **Watchdog checks.** Each check against fake `zfs`/filesystem state:
   fresh, stale, missing, and the fire → resolve transitions post exactly once
   each.
-- **Lab helper.** Name validation; `destroy` refuses non-lab datasets,
-  non-clones and names with `/`, `@` or `..`; `mclab` is refused every
-  non-`lab` subcommand.
+- **Lab helper.** Name and source validation; `destroy` refuses non-lab
+  datasets, non-clones and names with `/`, `@` or `..`; the socket accepts
+  only `lab list|clone|destroy`; the scrub keeps lines; the watchdog's expiry
+  check.
 
 ### 2. Bridge integration with fakes (pytest)
 
@@ -1139,16 +1187,27 @@ Like `tests/saya-installer-vm.nix`, and extending the existing
 `minecraft-storage-vm` check where it already has ZFS pools and zrepl. These
 tests cover the OS-level boundary, which the design depends on most:
 
-- `minecraft-storage lab clone`: ownership is `mclab`, `rcon.password`
-  differs from the source, the quota and clone limit are enforced, HDD-only
-  snapshots are refused, `destroy` cleans up and refuses anything else, and
-  the expiry timer destroys an expired clone.
-- `rollback` past a lab clone's origin destroys the clone and succeeds.
-- zrepl does not snapshot or replicate `rpool/minecraft-lab`.
-- From inside the lab namespace: no route to any host address (including a
-  fake RCON listening on all interfaces), outbound NAT works (to a stand-in
-  host), DNS resolves via the bind-mounted `resolv.conf`.
-- `mclab` cannot read `/home/minecraft` or write the source dataset.
+- `minecraft-storage-vm`, through the socket as mclab:
+  - `lab clone` leaves the tree owned by mclab, with `rcon.password` changed
+    and the bot token blanked;
+  - a planted symlink to `/etc/shadow` is left alone;
+  - the source is unchanged, and mclab can't write it;
+  - the quota and the clone limit hold, and HDD-only snapshots are refused;
+  - `destroy` cleans up and refuses anything else;
+  - the socket refuses non-`lab` commands and other users;
+  - `lab expire` destroys an expired clone, and `lab boot` remounts;
+  - `rollback` past a clone's origin destroys the clone and succeeds.
+- `minecraft-lab-vm`, with a second node on a public (TEST-NET) address as
+  the internet, from a unit with the lab sandbox:
+  - the namespace reaches the internet node, but not its LAN address, and
+    not a fake RCON on any of the host's addresses;
+  - mclab outside the namespace is fenced too;
+  - `/home/minecraft` is hidden, and `resolv.conf` is the bound one;
+  - the helper answers under `NoNewPrivileges`;
+  - a lab server started through polkit is reachable on the login port;
+  - mclab can't control other units.
+- zrepl skipping `rpool/minecraft-lab` is configuration only (the
+  `filesystems` filter), not tested.
 - Inside the tsugumi-minecraft unit, `sudo minecraft-storage …` fails.
 - polkit: `minecraft` can start/stop/restart `minecraft@x` (a fake server
   script) and nothing else; `mclab` likewise only `minecraft-lab@x`.
@@ -1215,8 +1274,8 @@ the real model against the lab, and re-run after prompt changes.
 
 New pieces: `tools/agent-bridge/` (Python), `modules/agent-channel.nix`,
 `lib/agent-roster.nix`, `machines/tsugumi/minecraft-watch.{nix,py}`,
-`machines/tsugumi/minecraft-lab.nix` (user, dataset, namespace, nft table,
-expiry timer, lab server units), `machines/tsugumi/minecraft-servers.nix`, `lab` subcommands in `minecraft-storage`, agenix secrets per
+`machines/tsugumi/minecraft-lab.nix` (user, control socket, pasta namespace,
+nft fence, expiry timer, lab server units), `machines/tsugumi/minecraft-servers.nix`, `lab` subcommands in `minecraft-storage`, agenix secrets per
 identity (Discord token) plus one shared Claude token and the watchdog
 webhook, and the VM test additions. Done so far: the watchdog, roster,
 module, bridge and their tests, and the tsugumi-minecraft instance (auto mode,
@@ -1224,21 +1283,18 @@ test channel). The lab and saya bots have no token secrets yet.
 
 Changes to existing config:
 
-- zrepl `rpool` job: exclude `rpool/minecraft-lab<`.
-- `minecraft-storage rollback`: destroy blocking lab clones.
+- zrepl `rpool` job: exclude `rpool/minecraft-lab<`. *Done.*
+- `minecraft-storage rollback`: destroy blocking lab clones. *Done.*
 - `me.punch.groups.minecraft`: remove the mistaken TCP 25575 (RCON). *Done
   and deployed 2026-09-25.*
 - Servers move from tmux to `minecraft@` units (Server lifecycle). *Done
   2026-09-25 for erisia; `minecraft-shutdown.nix` removed.*
-- A sudo rule for `mclab` on `minecraft-storage`.
+- mclab reaches `minecraft-storage lab` through a socket, not a sudo rule
+  (see The lab identity). *Done.*
 - saya: the `saya-agent` user, its clone and outbox (`machines/saya/agents.nix`). *Done.*
 
 ## Open questions
 
-- **Mod credentials in lab clones:** check whether any production mod config
-  carries an outbound credential. Likely yes: erisia has a
-  `DiscordIntegration-Data` directory, and `/home/minecraft` holds a
-  `Discord-Integration.toml`, i.e. a chat bridge with a bot token.
 - **Mid-turn delivery:** the contract test showed a mid-turn `query()` is
   folded into the running turn. Whether to switch from `inbox` to direct
   delivery is open; `inbox` works either way.
@@ -1248,8 +1304,8 @@ Changes to existing config:
 - A knowledge-base (wiki) agent, seeded with the machine-config repository,
   so questions about the overall system have one home.
 - The watchdog grows into a general dashboard system.
-- Lab access without ssh: host-side DNAT from offset ports (e.g. 35565 →
-  lab 25565) that the server can't see, plus a punch group.
+- Lab access without ssh: pasta's login forward on a public address (it
+  listens on 127.0.0.1:25665 today), plus a punch group.
 - Agent-initiated rollback behind a ✅, which needs the bridge and the agent
   to run as different users.
 - Threads, if channel volume demands them.

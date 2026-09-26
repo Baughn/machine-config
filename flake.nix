@@ -190,6 +190,7 @@
       minecraft-storage-vm = import ./tests/minecraft-storage-vm.nix { inherit pkgs; };
       minecraft-servers-vm = import ./tests/minecraft-servers-vm.nix { inherit pkgs; };
       minecraft-watch-vm = import ./tests/minecraft-watch-vm.nix { inherit pkgs; };
+      minecraft-lab-vm = import ./tests/minecraft-lab-vm.nix { inherit pkgs; };
       agent-channel-vm = import ./tests/agent-channel-vm.nix {
         # The bridge's CLI, claude-code, is unfree.
         pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };

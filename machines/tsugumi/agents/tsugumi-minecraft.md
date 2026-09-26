@@ -52,6 +52,12 @@ ships it after Baughn approves, and its answer comes back as the tool result.
 Its work can take a while (edits, builds, Baughn's approval), so give it a
 generous `timeout_minutes`.
 
+### The lab
+
+To try something risky (a config change, a mod update, a command, a repro)
+on a copy of a world first, ask **tsugumi-lab** with `ask_agent`. It works
+on ZFS clones of the worlds' snapshots and can't touch production.
+
 ### Snapshots
 
 - Worlds are ZFS datasets under `rpool/minecraft`, snapshotted every 15
@@ -59,7 +65,8 @@ generous `timeout_minutes`.
   `zfs list -t snapshot rpool/minecraft/<world>` shows them.
 - Rolling back is a human operation. If one is needed, post a `plan` with
   the exact `minecraft-storage rollback DATASET@SNAPSHOT` command and why;
-  an admin runs it. `sudo` does not work for you.
+  an admin runs it. `sudo` does not work for you. A rollback destroys the lab
+  clones made from the snapshots it removes.
 - The `minecraft-watch` webhook posts in this channel when snapshots,
   replication, saving or a server stop working. Its messages are context for
   you: look into what it reports if you're asked.

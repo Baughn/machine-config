@@ -10,9 +10,13 @@ import fcntl
 import json
 import os
 from pathlib import Path
+import pwd
 import re
+import secrets
 import signal
+import socket
 import stat
+import struct
 import subprocess
 import sys
 import time
@@ -35,6 +39,24 @@ SNAPSHOT = re.compile(
 )
 
 
+LAB_ROOT = "rpool/minecraft-lab"
+LAB_MOUNTS = Path("/srv/minecraft-lab")
+LAB_GCROOTS = Path("/nix/var/nix/gcroots/minecraft-lab")
+LAB_EXPIRES = "lab:expires"
+try:  # user, maxClones, lifetime (s), quota, scrub {path: [keys]}
+    LAB = json.loads('@lab@')
+except ValueError:  # not substituted: the unit tests set it
+    LAB = {}
+LAB_NAME = re.compile(r"[a-z0-9][a-z0-9-]{0,31}\Z")
+WORLD = re.compile(r"[A-Za-z0-9_][A-Za-z0-9_.:-]*\Z")
+# What the lab user may run through minecraft-lab-control.socket.
+LAB_PUBLIC = ("lab list", "lab clone", "lab destroy")
+USAGE = ("Usage: minecraft-storage status|pools|snapshots|unmount "
+         "or snapshot|rollback|mount DATASET@SNAPSHOT "
+         "or lab list|expire|boot, lab clone WORLD|rpool/minecraft/WORLD@SNAPSHOT NAME, "
+         "lab destroy NAME")
+
+
 def command(arguments):
     """Validate the public interface before running any subprocess."""
     match arguments:
@@ -44,11 +66,30 @@ def command(arguments):
             if len(snapshot) > 255 or SNAPSHOT.fullmatch(snapshot) is None:
                 raise ValueError("Expected a snapshot beneath rpool/minecraft")
             return operation, snapshot
+        case ["lab", operation] if operation in ("list", "expire", "boot"):
+            return "lab " + operation, None
+        case ["lab", "clone", source, name]:
+            return "lab clone", (lab_source(source), lab_name(name))
+        case ["lab", "destroy", name]:
+            return "lab destroy", lab_name(name)
         case _:
-            raise ValueError(
-                "Usage: minecraft-storage status|pools|snapshots|unmount "
-                "or snapshot|rollback|mount DATASET@SNAPSHOT"
-            )
+            raise ValueError(USAGE)
+
+
+def lab_name(name):
+    if LAB_NAME.fullmatch(name) is None:
+        raise ValueError("A lab clone's NAME is 1-32 of a-z, 0-9 and -, starting with a letter or digit")
+    return name
+
+
+def lab_source(source):
+    """A world (its newest snapshot) or one of its snapshots; never a child dataset."""
+    dataset, at, snapshot = source.partition("@")
+    world = dataset.removeprefix(ROOT + "/") if at else dataset
+    if (len(source) > 255 or WORLD.fullmatch(world) is None
+            or (at and (dataset != f"{ROOT}/{world}" or SNAPSHOT.fullmatch(source) is None))):
+        raise ValueError("Expected a world (e.g. erisia) or rpool/minecraft/WORLD@SNAPSHOT")
+    return source if at else f"{ROOT}/{world}"
 
 
 def run(*argv, capture=False, check=True, **kwargs):
@@ -324,6 +365,238 @@ def mount_snapshot(name):
         clean_mount_hold()
 
 
+# --- Lab clones ------------------------------------------------------------------
+# Writable ZFS clones of SSD snapshots for the tsugumi-lab agent, which runs as
+# LAB["user"]. See docs/agent-channel-design.md, "The lab identity".
+
+
+def lab_clones():
+    """{name: {dataset, origin, expires, creation, used}} for every lab clone."""
+    if LAB_ROOT not in filesystems():
+        return {}
+    output = zfs("list", "-Hp", "-t", "filesystem", "-d", "1", "-o",
+                 f"name,origin,{LAB_EXPIRES},creation,used", LAB_ROOT)
+    clones = {}
+    for line in output.splitlines():
+        name, origin, expires, creation, used = line.split("\t")
+        if name.rpartition("/")[0] != LAB_ROOT or origin == "-" or not expires.isdigit():
+            continue
+        clones[name.rpartition("/")[2]] = dict(dataset=name, origin=origin, expires=int(expires),
+                                               creation=int(creation), used=used)
+    return clones
+
+
+def is_lab_clone(dataset):
+    parent, _, name = dataset.rpartition("/")
+    return parent == LAB_ROOT and name in lab_clones()
+
+
+def lab_list(now=None):
+    now = int(now or time.time())
+    clones = lab_clones()
+    for name, clone in sorted(clones.items()):
+        left = clone["expires"] - now
+        print("\t".join([name, clone["origin"], f"age {duration(now - clone['creation'])}",
+                         f"expires in {duration(left)}" if left > 0 else "expired",
+                         human_size(clone["used"]), str(LAB_MOUNTS / name)]))
+    print(f"{len(clones)} of {LAB['maxClones']} lab clones; each expires "
+          f"{duration(LAB['lifetime'])} after creation (no renewal).")
+
+
+def duration(seconds):
+    seconds = max(0, int(seconds))
+    if seconds >= 86400:
+        return f"{seconds // 86400} d {seconds % 86400 // 3600} h"
+    return f"{seconds // 3600} h {seconds % 3600 // 60} min"
+
+
+def lab_snapshot(source):
+    """The SSD snapshot to clone: the given one, or the world's newest."""
+    dataset = source.partition("@")[0]
+    if dataset not in filesystems():
+        raise ValueError(f"No such world on the SSD: {dataset}")
+    found = snapshots(dataset)
+    if "@" in source:
+        if not any(v["name"] == source for v in found):
+            raise ValueError(f"Not an SSD snapshot (HDD-only snapshots can't be cloned): {source}")
+        return source
+    if not found:
+        raise ValueError(f"{dataset} has no snapshots")
+    return max(found, key=lambda v: (v["creation"], v["txg"]))["name"]
+
+
+def lab_clone(source, name, now=None):
+    clones = lab_clones()
+    if name in clones:
+        raise ValueError(f"Lab clone {name} already exists")
+    if len(clones) >= LAB["maxClones"]:
+        raise ValueError(f"Already {len(clones)} lab clones; destroy one first")
+    snapshot = lab_snapshot(source)
+    dataset = f"{LAB_ROOT}/{name}"
+    expires = int(now or time.time()) + LAB["lifetime"]
+    zfs("clone", "-o", "mountpoint=legacy", "-o", f"{LAB_EXPIRES}={expires}", snapshot, dataset)
+    try:
+        # Prepare where no other user can reach it: the source's files belong to
+        # minecraft, who could otherwise swap in symlinks while root walks them.
+        staging = STATE / "lab-staging"
+        staging.mkdir(mode=0o700, exist_ok=True)
+        lab_mount(dataset, staging)
+        try:
+            prepare_clone(staging, name)
+        finally:
+            run("@umount@", "--", str(staging))
+        lab_mount(dataset, LAB_MOUNTS / name)
+    except BaseException:
+        lab_remove(name, dataset)
+        raise
+    print(f"Cloned {snapshot} to {LAB_MOUNTS / name}.")
+    lab_list(now)
+
+
+def lab_mount(dataset, target):
+    if isinstance(target, Path) and target.parent == LAB_MOUNTS:
+        fd = safe_directory(LAB_MOUNTS)
+        try:
+            try:
+                os.mkdir(target.name, 0o755, dir_fd=fd)
+            except FileExistsError:
+                pass
+        finally:
+            os.close(fd)
+    fd = safe_directory(target)
+    try:
+        mount_pinned(dict(source=dataset, target=str(target), options="rw,nosuid,nodev"), fd)
+    finally:
+        os.close(fd)
+
+
+def prepare_clone(root, name):
+    """Scrub credentials, hand the tree to the lab user and pin its server build."""
+    properties = root / "server.properties"
+    if regular(properties):
+        text = properties.read_text()
+        text = re.sub(r"(?m)^(rcon\.password=).*$",
+                      lambda m: m[1] + secrets.token_urlsafe(24), text)
+        replace_file(properties, text, 0o600)
+    for relative, keys in LAB["scrub"].items():
+        path = root / relative
+        if regular(path):
+            replace_file(path, scrub(path.read_text(errors="surrogateescape"), keys),
+                         stat.S_IMODE(path.lstat().st_mode))
+    user = pwd.getpwnam(LAB["user"])
+    for directory, dirs, files in os.walk(root):
+        for entry in [directory, *(os.path.join(directory, n) for n in dirs + files)]:
+            os.chown(entry, user.pw_uid, user.pw_gid, follow_symlinks=False)
+    LAB_GCROOTS.mkdir(mode=0o755, exist_ok=True)
+    for link in ("server", "pack"):
+        target = os.readlink(root / link) if (root / link).is_symlink() else ""
+        if target.startswith("/nix/store/"):
+            gcroot = LAB_GCROOTS / f"{name}-{link}"
+            gcroot.unlink(missing_ok=True)
+            gcroot.symlink_to(target)
+
+
+def regular(path):
+    try:
+        return stat.S_ISREG(path.lstat().st_mode)
+    except FileNotFoundError:
+        return False
+
+
+def replace_file(path, text, mode):
+    temporary = path.with_name(path.name + ".lab-tmp")
+    temporary.unlink(missing_ok=True)
+    fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, mode)
+    with os.fdopen(fd, "w", errors="surrogateescape") as stream:
+        stream.write(text)
+    os.replace(temporary, path)
+
+
+def scrub(text, keys):
+    """Blank the values of `keys` (TOML `key = "…"`, Forge cfg `S:key=…`), keeping the lines."""
+    names = "|".join(re.escape(key) for key in keys)
+    pattern = re.compile(rf'(?m)^([ \t]*(?:[A-Za-z]:)?"?(?:{names})"?[ \t]*[=:][ \t]*)(\S.*?)?[ \t]*$')
+    return pattern.sub(lambda m: m[1] + ('""' if (m[2] or "").startswith('"') else ""), text)
+
+
+def lab_destroy(name):
+    clones = lab_clones()
+    if name not in clones:
+        raise ValueError(f"No lab clone named {name}")
+    # A lab server holds the mount; stopping a unit that isn't running is fine.
+    run("@systemctl@", "stop", f"minecraft-lab@{name}.service")
+    lab_remove(name, clones[name]["dataset"])
+    print(f"Destroyed lab clone {name}.")
+
+
+def lab_remove(name, dataset):
+    for mount in sorted(mounts(), key=lambda m: -m["target"].count("/")):
+        if mount["source"] == dataset or mount["source"].startswith(dataset + "/"):
+            run("@umount@", "--", mount["target"])
+    if dataset in filesystems():
+        zfs("destroy", dataset)
+    for link in ("server", "pack"):
+        (LAB_GCROOTS / f"{name}-{link}").unlink(missing_ok=True)
+    try:
+        (LAB_MOUNTS / name).rmdir()
+    except (FileNotFoundError, OSError):
+        pass
+
+
+def lab_expire(now=None):
+    now = int(now or time.time())
+    for name, clone in sorted(lab_clones().items()):
+        if clone["expires"] <= now:
+            lab_destroy(name)
+
+
+def lab_boot():
+    """Create the lab parent dataset if needed and remount clones (legacy mounts)."""
+    if LAB_ROOT not in filesystems():
+        zfs("create", "-o", "mountpoint=none", "-o", f"quota={LAB['quota']}", LAB_ROOT)
+    mounted = {m["source"] for m in mounts()}
+    for name, clone in sorted(lab_clones().items()):
+        if clone["dataset"] not in mounted:
+            lab_mount(clone["dataset"], LAB_MOUNTS / name)
+
+
+def lab_socket():
+    """Serve one request from minecraft-lab-control.socket (Accept=yes; the connection is fd 0).
+
+    The socket is reachable only by the lab user's group. The request is one JSON
+    argv line; the reply is the output, ending in an "exit: N" line.
+    """
+    sys.stdout.reconfigure(line_buffering=True)  # subprocesses share the connection
+    connection = socket.socket(fileno=os.dup(0))
+    uid = struct.unpack("3i", connection.getsockopt(
+        socket.SOL_SOCKET, socket.SO_PEERCRED, struct.calcsize("3i")))[1]
+    code = 1
+    try:
+        if uid not in (0, pwd.getpwnam(LAB["user"]).pw_uid):
+            raise ValueError("Only the lab user may use this socket")
+        dispatch(*lab_request(sys.stdin.buffer.readline(4097)))
+        code = 0
+    except (ValueError, OSError, subprocess.CalledProcessError) as error:
+        print(f"error: {error}")
+    finally:
+        print(f"exit: {code}", flush=True)
+    return code
+
+
+def lab_request(line):
+    """Parse a socket request: one JSON argv line, limited to LAB_PUBLIC."""
+    try:
+        arguments = json.loads(line) if len(line) <= 4096 else None
+    except ValueError:
+        arguments = None
+    if not isinstance(arguments, list) or not all(isinstance(a, str) for a in arguments):
+        raise ValueError("Expected one JSON list of strings")
+    operation, value = command(arguments)
+    if operation not in LAB_PUBLIC:
+        raise ValueError(f"Not available to the lab user: {operation}")
+    return operation, value
+
+
 def send_receive(source, destination, base=None, force=True):
     args = ["@zfs@", "send"]
     if base:
@@ -405,6 +678,7 @@ def preflight(name):
     if prop(dataset, "receive_resume_token") != "-":
         raise ValueError("Live dataset has an unfinished receive; administrator recovery required")
     plan["abort_receive"] = is_replicated and prop(backup, "receive_resume_token") != "-"
+    blocking_lab = set()
     for entry in plan["remove_live"] + plan["remove_backup"]:
         if not entry["snapshot"]:
             continue
@@ -415,6 +689,10 @@ def preflight(name):
         # %recv clone disappears when we abort this dataset's receive token.
         if plan["abort_receive"]:
             clones.discard(backup + "/%recv")
+        # Lab clones are disposable: they go once everything else has passed.
+        lab = {clone for clone in clones if is_lab_clone(clone)}
+        blocking_lab.update(lab)
+        clones -= lab
         if foreign or clones:
             raise ValueError(f"Snapshot has blocking holds or clones: {entry['name']} "
                              f"(holds={sorted(foreign)}, clones={sorted(clones)})")
@@ -450,6 +728,8 @@ def preflight(name):
     plan["protect"] = list({v["name"]: v for v in plan["protect"]}.values())
     plan["phase"] = "restore"
     plan["version"] = 1
+    for clone in sorted(blocking_lab):
+        lab_destroy(clone.rpartition("/")[2])
     return plan
 
 
@@ -616,34 +896,48 @@ def interrupted(signum, frame):
     raise InterruptedError(f"Interrupted by signal {signum}")
 
 
+def dispatch(operation, value):
+    if operation in ("status", "pools"):
+        run("@zpool@", "status" if operation == "status" else "list")
+    elif operation == "snapshots":
+        list_snapshots()
+    else:
+        for signum in (signal.SIGTERM, signal.SIGHUP):
+            signal.signal(signum, interrupted)
+        with locked():
+            finish_restart()
+            if (STATE / "rollback.json").exists() and operation != "rollback":
+                raise ValueError("Rollback recovery pending; repeat the interrupted rollback command")
+            clean_mount_hold()
+            if operation == "rollback":
+                rollback(value)
+            elif operation == "snapshot":
+                zfs("snapshot", value)
+            elif operation == "mount":
+                mount_snapshot(value)
+            elif operation == "unmount":
+                run("@umount@", "--", MOUNTPOINT)
+                clean_mount_hold()
+            elif operation == "lab list":
+                lab_list()
+            elif operation == "lab clone":
+                lab_clone(*value)
+            elif operation == "lab destroy":
+                lab_destroy(value)
+            elif operation == "lab expire":
+                lab_expire()
+            elif operation == "lab boot":
+                lab_boot()
+
+
 def main():
     os.chdir("/")
+    if sys.argv[1:] == ["lab-socket"]:
+        sys.exit(lab_socket())
     try:
-        operation, name = command(sys.argv[1:])
-        if operation in ("status", "pools"):
-            run("@zpool@", "status" if operation == "status" else "list")
-        elif operation == "snapshots":
-            list_snapshots()
-        else:
-            for signum in (signal.SIGTERM, signal.SIGHUP):
-                signal.signal(signum, interrupted)
-            with locked():
-                finish_restart()
-                if (STATE / "rollback.json").exists() and operation != "rollback":
-                    raise ValueError("Rollback recovery pending; repeat the interrupted rollback command")
-                clean_mount_hold()
-                if operation == "rollback":
-                    rollback(name)
-                elif operation == "snapshot":
-                    zfs("snapshot", name)
-                elif operation == "mount":
-                    mount_snapshot(name)
-                elif operation == "unmount":
-                    run("@umount@", "--", MOUNTPOINT)
-                    clean_mount_hold()
+        dispatch(*command(sys.argv[1:]))
     except (ValueError, OSError, subprocess.CalledProcessError, KeyboardInterrupt) as error:
         sys.exit(str(error) or "Interrupted")
-
 
 if __name__ == "__main__":
     main()

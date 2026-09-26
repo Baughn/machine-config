@@ -13,7 +13,7 @@ spec.loader.exec_module(watch)
 
 NOW = 2_000_000_000
 SETTINGS = dict(snapshotAge=2700, replicaAge=7200, leaseAge=600, bootGrace=2700,
-                loopRestarts=3, loopWindow=3600, confirm=2)
+                loopRestarts=3, loopWindow=3600, confirm=2, labGrace=7200)
 FILTERS = json.dumps({"rpool<": True, "rpool/minecraft/testing<": False})
 
 
@@ -31,6 +31,7 @@ class Fixture(unittest.TestCase):
                       "minecraft-save-recovery.service": {"ActiveState": "inactive"},
                       "minecraft@erisia.service": {"ActiveState": "active", "SubState": "running",
                                                    "NRestarts": "0"}}
+        self.lab = {}
         self.posts = []
         self.fail_post = False
 
@@ -49,6 +50,7 @@ class Fixture(unittest.TestCase):
             "unit": lambda name, *props: self.units.get(name, {"ActiveState": "inactive",
                                                                "SubState": "dead"}),
             "uptime": lambda: 86400.0,
+            "lab_clones": lambda: dict(self.lab),
             "post": post,
         }.items():
             patcher = patch.object(watch, name, value)
@@ -90,6 +92,12 @@ class CheckTests(Fixture):
             results, skipped = watch.evaluate(NOW, {})
         self.assertEqual(skipped, {"snapshot", "replica"})
         self.assertNotIn("snapshot:erisia", results)
+
+    def test_lab_clone_past_expiry(self):
+        self.lab = {"fresh": NOW + 3600, "late": NOW - 3600, "stuck": NOW - 7201}
+        failing = self.failing()
+        self.assertEqual([k for k in failing if k.startswith("lab:")], ["lab:stuck"])
+        self.assertIn("expired 2 h 0 min ago", failing["lab:stuck"])
 
     def test_stuck_save_lease(self):
         lease = self.root / "leases/erisia"

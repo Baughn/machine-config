@@ -34,6 +34,7 @@ in
         loopRestarts = 3;
         loopWindow = 3600;
         confirm = 2; # consecutive failing runs before a key fires
+        labGrace = 2 * 3600; # a lab clone past its expiry (the timer runs hourly)
       };
       description = "Thresholds, in seconds where they are durations.";
     };

@@ -3,15 +3,17 @@ let
   jobs = config.services.zrepl.settings.jobs;
   sender = lib.findFirst (job: job.name == "rpool") { } jobs;
   sink = lib.findFirst (job: job.name == "backup-sink") { } jobs;
+  lab = config.me.minecraft.lab;
   storage = pkgs.writeScriptBin "minecraft-storage" (
     "#!${pkgs.python3}/bin/python3 -I\n"
     + builtins.replaceStrings
-      [ "@zfs@" "@zpool@" "@mount@" "@umount@" "@systemctl@" "@zrepl@" "@filters@" "@path@" ]
+      [ "@zfs@" "@zpool@" "@mount@" "@umount@" "@systemctl@" "@zrepl@" "@filters@" "@path@" "@lab@" ]
       [ "${config.boot.zfs.package}/bin/zfs" "${config.boot.zfs.package}/bin/zpool"
         "${pkgs.util-linux}/bin/mount" "${pkgs.util-linux}/bin/umount"
         "${pkgs.systemd}/bin/systemctl" "${config.services.zrepl.package}/bin/zrepl"
         (builtins.toJSON (sender.filesystems or { }))
-        (lib.makeBinPath [ config.boot.zfs.package pkgs.util-linux ]) ]
+        (lib.makeBinPath [ config.boot.zfs.package pkgs.util-linux ])
+        (builtins.toJSON { inherit (lab) user maxClones lifetime quota scrub; }) ]
       (builtins.readFile ./minecraft-storage.py)
   );
 in
@@ -29,6 +31,7 @@ in
     message = "minecraft-storage requires the rpool -> backup-sink local zrepl mapping";
   }];
   environment.systemPackages = [ storage ];
+  system.build.minecraft-storage = storage;
   systemd.tmpfiles.rules = [
     "d /run/minecraft-snapshot 0755 root root -"
     "d /var/lib/minecraft-storage 0700 root root -"

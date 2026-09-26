@@ -2,6 +2,7 @@
 {
   imports = [
     ./minecraft-storage.nix
+    ./minecraft-lab.nix
     ./minecraft-snapshot.nix
     ./minecraft-servers.nix
     ./minecraft-watch.nix

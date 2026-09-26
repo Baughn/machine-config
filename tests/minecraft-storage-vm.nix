@@ -1,16 +1,19 @@
 { pkgs }:
 let
-  worlds = [ "local" "incremental" "full" "manual" "blocked" "interrupted" "tokens" "prune" ];
+  worlds = [ "local" "incremental" "full" "manual" "blocked" "interrupted" "tokens" "prune" "labworld" ];
 in
 pkgs.testers.runNixOSTest {
   name = "minecraft-storage";
   nodes.machine = { pkgs, ... }: {
-    imports = [ ../machines/tsugumi/minecraft-storage.nix ];
+    imports = [ ../machines/tsugumi/minecraft-storage.nix ../machines/tsugumi/minecraft-lab.nix ];
+    me.minecraft.lab.quota = "64M";
     virtualisation.emptyDiskImages = [ 4096 4096 ];
     virtualisation.memorySize = 2048;
     boot.supportedFilesystems = [ "zfs" ];
     networking.hostId = "feedbeef";
     users.users.minecraft = { isNormalUser = true; };
+    # Only the lab datasets matter here; its network has its own test.
+    systemd.services.minecraft-lab-pasta.wantedBy = pkgs.lib.mkForce [ ];
     environment.systemPackages = [ pkgs.python3 ];
     services.zrepl = {
       enable = true;
@@ -225,6 +228,76 @@ pkgs.testers.runNixOSTest {
         storage("rollback " + live + "@old")
         machine.succeed("systemctl is-active zrepl", "systemctl stop zrepl")
         assert_restored("interrupted", "old")
+
+    with subtest("lab clones"):
+        live, backup, path = seed("labworld")
+        machine.succeed(f"printf 'motd=hi\\nrcon.password=production\\n' > {path}/server.properties",
+                        f"chmod 600 {path}/server.properties", f"mkdir -p {path}/config",
+                        f"printf '[general]\\n  botToken = \"secret\"\\n' > {path}/config/Discord-Integration.toml",
+                        f"ln -s /etc/shadow {path}/evil", f"ln -s /nix/store/00000000000000000000000000000000-server {path}/server",
+                        f"chown -R minecraft {path}", f"zfs snapshot {live}@labsrc")
+        machine.succeed("systemctl start minecraft-lab-setup")
+        assert machine.succeed("zfs get -H -o value quota rpool/minecraft-lab").strip() == "64M"
+
+        def lab(args, success=True, user="mclab"):
+            return (machine.succeed if success else machine.fail)(f"sudo -u {user} minecraft-lab {args}")
+
+        out = lab("clone labworld one")
+        assert "1 of 3 lab clones" in out, out
+        clone = "/srv/minecraft-lab/one"
+        assert machine.succeed(f"stat -c %U {clone}/data {clone}").split() == ["mclab", "mclab"]
+        assert machine.succeed(f"stat -c %U:%a {clone}/server.properties").strip() == "mclab:600"
+        properties = machine.succeed(f"cat {clone}/server.properties")
+        assert "motd=hi" in properties and "rcon.password=production" not in properties, properties
+        assert "rcon.password=" in properties
+        assert machine.succeed(f"cat {clone}/config/Discord-Integration.toml").strip().endswith('botToken = ""')
+        assert machine.succeed("stat -c %U /etc/shadow").strip() == "root"
+        machine.succeed("test -L /nix/var/nix/gcroots/minecraft-lab/one-server")
+        machine.succeed(f"findmnt -n -o OPTIONS {clone} | grep nosuid")
+        # The source is untouched, and the clone is writable only by the lab.
+        assert "production" in machine.succeed(f"cat {path}/server.properties")
+        machine.succeed(f"sudo -u mclab touch {clone}/new", f"test ! -e {path}/new")
+        machine.fail(f"sudo -u mclab touch {path}/new")
+        # The quota covers every clone together.
+        machine.fail(f"sudo -u mclab dd if=/dev/urandom of={clone}/big bs=1M count=100 status=none")
+        machine.succeed(f"rm {clone}/big")
+
+        lab("clone labworld two")
+        lab("clone " + live + "@new three")
+        lab("clone labworld four", success=False)
+        lab("clone labworld one", success=False)
+        lab("destroy three")
+        machine.succeed("test ! -e /srv/minecraft-lab/three")
+        machine.fail("zfs list rpool/minecraft-lab/three")
+        # HDD-only snapshots can't be cloned.
+        machine.succeed(f"zfs destroy {live}@old")
+        lab("clone " + live + "@old three", success=False)
+
+        # Only lab clones can be destroyed, and only the lab's commands pass the socket.
+        machine.succeed("zfs create -o mountpoint=none rpool/minecraft-lab/manual")
+        lab("destroy manual", success=False)
+        lab("destroy ../minecraft", success=False)
+        machine.succeed("zfs list rpool/minecraft-lab/manual", "zfs destroy rpool/minecraft-lab/manual")
+        request = "import json,socket,sys; c=socket.socket(socket.AF_UNIX); c.connect('/run/minecraft-lab.sock'); c.sendall(json.dumps(sys.argv[1:]).encode()+b'\\n'); c.shutdown(1); r=c.makefile().read(); print(r); sys.exit(r.rstrip().endswith('exit: 0') is False)"
+        machine.fail("sudo -u mclab python3 -c " + shlex.quote(request) + " rollback " + live + "@middle")
+        machine.fail("sudo -u mclab python3 -c " + shlex.quote(request) + " lab expire")
+        machine.succeed("sudo -u mclab python3 -c " + shlex.quote(request) + " lab list")
+        lab("list", success=False, user="minecraft")
+        machine.fail("sudo -u mclab sudo -n true")
+
+        # Expiry.
+        machine.succeed("zfs set lab:expires=1 rpool/minecraft-lab/two", "systemctl start minecraft-lab-expire")
+        machine.fail("zfs list rpool/minecraft-lab/two")
+        machine.succeed("zfs list rpool/minecraft-lab/one")
+
+        # Legacy mounts come back at boot.
+        machine.succeed(f"umount {clone}", "systemctl restart minecraft-lab-setup", f"test -e {clone}/new")
+
+    with subtest("rollback destroys lab clones pinning removed snapshots"):
+        storage("rollback " + live + "@middle")
+        machine.fail("zfs list rpool/minecraft-lab/one")
+        machine.succeed(f"test ! -e {clone}", "test ! -e /nix/var/nix/gcroots/minecraft-lab/one-server")
+        assert machine.succeed(f"cat {path}/data").strip() == "middle"
 
     with subtest("replication and pruning continue after repair"):
         live, backup, path = seed("prune")

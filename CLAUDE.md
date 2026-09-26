@@ -110,6 +110,7 @@ machines/
   tsugumi/hardware-configuration.nix
   tsugumi/<service>.nix    # caddy, minecraft, monitoring, redis, rendezvous, sonarr, ...
   tsugumi/agents.nix       # tsugumi agent-channel identities (prompts and skills in agents/)
+  tsugumi/minecraft-lab.nix # the lab: mclab user, clone socket, pasta netns + nft fence, minecraft-lab@ units
 modules/
   default.nix              # plain imports list
   agenix.nix

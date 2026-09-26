@@ -53,7 +53,7 @@ in
         inherit repo;
         logs = "/var/lib/agent-ship";
       };
-      askAgents = [ "tsugumi-minecraft" ];
+      askAgents = [ "tsugumi-minecraft" "tsugumi-lab" ];
       permissionMode = "auto";
       model = "claude-opus-5-5";
       path = [ pkgs.jujutsu pkgs.git publish ];
