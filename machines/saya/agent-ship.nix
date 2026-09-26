@@ -28,6 +28,7 @@ in
     serviceConfig = {
       Type = "oneshot";
       User = "svein";
+      SuccessExitStatus = 3; # refused (by Baughn, or not a fast-forward): not a failure
       ExecStart = "${ship}/bin/agent-ship %i";
       StateDirectory = "agent-ship";
       StateDirectoryMode = "0755"; # the agent reads <commit>.log

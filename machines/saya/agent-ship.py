@@ -36,6 +36,7 @@ USER_AGENT = "agent-ship (https://github.com/Baughn/machine-config, 1)"
 APPROVE, REFUSE = "✅", "❌"
 POLL, APPROVAL_TIMEOUT = 15, 60 * 60
 COMMIT = re.compile(r"[0-9a-f]{40}\Z")
+REFUSED = 3  # a normal outcome, not a unit failure (SuccessExitStatus)
 
 
 class Refused(Exception):
@@ -201,11 +202,14 @@ def main(argv):
         except Refused as error:
             print(f"refused: {error}", file=out, flush=True)
             post(f"🛑 `{commit[:12]}` not shipped: {error}")
-            return 1
+            return REFUSED
         except Exception as error:  # report, then fail the unit
             print(f"failed: {type(error).__name__}: {error}", file=out, flush=True)
             post(f"✗ shipping `{commit[:12]}` failed: {type(error).__name__}: {error}"[:1900])
             raise
+        finally:
+            # The log (deploy output included) also goes to the journal.
+            sys.stdout.write(tail(log_path, 100_000))
     outcome = "deployed" if status == 0 else f"pushed, but deploy exited {status}"
     post(f"{'✅' if status == 0 else '⚠️'} `{commit[:12]}` {outcome}.\n```\n{tail(log_path)[-1500:]}\n```")
     return 0 if status == 0 else 1

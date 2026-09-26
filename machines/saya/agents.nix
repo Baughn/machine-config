@@ -54,7 +54,7 @@ in
         logs = "/var/lib/agent-ship";
       };
       askAgents = [ "tsugumi-minecraft" ];
-      permissionMode = "default";
+      permissionMode = "auto";
       model = "claude-opus-5-5";
       path = [ pkgs.jujutsu pkgs.git publish ];
       environment = {
