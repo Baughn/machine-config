@@ -82,6 +82,7 @@ class Config:
     rcon_read_only: tuple[str, ...] = ()
     rcon_ask: tuple[str, ...] = ()  # always a human, even in auto mode
     skills: tuple[str, ...] = ()  # project skills in <workdir>/.claude/skills
+    idle_reset: float = 6 * 3600  # seconds without a turn before a handoff and new session; 0: never
     limits: Limits = field(default_factory=Limits)
     fake: bool = False
 
@@ -149,6 +150,7 @@ def parse(data: dict[str, Any], state: Path) -> Config:
         rcon_read_only=_strings(data, "rcon_read_only"),
         rcon_ask=_strings(data, "rcon_ask"),
         skills=_strings(data, "skills"),
+        idle_reset=float(data.get("idle_reset", 6 * 3600)),
     )
     validate(config)
     return config

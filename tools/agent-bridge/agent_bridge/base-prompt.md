@@ -28,4 +28,7 @@ server admins and other agents. The roster below says who everyone is.
 - Keep `tools/` in your working directory current: scripts you wrote, tips
   and tricks, and a short index (`tools/README.md`) of what's there and why.
   Your durable knowledge lives in files there and in `notes/`, not in the
-  conversation, which may be reset.
+  conversation. After some hours without activity the bridge asks you to
+  write `notes/handoff.md` and then starts a new session, whose first turn
+  includes that file; an admin can also reset you without warning. So write
+  things down as you go, not only at the end.

@@ -189,10 +189,31 @@ the CLI does with a `query()` sent mid-turn is undocumented; the contract tests
 record it. If it's sensible, the bridge can feed messages directly and drop
 `inbox`.
 
-**Sessions** are resumed across bridge restarts. Claude Code's auto-compaction
-handles growth. `!reset <id>` disconnects and reconnects with `resume=None`.
-Each agent keeps its durable knowledge in files in its workdir (`tools/`,
-`notes/`), not in conversation memory.
+**Sessions** are resumed across bridge restarts (`$STATE/session.json` holds
+the ID and the time of the last turn). Within a session, Claude Code's
+auto-compaction handles growth. Each agent keeps its durable knowledge in
+files in its workdir (`tools/`, `notes/`), not in conversation memory, and
+sessions are deliberately short-lived:
+
+- **Idle rollover.** After `idleReset` (default 6 h) without a turn, the bridge
+  runs one *handoff turn* in the old session: the agent updates its notes and
+  rewrites `notes/handoff.md` (work in flight, promises, what to check when).
+  During it, `post`, `inbox`, `rcon` and approvals are refused, so it can't
+  talk or wait on a human; `!stop` interrupts it. It has a 10-minute limit.
+  If it fails, the session is kept and the handoff is retried an hour later.
+  Otherwise the bridge starts a new session. Paused or tripped bridges don't
+  roll over. Why: a long-lived session carries stale alerts and superseded
+  plans through repeated compaction summaries, and after an hour idle the
+  prompt cache is cold anyway, so resuming a large context costs as much as
+  starting over.
+- **First turn of a new session** (after a rollover, `!reset`, or a failed
+  resume) is prefixed with `notes/handoff.md`, capped at 8 KiB.
+- **`!reset <id>`** starts a new session at once, with no handoff turn: it is
+  the escape hatch for a confused session. The new session still reads the
+  old `handoff.md`; delete that first if it is part of the problem.
+- **Backlog cap.** Context-only messages queued between turns are capped at
+  the newest 50; the turn prompt says how many were dropped, and the
+  `history` tool has them.
 
 **Interrupts:** `!stop <id>`, or a 🛑 reaction from an approver on any message
 from that agent, calls `client.interrupt()` and fails any pending approval

@@ -47,3 +47,32 @@ def turn_prompt(lines: list[str]) -> str:
         "channel, call the post tool; if you have nothing useful to add, end the turn without "
         "posting."
     )
+
+
+HANDOFF_FILE = "notes/handoff.md"
+
+
+def handoff_prompt(idle_hours: float, now: str) -> str:
+    return (
+        f"It is {now}. The channel has been quiet for {idle_hours:.1f} hours, so the bridge is about "
+        "to end this session and start you a new one. The new session gets only its system prompt, "
+        f"your files, and `{HANDOFF_FILE}`, which is included in its first turn. Nothing else from "
+        "this conversation carries over.\n\n"
+        "Before it ends, briefly:\n"
+        "1. Update your other notes (`notes/`, `tools/README.md`) with anything durable from this "
+        "session that isn't there yet.\n"
+        f"2. Rewrite `{HANDOFF_FILE}` from scratch, in under 60 lines: work in flight, what you "
+        "promised whom, what to check and when (absolute dates and times), decisions people made "
+        "that aren't recorded elsewhere, and pointers into your other notes. Leave out whatever "
+        "is finished and already recorded.\n\n"
+        "Don't start any new investigation. Posting, inbox, rcon and approvals are switched off "
+        "for this turn; messages that arrive meanwhile go to the new session."
+    )
+
+
+def new_session_preamble(handoff: str | None) -> str:
+    if handoff is None:
+        return (f"This is the first turn of a new session. There is no `{HANDOFF_FILE}`; your "
+                "files in `notes/` and `tools/` are what you know from before.\n\n")
+    return (f"This is the first turn of a new session. Your previous session left this in "
+            f"`{HANDOFF_FILE}`:\n\n<handoff>\n{handoff}\n</handoff>\n\n")

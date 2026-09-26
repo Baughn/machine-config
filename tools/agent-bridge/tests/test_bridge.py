@@ -49,7 +49,7 @@ async def test_a_turn_that_posts(harness: Harness) -> None:
     assert harness.chat.sent[sid].reply_to == trigger.id
     assert harness.chat.final(sid).startswith("✓ tsugumi-minecraft · working for alice")
     assert "📄 **All good**" in harness.chat.texts()
-    assert json.loads((harness.config.state / "session.json").read_text()) == {"session_id": "session-1"}
+    assert json.loads((harness.config.state / "session.json").read_text())["session_id"] == "session-1"
     assert len(list((harness.config.state / "turns").glob("*.log"))) == 1
 
 
@@ -318,7 +318,7 @@ async def test_reset_starts_a_new_session(harness: Harness) -> None:
     await run_turn(harness)
     await harness.say(OWNER, "!reset tsugumi-minecraft")
     assert harness.session.connects[-1] is None
-    assert json.loads((harness.config.state / "session.json").read_text()) == {"session_id": None}
+    assert json.loads((harness.config.state / "session.json").read_text()) == {"session_id": None, "last_turn": None}
 
 
 async def test_status_log(harness: Harness) -> None:
@@ -483,3 +483,181 @@ async def test_a_failed_status_post_does_not_kill_the_loop(harness: Harness) -> 
     # Nothing was lost: the retry carries both messages.
     assert len(harness.session.prompts) == 1
     assert "@me one" in harness.session.prompts[0] and "@me two" in harness.session.prompts[0]
+
+
+# --- session rollover ------------------------------------------------------------
+
+HOUR = 3600.0
+
+
+async def handoff_turn(h: Harness) -> None:
+    await h.say(ALICE, "@me hi", mention=True)
+    await run_turn(h)
+
+
+def write_handoff(h: Harness, text: str) -> None:
+    (h.config.workdir / "notes").mkdir(parents=True, exist_ok=True)
+    (h.config.workdir / "notes/handoff.md").write_text(text)
+
+
+async def test_idle_session_writes_a_handoff_then_starts_afresh(harness: Harness) -> None:
+    await handoff_turn(harness)
+    harness.clock.now += 5 * HOUR
+    await harness.bridge.maybe_rollover()
+    assert len(harness.session.prompts) == 1
+
+    async def handoff(session: FakeSession, prompt: str) -> TurnResult:
+        assert "handoff.md" in prompt
+        for call in (session.bridge.tool_post({"kind": "report", "headline": "bye"}),
+                     session.bridge.tool_inbox({}),
+                     session.bridge.tool_rcon({"world": "erisia", "command": "list"})):
+            with pytest.raises(ToolError, match="handoff"):
+                await call
+        denied = await session.bridge.permission("Bash", {"command": "rm -rf /"}, None)
+        assert not denied.allow
+        write_handoff(harness, "check the 06:00 restart")
+        return TurnResult("session-1")
+
+    harness.session.script = handoff
+    harness.clock.now += 1.01 * HOUR
+    await harness.say(CAROL, "chatter meanwhile")
+    await harness.bridge.maybe_rollover()
+    assert len(harness.session.prompts) == 2
+    assert harness.session.connects[-1] is None
+    assert harness.bridge.session_id is None
+    assert len(harness.chat.sent) == 1  # only the first turn's status message
+    assert len(harness.bridge.buffer) == 1  # the chatter waits for the new session
+    assert any("handoff" in path.read_text() for path in (harness.config.state / "turns").glob("*.log"))
+
+    harness.session.script = silent_script
+    await harness.say(ALICE, "@me again", mention=True)
+    await run_turn(harness)
+    first = harness.session.prompts[-1]
+    assert "new session" in first and "check the 06:00 restart" in first and "chatter meanwhile" in first
+    await harness.say(ALICE, "@me and again", mention=True)
+    await run_turn(harness)
+    assert "new session" not in harness.session.prompts[-1]
+
+
+async def silent_script(session: FakeSession, prompt: str) -> TurnResult:
+    return TurnResult("session-2")
+
+
+async def test_no_rollover_without_a_turn_or_while_paused(harness: Harness) -> None:
+    harness.clock.now += 10 * HOUR
+    await harness.bridge.maybe_rollover()
+    assert harness.session.prompts == []
+    await handoff_turn(harness)
+    harness.bridge.paused = True
+    harness.clock.now += 10 * HOUR
+    await harness.bridge.maybe_rollover()
+    assert len(harness.session.prompts) == 1
+
+
+async def test_no_rollover_when_disabled(tmp_path: Path) -> None:
+    h = Harness(tmp_path, idle_reset=0)
+    await handoff_turn(h)
+    h.clock.now += 100 * HOUR
+    await h.bridge.maybe_rollover()
+    assert len(h.session.prompts) == 1
+
+
+async def test_a_failed_handoff_keeps_the_session_and_retries_later(harness: Harness) -> None:
+    await handoff_turn(harness)
+
+    async def broken(session: FakeSession, prompt: str) -> TurnResult:
+        return TurnResult("session-1", "API overloaded")
+
+    harness.session.script = broken
+    harness.clock.now += 7 * HOUR
+    await harness.bridge.maybe_rollover()
+    assert harness.bridge.session_id == "session-1" and None not in harness.session.connects
+    await harness.bridge.maybe_rollover()
+    assert len(harness.session.prompts) == 2
+    harness.clock.now += 1.01 * HOUR
+    await harness.bridge.maybe_rollover()
+    assert len(harness.session.prompts) == 3
+
+
+async def test_stop_interrupts_the_handoff(harness: Harness) -> None:
+    await handoff_turn(harness)
+
+    async def slow(session: FakeSession, prompt: str) -> TurnResult:
+        await session.interrupted.wait()
+        return TurnResult("session-1", interrupted=True)
+
+    harness.session.script = slow
+    harness.clock.now += 7 * HOUR
+    task = asyncio.create_task(harness.bridge.maybe_rollover())
+    await settle()
+    await harness.say(OWNER, "!stop tsugumi-minecraft")
+    await task
+    assert harness.bridge.session_id == "session-1"
+
+
+async def test_restart_counts_idle_time_from_the_saved_turn(tmp_path: Path) -> None:
+    first = Harness(tmp_path)
+    await handoff_turn(first)
+    second = Harness(tmp_path)
+    second.clock.now = first.clock.now + 7 * HOUR
+    await second.bridge.start()
+    assert second.bridge.rollover_due()
+    # A state file from before last_turn existed: idle time counts from the restart.
+    (tmp_path / "state/session.json").write_text(json.dumps({"session_id": "session-1"}))
+    third = Harness(tmp_path)
+    third.clock.now = first.clock.now + 7 * HOUR
+    await third.bridge.start()
+    assert not third.bridge.rollover_due()
+    assert "new session" not in (await _one(third))
+
+
+async def _one(h: Harness) -> str:
+    await h.say(ALICE, "@me hi", mention=True)
+    await run_turn(h)
+    return h.session.prompts[-1]
+
+
+async def test_a_fresh_start_includes_the_handoff(harness: Harness) -> None:
+    write_handoff(harness, "x" * 10_000)
+    prompt = await _one(harness)
+    assert "truncated at 8192 bytes" in prompt
+
+
+async def test_context_backlog_is_capped(harness: Harness) -> None:
+    for i in range(60):
+        await harness.say(CAROL, f"chatter {i}")
+    await harness.say(ALICE, "@me catch up", mention=True)
+    assert "61 unread" in (await _status(harness))
+    await run_turn(harness)
+    prompt = harness.session.prompts[-1]
+    assert "(10 earlier context messages omitted" in prompt
+    assert "chatter 9:" not in prompt and "chatter 10" in prompt and "catch up" in prompt
+
+
+async def _status(h: Harness) -> str:
+    await h.say(ALICE, "!status")
+    return h.chat.texts()[-1]
+
+
+async def test_a_waiting_trigger_is_served_before_a_rollover(harness: Harness) -> None:
+    await handoff_turn(harness)
+    harness.clock.now += 7 * HOUR
+    await harness.say(ALICE, "@me back again", mention=True)
+    assert not harness.bridge.rollover_due()
+    await run_turn(harness)
+    assert harness.bridge.session_id == "session-1"
+
+
+async def test_a_session_lost_mid_turn_is_not_rolled_over_before_it_is_used(harness: Harness) -> None:
+    await handoff_turn(harness)
+
+    async def crash(session: FakeSession, prompt: str) -> TurnResult:
+        session.fail_resume = True
+        raise ConnectionError("CLI exited")
+
+    harness.session.script = crash
+    await harness.say(ALICE, "@me go", mention=True)
+    await run_turn(harness)
+    assert harness.bridge.session_id is None and harness.bridge.fresh
+    harness.clock.now += 7 * HOUR
+    assert not harness.bridge.rollover_due()

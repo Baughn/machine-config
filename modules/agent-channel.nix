@@ -50,6 +50,14 @@ let
       promptFile = lib.mkOption { type = lib.types.nullOr lib.types.path; default = null; description = "Identity prompt, appended to the base prompt."; };
       model = lib.mkOption { type = lib.types.nullOr lib.types.str; default = null; };
       approvalTimeout = lib.mkOption { type = lib.types.int; default = 900; };
+      idleReset = lib.mkOption {
+        type = lib.types.int;
+        default = 6 * 3600;
+        description = ''
+          Seconds without a turn after which the agent writes notes/handoff.md and
+          the bridge starts a new session (whose first turn includes that file). 0 disables.
+        '';
+      };
       limits = lib.mkOption { type = lib.types.attrsOf lib.types.int; default = { }; };
       extraDirs = lib.mkOption {
         type = lib.types.listOf lib.types.str;
@@ -126,6 +134,7 @@ let
     prompt_file = if i.promptFile == null then null else "${i.promptFile}";
     cli_path = lib.getExe pkgs.claude-code;
     approval_timeout = i.approvalTimeout;
+    idle_reset = i.idleReset;
     extra_dirs = i.extraDirs;
     rcon_root = i.rcon.root;
     rcon_read_only = i.rcon.readOnly;

@@ -18,7 +18,7 @@ from .config import Config
 from .limits import Breaker, Streak
 from .policy import (Attachment, Author, Command, Incoming, Kind, Route, command_applies,
                      may_approve, parse_command, route)
-from .prompt import turn_prompt
+from .prompt import HANDOFF_FILE, handoff_prompt, new_session_preamble, turn_prompt
 from .render import (File, Outgoing, PostError, Roots, Status, approval_request, context_line,
                      question_text, render_post, summarize_tool)
 from .session import AgentSession, Permission, ToolError, TurnResult
@@ -27,6 +27,11 @@ log = logging.getLogger(__name__)
 
 STATUS_INTERVAL = 3.0
 KEEP_TURN_LOGS = 50
+BUFFER_CONTEXT = 50  # context-only messages kept for the next turn; history has the rest
+IDLE_CHECK = 60.0
+HANDOFF_TIMEOUT = 600.0
+HANDOFF_RETRY = 3600.0
+HANDOFF_LIMIT = 8192
 
 
 class Chat(Protocol):
@@ -66,6 +71,11 @@ class Bridge:
         self.lock = asyncio.Lock()
         self.stopping = False
         self.turns = 0
+        self.omitted = 0  # context messages dropped from the buffer since the last turn
+        self.last_turn: float | None = None  # end of this session's latest turn; None: none yet
+        self.fresh = True  # the next turn is the session's first
+        self.handoff = False
+        self.retry_at = 0.0
 
     # --- lifecycle ---------------------------------------------------------
 
@@ -75,37 +85,51 @@ class Bridge:
 
     async def start(self) -> None:
         with contextlib.suppress(FileNotFoundError, ValueError, KeyError):
-            self.session_id = json.loads(self.session_file.read_text())["session_id"]
-        try:
-            await self.session.connect(self.session_id)
-        except Exception:
-            log.exception("resuming session %s failed; starting fresh", self.session_id)
-            await self.session.connect(None)
-            self.save_session(None)
+            saved = json.loads(self.session_file.read_text())
+            self.session_id = saved["session_id"]
+            if self.session_id is not None:
+                # Older state files have no last_turn: count the idle time from now.
+                self.last_turn = float(saved.get("last_turn") or self.clock())
+                self.fresh = False
+        await self.connect()
         history = await self.chat.history(50)
         self.streak = Streak.from_history([m.author.kind for m in history])
 
     async def reconnect(self) -> None:
-        """After the CLI died: a new client on the same session, or a fresh one."""
+        """At start, or after the CLI died: a client on the same session, or a fresh one."""
         with contextlib.suppress(Exception):
             await self.session.disconnect()
+        await self.connect()
+
+    async def connect(self) -> None:
         try:
             await self.session.connect(self.session_id)
         except Exception:
             log.exception("resuming session %s failed; starting fresh", self.session_id)
-            await self.session.connect(None)
-            self.save_session(None)
+            await self.new_session()
+
+    async def new_session(self) -> None:
+        with contextlib.suppress(Exception):
+            await self.session.disconnect()
+        self.last_turn, self.fresh, self.retry_at = None, True, 0.0
+        self.save_session(None)
+        await self.session.connect(None)
 
     def save_session(self, session_id: str | None) -> None:
         self.session_id = session_id
         temporary = self.session_file.with_suffix(".tmp")
-        temporary.write_text(json.dumps({"session_id": session_id}))
+        temporary.write_text(json.dumps({"session_id": session_id, "last_turn": self.last_turn}))
         temporary.replace(self.session_file)
 
     async def run(self) -> None:
         while True:
-            await self.wake.wait()
+            with contextlib.suppress(TimeoutError):
+                await asyncio.wait_for(self.wake.wait(), IDLE_CHECK)
             self.wake.clear()
+            try:
+                await self.maybe_rollover()
+            except Exception:
+                log.exception("session rollover failed")
             while not self.paused and not self.breaker.tripped and any(e.trigger for e in self.buffer):
                 try:
                     await self.one_turn()
@@ -135,8 +159,27 @@ class Bridge:
         paths = await self.fetch_attachments(message) if message.author.kind is Kind.HUMAN else []
         trigger = decision.route is Route.TRIGGER
         self.buffer.append(Entry(message, trigger, context_line(message, trigger, paths)))
+        self.trim()
         if trigger:
             self.wake.set()
+
+    def trim(self) -> None:
+        """Keep every trigger, but only the newest BUFFER_CONTEXT context-only messages."""
+        context = [e for e in self.buffer if not e.trigger]
+        excess = len(context) - BUFFER_CONTEXT
+        if excess > 0:
+            dropped = {id(e) for e in context[:excess]}
+            self.buffer = [e for e in self.buffer if id(e) not in dropped]
+            self.omitted += excess
+
+    def take(self) -> tuple[list[Entry], list[str]]:
+        """Empty the buffer: its entries, and the lines the agent sees for them."""
+        entries, omitted = self.buffer, self.omitted
+        self.buffer, self.omitted = [], 0
+        lines = [e.line for e in entries]
+        if omitted:
+            lines.insert(0, f"({omitted} earlier context messages omitted; the history tool has them)")
+        return entries, lines
 
     async def fetch_attachments(self, message: Incoming) -> list[str]:
         paths = []
@@ -202,9 +245,7 @@ class Bridge:
             case "reset":
                 await self.stop(f"reset by {who}")
                 async with self.lock:
-                    await self.session.disconnect()
-                    self.save_session(None)
-                    await self.session.connect(None)
+                    await self.new_session()
                 await self.say(f"🔄 {self.config.id}: new session, started by {who}.", message.id)
             case "status":
                 if command.argument == "log":
@@ -220,10 +261,18 @@ class Bridge:
             state += ", paused"
         if self.breaker.tripped:
             state += f", circuit breaker tripped ({self.breaker.tripped})"
+        if self.handoff:
+            state += " (writing its handoff notes)"
         queued = sum(1 for e in self.buffer if e.trigger)
-        return (f"ℹ {self.config.id}: {state}; {queued} queued, {len(self.buffer)} unread, "
+        if self.last_turn is None:
+            session = "new session"
+        else:
+            session = f"session idle {int((self.clock() - self.last_turn) // 60)} min"
+            if self.config.idle_reset > 0:
+                session += f" (rolls over after {self.config.idle_reset / 3600:g} h)"
+        return (f"ℹ {self.config.id}: {state}; {queued} queued, {len(self.buffer) + self.omitted} unread, "
                 f"{len(self.pending)} pending approvals, {self.turns} turns since start, "
-                f"agent streak {self.streak.count}")
+                f"agent streak {self.streak.count}, {session}")
 
     async def say(self, text: str, reply_to: str | None = None) -> None:
         await self.chat.send(Outgoing(text, reply_to=reply_to))
@@ -250,7 +299,8 @@ class Bridge:
             if not self.breaker.turn(now):
                 await self.trip()
                 return
-            entries, self.buffer = self.buffer, []
+            omitted = self.omitted
+            entries, lines = self.take()
             trigger = [e for e in entries if e.trigger][-1].message
             status = Status(self.config.id, trigger.author.name, now)
             self.status, self.stopping = status, False
@@ -258,21 +308,26 @@ class Bridge:
                 self.status_id = await self.chat.send(Outgoing(status.render(now), reply_to=trigger.id))
             except Exception:
                 self.status, self.buffer = None, entries + self.buffer
+                self.omitted += omitted
                 raise
+            prompt = turn_prompt(lines)
+            if self.fresh:
+                prompt = new_session_preamble(self.read_handoff()) + prompt
+                self.fresh = False
             ticker = asyncio.create_task(self.tick())
             result: TurnResult | None = None
             try:
-                result = await self.session.turn(turn_prompt([e.line for e in entries]))
+                result = await self.session.turn(prompt)
             except Exception as error:
                 log.exception("turn failed")
-                result = TurnResult(self.session_id, f"{type(error).__name__}: {error}")
+                result = TurnResult(None, f"{type(error).__name__}: {error}")
                 await self.reconnect()
             finally:
                 ticker.cancel()
                 for pending in list(self.pending.values()):
                     pending.cancel("the turn ended")
-            if result.session_id and result.session_id != self.session_id:
-                self.save_session(result.session_id)
+            self.last_turn = self.clock()
+            self.save_session(result.session_id or self.session_id)
             if result.interrupted or self.stopping:
                 final = "stopped"
             elif result.error:
@@ -286,6 +341,58 @@ class Bridge:
             self.status = None
             with contextlib.suppress(Exception):
                 await self.chat.edit(self.status_id, status.render(self.clock(), final))
+
+    def read_handoff(self) -> str | None:
+        try:
+            data = (self.config.workdir / HANDOFF_FILE).read_bytes()
+        except OSError:
+            return None
+        text = data[:HANDOFF_LIMIT].decode("utf-8", "replace")
+        if len(data) > HANDOFF_LIMIT:
+            text += f"\n… (truncated at {HANDOFF_LIMIT} bytes; read the file for the rest)"
+        return text
+
+    def rollover_due(self) -> bool:
+        if self.config.idle_reset <= 0 or self.last_turn is None or self.fresh:
+            return False
+        if self.paused or self.breaker.tripped or self.status is not None:
+            return False
+        if any(e.trigger for e in self.buffer):
+            return False  # serve a waiting human now; roll over at the next quiet spell
+        return self.clock() >= max(self.last_turn + self.config.idle_reset, self.retry_at)
+
+    async def maybe_rollover(self) -> None:
+        """After idle_reset seconds without a turn: a handoff turn, then a new session."""
+        if not self.rollover_due():
+            return
+        async with self.lock:
+            if self.rollover_due():
+                await self.rollover()
+
+    async def rollover(self) -> None:
+        assert self.last_turn is not None
+        now = self.clock()
+        idle = (now - self.last_turn) / 3600
+        log.info("session %s idle for %.1f h; writing handoff notes", self.session_id, idle)
+        status = Status(self.config.id, "the handoff", now)
+        self.status, self.status_id, self.stopping, self.handoff = status, None, False, True
+        stamp = time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime(now))
+        try:
+            result = await asyncio.wait_for(self.session.turn(handoff_prompt(idle, stamp)), HANDOFF_TIMEOUT)
+        except Exception as error:
+            log.exception("handoff turn failed")
+            result = TurnResult(self.session_id, f"{type(error).__name__}: {error}")
+            await self.reconnect()
+        finally:
+            self.status, self.handoff = None, False
+        failed = result.error or result.interrupted or self.stopping
+        self.write_turn_log(status, "handoff failed" if failed else "handoff", result)
+        if failed:
+            log.warning("keeping session %s; retrying the handoff later", self.session_id)
+            self.retry_at = self.clock() + HANDOFF_RETRY
+            return
+        await self.new_session()
+        log.info("started a new session after the handoff")
 
     async def tick(self) -> None:
         shown = ""
@@ -325,6 +432,9 @@ class Bridge:
         self.note(f"← {name}{' (failed)' if failed else ''}")
 
     async def permission(self, name: str, tool_input: dict[str, Any], reason: str | None) -> Permission:
+        if self.handoff:
+            self.note(f"{name}: refused during the handoff")
+            return Permission(False, "No approvals during the handoff: write your notes and end the turn.")
         loop = asyncio.get_running_loop()
         reply_to = self.status_id
         if name == "AskUserQuestion":
@@ -370,9 +480,14 @@ class Bridge:
         return result
 
     def unread(self) -> str:
-        return f"\nunread: {len(self.buffer)}"
+        return f"\nunread: {len(self.buffer) + self.omitted}"
+
+    def refuse_during_handoff(self) -> None:
+        if self.handoff:
+            raise ToolError("Switched off during the handoff: write your notes and end the turn.")
 
     async def tool_post(self, args: dict[str, Any]) -> str:
+        self.refuse_during_handoff()
         roots = Roots((self.config.workdir, self.config.state), self.config.attachment_limit)
         try:
             outgoing = render_post(args, owner_id=self.config.roster.owner.discord_id,
@@ -399,6 +514,7 @@ class Bridge:
         return "\n".join(lines) + self.unread()
 
     async def tool_rcon(self, args: dict[str, Any]) -> str:
+        self.refuse_during_handoff()
         root = self.config.rcon_root
         if root is None:
             raise ToolError("RCON is not configured for this identity.")
@@ -434,6 +550,6 @@ class Bridge:
         return (reply or "(no reply)") + self.unread()
 
     async def tool_inbox(self, args: dict[str, Any]) -> str:
-        entries, self.buffer = self.buffer, []
-        lines = [e.line for e in entries]
+        self.refuse_during_handoff()
+        _, lines = self.take()
         return ("\n".join(lines) if lines else "(no new messages)") + self.unread()
