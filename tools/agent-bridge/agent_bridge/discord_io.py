@@ -17,6 +17,18 @@ from .config import Config
 from .policy import Attachment, Author, Incoming, classify
 from .render import Outgoing
 
+
+def mentioned_users(users: Any, roles: Any) -> frozenset[str]:
+    """Mentioned user IDs. Mentioning a bot's own managed role (Discord creates one
+    per bot, named like it, and autocomplete often offers it) counts as mentioning
+    the bot."""
+    ids = {str(u.id) for u in users}
+    for role in roles:
+        bot_id = getattr(getattr(role, "tags", None), "bot_id", None)
+        if bot_id is not None:
+            ids.add(str(bot_id))
+    return frozenset(ids)
+
 if TYPE_CHECKING:
     from .bridge import Bridge
 
@@ -90,7 +102,7 @@ class DiscordChat:
             thread_id=str(channel.id) if thread else None,
             author=self.author(message.author, message.webhook_id),
             content=message.content,
-            mentions=frozenset(str(u.id) for u in message.mentions),
+            mentions=mentioned_users(message.mentions, message.role_mentions),
             role_mentions=frozenset(str(r.id) for r in message.role_mentions),
             reply_to_author=reply_to_author,
             attachments=tuple(Attachment(a.filename, a.url, a.size) for a in message.attachments),
