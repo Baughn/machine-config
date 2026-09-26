@@ -74,7 +74,7 @@ across machines.
 - **VCS sync:** `./push.sh` (squash into the running "Bumps" commit, set master, git push;
   pings Discord on minecraft/ssh-key changes), `./pull.sh` (fetch + rebase onto trunk).
 - **kaho (local):** `./deploy-kaho.sh` on kaho itself (wraps `sudo darwin-rebuild switch --flake .#kaho`).
-- **Tests:** `nix flake check` builds the machines and runs the saya-installer VM test
+- **Tests:** `nix flake check` builds the machines and runs the VM tests in `tests/`
   (x86_64-linux only; on kaho, verify with `nix build .#darwinConfigurations.kaho.system`).
 
 ## KWin debugging (temporary)
@@ -102,12 +102,14 @@ machines/
   kaho/terminfo/           # xterm-ghostty terminfo, built at HM activation
   saya/default.nix
   saya/hardware-configuration.nix
-  saya/<feature>.nix       # ganbot, game-watcher, steam, restic
+  saya/<feature>.nix       # ganbot, game-watcher, steam, restic, stationeers, nix-deploy
   saya/agents.nix          # the saya agent-channel identity (user in agent-user.nix, prompt in agents/)
+  saya/agent-ship.{nix,py} # agent-ship@<commit>: push + deploy a saya-agent commit after Baughn's approval
   saya-installer/default.nix
   tsugumi/default.nix
   tsugumi/hardware-configuration.nix
   tsugumi/<service>.nix    # caddy, minecraft, monitoring, redis, rendezvous, sonarr, ...
+  tsugumi/agents.nix       # tsugumi agent-channel identities (prompts and skills in agents/)
 modules/
   default.nix              # plain imports list
   agenix.nix
@@ -123,6 +125,8 @@ modules/
   mdns.nix
   nix.nix
   nix-build-balancer.nix
+  nix-deploy.nix           # me.deploy.rebootPatterns: when deploy recommends boot over switch
+  punch.nix                # Discord-authorized game access (see docs/punch-design.md)
   remote-builds.nix
   security.nix
   shell.nix
@@ -135,11 +139,13 @@ lib/
   ssh-keys.nix             # shared authorized-key lists for explicit users
   agent-roster.nix         # Discord IDs of the agent channel's humans and agents
   mk-crane-package.nix     # crane wrapper behind pkgs.mkCranePackage
+  stationeers-access.nix   # punch access spec for the Stationeers server on saya
 tools/                     # Rust crates: aniwatch, game-watcher, irc-tool,
-                           # magic-reboot, nix-build-balancer, rolebot, victron-monitor;
+                           # magic-reboot, nix-build-balancer, nix-deploy, rolebot, victron-monitor;
                            # plus agent-bridge (Python)
 tests/
-  saya-installer-vm.nix
+  *-vm.nix                 # NixOS VM tests (agent-channel, minecraft-*, punch, saya-installer, ...)
+  test_*.py                # unit tests for the Python helper scripts
 secrets/
   secrets.nix
   *.age
