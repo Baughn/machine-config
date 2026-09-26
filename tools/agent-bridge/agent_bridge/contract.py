@@ -21,7 +21,7 @@ from claude_agent_sdk import (AssistantMessage, ClaudeAgentOptions, ClaudeSDKCli
                               PermissionResultAllow, ResultMessage, TextBlock, ToolUseBlock,
                               create_sdk_mcp_server, tool)
 
-from .session import INTERRUPTED
+from .session import INTERRUPTED, MCP_TOOL_TIMEOUT_MS
 
 
 @dataclass
@@ -326,6 +326,27 @@ class Contract:
                     f"ran={record.commands('finished')}")
 
 
+    async def slow_tool(self) -> None:
+        """ask_agent holds an in-process MCP tool call open while another agent works."""
+        @tool("wait", "Waits for a colleague and returns their answer.", {"type": "object", "properties": {}})
+        async def wait(args: dict[str, Any]) -> dict[str, Any]:
+            await asyncio.sleep(6 * 60)
+            return {"content": [{"type": "text", "text": "the answer is marmalade"}]}
+
+        record = Record()
+        options = self.options(record, mcp_servers={"t": create_sdk_mcp_server("t", tools=[wait])},
+                               allowed_tools=["mcp__t__wait"],
+                               env={"CLAUDE_CODE_OAUTH_TOKEN": self.token,
+                                    "CLAUDE_CONFIG_DIR": str(self.root / "config"),
+                                    "MCP_TOOL_TIMEOUT": str(MCP_TOOL_TIMEOUT_MS)})
+        async with ClaudeSDKClient(options) as client:
+            await asyncio.wait_for(self.ask(client, record, "Call the wait tool and reply with the word it returns."),
+                                   15 * 60)
+        ok = "marmalade" in record.text.lower()
+        self.report("PASS" if ok else "FAIL", "an MCP tool call that takes 6 minutes still returns",
+                    f"text={record.text[-200:]!r}")
+
+
 async def main() -> int:
     token = os.environ.get("CLAUDE_CODE_OAUTH_TOKEN")
     if not token and os.environ.get("CREDENTIALS_DIRECTORY"):
@@ -343,7 +364,7 @@ async def main() -> int:
                   contract.extra_dirs, contract.auto_mcp, contract.skills, contract.user_bypass_ignored, contract.hot_reload,
                   contract.mid_turn]
         if os.environ.get("CONTRACT_LONG"):
-            checks.append(contract.long_wait)
+            checks += [contract.slow_tool, contract.long_wait]
         for check in checks:
             if only and check.__name__ not in only:
                 continue

@@ -43,6 +43,15 @@ destructive or visible to players, say what and why and ask with
   useful, never raw profiles or logs (they carry player names and
   coordinates).
 
+### Changes to the NixOS config
+
+The units, the `minecraft-*` scripts, the firewall and your own permissions
+live in the machine config, which you can't change. Ask the **saya** agent
+with `ask_agent`: what to change, why, and who asked. It makes the change and
+ships it after Baughn approves, and its answer comes back as the tool result.
+Its work can take a while (edits, builds, Baughn's approval), so give it a
+generous `timeout_minutes`.
+
 ### Snapshots
 
 - Worlds are ZFS datasets under `rpool/minecraft`, snapshotted every 15

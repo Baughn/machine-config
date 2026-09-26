@@ -9,6 +9,7 @@ from dataclasses import dataclass
 import json
 import logging
 from pathlib import Path
+import re
 import time
 from typing import Any, Protocol
 
@@ -20,7 +21,7 @@ from .policy import (Attachment, Author, Command, Incoming, Kind, Route, command
                      may_approve, parse_command, route)
 from .prompt import HANDOFF_FILE, handoff_prompt, new_session_preamble, turn_prompt
 from .render import (File, Outgoing, PostError, Roots, Status, approval_request, context_line,
-                     question_text, render_post, summarize_tool)
+                     is_status, question_text, render_post, summarize_tool)
 from .session import AgentSession, Permission, ToolError, TurnResult
 
 log = logging.getLogger(__name__)
@@ -32,6 +33,19 @@ IDLE_CHECK = 60.0
 HANDOFF_TIMEOUT = 600.0
 HANDOFF_RETRY = 3600.0
 HANDOFF_LIMIT = 8192
+ASK_TIMEOUT = 30.0  # minutes
+ASK_TIMEOUT_MAX = 60.0
+SHIP_TIMEOUT = 65 * 60.0
+SHIP_POLL = 10.0
+BOOKMARK = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}\Z")
+
+
+async def run_command(*argv: str) -> tuple[int, str]:
+    """Run a program; its exit status and combined output."""
+    process = await asyncio.create_subprocess_exec(*argv, stdout=asyncio.subprocess.PIPE,
+                                                   stderr=asyncio.subprocess.STDOUT)
+    output, _ = await process.communicate()
+    return process.returncode or 0, output.decode("utf-8", "replace")
 
 
 class Chat(Protocol):
@@ -41,6 +55,14 @@ class Chat(Protocol):
     async def ask(self, message: Outgoing, questions: list[dict[str, Any]]) -> str: ...
     async def history(self, limit: int) -> list[Incoming]: ...
     async def download(self, attachment: Attachment, path: Path) -> None: ...
+
+
+@dataclass
+class Waiter:
+    """An ask_agent call waiting for that agent's reply to the question."""
+
+    agent_id: str
+    future: asyncio.Future[Incoming]
 
 
 @dataclass
@@ -63,6 +85,9 @@ class Bridge:
         self.breaker = Breaker(config.limits)
         self.streak = Streak()
         self.pending: dict[str, Pending] = {}
+        self.waiters: dict[str, Waiter] = {}  # by question message id
+        self.asked_by: set[str] = set()  # agents whose questions started the current turn
+        self.run_command = run_command
         self.status: Status | None = None
         self.status_id: str | None = None
         self.last_log: list[str] = []
@@ -149,9 +174,18 @@ class Bridge:
             if may_approve(self.config, message.author) and command_applies(self.config, command):
                 await self.command(command, message)
             return
+        if message.author.kind is Kind.AGENT and is_status(message.content):
+            return  # another bridge's status message: it replies to its trigger, but is noise
         decision = route(self.config, message, bot_streak=self.streak.count,
                          paused=self.paused or self.breaker.tripped is not None)
         self.streak.observe(message.author.kind)
+        waiter = self.waiters.get(message.reply_to_id or "")
+        if (waiter is not None and message.author.id == waiter.agent_id
+                and not is_status(message.content) and not waiter.future.done()):
+            log.info("message %s from %s answers question %s", message.id, message.author.label,
+                     message.reply_to_id)
+            waiter.future.set_result(message)
+            return
         log.info("message %s from %s: %s (%s)", message.id, message.author.label,
                  decision.route.value, decision.reason)
         if decision.route is Route.IGNORE:
@@ -280,6 +314,9 @@ class Bridge:
     async def stop(self, reason: str) -> None:
         for pending in list(self.pending.values()):
             pending.cancel(reason)
+        for waiter in list(self.waiters.values()):
+            if not waiter.future.done():
+                waiter.future.set_exception(Cancelled(reason))
         if self.status is not None:
             self.stopping = True
             await self.session.interrupt()
@@ -302,6 +339,8 @@ class Bridge:
             omitted = self.omitted
             entries, lines = self.take()
             trigger = [e for e in entries if e.trigger][-1].message
+            self.asked_by = {e.message.author.id for e in entries
+                             if e.trigger and e.message.author.kind is Kind.AGENT}
             status = Status(self.config.id, trigger.author.name, now)
             self.status, self.stopping = status, False
             try:
@@ -486,14 +525,16 @@ class Bridge:
         if self.handoff:
             raise ToolError("Switched off during the handoff: write your notes and end the turn.")
 
-    async def tool_post(self, args: dict[str, Any]) -> str:
-        self.refuse_during_handoff()
+    def render(self, args: dict[str, Any]) -> Outgoing:
         roots = Roots((self.config.workdir, self.config.state), self.config.attachment_limit)
         try:
-            outgoing = render_post(args, owner_id=self.config.roster.owner.discord_id,
-                                   roots=roots, tokens=self.tokens)
+            return render_post(args, owner_id=self.config.roster.owner.discord_id,
+                               roots=roots, tokens=self.tokens)
         except PostError as error:
             raise ToolError(f"{error}{self.unread()}") from error
+
+    async def send_post(self, outgoing: Outgoing) -> str:
+        """Send an agent-authored message, counted by the circuit breaker."""
         already = self.breaker.tripped is not None
         if not self.breaker.post(self.clock()):
             if not already:
@@ -502,8 +543,49 @@ class Bridge:
         message_id = await self.chat.send(outgoing)
         if self.status is not None:
             self.status.posts += 1
+        return message_id
+
+    async def tool_post(self, args: dict[str, Any]) -> str:
+        self.refuse_during_handoff()
+        message_id = await self.send_post(self.render(args))
         self.note(f"posted {args.get('kind')}: {args.get('headline')}")
         return f"posted as message {message_id}{self.unread()}"
+
+    async def tool_ask_agent(self, args: dict[str, Any]) -> str:
+        self.refuse_during_handoff()
+        name = str(args.get("agent", ""))
+        agent = next((a for a in self.config.roster.agents if a.name == name), None)
+        if agent is None or name not in self.config.ask_agents:
+            raise ToolError(f"you can ask: {', '.join(self.config.ask_agents) or 'nobody'}")
+        if agent.discord_id in self.asked_by:
+            raise ToolError(f"{name} asked you something this turn and is waiting for your reply, so it "
+                            "can't answer you now. Put your questions in that reply instead.")
+        minutes = min(max(float(args.get("timeout_minutes") or ASK_TIMEOUT), 0.0), ASK_TIMEOUT_MAX)
+        question = self.render({**args, "kind": "question", "reply_to": None})
+        question = Outgoing(f"<@{agent.discord_id}> {question.content}", question.files,
+                            mention_users=(agent.discord_id,))
+        message_id = await self.send_post(question)
+        self.note(f"asked {name}: {args.get('headline')}")
+        waiter = Waiter(agent.discord_id, asyncio.get_running_loop().create_future())
+        self.waiters[message_id] = waiter
+        if self.status is not None:
+            self.status.last = f"waiting for {name}"
+        try:
+            answer = await asyncio.wait_for(waiter.future, minutes * 60)
+        except TimeoutError:
+            self.note(f"{name}: no answer within {minutes:g} min")
+            return (f"No answer from {name} within {minutes:g} minutes (question {message_id}). "
+                    f"A later reply will arrive as channel context.{self.unread()}")
+        except Cancelled as error:
+            raise ToolError(f"Stopped waiting: {error}.{self.unread()}") from error
+        finally:
+            self.waiters.pop(message_id, None)
+        self.note(f"{name} answered")
+        paths = await self.fetch_attachments(answer)
+        text = f"{name} answered (message {answer.id}):\n{answer.content}"
+        if paths:
+            text += "\nattachments: " + ", ".join(paths)
+        return text + self.unread()
 
     async def tool_history(self, args: dict[str, Any]) -> str:
         limit = max(1, min(int(args.get("limit") or 20), 100))
@@ -548,6 +630,51 @@ class Bridge:
                             f"{self.unread()}") from error
         self.note(f"rcon {world}: {text}")
         return (reply or "(no reply)") + self.unread()
+
+    async def tool_ship(self, args: dict[str, Any]) -> str:
+        self.refuse_during_handoff()
+        ship = self.config.ship
+        if ship is None:
+            raise ToolError("Shipping is not configured for this identity.")
+        prefix = f"{self.config.id}/"
+        bookmark = str(args.get("bookmark", ""))
+        if not bookmark.startswith(prefix) or BOOKMARK.fullmatch(bookmark.removeprefix(prefix)) is None:
+            raise ToolError(f"bookmark must be {prefix}<topic>")
+        status, output = await self.run_command("git", "-C", str(ship.repo), "rev-parse", "--verify",
+                                                f"refs/heads/{bookmark}^{{commit}}")
+        commit = output.strip()
+        if status != 0 or re.fullmatch(r"[0-9a-f]{40}", commit) is None:
+            raise ToolError(f"no bookmark {bookmark} in {ship.repo}: {output.strip()}{self.unread()}")
+        status, output = await self.run_command("agent-publish")
+        if status != 0:
+            raise ToolError(f"agent-publish failed: {output.strip()}{self.unread()}")
+        unit = f"{ship.unit}@{commit}.service"
+        status, output = await self.run_command("systemctl", "start", "--no-block", unit)
+        if status != 0:
+            raise ToolError(f"could not start {unit}: {output.strip()}{self.unread()}")
+        self.note(f"ship {bookmark} ({commit[:12]})")
+        if self.status is not None:
+            self.status.last = f"waiting for Baughn's approval of {commit[:12]}"
+        started, seen = self.clock(), False
+        while True:
+            await asyncio.sleep(SHIP_POLL)
+            _, output = await self.run_command("systemctl", "show", "-P", "ActiveState", unit)
+            state = output.strip()
+            if state in ("activating", "active", "deactivating", "reloading"):
+                seen = True
+            elif seen or self.clock() - started > 60:
+                break
+            if self.stopping:
+                return f"Stopped waiting; {unit} carries on.{self.unread()}"
+            if self.clock() - started > SHIP_TIMEOUT:
+                return f"{unit} is still running; its result will be posted in the channel.{self.unread()}"
+        _, result = await self.run_command("systemctl", "show", "-P", "Result", unit)
+        try:
+            log_text = (ship.logs / f"{commit}.log").read_text()[-3000:]
+        except OSError:
+            log_text = "(no log)"
+        self.note(f"ship {commit[:12]}: {result.strip()}")
+        return f"{unit}: {result.strip()}\n{log_text}{self.unread()}"
 
     async def tool_inbox(self, args: dict[str, Any]) -> str:
         self.refuse_during_handoff()

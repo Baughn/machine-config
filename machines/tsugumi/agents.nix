@@ -20,6 +20,8 @@
       # The worlds sit beside the workdir; reading them shouldn't need an approver.
       extraDirs = [ "/home/minecraft" ];
       rcon.root = "/home/minecraft";
+      # NixOS-level changes (units, scripts, its own permissions) go through saya.
+      askAgents = [ "saya" ];
       # Baughn's tick-debugging workflow; its case records live in
       # /home/minecraft/agent-debugging, outside the skill.
       skills.minecraft-tick-debug = ./agents/skills/minecraft-tick-debug;

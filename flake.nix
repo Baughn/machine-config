@@ -99,6 +99,15 @@
       }
     ];
 
+    # The agent bridges' CLI: new models need a newer Claude Code than the
+    # weekly cooldown gives (Opus 5.5 needs >= 2.1.280).
+    claudeCodeOverlay = final: prev: {
+      claude-code = (import nixpkgs-fast {
+        inherit (prev.stdenv.hostPlatform) system;
+        inherit (prev) config;
+      }).claude-code;
+    };
+
     machineConfigs = {
       saya = {
         modules = [
@@ -111,6 +120,7 @@
                   inherit (prev.stdenv.hostPlatform) system;
                   inherit (prev) config;
                 }).google-chrome;
+                inherit (claudeCodeOverlay final prev) claude-code;
                 kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {
                   kwin = kprev.kwin.overrideAttrs (old: {
                     # patches = (old.patches or []) ++ [ ./kwin.patch ];
@@ -127,16 +137,7 @@
         modules = [
           ./machines/tsugumi
           {
-            nixpkgs.overlays = [
-              (final: prev: {
-                # The agent bridge's CLI: new models need a newer Claude Code
-                # than the weekly cooldown gives (Opus 5.5 needs >= 2.1.280).
-                claude-code = (import nixpkgs-fast {
-                  inherit (prev.stdenv.hostPlatform) system;
-                  inherit (prev) config;
-                }).claude-code;
-              })
-            ];
+            nixpkgs.overlays = [ claudeCodeOverlay ];
           }
         ];
       };
@@ -194,16 +195,18 @@
         pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
       };
       security-scripts = pkgs.runCommand "security-script-tests" {
-        nativeBuildInputs = [ (pkgs.python3.withPackages (p: [ p.javaproperties ])) ];
+        nativeBuildInputs = [ (pkgs.python3.withPackages (p: [ p.javaproperties ])) pkgs.git ];
       } ''
         export PYTHONDONTWRITEBYTECODE=1
         cd ${pkgs.lib.fileset.toSource {
           root = ./.;
           fileset = pkgs.lib.fileset.unions [
+            ./machines/saya/agent-ship.py
             ./machines/tsugumi/minecraft-storage.py
             ./machines/tsugumi/minecraft-snapshot.py
             ./machines/tsugumi/minecraft-watch.py
             ./machines/tsugumi/starlink-prefixes.py
+            ./tests/test_agent_ship.py
             ./tests/test_minecraft_storage.py
             ./tests/test_minecraft_snapshot.py
             ./tests/test_minecraft_watch.py

@@ -59,6 +59,15 @@ class Limits:
 
 
 @dataclass(frozen=True)
+class Ship:
+    """The ship tool: a unit that pushes and deploys a commit after the owner approves."""
+
+    unit: str  # started as <unit>@<commit>.service
+    repo: Path  # the agent's clone; bookmarks named <id>/<topic>
+    logs: Path  # the unit writes <logs>/<commit>.log
+
+
+@dataclass(frozen=True)
 class Config:
     id: str
     workdir: Path
@@ -82,6 +91,8 @@ class Config:
     rcon_read_only: tuple[str, ...] = ()
     rcon_ask: tuple[str, ...] = ()  # always a human, even in auto mode
     skills: tuple[str, ...] = ()  # project skills in <workdir>/.claude/skills
+    ask_agents: tuple[str, ...] = ()  # agents the ask_agent tool may ask
+    ship: Ship | None = None
     idle_reset: float = 6 * 3600  # seconds without a turn before a handoff and new session; 0: never
     limits: Limits = field(default_factory=Limits)
     fake: bool = False
@@ -150,6 +161,9 @@ def parse(data: dict[str, Any], state: Path) -> Config:
         rcon_read_only=_strings(data, "rcon_read_only"),
         rcon_ask=_strings(data, "rcon_ask"),
         skills=_strings(data, "skills"),
+        ask_agents=_strings(data, "ask_agents"),
+        ship=Ship(str(data["ship"]["unit"]), Path(data["ship"]["repo"]), Path(data["ship"]["logs"]))
+        if data.get("ship") else None,
         idle_reset=float(data.get("idle_reset", 6 * 3600)),
     )
     validate(config)
@@ -166,6 +180,9 @@ def validate(config: Config) -> None:
     if config.permission_mode not in MODES:
         # bypassPermissions approves before can_use_tool is consulted.
         raise ConfigError(f"permission mode {config.permission_mode!r} is not allowed")
+    for name in config.ask_agents:
+        if name == config.id or not any(a.name == name for a in config.roster.agents):
+            raise ConfigError(f"ask_agents: {name} is not another agent in the roster")
     if config.owner_only and (config.triggers != {"owner"} or config.approvers != {"owner"}):
         raise ConfigError("owner_only requires triggers = approvers = [owner]")
     workdir = config.workdir.resolve()

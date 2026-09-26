@@ -112,6 +112,14 @@ def render_post(args: dict[str, Any], *, owner_id: str, roots: Roots,
                     (owner_id,) if kind == "alert" else ())
 
 
+STATUS_LINE = re.compile(r"[⚙✓✗⏹💤] \S+ · working for ")
+
+
+def is_status(content: str) -> bool:
+    """Whether a message is some bridge's live status message."""
+    return STATUS_LINE.match(content) is not None
+
+
 @dataclass
 class Status:
     """The live status message of one turn."""

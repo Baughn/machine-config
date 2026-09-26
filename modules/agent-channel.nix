@@ -99,6 +99,30 @@ let
           '';
         };
       };
+      askAgents = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = ''
+          Roster agents this identity may question with the ask_agent tool, which posts
+          the question and waits for that agent's reply within the same turn.
+        '';
+      };
+      ship = lib.mkOption {
+        type = lib.types.nullOr (lib.types.submodule {
+          options = {
+            unit = lib.mkOption { type = lib.types.str; description = "Template unit, started as <unit>@<commit>."; };
+            repo = lib.mkOption { type = lib.types.str; description = "The agent's clone."; };
+            logs = lib.mkOption { type = lib.types.str; description = "Where the unit writes <commit>.log."; };
+          };
+        });
+        default = null;
+        description = "Enables the ship tool: push and deploy a commit after the owner's approval.";
+      };
+      environment = lib.mkOption {
+        type = lib.types.attrsOf lib.types.str;
+        default = { };
+        description = "Extra environment for the bridge and its agent (e.g. HOME).";
+      };
       skills = lib.mkOption {
         type = lib.types.attrsOf lib.types.path;
         default = { };
@@ -140,6 +164,8 @@ let
     rcon_read_only = i.rcon.readOnly;
     rcon_ask = i.rcon.ask;
     skills = lib.attrNames i.skills;
+    ask_agents = i.askAgents;
+    ship = i.ship;
     roster = rosterToml;
   });
 in
@@ -171,6 +197,10 @@ in
         message = "agent-channel: agents can never approve (${name})";
       }
       {
+        assertion = lib.all (a: a != name && roster.agents ? ${a}) i.askAgents;
+        message = "agent-channel: ${name}'s askAgents must be other roster agents";
+      }
+      {
         assertion = roster.channels.${i.channel} != null;
         message = "agent-channel: the roster has no ${i.channel} channel (${name})";
       }
@@ -187,7 +217,7 @@ in
         AGENT_BRIDGE_CONFIG = "${configFile name i}";
         SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
         DISABLE_AUTOUPDATER = "1";
-      };
+      } // i.environment;
       serviceConfig = {
         ExecStart = "${lib.getExe bridge} run";
         User = i.user;

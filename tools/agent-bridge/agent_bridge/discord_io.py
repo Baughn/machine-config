@@ -70,7 +70,7 @@ class DiscordChat:
     async def convert(self, message: Any) -> Incoming:
         channel = message.channel
         thread = isinstance(channel, discord.Thread)
-        reply_to_author = None
+        reply_to_author = reply_to_id = None
         reference = message.reference
         if reference is not None and reference.message_id is not None:
             resolved = reference.resolved
@@ -80,6 +80,7 @@ class DiscordChat:
                     resolved = await channel.fetch_message(reference.message_id)
                 except discord.HTTPException:
                     resolved = None
+            reply_to_id = str(reference.message_id)
             if isinstance(resolved, discord.Message):
                 reply_to_author = str(resolved.author.id)
         self.remember(message.id, channel.id)
@@ -93,6 +94,7 @@ class DiscordChat:
             role_mentions=frozenset(str(r.id) for r in message.role_mentions),
             reply_to_author=reply_to_author,
             attachments=tuple(Attachment(a.filename, a.url, a.size) for a in message.attachments),
+            reply_to_id=reply_to_id,
         )
 
     def remember(self, message_id: int, channel_id: int) -> None:

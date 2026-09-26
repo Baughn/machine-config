@@ -23,9 +23,11 @@ in
   "rolebot-config.json.age".publicKeys = [ svein tsugumi ];
   "punch-saya-token.age".publicKeys = [ svein saya tsugumi ];
   "minecraft-access-discord-secret.age".publicKeys = [ svein tsugumi ];
-  "minecraft-watch-webhook.age".publicKeys = [ svein tsugumi ];
-  "agent-claude-token.age".publicKeys = [ svein tsugumi ];
+  "minecraft-watch-webhook.age".publicKeys = [ svein saya tsugumi ];
+  "agent-claude-token.age".publicKeys = [ svein saya tsugumi ];
   "agent-tsugumi-minecraft-discord.age".publicKeys = [ svein tsugumi ];
+  "agent-tsugumi-lab-discord.age".publicKeys = [ svein tsugumi ];
+  "agent-saya-discord.age".publicKeys = [ svein saya ];
   "irc-tool.env.age".publicKeys = [ svein tsugumi ];
   "grafana-admin-password.age".publicKeys = [ svein tsugumi ];
   "redis-password.age".publicKeys = [ svein tsugumi ];

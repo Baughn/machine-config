@@ -40,6 +40,8 @@ class Handlers(Protocol):
     async def tool_history(self, args: dict[str, Any]) -> str: ...
     async def tool_inbox(self, args: dict[str, Any]) -> str: ...
     async def tool_rcon(self, args: dict[str, Any]) -> str: ...
+    async def tool_ask_agent(self, args: dict[str, Any]) -> str: ...
+    async def tool_ship(self, args: dict[str, Any]) -> str: ...
 
 
 class AgentSession(Protocol):
@@ -84,7 +86,28 @@ RCON_SCHEMA: dict[str, Any] = {
 }
 
 
-def bridge_server(handlers: Handlers, rcon: bool) -> Any:
+def ask_schema(agents: tuple[str, ...]) -> dict[str, Any]:
+    properties = {k: v for k, v in POST_SCHEMA["properties"].items() if k in ("headline", "overview", "attachments")}
+    return {
+        "type": "object",
+        "properties": {
+            "agent": {"type": "string", "enum": list(agents)},
+            **properties,
+            "timeout_minutes": {"type": "number", "minimum": 1, "maximum": 60,
+                                "description": "How long to wait for the answer (default 30)"},
+        },
+        "required": ["agent", "headline"],
+    }
+
+
+SHIP_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {"bookmark": {"type": "string", "description": "Your bookmark on the commit, e.g. saya/fix-foo"}},
+    "required": ["bookmark"],
+}
+
+
+def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = (), ship: bool = False) -> Any:
     from claude_agent_sdk import create_sdk_mcp_server, tool
 
     def wrap(function: Any) -> Any:
@@ -110,11 +133,22 @@ def bridge_server(handlers: Handlers, rcon: bool) -> Any:
         tools.append(tool("rcon", "Run a Minecraft server console command over RCON and return the "
                           "server's reply. Read-only commands (e.g. list) run at once; commands that "
                           "affect players or saving may need an approver.", RCON_SCHEMA)(wrap(handlers.tool_rcon)))
+    if ask_agents:
+        tools.append(tool("ask_agent", "Ask another agent in the channel something and wait for its "
+                          "answer, which comes back as this tool's result. The question is posted "
+                          "mentioning that agent; it answers with a reply to it. Later messages from it "
+                          "arrive as channel context.", ask_schema(ask_agents))(wrap(handlers.tool_ask_agent)))
+    if ship:
+        tools.append(tool("ship", "Ask Baughn to push a commit to master and deploy it. The deploy service "
+                          "posts the diff for his approval, and pushes and deploys only after he approves. "
+                          "Waits for the outcome and returns it.", SHIP_SCHEMA)(wrap(handlers.tool_ship)))
     return create_sdk_mcp_server("bridge", tools=tools)
 
 
+MCP_TOOL_TIMEOUT_MS = 65 * 60 * 1000
 RCON_TOOL = "mcp__bridge__rcon"
-BRIDGE_TOOLS = ["mcp__bridge__post", "mcp__bridge__history", "mcp__bridge__inbox", RCON_TOOL]
+BRIDGE_TOOLS = ["mcp__bridge__post", "mcp__bridge__history", "mcp__bridge__inbox", RCON_TOOL,
+                "mcp__bridge__ask_agent", "mcp__bridge__ship"]
 
 
 def options_kwargs(*, workdir: Path, state: Path, cli_path: str | None, model: str | None,
@@ -137,7 +171,9 @@ def options_kwargs(*, workdir: Path, state: Path, cli_path: str | None, model: s
         allowed_tools=[*(t for t in BRIDGE_TOOLS if not (permission_mode == "auto" and t == RCON_TOOL)),
                        *allow],
         disallowed_tools=list(deny),
-        env={"CLAUDE_CODE_OAUTH_TOKEN": token, "CLAUDE_CONFIG_DIR": str(state / "claude")},
+        env={"CLAUDE_CODE_OAUTH_TOKEN": token, "CLAUDE_CONFIG_DIR": str(state / "claude"),
+             # ask_agent holds its tool call open for up to an hour.
+             "MCP_TOOL_TIMEOUT": str(MCP_TOOL_TIMEOUT_MS)},
         # Read-only commands run without asking only inside these and cwd.
         add_dirs=[str(d) for d in add_dirs],
     )
@@ -154,9 +190,12 @@ def options_kwargs(*, workdir: Path, state: Path, cli_path: str | None, model: s
 class SdkSession:
     """One long-lived ClaudeSDKClient."""
 
-    def __init__(self, handlers: Handlers, rcon: bool = False, **kwargs: Any) -> None:
+    def __init__(self, handlers: Handlers, rcon: bool = False, ask_agents: tuple[str, ...] = (),
+                 ship: bool = False, **kwargs: Any) -> None:
         self.handlers = handlers
         self.rcon = rcon
+        self.ask_agents = ask_agents
+        self.ship = ship
         self.kwargs = kwargs
         self.client: Any = None
 
@@ -186,7 +225,7 @@ class SdkSession:
 
         options = ClaudeAgentOptions(
             **options_kwargs(**{**self.kwargs, "resume": resume}),
-            mcp_servers={"bridge": bridge_server(handlers, self.rcon)},
+            mcp_servers={"bridge": bridge_server(handlers, self.rcon, self.ask_agents, self.ship)},
             can_use_tool=can_use_tool,
             hooks={"PreToolUse": [HookMatcher(hooks=[pre])],
                    "PostToolUse": [HookMatcher(hooks=[post])],

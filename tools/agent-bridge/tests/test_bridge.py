@@ -3,20 +3,23 @@
 from __future__ import annotations
 
 import asyncio
+import itertools
 import json
 from pathlib import Path
+import re
 from typing import Any
 
 import pytest
 
 from agent_bridge.approval import STOP, Verdict
 from agent_bridge.bridge import Bridge
-from agent_bridge.config import parse
-from agent_bridge.policy import Attachment, Incoming, classify
+from agent_bridge.config import ConfigError, parse
+from agent_bridge.policy import Attachment, Incoming, Route, classify, may_approve, route
 from agent_bridge.render import Outgoing
 from agent_bridge.session import Permission, ToolError, TurnResult
 
-from conftest import ALICE, CAROL, CHANNEL, LAB, ME, OWNER, FakeChat, FakeSession, Harness, config_data
+from conftest import (ALICE, CAROL, CHANNEL, LAB, ME, OWNER, FakeChat, FakeSession, Harness, config_data,
+                      message)
 
 
 async def run_turn(h: Harness) -> None:
@@ -661,3 +664,195 @@ async def test_a_session_lost_mid_turn_is_not_rolled_over_before_it_is_used(harn
     assert harness.bridge.session_id is None and harness.bridge.fresh
     harness.clock.now += 7 * HOUR
     assert not harness.bridge.rollover_due()
+
+
+# --- ask_agent -------------------------------------------------------------------
+
+
+def from_lab(h: Harness, content: str, reply_to: str | None, message_id: str = "r1") -> Incoming:
+    return Incoming(message_id, CHANNEL, None, h.author(LAB), content, reply_to_id=reply_to)
+
+
+async def test_ask_agent_waits_for_the_reply_to_its_question(tmp_path: Path) -> None:
+    h = Harness(tmp_path, ask_agents=["tsugumi-lab"])
+    task = asyncio.create_task(h.bridge.tool_ask_agent(
+        {"agent": "tsugumi-lab", "headline": "Which view-distance?", "overview": "for erisia"}))
+    await settle()
+    question_id, question = list(h.chat.sent.items())[-1]
+    assert question.content.startswith(f"<@{LAB}> ❓ **Which view-distance?**")
+    assert question.mention_users == (LAB,)
+    # Its status message, a human's reply, and a lab post elsewhere are not the answer.
+    await h.bridge.on_message(from_lab(h, "⚙ tsugumi-lab · working for tsugumi-minecraft · 00:01", question_id, "s1"))
+    await h.bridge.on_message(Incoming("x1", CHANNEL, None, h.author(ALICE), "10?", reply_to_id=question_id))
+    await h.bridge.on_message(from_lab(h, "💬 **unrelated**", None, "x2"))
+    await settle()
+    assert not task.done()
+    await h.bridge.on_message(from_lab(h, "📄 **12 chunks**", question_id))
+    result = await task
+    assert result.startswith("tsugumi-lab answered (message r1):\n📄 **12 chunks**")
+    assert "unread: 2" in result  # the others arrive as context; the status message is dropped
+    assert h.bridge.waiters == {}
+
+
+async def test_ask_agent_times_out(tmp_path: Path) -> None:
+    h = Harness(tmp_path, ask_agents=["tsugumi-lab"])
+    result = await h.bridge.tool_ask_agent({"agent": "tsugumi-lab", "headline": "hello?", "timeout_minutes": 0.0001})
+    assert result.startswith("No answer from tsugumi-lab")
+    question_id = list(h.chat.sent)[-1]
+    await h.bridge.on_message(from_lab(h, "📄 **late**", question_id))
+    assert "late" in h.bridge.buffer[-1].line
+
+
+async def test_ask_agent_is_stopped_and_limited(tmp_path: Path) -> None:
+    h = Harness(tmp_path, ask_agents=["tsugumi-lab"])
+    with pytest.raises(ToolError, match="you can ask: tsugumi-lab"):
+        await h.bridge.tool_ask_agent({"agent": "saya", "headline": "hi"})
+    task = asyncio.create_task(h.bridge.tool_ask_agent({"agent": "tsugumi-lab", "headline": "hi"}))
+    await settle()
+    await h.bridge.stop("stopped by baughn")
+    with pytest.raises(ToolError, match="stopped by baughn"):
+        await task
+
+
+@pytest.mark.parametrize("names", [["nobody"], ["tsugumi-minecraft"]])
+def test_ask_agents_must_be_other_roster_agents(tmp_path: Path, names: list[str]) -> None:
+    with pytest.raises(ConfigError):
+        parse(config_data(ask_agents=names), tmp_path)
+
+
+class Channel:
+    """One channel for several bridges, keeping mentions and replies."""
+
+    def __init__(self) -> None:
+        self.bridges: dict[str, Bridge] = {}
+        self.authors: dict[str, str] = {}
+        self.counter = itertools.count(1)
+
+    def chat(self, sender_id: str) -> FakeChat:
+        channel = self
+
+        class ChannelChat(FakeChat):
+            async def send(self, message: Outgoing) -> str:
+                message_id = f"c{next(channel.counter)}"
+                self.sent[message_id] = message
+                channel.authors[message_id] = sender_id
+                for bridge in channel.bridges.values():
+                    author = classify(bridge.config, sender_id, "x", is_bot=True, webhook_id=None, is_admin=False)
+                    await bridge.on_message(Incoming(
+                        message_id, CHANNEL, None, author, message.content,
+                        mentions=frozenset(message.mention_users), reply_to_id=message.reply_to,
+                        reply_to_author=channel.authors.get(message.reply_to or "")))
+                return message_id
+
+        return ChannelChat()
+
+
+async def test_an_owner_only_agent_asks_another_and_gets_the_answer(tmp_path: Path) -> None:
+    channel = Channel()
+    answers: list[str] = []
+
+    async def asker(session: FakeSession, prompt: str) -> TurnResult:
+        answers.append(await session.bridge.tool_ask_agent(
+            {"agent": "tsugumi-minecraft", "headline": "What view-distance does erisia run?"}))
+        return TurnResult("s-asker")
+
+    async def answerer(session: FakeSession, prompt: str) -> TurnResult:
+        question = re.search(r"\[(c\d+)\] tsugumi-lab \(agent, agent\), may ask you to act", prompt)
+        assert question is not None, prompt
+        await session.bridge.tool_post({"kind": "report", "headline": "12 chunks", "reply_to": question[1]})
+        return TurnResult("s-answerer")
+
+    # saya's production shape: agents may trigger it, so the answerer's status
+    # message (a reply to the question) must not start a turn.
+    identities = (("tsugumi-lab", LAB, asker, dict(triggers=["owner", "agent"], approvers=["owner"],
+                                                   ask_agents=["tsugumi-minecraft"])),
+                  ("tsugumi-minecraft", ME, answerer, {}))
+    for identity, discord_id, script, extra in identities:
+        (tmp_path / identity / "work").mkdir(parents=True)
+        (tmp_path / identity / "state").mkdir()
+        config = parse(config_data(id=identity, workdir=str(tmp_path / identity / "work"), **extra),
+                       tmp_path / identity / "state")
+        bridge = Bridge(config, channel.chat(discord_id), FakeSession)
+        assert isinstance(bridge.session, FakeSession)
+        bridge.session.script = script
+        channel.bridges[identity] = bridge
+    runners = [asyncio.create_task(b.run()) for b in channel.bridges.values()]
+    lab = channel.bridges["tsugumi-lab"]
+    owner = classify(lab.config, OWNER, "baughn", is_bot=False, webhook_id=None, is_admin=True)
+    await lab.on_message(Incoming("h1", CHANNEL, None, owner, "ask it", mentions=frozenset({LAB})))
+    for _ in range(50):
+        await settle()
+    for runner in runners:
+        runner.cancel()
+    assert len(answers) == 1 and "tsugumi-minecraft answered" in answers[0] and "12 chunks" in answers[0]
+    assert isinstance(lab.session, FakeSession) and len(lab.session.prompts) == 1
+    assert not any(e.trigger for e in lab.buffer)
+
+
+async def test_ask_agent_refuses_the_agent_that_is_waiting_on_us(tmp_path: Path) -> None:
+    h = Harness(tmp_path, ask_agents=["tsugumi-lab"])
+
+    async def script(session: FakeSession, prompt: str) -> TurnResult:
+        with pytest.raises(ToolError, match="waiting for your reply"):
+            await session.bridge.tool_ask_agent({"agent": "tsugumi-lab", "headline": "and you?"})
+        return TurnResult("s")
+
+    h.session.script = script
+    await h.say(LAB, "a question for you", mention=True)
+    await run_turn(h)
+    assert len(h.session.prompts) == 1
+
+
+def test_agents_but_not_admins_trigger_a_saya_like_identity(tmp_path: Path) -> None:
+    config = parse(config_data(triggers=["owner", "agent"], approvers=["owner"]), tmp_path)
+    admin = message(config, ALICE, "@me fix it", mention=True)
+    agent = message(config, LAB, "@me fix it", mention=True)
+    assert route(config, admin, bot_streak=0, paused=False).route is Route.CONTEXT
+    assert route(config, agent, bot_streak=0, paused=False).route is Route.TRIGGER
+    assert not may_approve(config, admin.author)
+
+
+class Commands:
+    def __init__(self, states: list[str], commit: str = "a" * 40) -> None:
+        self.calls: list[tuple[str, ...]] = []
+        self.states = states
+        self.commit = commit
+
+    async def __call__(self, *argv: str) -> tuple[int, str]:
+        self.calls.append(argv)
+        if argv[:1] == ("git",):
+            return 0, self.commit + "\n"
+        if argv[:3] == ("systemctl", "show", "-P") and argv[3] == "ActiveState":
+            return 0, (self.states.pop(0) if self.states else "inactive") + "\n"
+        if argv[:3] == ("systemctl", "show", "-P"):
+            return 0, "success\n"
+        return 0, ""
+
+
+def ship_harness(tmp_path: Path) -> Harness:
+    logs = tmp_path / "logs"
+    logs.mkdir()
+    return Harness(tmp_path, ship={"unit": "agent-ship", "repo": str(tmp_path / "repo"), "logs": str(logs)})
+
+
+async def test_ship_starts_the_unit_and_reports_its_result(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("agent_bridge.bridge.SHIP_POLL", 0)
+    h = ship_harness(tmp_path)
+    commands = Commands(["activating", "active", "active"])
+    h.bridge.run_command = commands
+    (tmp_path / "logs" / f"{'a' * 40}.log").write_text("pushed; deployed saya")
+    result = await h.bridge.tool_ship({"bookmark": "tsugumi-minecraft/fix-it"})
+    unit = f"agent-ship@{'a' * 40}.service"
+    assert ("agent-publish",) in commands.calls
+    assert ("systemctl", "start", "--no-block", unit) in commands.calls
+    assert result.startswith(f"{unit}: success\npushed; deployed saya")
+
+
+async def test_ship_refuses_other_bookmarks_and_bad_hashes(tmp_path: Path) -> None:
+    h = ship_harness(tmp_path)
+    h.bridge.run_command = Commands([], commit="not-a-hash")
+    for bookmark in ("master", "tsugumi-lab/x", "tsugumi-minecraft/../x"):
+        with pytest.raises(ToolError, match="bookmark must be"):
+            await h.bridge.tool_ship({"bookmark": bookmark})
+    with pytest.raises(ToolError, match="no bookmark"):
+        await h.bridge.tool_ship({"bookmark": "tsugumi-minecraft/x"})

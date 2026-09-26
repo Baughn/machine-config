@@ -5,7 +5,9 @@ pieces landed. Implemented: the server lifecycle (deployed), the snapshot
 watchdog (deployed), and the bridge with the tsugumi-minecraft identity
 (deployed 2026-09-26: observer mode in the test channel briefly, then `auto`
 in #auto-admin the same day, with `ask` rules on starting/stopping/restarting
-servers; contract test passed). Not started: the lab and the saya identity. SDK facts were checked
+servers; contract test passed), and the saya identity (deployed 2026-09-26, as a dedicated
+`saya-agent` user rather than `svein`, triggered by Baughn and the agents,
+shipping through `agent-ship` after Baughn's ✅; see its section). Not started: the lab. SDK facts were checked
 against `claude-agent-sdk` 0.2.152 from nixpkgs, paired with `claude-code`
 2.1.280 from `nixpkgs-fast` (see Packaging), and the Claude Code docs; whatever the contract tests
 below must confirm is marked as such.*
@@ -30,8 +32,8 @@ admins' suggestions end up being copied into Claude Code by hand.
   - **tsugumi-lab** — runs as a new user (`mclab`) on tsugumi, inside its own
     network namespace; experiments on ZFS clones of the worlds and never
     touches production.
-  - **saya** — runs as `svein` on saya, sandboxed to the machine-config
-    checkout. Its job is to let Baughn change the system config without being
+  - **saya** — runs as the unprivileged `saya-agent` on saya, with its own
+    clone of machine-config. Its job is to let Baughn change the system config without being
     at home. **Only Baughn can start its turns or approve its tool calls**,
     enforced in the bridge code, not the prompt.
 - Every agent knows the basic layout of the system: tsugumi (server) and saya
@@ -128,7 +130,7 @@ channel, so a bridge on one machine going down affects only that identity.
                     ▲ gateway / REST (discord.py)
                     │
  ┌──────────────────┴──────────────────────────────────────┐
- │ agent-bridge  (one process; user: minecraft/mclab/svein)  │
+ │ agent-bridge  (one process as minecraft/mclab/saya-agent) │
  │  router ─ policy (pure) ─ rate limiter ─ approvals        │
  │  renderer (structured posts, live status message)         │
  │                                                           │
@@ -248,7 +250,7 @@ Config is split in two:
     # other admins: role = "admin";
   };
   agents = {
-    saya              = { discordId = "…"; description = "Baughn's agent on saya; edits machine-config; acts only for Baughn."; };
+    saya              = { discordId = "…"; description = "Runs as `saya-agent` on saya; edits machine-config; acts only for Baughn."; };
     tsugumi-minecraft = { discordId = "…"; description = "Runs as `minecraft` on tsugumi; operates the live servers."; };
     tsugumi-lab       = { discordId = "…"; description = "Runs as `mclab` on tsugumi; experiments on ZFS clones of worlds."; };
   };
@@ -273,12 +275,14 @@ me.agentChannel.instances.tsugumi-minecraft = {
 
 # machines/saya/agents.nix
 me.agentChannel.instances.saya = {
-  user = "svein";
-  workdir = "/home/svein/nixos-agent";   # its own jj workspace of ~/nixos
-  ownerOnly = true;                      # see below
+  user = "saya-agent";                   # unprivileged; see "The saya identity"
+  workdir = "/home/saya-agent/agent";    # notes/, tools/, and its clone in nixos/
+  triggers = [ "owner" "agent" ];        # not other admins
+  approvers = [ "owner" ];
+  askAgents = [ "tsugumi-minecraft" ];   # the ask_agent tool
+  ship = { unit = "agent-ship"; /* … */ };  # the ship tool
   permissionMode = "default";
-  allow = [ "Read" "Grep" "Glob" "Edit" "Write" "Bash(jj *)" "Bash(nix build *)" /* … */ ];
-  # sandboxing: see "The saya identity"
+  allow = [ "Read" "Grep" "Glob" "Bash(jj *)" "Bash(nix build *)" /* … */ ];
 };
 ```
 
@@ -289,7 +293,9 @@ The service runs as the instance's user, with `StateDirectory` and
 `LoadCredential`. Per-instance `serviceConfig` carries the OS-level
 restrictions described in the identity sections.
 
-**`ownerOnly`** is the hardcoded constraint for saya. It forces
+**`ownerOnly`** was the constraint for saya until it could only change the
+world through `ship` (see The saya identity); it remains for identities that
+must act for Baughn alone. It forces
 `triggers = approvers = [ "owner" ]`. The daemon refuses to start if the
 rendered config contradicts it, and the router has a unit-tested branch that
 drops any non-owner message as a trigger, whatever the rest of the config
@@ -363,6 +369,22 @@ post {
 Other MCP tools: `history(n)` fetches recent channel messages, labelled like
 context. `inbox()` returns the queued messages. There is no attachment tool:
 inbound attachments are already downloaded (above).
+
+`ask_agent(agent, headline, overview?, attachments?, timeout_minutes?)`
+(only for identities with `askAgents`; saya) posts a question that mentions
+that agent, then waits, inside the same tool call, for that agent's message
+*replying to the question*, and returns it with its attachments downloaded.
+The bridge sets `MCP_TOOL_TIMEOUT` to 65 minutes for that (contract check
+`slow_tool`, run with `CONTRACT_LONG`; passed 2026-09-26 with a 6-minute call).
+Status messages (the other bridge's "⚙ … working for" also replies to the
+question) and anyone else's messages don't count. Timeout: 30 minutes by
+default, 60 at most, then "no answer yet; a later reply arrives as context";
+`!stop` cancels the wait. This is how an `ownerOnly` identity gets answers
+from another agent without agents being able to trigger it: the reply is a
+tool result in a turn Baughn started. The alternative, letting agent
+messages trigger saya, would let anyone who can steer tsugumi-minecraft steer
+saya through it. The base prompt tells every agent to answer such a question
+in one post with `reply_to` set to it.
 
 `rcon(world, command)` (only where `rcon.root` is set; tsugumi-minecraft)
 runs a console command over RCON, with the port and password from
@@ -720,25 +742,93 @@ mirrors its helpers; checks are a list of (name, function → {key: ok/failing
 
 ## The saya identity
 
-The saya agent lets Baughn change the system config remotely. It takes input
-only from Baughn (`ownerOnly`) and has normal editing ability within the
-repository, and no access to the rest of `/home/svein`, enforced by systemd
-rather than rules:
+The saya agent changes the system config: for Baughn, remotely, and for the
+other agents, which ask it (`ask_agent`) for NixOS-level changes they can't
+make. Baughn and agents can trigger it; other admins can't (their messages
+are context), and only Baughn approves or answers. Admins can still steer it
+indirectly through tsugumi-minecraft; that is acceptable because nothing
+leaves saya without Baughn's ✅ on a `ship` request (below). Since it runs as
+an unprivileged user, it has no access the other agents lack.
 
-- `ProtectHome=tmpfs` with `BindPaths=` for `/home/svein/nixos-agent`, the
-  agent's own jj workspace, and for the repo store in `/home/svein/nixos`
-  (`.jj`, plus `.git` since the repo is colocated). Its edits land in its own
-  working copy, not in the one Baughn is using. Verify that binding only the
-  store directories is enough for a workspace. If it isn't, binding all of
-  `/home/svein/nixos` also exposes Baughn's working copy.
-- `NoNewPrivileges=yes` (`svein` is in `wheel`).
-- `HOME` points into `$STATE`, since the tmpfs home is read-only.
-  `CLAUDE_CONFIG_DIR` is in `$STATE` too, so the agent shares nothing with
-  Baughn's own `~/.claude`. The jj identity comes from `JJ_USER`/`JJ_EMAIL`.
-- `permission_mode="default"` with an allow list; everything else asks Baughn.
+**Its own user, not `svein`.** The first design ran it as `svein`, sandboxed by
+systemd to a jj workspace of `~/nixos`. Two problems made the sandbox the
+only line, and a leaky one:
 
-In v1 it edits, builds and commits; Baughn pushes and deploys. Letting it
-deploy is in Future plans.
+- `svein` is in `wheel`, which is Nix's `trusted-users`: effectively root via
+  the daemon (e.g. `nix build --option require-sigs false` plus a custom
+  substituter seeds a store path Baughn later builds and deploys).
+- Same-uid processes can reach `/proc/<pid>/root` of Baughn's processes,
+  which bypasses `ProtectHome` (fixable with `PrivatePIDs`, at the price of an
+  init wrapper for the bridge).
+- A workspace sharing `~/nixos/.jj` and `.git` lets it write `.git/hooks`,
+  `.git/config` and `.jj/repo/config.toml`, which Baughn's own git, jj and
+  `push.sh` would then run, unsandboxed and with his ssh keys.
+
+So it runs as **`saya-agent`**, a system user outside `wheel` (no sudo, an
+untrusted Nix user who can still build anything through the daemon), with
+`/home/saya-agent` (0711). `/home/svein` is 0700, so the OS boundary holds on
+its own. The unit adds `NoNewPrivileges`, `ProtectHome=tmpfs` with only its
+own home bound back (which also hides `/run/user`: session buses, Wayland,
+the xauth cookie), `PrivateTmp` and `PrivateIPC`. Xwayland's abstract socket
+is reachable from any network namespace, but X access control is on and the
+cookie lives in `/run/user`. The user and sandbox are in
+`machines/saya/agent-user.nix`, shared with the VM test.
+
+**The repository.** The workdir `/home/saya-agent/agent` holds `notes/`,
+`tools/` and a colocated clone of the public repo in `nixos/`, made by an
+`ExecStartPre` on first start. It fetches `origin` (GitHub, https, no
+credentials) to stay current, so it can't push. Colocated, so Nix sees a git
+flake and doesn't copy the `.jj` store.
+
+**Shipping.** It commits on top of `master@origin`, puts a `saya/<topic>`
+bookmark on the result, and calls the `ship` tool. The tool runs
+`agent-publish` (its `saya/*` branches as a bundle in
+`/home/saya-agent/outbox/nixos.bundle`) and starts
+`agent-ship@<commit>.service`, which a polkit rule lets `saya-agent` start
+and nothing more. Starting it proves nothing; the unit (`machines/saya/agent-ship.{nix,py}`,
+running as `svein` for his ssh key and sudo) checks everything itself:
+
+1. Updates its own clone (`/var/lib/agent-ship/nixos`) and fetches the
+   bundle. A bundle is data: nothing of the agent's repo runs. (Fetching from
+   its clone directly would run `git upload-pack` there, which git refuses for
+   other users' repos unless marked `safe.directory`.)
+2. Requires a fast-forward: `origin/master` must be an ancestor of the
+   commit, else it refuses and the agent rebases.
+3. Posts the request **through the watchdog webhook** (username "saya
+   deploy"), with the log, `diff --stat` and the full diff it computed
+   itself, mentioning Baughn. The agent can't write or edit that message:
+   the webhook URL is a root-held credential, and its bot token can't edit a
+   webhook's message.
+4. Polls the message's reactions (with the Saya bot token, read-only) for up
+   to an hour: Baughn's ✅ proceeds, his ❌ or the timeout refuses. Anyone
+   else's reactions are ignored, and so is a message that isn't the
+   webhook's or has been edited.
+5. Pushes `<commit>:master` to GitHub, checks the commit out detached, and
+   runs a bare `deploy --mode switch` there: the exact commit, never
+   Baughn's working copy, and only machines whose closure changed are
+   switched.
+6. `jj git fetch` in `/home/svein/nixos`, so Baughn's repo sees the new
+   master (his own unpushed work needs `./pull.sh` before his next push),
+   then posts the outcome through the webhook and writes
+   `/var/lib/agent-ship/<commit>.log`, which the tool returns to the agent.
+
+The unit has `restartIfChanged = false`, so deploying saya doesn't kill it
+mid-run. The saya bridge itself may restart during that deploy, which ends
+the waiting tool call; the outcome still reaches the channel.
+
+**Permissions:** `permission_mode="default"` with an allow list (reads, edits
+in its workdir, `jj`, `nix build/eval/flake check/flake show/log`, `rg`,
+`agent-publish`); everything else asks Baughn. `Bash(jj *)` is looser than
+it looks: jj can run programs (`jj util exec`, `jj fix`, a `--config
+ui.editor=…`). The first two are denied, but the allow list doesn't confine an
+injected agent; the `saya-agent` user does. Commits carry Baughn's name
+and email (`JJ_USER`/`JJ_EMAIL`) with a `Co-Authored-By: saya agent` trailer.
+
+**Minecraft-side changes** go through tsugumi-minecraft with `ask_agent`
+(see Bridge tools): saya can't reach `/home/minecraft`, and shouldn't. In the
+other direction, tsugumi-minecraft asks saya. The bridge refuses to
+`ask_agent` the agent whose question started the current turn (it is blocked
+waiting for the reply), so two agents can't deadlock asking each other.
 
 ## The lab identity (tsugumi-lab)
 
@@ -1068,8 +1158,9 @@ tests cover the OS-level boundary, which the design depends on most:
   across a service restart; other users can't open the FIFO.
 - Bridge units start as the right users. Credentials and each bridge's
   `$STATE` (session transcripts included) are not readable by other users.
-- The saya unit sees `/home/svein/nixos` and its workspace, and nothing else
-  under `/home/svein`.
+- The saya unit runs as `saya-agent` (not in `wheel`, `NoNewPrivileges`),
+  sees only its own home under `/home`, and an empty `/run/user`; `sudo`
+  fails. *Done* (`agent-channel-vm`).
 - The watchdog fires on a down world, a stale snapshot, a stuck save lease and
   a rollback journal, resolves when they clear, and retries a failed post
   (`minecraft-watch-vm`, webhook pointed at a local stub). *Done.*
@@ -1140,7 +1231,7 @@ Changes to existing config:
 - Servers move from tmux to `minecraft@` units (Server lifecycle). *Done
   2026-09-25 for erisia; `minecraft-shutdown.nix` removed.*
 - A sudo rule for `mclab` on `minecraft-storage`.
-- saya: a jj workspace at `/home/svein/nixos-agent`.
+- saya: the `saya-agent` user, its clone and outbox (`machines/saya/agents.nix`). *Done.*
 
 ## Open questions
 
@@ -1154,16 +1245,8 @@ Changes to existing config:
 
 ## Future plans
 
-- Deploys (and pushes) from the saya agent. Deploying needs root on saya and
-  ssh to tsugumi, which the sandbox withholds. One shape: a root
-  `agent-deploy` unit that deploys the agent workspace's current commit,
-  startable by `svein` via polkit (works under `NoNewPrivileges`), behind an
-  `ask` rule so every deploy needs Baughn's ✅. After that ✅ the agent
-  effectively has root on both machines.
 - A knowledge-base (wiki) agent, seeded with the machine-config repository,
   so questions about the overall system have one home.
-- A way for agents to *request* harness changes (bridge code, permissions,
-  Nix config), routed to Baughn or the saya agent.
 - The watchdog grows into a general dashboard system.
 - Lab access without ssh: host-side DNAT from offset ports (e.g. 35565 →
   lab 25565) that the server can't see, plus a punch group.

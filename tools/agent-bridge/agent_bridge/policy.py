@@ -49,6 +49,7 @@ class Incoming:
     role_mentions: frozenset[str] = frozenset()
     reply_to_author: str | None = None
     attachments: tuple[Attachment, ...] = field(default_factory=tuple)
+    reply_to_id: str | None = None
 
 
 class Route(enum.Enum):

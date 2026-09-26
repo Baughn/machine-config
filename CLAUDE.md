@@ -103,6 +103,7 @@ machines/
   saya/default.nix
   saya/hardware-configuration.nix
   saya/<feature>.nix       # ganbot, game-watcher, steam, restic
+  saya/agents.nix          # the saya agent-channel identity (user in agent-user.nix, prompt in agents/)
   saya-installer/default.nix
   tsugumi/default.nix
   tsugumi/hardware-configuration.nix

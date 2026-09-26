@@ -11,6 +11,8 @@
     ./stationeers.nix
     ./steam.nix
     ./restic.nix
+    ./agents.nix
+    ./agent-ship.nix
   ];
 
   # Boot

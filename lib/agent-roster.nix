@@ -23,7 +23,7 @@
     };
     saya = {
       discordId = "1553406970164281525"; # Saya
-      description = "Baughn's agent on saya; edits machine-config; acts only for Baughn.";
+      description = "Runs as `saya-agent` on saya; edits machine-config; acts only for Baughn.";
     };
   };
 }
