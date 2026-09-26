@@ -498,12 +498,12 @@ tmux was doing a supervisor's job, badly. Each world is now a systemd
 **system** unit that runs as `minecraft`:
 
 ```
-minecraft@<world>.socket    ListenFIFO=/run/minecraft/%i.stdin (minecraft, 0600), BindsTo the service
+minecraft@<world>.socket    ListenFIFO=/run/minecraft/%i.stdin (minecraft, 0600), PartOf the service
 minecraft@<world>.service
   User=minecraft, WorkingDirectory=/home/minecraft/%i
   ExecStartPre=minecraft-start-guard
   ExecStart=/home/minecraft/%i/update-and-start.sh
-  ExecStop=/home/minecraft/%i/control.sh stop -t 10
+  ExecStop=-minecraft-stop %i         # control.sh stop -t 10, only if $MAINPID is set
   Restart=always, backing off 5 s → 5 min; no start limit
   TimeoutStopSec=7min                  # control stop may wait 300 s before killing
   StandardInput=socket, output to the journal
@@ -557,6 +557,20 @@ leaves the marker, which then had to be deleted before starting any world.
 Pitfall found at cutover: an instance's drop-in carries NixOS's default
 `PATH`, overriding the template's, so instances set `path` too.
 
+Pitfall found at the first daily restart (2026-09-26 06:00): the world
+exited cleanly but stayed down until it was started by hand at 06:45. There
+were two causes, both now covered by the VM test:
+- The socket was `BindsTo` the service. When the world exits on its own, the
+  service goes to "deactivating", and that makes systemd stop the socket. The
+  service `Requires=` the socket, so a stop job came back to the service too,
+  and systemd logged "Service restart not allowed". A crash happened to slip
+  through. The socket is now `PartOf`, which only passes explicit stops and
+  restarts on.
+- ExecStop runs after a self-exit as well, when start.py has already removed
+  `server.pid`, so `control stop` failed. It now runs only while `$MAINPID`
+  is set. The `-` prefix lets a failing `control` fall through to SIGTERM,
+  which start.py also handles gracefully.
+
 Downtime is about one `nix build`. After the last world, delete
 `erisia.service`, `update-and-loop.sh` and `shutdown.py` from the builder.
 
@@ -565,10 +579,11 @@ Downtime is about one `nix build`. After the last world, delete
 Decided 2026-09-25. This is the nixpkgs `services.minecraft-server` pattern.
 systemd holds the FIFO open, so the server never sees EOF. Commands reach the
 real server console even when RCON is down, e.g. during startup. The FIFO
-exists only while the world runs, so writing to it can never start a stopped
+goes away when the world is stopped, so writing to it can't start a stopped
 world (e.g. during a rollback). It is recreated on every restart: the VM test
 showed that `BindsTo`, `PartOf` and `StopPropagatedFrom` all cycle the socket
-on `Restart=`.
+on `Restart=`, and `BindsTo` also blocks restarts after a clean exit (see
+above).
 
 `mc-console <world>` (installed system-wide) is the interactive console. It
 uses `rlwrap` for readline editing and per-world history

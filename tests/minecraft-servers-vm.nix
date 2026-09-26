@@ -2,6 +2,7 @@
 let
   # Stands in for the builder's server/start.py: logs console lines, exits on
   # "stop" (0) or "crash" (1), and keeps running on EOF like a real server.
+  # Like start.py's cleanup, it removes server.pid when it exits.
   fakeStart = pkgs.writeScript "fake-start.py" ''
     #!${pkgs.python3}/bin/python3
     import os, sys, time
@@ -14,10 +15,9 @@ let
         with open("console.log", "a") as log:
             print(line, file=log)
         print(f"console: {line}", flush=True)
-        if line == "stop":
-            sys.exit(0)
-        if line == "crash":
-            sys.exit(1)
+        if line in ("stop", "crash"):
+            Path("server.pid").unlink()
+            sys.exit(0 if line == "stop" else 1)
     while True:
         time.sleep(1)
   '';
@@ -27,10 +27,11 @@ let
     #!/usr/bin/env bash
     exec /home/minecraft/w/server/start.py
   '';
+  # Like the real control, it fails without server.pid.
   fakeControl = pkgs.writeShellScript "control.sh" ''
     cd /home/minecraft/w
     echo "$*" >> control.log
-    pid=$(cat server.pid)
+    pid=$(cat server.pid) || exit 1
     echo stop > /run/minecraft/w.stdin
     while kill -0 "$pid" 2>/dev/null; do sleep 0.2; done
   '';
@@ -70,6 +71,9 @@ pkgs.testers.runNixOSTest {
     def pid():
         return machine.succeed("cat /home/minecraft/w/server.pid").strip()
 
+    def wait_new_pid(before):
+        machine.wait_until_succeeds(f"p=$(cat /home/minecraft/w/server.pid) && [ \"$p\" != {before} ]", timeout=60)
+
     def console_has(line):
         machine.wait_until_succeeds(f"grep -qx {shlex.quote(line)} /home/minecraft/w/console.log", timeout=30)
 
@@ -82,6 +86,8 @@ pkgs.testers.runNixOSTest {
         assert machine.succeed("stat -c '%F %U %a' /run/minecraft/w.stdin").strip() == "fifo minecraft 600"
         unit = machine.succeed("systemctl cat minecraft@w.service")
         assert "X-RestartIfChanged=false" in unit, unit
+        socket = machine.succeed("systemctl cat minecraft@w.socket")
+        assert "X-RestartIfChanged=false" in socket, socket
 
     with subtest("console lines reach the server; other users can't write"):
         machine.succeed(as_user("minecraft", "echo hello > /run/minecraft/w.stdin"))
@@ -101,16 +107,24 @@ pkgs.testers.runNixOSTest {
         before = pid()
         machine.succeed(as_user("minecraft", f"""
             {{ echo crash
-               timeout 60 sh -c 'while [ "$(cat /home/minecraft/w/server.pid)" = {before} ]; do sleep 0.2; done'
+               timeout 60 sh -c 'until p=$(cat /home/minecraft/w/server.pid 2>/dev/null) && [ "$p" != {before} ]; do sleep 0.2; done'
                echo after-restart; }} | timeout 90 mc-console w
         """))
         console_has("after-restart")
         machine.wait_for_unit("minecraft@w.service")
 
+    with subtest("a clean exit (daily restart, /stop) restarts the world"):
+        before = pid()
+        machine.succeed(as_user("minecraft", "echo stop > /run/minecraft/w.stdin"))
+        wait_new_pid(before)
+        machine.wait_for_unit("minecraft@w.service")
+        # ExecStop has nothing to stop after a self-exit, so it mustn't run control.
+        machine.fail("test -e /home/minecraft/w/control.log")
+
     with subtest("polkit: minecraft manages minecraft@ units and nothing else"):
         before = pid()
         machine.succeed(as_user("minecraft", "systemctl restart minecraft@w.service"))
-        machine.wait_until_succeeds(f"test \"$(cat /home/minecraft/w/server.pid)\" != {before}", timeout=60)
+        wait_new_pid(before)
         machine.succeed("grep -qx 'stop -t 10' /home/minecraft/w/control.log")
         machine.fail(as_user("minecraft", "systemctl stop bystander.service"))
         machine.fail(as_user("other", "systemctl stop minecraft@w.service"))

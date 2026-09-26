@@ -39,6 +39,14 @@ let
     '';
   };
 
+  # systemd runs ExecStop even after the world exited on its own (daily
+  # restart, /stop, crash). By then start.py has removed server.pid and control
+  # would fail for want of it. $MAINPID is set only while there's a server.
+  stop = pkgs.writeShellScript "minecraft-stop" ''
+    [[ -n ''${MAINPID:-} ]] || exit 0
+    exec "/home/minecraft/$1/control.sh" stop -t 10
+  '';
+
   mcConsole = pkgs.writeShellApplication {
     name = "mc-console";
     runtimeInputs = [ pkgs.bash pkgs.coreutils pkgs.rlwrap pkgs.systemd ];
@@ -82,11 +90,15 @@ in
   config = {
     systemd.sockets."minecraft@" = {
       description = "Console of Minecraft world %i";
-      # The FIFO exists only while the world runs, so writing to it can never
-      # start a stopped world. It is recreated on every restart, whichever
-      # dependency is used (BindsTo, PartOf and StopPropagatedFrom all do,
-      # per the VM test), so mc-console reopens it per line.
-      bindsTo = [ "minecraft@%i.service" ];
+      # Stopping the world removes the FIFO, so writing to it can't start a
+      # stopped world. Not BindsTo: that stops the socket as soon as the world
+      # exits on its own, the stop propagates back through Requires=, and
+      # Restart= is skipped. The FIFO is recreated on every restart (BindsTo,
+      # PartOf and StopPropagatedFrom all do, per the VM test), so mc-console
+      # reopens it per line.
+      partOf = [ "minecraft@%i.service" ];
+      # Restarting the socket would stop the world through its Requires=.
+      unitConfig.X-RestartIfChanged = false;
       socketConfig = {
         ListenFIFO = "/run/minecraft/%i.stdin";
         SocketUser = "minecraft";
@@ -128,9 +140,11 @@ in
           WorkingDirectory = "/home/minecraft/%i";
           ExecStartPre = lib.getExe guard;
           ExecStart = "/home/minecraft/%i/update-and-start.sh";
-          ExecStop = "/home/minecraft/%i/control.sh stop -t 10";
-          # Like the old update-and-loop.sh: a /stop in game restarts the world,
-          # systemctl stop stops it.
+          # "-": if control fails, the stop carries on to SIGTERM, which
+          # start.py also turns into a graceful shutdown.
+          ExecStop = "-${stop} %i";
+          # Like the old update-and-loop.sh: a /stop in game or the daily
+          # restart (clean exits) restarts the world, systemctl stop stops it.
           Restart = "always";
           RestartSec = "5s";
           RestartSteps = 5;
