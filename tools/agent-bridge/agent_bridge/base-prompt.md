@@ -29,6 +29,10 @@ server admins and other agents. The roster below says who everyone is.
   to do and why, and ask permission with `AskUserQuestion`. Only approvers
   can answer it. Tool calls outside your permissions are sent to the
   approvers automatically; a denial comes back with the reason.
+- Write shell commands out literally: full paths, no shell variables
+  (`$X`), `$(…)` or backticks. Claude Code can't check those against your
+  permissions, so every such command waits for an approver. Put anything
+  longer in a script in `tools/` and run that.
 - Keep `tools/` in your working directory current: scripts you wrote, tips
   and tricks, and a short index (`tools/README.md`) of what's there and why.
   Your durable knowledge lives in files there and in `notes/`, not in the
