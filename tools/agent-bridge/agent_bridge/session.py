@@ -43,6 +43,8 @@ class Handlers(Protocol):
     async def tool_rcon(self, args: dict[str, Any]) -> str: ...
     async def tool_ask_agent(self, args: dict[str, Any]) -> str: ...
     async def tool_ship(self, args: dict[str, Any]) -> str: ...
+    async def tool_schedule(self, args: dict[str, Any]) -> str: ...
+    async def tool_schedules(self, args: dict[str, Any]) -> str: ...
 
 
 class AgentSession(Protocol):
@@ -108,6 +110,27 @@ SHIP_SCHEMA: dict[str, Any] = {
 }
 
 
+SCHEDULE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "note": {"type": "string", "description": "What to do then, at most 2000 characters. It must stand "
+                 "alone: by then you may be in a new session that remembers nothing else."},
+        "in_minutes": {"type": "number", "minimum": 1, "description": "Fire this many minutes from now"},
+        "at": {"type": "string", "description": "Or fire at this ISO 8601 time, e.g. 2026-09-27T18:00Z "
+               "(UTC if it has no offset)"},
+        "every_minutes": {"type": "number", "minimum": 15,
+                          "description": "Repeat at this interval until cancelled; omit for once"},
+    },
+    "required": ["note"],
+}
+
+
+SCHEDULES_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {"cancel": {"type": "string", "description": "A schedule id to cancel, e.g. s3"}},
+}
+
+
 def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = (), ship: bool = False) -> Any:
     from claude_agent_sdk import create_sdk_mcp_server, tool
 
@@ -129,6 +152,12 @@ def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = 
         tool("inbox", "Messages that arrived since your turn started (see `unread` in tool results). "
              "Reading them marks them delivered.", {"type": "object", "properties": {}})
         (wrap(handlers.tool_inbox)),
+        tool("schedule", "Schedule a follow-up turn for yourself: at the given time the bridge starts a "
+             "turn whose input is your note, even if nobody has said anything. Use it to check on "
+             "something later instead of promising to. Schedules survive restarts and new sessions.",
+             SCHEDULE_SCHEMA)(wrap(handlers.tool_schedule)),
+        tool("schedules", "List your schedules, or cancel one.", SCHEDULES_SCHEMA)
+        (wrap(handlers.tool_schedules)),
     ]
     if rcon:
         tools.append(tool("rcon", "Run a Minecraft server console command over RCON and return the "
@@ -149,7 +178,11 @@ def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = 
 MCP_TOOL_TIMEOUT_MS = 65 * 60 * 1000
 RCON_TOOL = "mcp__bridge__rcon"
 BRIDGE_TOOLS = ["mcp__bridge__post", "mcp__bridge__history", "mcp__bridge__inbox", RCON_TOOL,
-                "mcp__bridge__ask_agent", "mcp__bridge__ship"]
+                "mcp__bridge__ask_agent", "mcp__bridge__ship", "mcp__bridge__schedule",
+                "mcp__bridge__schedules"]
+# The CLI's own schedulers and watchers would start the agent between turns,
+# where nothing reads its output (see SdkSession.drain); the schedule tool replaces them.
+CLI_SCHEDULERS = ["CronCreate", "CronDelete", "CronList", "ScheduleWakeup", "RemoteTrigger", "Monitor"]
 
 
 def options_kwargs(*, workdir: Path, state: Path, cli_path: str | None, model: str | None,
@@ -171,7 +204,7 @@ def options_kwargs(*, workdir: Path, state: Path, cli_path: str | None, model: s
         # In auto mode rcon is left to the classifier, like Bash; see Bridge.tool_rcon.
         allowed_tools=[*(t for t in BRIDGE_TOOLS if not (permission_mode == "auto" and t == RCON_TOOL)),
                        *allow],
-        disallowed_tools=list(deny),
+        disallowed_tools=[*deny, *CLI_SCHEDULERS],
         env={"CLAUDE_CODE_OAUTH_TOKEN": token, "CLAUDE_CONFIG_DIR": str(state / "claude"),
              # ask_agent holds its tool call open for up to an hour.
              "MCP_TOOL_TIMEOUT": str(MCP_TOOL_TIMEOUT_MS),

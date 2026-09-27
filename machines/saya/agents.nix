@@ -65,6 +65,7 @@ in
         "Read"
         "Grep"
         "Glob"
+        "WebSearch"
         "Edit(/${agent.workdir}/**)"
         "Write(/${agent.workdir}/**)"
         "Bash(jj *)"

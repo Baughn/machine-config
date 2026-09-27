@@ -1,6 +1,6 @@
 # Agent channel: Claude Code agents as Discord members
 
-*Status: design 2026-09-24, revised 2026-09-25; updated 2026-09-26 as the
+*Status: design 2026-09-24, revised 2026-09-25; updated 2026-09-27 as the
 pieces landed. Implemented: the server lifecycle (deployed), the snapshot
 watchdog (deployed), and the bridge with the tsugumi-minecraft identity
 (deployed 2026-09-26: observer mode in the test channel briefly, then `auto`
@@ -162,7 +162,7 @@ options = ClaudeAgentOptions(
     mcp_servers={"bridge": bridge_server},
     permission_mode=instance.permission_mode,  # "auto" on tsugumi, "default" on saya
     allowed_tools=["mcp__bridge__*", *instance.allow],
-    disallowed_tools=instance.deny,
+    disallowed_tools=[*instance.deny, *CLI_SCHEDULERS],  # see Schedules
     # instance.ask becomes "ask" permission rules; see Approvals
     can_use_tool=approvals.decide,
     hooks={"PreToolUse": [HookMatcher(hooks=[status.on_tool])],
@@ -218,6 +218,26 @@ sessions are deliberately short-lived:
 - **Backlog cap.** Context-only messages queued between turns are capped at
   the newest 50; the turn prompt says how many were dropped, and the
   `history` tool has them.
+
+**Schedules.** An agent runs only when a turn starts, so "after the restart
+I'll check…" never happened unless someone poked it. The `schedule` tool
+(`schedule.py`) takes a self-contained note and `in_minutes` or `at` (ISO
+8601, UTC by default), optionally `every_minutes` (at least 15); `schedules`
+lists them or cancels one. They live in `$STATE/schedules.json`, so they
+survive restarts, `!reset` and rollovers, and the tools work during the
+handoff turn. When one is due, the bridge queues it as a trigger (`[schedule
+s3] your own follow-up …`), so pause, the circuit breaker and the turn lock
+apply as for a message; the status message says "working for its schedule
+s3" and replies to nothing. One-shots go once fired; a repeat that was due
+several times while the bridge was down or paused fires once and stays on its
+grid. Limits: 20 schedules, 30 days ahead, notes up to 2000 characters.
+`!status <id> schedules` shows them. The CLI's own schedulers and watchers
+(`CronCreate`, `ScheduleWakeup`, `Monitor`, …) are disallowed: they would
+start the agent between turns, where nothing reads its output.
+
+**Web search.** Claude Code's `WebSearch` (run on Anthropic's side) is in
+every identity's `allow` list; `WebFetch` is left to the permission mode.
+The base prompt treats both as data, like text from Minecraft.
 
 **Interrupts:** `!stop <id>`, or a 🛑 reaction from an approver on any message
 from that agent, calls `client.interrupt()` and fails any pending approval
@@ -1026,6 +1046,7 @@ tools/agent-bridge/
     config.py        # TOML config, ownerOnly + workdir-settings validation
     policy.py        # PURE: route(message, roles, state) -> Trigger|Context|Ignore
     limits.py        # PURE: rate limiter + bot-streak breaker, injected clock
+    schedule.py      # the agent's schedules: validation, persistence, what's due
     approval.py      # PURE: approval + AskUserQuestion state machine
     render.py        # PURE: post{} / questions -> Discord message(s), validation errors
     filter.py        # PURE: outbound secret filter

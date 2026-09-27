@@ -22,6 +22,7 @@ from .policy import (Attachment, Author, Command, Incoming, Kind, Route, command
 from .prompt import HANDOFF_FILE, handoff_prompt, new_session_preamble, turn_prompt
 from .render import (File, Outgoing, PostError, Roots, Status, answer_footer, approval_request, context_line,
                      is_status, question_text, render_post, settled, summarize_tool)
+from .schedule import Schedule, ScheduleError, Schedules, stamp
 from .session import AgentSession, Permission, ToolError, TurnResult
 
 log = logging.getLogger(__name__)
@@ -70,6 +71,7 @@ class Entry:
     message: Incoming
     trigger: bool
     line: str
+    scheduled: bool = False  # a schedule firing, not a Discord message
 
 
 class Bridge:
@@ -101,6 +103,7 @@ class Bridge:
         self.fresh = True  # the next turn is the session's first
         self.handoff = False
         self.retry_at = 0.0
+        self.schedules = Schedules(config.state / "schedules.json")
 
     # --- lifecycle ---------------------------------------------------------
 
@@ -149,8 +152,9 @@ class Bridge:
     async def run(self) -> None:
         while True:
             with contextlib.suppress(TimeoutError):
-                await asyncio.wait_for(self.wake.wait(), IDLE_CHECK)
+                await asyncio.wait_for(self.wake.wait(), self.sleep_time())
             self.wake.clear()
+            self.fire_schedules()
             try:
                 await self.maybe_rollover()
             except Exception:
@@ -163,6 +167,31 @@ class Bridge:
                     # queued; the next trigger retries rather than spinning here.
                     log.exception("turn failed outside the session")
                     break
+
+    def sleep_time(self) -> float:
+        due = self.schedules.next_due()
+        if due is None or self.paused or self.breaker.tripped:
+            return IDLE_CHECK
+        return min(IDLE_CHECK, max(0.0, due - self.clock()))
+
+    def fire_schedules(self) -> None:
+        """Queue due schedules as triggers. Paused, they wait; resuming fires them."""
+        if self.paused or self.breaker.tripped:
+            return
+        for schedule in self.schedules.pop_due(self.clock()):
+            log.info("schedule %s is due", schedule.id)
+            self.buffer.append(self.schedule_entry(schedule))
+            self.wake.set()
+
+    def schedule_entry(self, schedule: Schedule) -> Entry:
+        me = self.config.me
+        message = Incoming(schedule.id, self.config.channel_id, None,
+                           Author(me.discord_id, self.config.id, Kind.SELF, "agent"), schedule.note)
+        repeat = (f", repeating every {schedule.every / 60:g} min (cancel it with the schedules tool "
+                  "when it has served its purpose)" if schedule.every is not None else "")
+        line = (f"[schedule {schedule.id}] your own follow-up, set {stamp(schedule.created)}{repeat}, "
+                f"may ask you to act: {schedule.note}")
+        return Entry(message, True, line, scheduled=True)
 
     # --- inbound -----------------------------------------------------------
 
@@ -281,7 +310,12 @@ class Bridge:
                     await self.new_session()
                 await self.say(f"🔄 {self.config.id}: new session, started by {who}.", message.id)
             case "status":
-                if command.argument == "log":
+                if command.argument == "schedules":
+                    body = self.schedules.listing(self.clock())
+                    await self.chat.send(Outgoing(
+                        f"⏰ {self.config.id}: {len(self.schedules.items)} schedules (now {stamp(self.clock())})",
+                        (File("schedules.txt", body.encode()),), message.id))
+                elif command.argument == "log":
                     body = "\n".join(self.last_log) or "(no turn yet)"
                     await self.chat.send(Outgoing(f"📜 {self.config.id}: last turn's tool log",
                                                   (File("turn.log", body.encode()),), message.id))
@@ -304,7 +338,8 @@ class Bridge:
             if self.config.idle_reset > 0:
                 session += f" (rolls over after {self.config.idle_reset / 3600:g} h)"
         return (f"ℹ {self.config.id}: {state}; {queued} queued, {len(self.buffer) + self.omitted} unread, "
-                f"{len(self.pending)} pending approvals, {self.turns} turns since start, "
+                f"{len(self.pending)} pending approvals, {len(self.schedules.items)} schedules, "
+                f"{self.turns} turns since start, "
                 f"agent streak {self.streak.count}, {session}")
 
     async def say(self, text: str, reply_to: str | None = None) -> None:
@@ -337,13 +372,16 @@ class Bridge:
                 return
             omitted = self.omitted
             entries, lines = self.take()
-            trigger = [e for e in entries if e.trigger][-1].message
+            last = [e for e in entries if e.trigger][-1]
+            trigger = last.message
             self.asked_by = {e.message.author.id for e in entries
                              if e.trigger and e.message.author.kind is Kind.AGENT}
-            status = Status(self.config.id, trigger.author.name, now)
+            requester = f"its schedule {trigger.id}" if last.scheduled else trigger.author.name
+            status = Status(self.config.id, requester, now)
             self.status, self.stopping = status, False
             try:
-                self.status_id = await self.chat.send(Outgoing(status.render(now), reply_to=trigger.id))
+                reply_to = None if last.scheduled else trigger.id
+                self.status_id = await self.chat.send(Outgoing(status.render(now), reply_to=reply_to))
             except Exception:
                 self.status, self.buffer = None, entries + self.buffer
                 self.omitted += omitted
@@ -674,6 +712,28 @@ class Bridge:
             log_text = "(no log)"
         self.note(f"ship {commit[:12]}: {result.strip()}")
         return f"{unit}: {result.strip()}\n{log_text}{self.unread()}"
+
+    async def tool_schedule(self, args: dict[str, Any]) -> str:
+        # Allowed during the handoff: that is when follow-ups get written down.
+        now = self.clock()
+        try:
+            schedule = self.schedules.add(args, now)
+        except ScheduleError as error:
+            raise ToolError(f"{error}{self.unread()}") from error
+        self.note(f"schedule {schedule.describe(now)}")
+        return f"scheduled {schedule.describe(now)}\nnow: {stamp(now)}{self.unread()}"
+
+    async def tool_schedules(self, args: dict[str, Any]) -> str:
+        now = self.clock()
+        text = ""
+        if args.get("cancel"):
+            try:
+                cancelled = self.schedules.cancel(str(args["cancel"]))
+            except ScheduleError as error:
+                raise ToolError(f"{error}{self.unread()}") from error
+            self.note(f"cancelled schedule {cancelled.id}")
+            text = f"cancelled {cancelled.id}\n"
+        return f"{text}now: {stamp(now)}\n{self.schedules.listing(now)}{self.unread()}"
 
     async def tool_inbox(self, args: dict[str, Any]) -> str:
         self.refuse_during_handoff()

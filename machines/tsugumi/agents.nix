@@ -40,6 +40,7 @@
         "Read"
         "Grep"
         "Glob"
+        "WebSearch"
         # Its own workdir.
         "Edit(//home/minecraft/agent/**)"
         "Write(//home/minecraft/agent/**)"
@@ -94,6 +95,7 @@
         "Read"
         "Grep"
         "Glob"
+        "WebSearch"
         "Edit(//var/lib/mclab/agent/**)"
         "Write(//var/lib/mclab/agent/**)"
         "Edit(//srv/minecraft-lab/**)"

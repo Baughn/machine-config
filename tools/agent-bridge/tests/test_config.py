@@ -7,7 +7,7 @@ import pytest
 
 from agent_bridge.config import ConfigError, check_workdir_settings, load
 from agent_bridge.prompt import system_prompt
-from agent_bridge.session import BRIDGE_TOOLS, options_kwargs
+from agent_bridge.session import BRIDGE_TOOLS, CLI_SCHEDULERS, options_kwargs
 
 from conftest import config_data, make_config
 
@@ -92,7 +92,7 @@ def test_options_are_locked_down() -> None:
     assert options["env"]["CLAUDE_CONFIG_DIR"] == "/var/lib/x/claude"  # type: ignore[index]
     assert options["cwd"] == "/srv/agent"
     assert options["allowed_tools"] == [*BRIDGE_TOOLS, "Read"]
-    assert options["disallowed_tools"] == ["Bash(sudo *)"]
+    assert options["disallowed_tools"] == ["Bash(sudo *)", *CLI_SCHEDULERS]
     assert "settings" not in options
     with pytest.raises(ValueError):
         kwargs(permission_mode="bypassPermissions")

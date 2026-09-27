@@ -64,7 +64,9 @@ def handoff_prompt(idle_hours: float, now: str) -> str:
         f"2. Rewrite `{HANDOFF_FILE}` from scratch, in under 60 lines: work in flight, what you "
         "promised whom, what to check and when (absolute dates and times), decisions people made "
         "that aren't recorded elsewhere, and pointers into your other notes. Leave out whatever "
-        "is finished and already recorded.\n\n"
+        "is finished and already recorded.\n"
+        "3. If something must be checked at a particular time, make sure a `schedule` covers it; "
+        "schedules carry over to the new session, and the schedule tools still work now.\n\n"
         "Don't start any new investigation. Posting, inbox, rcon and approvals are switched off "
         "for this turn; messages that arrive meanwhile go to the new session."
     )
