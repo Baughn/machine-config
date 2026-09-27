@@ -203,11 +203,13 @@
           root = ./.;
           fileset = pkgs.lib.fileset.unions [
             ./machines/saya/agent-ship.py
+            ./modules/discord-notify.py
             ./machines/tsugumi/minecraft-storage.py
             ./machines/tsugumi/minecraft-snapshot.py
             ./machines/tsugumi/minecraft-watch.py
             ./machines/tsugumi/starlink-prefixes.py
             ./tests/test_agent_ship.py
+            ./tests/test_discord_notify.py
             ./tests/test_minecraft_storage.py
             ./tests/test_minecraft_snapshot.py
             ./tests/test_minecraft_watch.py

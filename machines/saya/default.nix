@@ -37,6 +37,7 @@
   me.mdns.publish = true;
   me.security.enable = true;
   me.firejail.enable = true;
+  me.discordNotify.enable = true;
 
   # WireGuard secret (machine-specific)
   age.secrets.wireguard-saya.file = ../../secrets/wireguard-saya.age;

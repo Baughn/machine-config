@@ -7,6 +7,7 @@
     ./cachy-kernel.nix
     ./cli-tools.nix
     ./cloudflare-dyndns.nix
+    ./discord-notify.nix
     ./dns.nix
     ./firejail.nix
     ./home-manager.nix

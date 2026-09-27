@@ -80,6 +80,7 @@ in
   ## Networking
   networking.hostName = "tsugumi";
   me.security.enable = true;
+  me.discordNotify.enable = true;
 
   me.cloudflareDyndns = {
     enable = true;

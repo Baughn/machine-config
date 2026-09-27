@@ -118,6 +118,7 @@ modules/
   cachy-kernel.nix         # CachyOS kernel + tuning, heavily stripped config
   cli-tools.nix
   cloudflare-dyndns.nix
+  discord-notify.{nix,py}  # discord-notify: services post to the agent channel via the watchdog webhook
   dns.nix
   firejail.nix
   home-manager.nix

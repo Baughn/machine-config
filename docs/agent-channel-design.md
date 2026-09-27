@@ -765,6 +765,12 @@ posts a test message. The script sits beside `minecraft-storage.py` and
 mirrors its helpers; checks are a list of (name, function → {key: ok/failing
 + detail}), so it can grow into a general dashboard later.
 
+Other system services post through the same webhook with `discord-notify`
+(`modules/discord-notify.{nix,py}`, `me.discordNotify.enable`, on saya and
+tsugumi). A unit gets access with `SupplementaryGroups = [ "discord-notify" ]`,
+which lets it read the webhook URL. Its messages are therefore context, never triggers.
+No agent's user may join that group.
+
 ## The saya identity
 
 The saya agent changes the system config: for Baughn, remotely, and for the
