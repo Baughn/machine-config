@@ -10,6 +10,7 @@
     ./nix-deploy.nix
     ./stationeers.nix
     ./steam.nix
+    ./mcupdater.nix
     ./restic.nix
     ./agents.nix
     ./agent-ship.nix
