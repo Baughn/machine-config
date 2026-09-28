@@ -119,10 +119,18 @@ in
     };
     users.groups.${cfg.user} = { };
 
+    # Handover from the lab to production (mods, configs, instructions): the
+    # lab writes, tsugumi-minecraft reads. setgid keeps new entries in the
+    # group; files copied with mode 0600 still need chmod g+r.
+    users.groups.lab-handover.members = [ "minecraft" ];
+
     environment.systemPackages = [ client ];
     system.build.minecraft-lab-client = client;
 
-    systemd.tmpfiles.rules = [ "d /srv/minecraft-lab 0755 root root -" ];
+    systemd.tmpfiles.rules = [
+      "d /srv/minecraft-lab 0755 root root -"
+      "d /srv/lab-handover 2750 ${cfg.user} lab-handover -"
+    ];
 
     systemd.sockets.minecraft-lab-control = {
       description = "Minecraft lab helper";

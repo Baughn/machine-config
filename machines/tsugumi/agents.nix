@@ -25,7 +25,7 @@
       tokenFile = config.age.secrets.agent-tsugumi-minecraft-discord.path;
       promptFile = ./agents/tsugumi-minecraft.md;
       # The worlds sit beside the workdir; reading them shouldn't need an approver.
-      extraDirs = [ "/home/minecraft" ];
+      extraDirs = [ "/home/minecraft" "/srv/lab-handover" ];
       rcon.root = "/home/minecraft";
       # NixOS-level changes (units, scripts, its own permissions) go through saya.
       askAgents = [ "saya" "tsugumi-lab" ];
@@ -85,7 +85,7 @@
       channel = "main";
       tokenFile = config.age.secrets.agent-tsugumi-lab-discord.path;
       promptFile = ./agents/tsugumi-lab.md;
-      extraDirs = [ "/srv/minecraft-lab" ];
+      extraDirs = [ "/srv/minecraft-lab" "/srv/lab-handover" ];
       rcon.root = "/srv/minecraft-lab";
       askAgents = [ "tsugumi-minecraft" "saya" ];
       path = [ config.system.build.minecraft-lab-client ];
@@ -100,6 +100,8 @@
         "Write(//var/lib/mclab/agent/**)"
         "Edit(//srv/minecraft-lab/**)"
         "Write(//srv/minecraft-lab/**)"
+        "Edit(//srv/lab-handover/**)"
+        "Write(//srv/lab-handover/**)"
         "Bash(minecraft-lab list)"
         "Bash(systemctl status *)"
         "Bash(systemctl show *)"
