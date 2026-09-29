@@ -20,10 +20,13 @@
   };
   services.prometheus.scrapeConfigs = [
     {
+      # Prometheus Integration mod. 15 s so tick spikes are visible to
+      # tsugumi-minecraft's tick debugging, not just a 1-minute average.
       job_name = "erisia";
+      scrape_interval = "15s";
       static_configs = [
         {
-          targets = [ "localhost:1224" ];
+          targets = [ "127.0.0.1:1224" ];
         }
       ];
     }

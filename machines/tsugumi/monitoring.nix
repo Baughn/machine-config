@@ -11,7 +11,7 @@ in
     enable = true;
     port = prometheusPort;
     listenAddress = "127.0.0.1";
-    retentionTime = "15d";
+    retentionTime = "30d";
     scrapeConfigs = [
       {
         job_name = "prometheus";
