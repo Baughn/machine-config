@@ -11,8 +11,13 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from .config import BASE_EFFORT
+from .images import oversized_read
 
 log = logging.getLogger(__name__)
+
+# The SDK drops its connection to the CLI on any stdout line over this, and
+# its default (1 MiB) is smaller than a tool result holding one large image.
+MAX_BUFFER_SIZE = 32 * 1024 * 1024
 
 # Session-ending reasons that mean the turn was interrupted.
 INTERRUPTED = ("aborted_streaming", "aborted_tools")
@@ -302,8 +307,12 @@ class SdkSession:
             return PermissionResultDeny(message=result.message)
 
         async def pre(data: Any, tool_use_id: str | None, context: Any) -> Any:
-            await handlers.tool_started(data["tool_name"], data.get("tool_input") or {},
-                                        subagent=bool(data.get("agent_id")))
+            tool_input = data.get("tool_input") or {}
+            await handlers.tool_started(data["tool_name"], tool_input, subagent=bool(data.get("agent_id")))
+            refused = oversized_read(tool_input, data.get("cwd")) if data["tool_name"] == "Read" else None
+            if refused:
+                return {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
+                                               "permissionDecisionReason": refused}}
             return {}
 
         async def post(data: Any, tool_use_id: str | None, context: Any) -> Any:
@@ -319,6 +328,7 @@ class SdkSession:
                    "PostToolUse": [HookMatcher(hooks=[post])],
                    "PostToolUseFailure": [HookMatcher(hooks=[post])]},
             stderr=lambda line: log.info("claude: %s", line.rstrip()),
+            max_buffer_size=MAX_BUFFER_SIZE,
         )
         self.client = ClaudeSDKClient(options)
         await self.client.connect()

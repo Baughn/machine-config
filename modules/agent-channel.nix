@@ -226,8 +226,9 @@ in
       wantedBy = [ "multi-user.target" ];
       wants = [ "network-online.target" ];
       after = [ "network-online.target" ];
-      # The agent gets the system's tools, as in an interactive shell.
-      path = [ "/run/current-system/sw" ] ++ i.path;
+      # The agent gets the system's tools, as in an interactive shell, and
+      # ImageMagick to shrink images the bridge won't let it Read.
+      path = [ "/run/current-system/sw" pkgs.imagemagick ] ++ i.path;
       environment = {
         AGENT_BRIDGE_CONFIG = "${configFile name i}";
         SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
