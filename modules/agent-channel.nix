@@ -5,6 +5,9 @@ let
   cfg = config.me.agentChannel;
   roster = import ../lib/agent-roster.nix;
   bridge = pkgs.callPackage ../tools/agent-bridge { };
+  # Every agent can paint: the easel CLI and its skill come with each instance.
+  easel = pkgs.callPackage ../tools/easel { };
+  skillsOf = i: { easel = ../tools/easel/skill; } // i.skills;
   toml = pkgs.formats.toml { };
   roles = lib.types.enum [ "owner" "admin" "agent" ];
 
@@ -164,7 +167,8 @@ let
 
   configFile = name: i: toml.generate "agent-bridge-${name}.toml" (lib.filterAttrs (_: v: v != null) {
     id = name;
-    inherit (i) workdir triggers approvers allow ask deny model fake limits;
+    inherit (i) workdir triggers approvers ask deny model fake limits;
+    allow = i.allow ++ [ "Bash(easel *)" ];
     channel_id = roster.channels.${i.channel};
     owner_only = i.ownerOnly;
     permission_mode = i.permissionMode;
@@ -176,7 +180,7 @@ let
     rcon_root = i.rcon.root;
     rcon_read_only = i.rcon.readOnly;
     rcon_ask = i.rcon.ask;
-    skills = lib.attrNames i.skills;
+    skills = lib.attrNames (skillsOf i);
     ask_agents = i.askAgents;
     ship = i.ship;
     inherit (i) advisor;
@@ -226,9 +230,9 @@ in
       wantedBy = [ "multi-user.target" ];
       wants = [ "network-online.target" ];
       after = [ "network-online.target" ];
-      # The agent gets the system's tools, as in an interactive shell, and
-      # ImageMagick to shrink images the bridge won't let it Read.
-      path = [ "/run/current-system/sw" pkgs.imagemagick ] ++ i.path;
+      # The agent gets the system's tools, as in an interactive shell,
+      # ImageMagick to shrink images the bridge won't let it Read, and easel.
+      path = [ "/run/current-system/sw" pkgs.imagemagick easel ] ++ i.path;
       environment = {
         AGENT_BRIDGE_CONFIG = "${configFile name i}";
         SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
@@ -253,12 +257,12 @@ in
     }) cfg.instances;
 
     systemd.tmpfiles.rules = lib.concatLists (lib.mapAttrsToList (name: i:
-      [ "d ${i.workdir} 0700 ${i.user} - -" ]
-      ++ lib.optionals (i.skills != { }) [
+      [
+        "d ${i.workdir} 0700 ${i.user} - -"
         "d ${i.workdir}/.claude 0700 ${i.user} - -"
         "d ${i.workdir}/.claude/skills 0700 ${i.user} - -"
       ]
-      ++ lib.mapAttrsToList (skill: src: "L+ ${i.workdir}/.claude/skills/${skill} - - - - ${src}") i.skills
+      ++ lib.mapAttrsToList (skill: src: "L+ ${i.workdir}/.claude/skills/${skill} - - - - ${src}") (skillsOf i)
     ) cfg.instances);
   };
 }

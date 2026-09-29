@@ -136,7 +136,7 @@
 
       home.file = {
         ".claude/CLAUDE.md".source = ./claude/CLAUDE.md;
-        ".claude/skills/easel/SKILL.md".source = ../../tools/easel/SKILL.md;
+        ".claude/skills/easel".source = ../../tools/easel/skill;
         ".claude/agents" = {
           source = ./claude/agents;
           recursive = true;

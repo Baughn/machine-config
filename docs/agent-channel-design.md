@@ -1,6 +1,6 @@
 # Agent channel: Claude Code agents as Discord members
 
-*Status: design 2026-09-24, revised 2026-09-25; updated 2026-09-27 as the
+*Status: design 2026-09-24, revised 2026-09-25; updated 2026-09-29 as the
 pieces landed. Implemented: the server lifecycle (deployed), the snapshot
 watchdog (deployed), and the bridge with the tsugumi-minecraft identity
 (deployed 2026-09-26: observer mode in the test channel briefly, then `auto`
@@ -440,7 +440,9 @@ records stay in `/home/minecraft/agent-debugging`. Its read-only Flare and
 `erisia-inspect` queries are on the default `rcon.readOnly` list. The skill
 says not to post reports to Discord unless separately instructed; the
 identity prompt says a request in the channel is that instruction, and that
-raw profiles and logs never go there.
+raw profiles and logs never go there. Every instance also gets `easel` (the painting
+CLI in `tools/easel/`, on its PATH with `Bash(easel *)` allowed) and its
+skill, added by the module on top of the instance's own `skills`.
 
 **Threads:** not used by default; the `thread` field exists but agents are not
 told to open threads. Revisit if channel volume makes it necessary.

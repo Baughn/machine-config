@@ -145,8 +145,8 @@ lib/
 tools/                     # Rust crates: aniwatch, easel, game-watcher, irc-tool,
                            # magic-reboot, nix-build-balancer, nix-deploy, rolebot, victron-monitor;
                            # plus agent-bridge (Python)
-  easel/                   # painting CLI for Claude; SKILL.md is installed to
-                           # ~/.claude/skills/easel on every machine via home-manager
+  easel/                   # painting CLI for Claude; skill/ is installed to ~/.claude/skills/easel
+                           # via home-manager, and given to every agent-channel agent
 tests/
   *-vm.nix                 # NixOS VM tests (agent-channel, minecraft-*, punch, saya-installer, ...)
   test_*.py                # unit tests for the Python helper scripts

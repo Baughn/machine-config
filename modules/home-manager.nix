@@ -76,7 +76,7 @@ in
         - There may be project-specific documentation in docs/. Use it when it exists, though bear in mind it may be outdated. Check the 'last updated' tag at the top.
         - The user uses Jujutsu. Prioritize jj commands over git.
       '';
-      ".claude/skills/easel/SKILL.md".source = ../tools/easel/SKILL.md;
+      ".claude/skills/easel".source = ../tools/easel/skill;
     };
 
     programs.home-manager.enable = true;

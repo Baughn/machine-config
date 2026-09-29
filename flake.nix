@@ -195,7 +195,7 @@
       minecraft-lab-vm = import ./tests/minecraft-lab-vm.nix { inherit pkgs; };
       agent-channel-vm = import ./tests/agent-channel-vm.nix {
         # The bridge's CLI, claude-code, is unfree.
-        pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
+        pkgs = import nixpkgs { inherit system; config.allowUnfree = true; overlays = [ craneOverlay ]; };
       };
       security-scripts = pkgs.runCommand "security-script-tests" {
         nativeBuildInputs = [ (pkgs.python3.withPackages (p: [ p.javaproperties ])) pkgs.git ];
