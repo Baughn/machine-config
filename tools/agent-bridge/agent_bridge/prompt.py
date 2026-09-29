@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from importlib import resources
 
-from .config import Config
+from .config import BASE_EFFORT, Config
 
 
 def base_prompt() -> str:
@@ -30,9 +30,33 @@ def roster_block(config: Config) -> str:
     return "\n".join(lines)
 
 
+def working_block(config: Config) -> str:
+    """How to use subagents, the advisor and the effort tool, as far as this identity has them."""
+    lines = [
+        "## Working on bigger tasks",
+        "",
+        "- Subagents (the Agent tool) are for fanning out: broad searches, reading many files, "
+        "independent pieces of work. They report back to you and you do the posting; their "
+        "prompt tells them not to post.",
+    ]
+    if config.advisor:
+        lines.append(
+            "- The `advisor` tool shows your whole context to a second model for a different "
+            "perspective. Call it before committing to a plan for a larger task, when you're "
+            "stuck or going in circles, and before something hard to undo.")
+    if len(config.effort_levels) > 1:
+        lines.append(
+            f"- Work at {BASE_EFFORT} effort; every turn starts there. Call `effort` with "
+            f"{config.effort_levels[1]} only (a) when asked to plan ahead, or (b) when constructing "
+            "the plan for a larger project: one that spans several components, many files, or "
+            "more than a day's work, or whose mistakes are costly to undo. A single small mod or "
+            "config change is not that. The level and your reason are shown in the channel.")
+    return "\n".join(lines)
+
+
 def system_prompt(config: Config) -> str:
     base = base_prompt().replace("{id}", config.id)
-    parts = [base, roster_block(config)]
+    parts = [base, roster_block(config), working_block(config)]
     if config.prompt.strip():
         parts.append(config.prompt.strip())
     return "\n\n".join(parts)

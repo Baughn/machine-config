@@ -132,6 +132,7 @@ class FakeSession:
         self.interrupted = asyncio.Event()
         self.disconnects = 0
         self.fail_resume = False
+        self.efforts: list[str] = []
 
     async def connect(self, resume: str | None) -> None:
         self.connects.append(resume)
@@ -148,6 +149,9 @@ class FakeSession:
 
     async def disconnect(self) -> None:
         self.disconnects += 1
+
+    async def set_effort(self, level: str) -> None:
+        self.efforts.append(level)
 
 
 class Clock:

@@ -10,6 +10,8 @@ from typing import Any
 
 ROLES = ("owner", "admin", "agent")
 MODES = ("default", "auto", "acceptEdits", "plan", "dontAsk")
+EFFORT_LEVELS = ("low", "medium", "high", "xhigh", "max")
+BASE_EFFORT = "medium"  # every turn starts here; the default on Opus 5.5
 
 
 class ConfigError(ValueError):
@@ -93,9 +95,17 @@ class Config:
     skills: tuple[str, ...] = ()  # project skills in <workdir>/.claude/skills
     ask_agents: tuple[str, ...] = ()  # agents the ask_agent tool may ask
     ship: Ship | None = None
+    advisor: str | None = None  # model for the server-side advisor tool
+    max_effort: str = "medium"  # the effort tool may raise effort up to this; medium: no tool
     idle_reset: float = 6 * 3600  # seconds without a turn before a handoff and new session; 0: never
     limits: Limits = field(default_factory=Limits)
     fake: bool = False
+
+    @property
+    def effort_levels(self) -> tuple[str, ...]:
+        """What the effort tool offers: the base level up to max_effort."""
+        base = EFFORT_LEVELS.index(BASE_EFFORT)
+        return EFFORT_LEVELS[base:EFFORT_LEVELS.index(self.max_effort) + 1]
 
     @property
     def me(self) -> Agent:
@@ -165,6 +175,8 @@ def parse(data: dict[str, Any], state: Path) -> Config:
         ship=Ship(str(data["ship"]["unit"]), Path(data["ship"]["repo"]), Path(data["ship"]["logs"]))
         if data.get("ship") else None,
         idle_reset=float(data.get("idle_reset", 6 * 3600)),
+        advisor=data.get("advisor") or None,
+        max_effort=data.get("max_effort", "medium"),
     )
     validate(config)
     return config
@@ -183,6 +195,8 @@ def validate(config: Config) -> None:
     for name in config.ask_agents:
         if name == config.id or not any(a.name == name for a in config.roster.agents):
             raise ConfigError(f"ask_agents: {name} is not another agent in the roster")
+    if config.max_effort not in EFFORT_LEVELS[EFFORT_LEVELS.index(BASE_EFFORT):]:
+        raise ConfigError(f"max_effort must be one of {EFFORT_LEVELS[EFFORT_LEVELS.index(BASE_EFFORT):]}")
     if config.owner_only and (config.triggers != {"owner"} or config.approvers != {"owner"}):
         raise ConfigError("owner_only requires triggers = approvers = [owner]")
     workdir = config.workdir.resolve()

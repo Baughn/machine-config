@@ -49,6 +49,19 @@ let
       deny = lib.mkOption { type = lib.types.listOf lib.types.str; default = [ ]; };
       promptFile = lib.mkOption { type = lib.types.nullOr lib.types.path; default = null; description = "Identity prompt, appended to the base prompt."; };
       model = lib.mkOption { type = lib.types.nullOr lib.types.str; default = null; };
+      advisor = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = "claude-fable-5-1";
+        description = "Model behind Claude Code's server-side advisor tool; null turns it off.";
+      };
+      maxEffort = lib.mkOption {
+        type = lib.types.enum [ "medium" "high" "xhigh" "max" ];
+        default = "high";
+        description = ''
+          Highest level the agent's effort tool may pick. Every turn starts at medium;
+          "medium" here leaves the tool out.
+        '';
+      };
       approvalTimeout = lib.mkOption { type = lib.types.int; default = 900; };
       idleReset = lib.mkOption {
         type = lib.types.int;
@@ -166,6 +179,8 @@ let
     skills = lib.attrNames i.skills;
     ask_agents = i.askAgents;
     ship = i.ship;
+    inherit (i) advisor;
+    max_effort = i.maxEffort;
     roster = rosterToml;
   });
 in

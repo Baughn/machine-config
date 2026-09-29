@@ -131,6 +131,8 @@ class Status:
     last: str = ""
     pending: int = 0
     posts: int = 0
+    effort: str | None = None  # "high (reason)" while raised
+    advisor: int = 0  # advisor consultations
     log: list[str] = field(default_factory=list)
 
     def render(self, now: float, final: str | None = None) -> str:
@@ -141,9 +143,13 @@ class Status:
         if self.last:
             lines.append(f"  last: {self.last}")
         counts = f"  {self.tools} tool call{'s' if self.tools != 1 else ''}"
+        if self.advisor:
+            counts += f" · advisor ×{self.advisor}"
         if self.pending:
             counts += f" · {self.pending} approval{'s' if self.pending != 1 else ''} pending"
         lines.append(counts)
+        if self.effort:
+            lines.append(f"  effort: {self.effort}")
         text = "\n".join(lines)
         return text if len(text) <= MESSAGE_LIMIT else text[:MESSAGE_LIMIT - 1] + "…"
 

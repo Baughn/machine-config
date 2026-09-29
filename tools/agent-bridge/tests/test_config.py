@@ -108,3 +108,28 @@ def test_skills_are_passed_but_sources_stay_project_only() -> None:
 def test_ask_rules_go_in_flag_settings() -> None:
     options = kwargs(ask=("Bash(systemctl restart *)",))
     assert json.loads(str(options["settings"])) == {"permissions": {"ask": ["Bash(systemctl restart *)"]}}
+
+
+def test_advisor_goes_in_flag_settings_with_its_opt_in() -> None:
+    options = kwargs(advisor="claude-fable-5-1", ask=("Bash(x *)",))
+    assert json.loads(str(options["settings"])) == {"permissions": {"ask": ["Bash(x *)"]},
+                                                    "advisorModel": "claude-fable-5-1"}
+    assert options["env"]["CLAUDE_CODE_ENABLE_EXPERIMENTAL_ADVISOR_TOOL"] == "1"  # type: ignore[index]
+    assert "CLAUDE_CODE_ENABLE_EXPERIMENTAL_ADVISOR_TOOL" not in kwargs()["env"]  # type: ignore[operator]
+
+
+def test_subagents_are_told_to_report_back() -> None:
+    prompt = kwargs(identity="saya")["extra_args"]["append-subagent-system-prompt"]  # type: ignore[index]
+    assert "subagent of saya" in prompt and "Don't use" in prompt
+
+
+def test_effort_levels_and_prompt() -> None:
+    assert make_config().effort_levels == ("medium",)
+    config = make_config(max_effort="high", advisor="claude-fable-5-1")
+    assert config.effort_levels == ("medium", "high")
+    prompt = system_prompt(config)
+    assert "Call `effort` with high" in prompt and "`advisor`" in prompt
+    plain = system_prompt(make_config())
+    assert "`effort`" not in plain and "`advisor`" not in plain
+    with pytest.raises(ConfigError):
+        make_config(max_effort="low")

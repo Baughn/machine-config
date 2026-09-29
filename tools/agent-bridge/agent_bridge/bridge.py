@@ -15,7 +15,7 @@ from typing import Any, Protocol
 
 from . import approval, rcon
 from .approval import Cancelled, Pending, Verdict
-from .config import Config
+from .config import BASE_EFFORT, Config
 from .limits import Breaker, Streak
 from .policy import (Attachment, Author, Command, Incoming, Kind, Route, command_applies,
                      may_approve, parse_command, route)
@@ -104,6 +104,7 @@ class Bridge:
         self.handoff = False
         self.retry_at = 0.0
         self.schedules = Schedules(config.state / "schedules.json")
+        self.effort = BASE_EFFORT  # what the CLI runs at now
 
     # --- lifecycle ---------------------------------------------------------
 
@@ -130,6 +131,7 @@ class Bridge:
         await self.connect()
 
     async def connect(self) -> None:
+        self.effort = BASE_EFFORT  # a new CLI process starts at the default
         try:
             await self.session.connect(self.session_id)
         except Exception:
@@ -141,6 +143,7 @@ class Bridge:
             await self.session.disconnect()
         self.last_turn, self.fresh, self.retry_at = None, True, 0.0
         self.save_session(None)
+        self.effort = BASE_EFFORT
         await self.session.connect(None)
 
     def save_session(self, session_id: str | None) -> None:
@@ -327,6 +330,8 @@ class Bridge:
 
     def describe(self) -> str:
         state = "working" if self.status else "idle"
+        if self.status and self.effort != BASE_EFFORT:
+            state += f" at {self.effort} effort"
         if self.paused:
             state += ", paused"
         if self.breaker.tripped:
@@ -396,6 +401,7 @@ class Bridge:
             ticker = asyncio.create_task(self.tick())
             result: TurnResult | None = None
             try:
+                await self.reset_effort()
                 result = await self.session.turn(prompt)
             except Exception as error:
                 log.exception("turn failed")
@@ -457,6 +463,7 @@ class Bridge:
         self.status, self.status_id, self.stopping, self.handoff = status, None, False, True
         stamp = time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime(now))
         try:
+            await self.reset_effort()
             result = await asyncio.wait_for(self.session.turn(handoff_prompt(idle, stamp)), HANDOFF_TIMEOUT)
         except Exception as error:
             log.exception("handoff turn failed")
@@ -488,8 +495,9 @@ class Bridge:
         turns.mkdir(exist_ok=True)
         stamp = time.strftime("%Y%m%dT%H%M%S", time.gmtime(status.started))
         cost = f"{result.cost_usd:.4f}" if result.cost_usd is not None else "?"
+        cache = f", tokens: {result.cache}" if result.cache else ""
         (turns / f"{stamp}.log").write_text(
-            f"for {status.requester}: {final}, session {result.session_id}, cost ${cost}\n"
+            f"for {status.requester}: {final}, session {result.session_id}, cost ${cost}{cache}\n"
             + "\n".join(status.log) + "\n")
         for old in sorted(turns.glob("*.log"))[:-KEEP_TURN_LOGS]:
             old.unlink()
@@ -501,11 +509,44 @@ class Bridge:
 
     # --- session handlers --------------------------------------------------
 
-    async def tool_started(self, name: str, tool_input: dict[str, Any]) -> None:
+    async def tool_started(self, name: str, tool_input: dict[str, Any], subagent: bool = False) -> None:
         if self.status is not None:
             self.status.tools += 1
-            self.status.last = summarize_tool(name, tool_input)
-            self.note(f"→ {name} {json.dumps(tool_input, ensure_ascii=False)[:2000]}")
+            who = "subagent: " if subagent else ""
+            self.status.last = who + summarize_tool(name, tool_input)
+            self.note(f"→ {who}{name} {json.dumps(tool_input, ensure_ascii=False)[:2000]}")
+
+    async def advisor_called(self) -> None:
+        if self.status is not None:
+            self.status.advisor += 1
+            self.status.last = "consulting the advisor"
+            self.note("advisor consulted")
+
+    async def reset_effort(self) -> None:
+        """Each turn starts at the base effort; a raise lasts one turn."""
+        if self.effort != BASE_EFFORT:
+            try:
+                await self.session.set_effort(BASE_EFFORT)
+                self.effort = BASE_EFFORT
+            except Exception as error:
+                log.warning("resetting effort to %s failed: %s", BASE_EFFORT, error)
+
+    async def tool_effort(self, args: dict[str, Any]) -> str:
+        level, reason = str(args.get("level", "")), " ".join(str(args.get("reason", "")).split())
+        if level not in self.config.effort_levels:
+            raise ToolError(f"level must be one of {', '.join(self.config.effort_levels)}{self.unread()}")
+        if not reason:
+            raise ToolError(f"say why, in a few words{self.unread()}")
+        if level != self.effort:
+            try:
+                await self.session.set_effort(level)
+            except Exception as error:
+                raise ToolError(f"the CLI refused the effort change: {error}{self.unread()}") from error
+            self.effort = level
+        if self.status is not None:
+            self.status.effort = None if level == BASE_EFFORT else f"{level} ({reason[:100]})"
+        self.note(f"effort {level}: {reason}")
+        return f"effort is {level} for the rest of this turn{self.unread()}"
 
     async def tool_finished(self, name: str, failed: bool) -> None:
         self.note(f"← {name}{' (failed)' if failed else ''}")

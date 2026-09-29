@@ -10,6 +10,8 @@ import warnings
 from pathlib import Path
 from typing import Any, Protocol
 
+from .config import BASE_EFFORT
+
 log = logging.getLogger(__name__)
 
 # Session-ending reasons that mean the turn was interrupted.
@@ -22,6 +24,14 @@ class TurnResult:
     error: str | None = None
     interrupted: bool = False
     cost_usd: float | None = None
+    cache: str | None = None  # prompt-cache token counts, for the turn log
+
+
+def cache_usage(usage: dict[str, Any] | None) -> str | None:
+    if not usage:
+        return None
+    keys = ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens", "output_tokens")
+    return ", ".join(f"{k.removesuffix('_tokens')} {usage.get(k, '?')}" for k in keys)
 
 
 @dataclass(frozen=True)
@@ -35,7 +45,7 @@ class Handlers(Protocol):
     """What the session calls back into: implemented by the Bridge."""
 
     async def permission(self, name: str, tool_input: dict[str, Any], reason: str | None) -> Permission: ...
-    async def tool_started(self, name: str, tool_input: dict[str, Any]) -> None: ...
+    async def tool_started(self, name: str, tool_input: dict[str, Any], subagent: bool = False) -> None: ...
     async def tool_finished(self, name: str, failed: bool) -> None: ...
     async def tool_post(self, args: dict[str, Any]) -> str: ...
     async def tool_history(self, args: dict[str, Any]) -> str: ...
@@ -45,6 +55,8 @@ class Handlers(Protocol):
     async def tool_ship(self, args: dict[str, Any]) -> str: ...
     async def tool_schedule(self, args: dict[str, Any]) -> str: ...
     async def tool_schedules(self, args: dict[str, Any]) -> str: ...
+    async def tool_effort(self, args: dict[str, Any]) -> str: ...
+    async def advisor_called(self) -> None: ...
 
 
 class AgentSession(Protocol):
@@ -52,6 +64,7 @@ class AgentSession(Protocol):
     async def turn(self, prompt: str) -> TurnResult: ...
     async def interrupt(self) -> None: ...
     async def disconnect(self) -> None: ...
+    async def set_effort(self, level: str) -> None: ...
 
 
 class ToolError(Exception):
@@ -125,13 +138,25 @@ SCHEDULE_SCHEMA: dict[str, Any] = {
 }
 
 
+def effort_schema(levels: tuple[str, ...]) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "properties": {
+            "level": {"type": "string", "enum": list(levels)},
+            "reason": {"type": "string", "description": "Why, in a few words; shown in the channel"},
+        },
+        "required": ["level", "reason"],
+    }
+
+
 SCHEDULES_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {"cancel": {"type": "string", "description": "A schedule id to cancel, e.g. s3"}},
 }
 
 
-def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = (), ship: bool = False) -> Any:
+def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = (), ship: bool = False,
+                  effort_levels: tuple[str, ...] = ()) -> Any:
     from claude_agent_sdk import create_sdk_mcp_server, tool
 
     def wrap(function: Any) -> Any:
@@ -172,6 +197,11 @@ def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = 
         tools.append(tool("ship", "Ask Baughn to push a commit to master and deploy it. The deploy service "
                           "posts the diff for his approval, and pushes and deploys only after he approves. "
                           "Waits for the outcome and returns it.", SHIP_SCHEMA)(wrap(handlers.tool_ship)))
+    if len(effort_levels) > 1:
+        tools.append(tool("effort", f"Set how hard you think from your next step on: {BASE_EFFORT} or "
+                          "higher. It holds for the rest of this turn; the next turn starts at "
+                          f"{BASE_EFFORT} again. The level and reason are shown in the channel.",
+                          effort_schema(effort_levels))(wrap(handlers.tool_effort)))
     return create_sdk_mcp_server("bridge", tools=tools)
 
 
@@ -179,7 +209,14 @@ MCP_TOOL_TIMEOUT_MS = 65 * 60 * 1000
 RCON_TOOL = "mcp__bridge__rcon"
 BRIDGE_TOOLS = ["mcp__bridge__post", "mcp__bridge__history", "mcp__bridge__inbox", RCON_TOOL,
                 "mcp__bridge__ask_agent", "mcp__bridge__ship", "mcp__bridge__schedule",
-                "mcp__bridge__schedules"]
+                "mcp__bridge__schedules", "mcp__bridge__effort"]
+# Whatever the subagent is for, the main agent does the talking.
+SUBAGENT_PROMPT = (
+    "You are a subagent of {id}, working inside one of its turns. Report what you found or did in "
+    "your final answer; {id} reads it and decides what to say in the Discord channel. Don't use "
+    "the post, ask_agent, ship or schedule tools for your task. Post only if you find something "
+    "Baughn must know that you think {id} might not pass on."
+)
 # The CLI's own schedulers and watchers would start the agent between turns,
 # where nothing reads its output (see SdkSession.drain); the schedule tool replaces them.
 CLI_SCHEDULERS = ["CronCreate", "CronDelete", "CronList", "ScheduleWakeup", "RemoteTrigger", "Monitor"]
@@ -189,7 +226,8 @@ def options_kwargs(*, workdir: Path, state: Path, cli_path: str | None, model: s
                    resume: str | None, system_prompt: str, permission_mode: str,
                    allow: tuple[str, ...], ask: tuple[str, ...], deny: tuple[str, ...],
                    token: str, add_dirs: tuple[Path, ...] = (),
-                   skills: tuple[str, ...] = ()) -> dict[str, Any]:
+                   skills: tuple[str, ...] = (), identity: str = "the main agent",
+                   advisor: str | None = None) -> dict[str, Any]:
     """ClaudeAgentOptions arguments, apart from the callbacks. Pure, so it can be tested."""
     if permission_mode == "bypassPermissions":
         raise ValueError("bypassPermissions skips can_use_tool")
@@ -213,12 +251,21 @@ def options_kwargs(*, workdir: Path, state: Path, cli_path: str | None, model: s
              "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1"},
         # Read-only commands run without asking only inside these and cwd.
         add_dirs=[str(d) for d in add_dirs],
+        extra_args={"append-subagent-system-prompt": SUBAGENT_PROMPT.format(id=identity)},
     )
     if skills:
         # Pre-approves Skill(name) for these; discovery is from the project.
         kwargs["skills"] = list(skills)
+    settings: dict[str, Any] = {}
     if ask:
-        kwargs["settings"] = json.dumps({"permissions": {"ask": list(ask)}})
+        settings["permissions"] = {"ask": list(ask)}
+    if advisor:
+        # The server-side advisor tool: the model calls it, and the advisor
+        # model reads the whole transcript. Still behind an opt-in in 2.1.x.
+        settings["advisorModel"] = advisor
+        kwargs["env"]["CLAUDE_CODE_ENABLE_EXPERIMENTAL_ADVISOR_TOOL"] = "1"
+    if settings:
+        kwargs["settings"] = json.dumps(settings)
     if model:
         kwargs["model"] = model
     return kwargs
@@ -228,11 +275,12 @@ class SdkSession:
     """One long-lived ClaudeSDKClient."""
 
     def __init__(self, handlers: Handlers, rcon: bool = False, ask_agents: tuple[str, ...] = (),
-                 ship: bool = False, **kwargs: Any) -> None:
+                 ship: bool = False, effort_levels: tuple[str, ...] = (), **kwargs: Any) -> None:
         self.handlers = handlers
         self.rcon = rcon
         self.ask_agents = ask_agents
         self.ship = ship
+        self.effort_levels = effort_levels
         self.kwargs = kwargs
         self.client: Any = None
         self.drainer: asyncio.Task[None] | None = None
@@ -254,7 +302,8 @@ class SdkSession:
             return PermissionResultDeny(message=result.message)
 
         async def pre(data: Any, tool_use_id: str | None, context: Any) -> Any:
-            await handlers.tool_started(data["tool_name"], data.get("tool_input") or {})
+            await handlers.tool_started(data["tool_name"], data.get("tool_input") or {},
+                                        subagent=bool(data.get("agent_id")))
             return {}
 
         async def post(data: Any, tool_use_id: str | None, context: Any) -> Any:
@@ -263,7 +312,8 @@ class SdkSession:
 
         options = ClaudeAgentOptions(
             **options_kwargs(**{**self.kwargs, "resume": resume}),
-            mcp_servers={"bridge": bridge_server(handlers, self.rcon, self.ask_agents, self.ship)},
+            mcp_servers={"bridge": bridge_server(handlers, self.rcon, self.ask_agents, self.ship,
+                                                 self.effort_levels)},
             can_use_tool=can_use_tool,
             hooks={"PreToolUse": [HookMatcher(hooks=[pre])],
                    "PostToolUse": [HookMatcher(hooks=[post])],
@@ -275,18 +325,22 @@ class SdkSession:
         self.start_drain()
 
     async def turn(self, prompt: str) -> TurnResult:
-        from claude_agent_sdk import ResultMessage
+        from claude_agent_sdk import AssistantMessage, ResultMessage, ServerToolUseBlock
 
         await self.stop_drain()
         try:
             await self.client.query(prompt)
             async for message in self.client.receive_response():
+                if isinstance(message, AssistantMessage):
+                    if any(isinstance(b, ServerToolUseBlock) and b.name == "advisor" for b in message.content):
+                        await self.handlers.advisor_called()
                 if isinstance(message, ResultMessage):
                     interrupted = message.terminal_reason in INTERRUPTED
                     error = None
                     if message.is_error and not interrupted:
                         error = "; ".join(message.errors or []) or message.subtype
-                    return TurnResult(message.session_id, error, interrupted, message.total_cost_usd)
+                    return TurnResult(message.session_id, error, interrupted, message.total_cost_usd,
+                                      cache_usage(message.usage))
             return TurnResult(None, "the session ended without a result")
         finally:
             self.start_drain()
@@ -323,6 +377,17 @@ class SdkSession:
     async def interrupt(self) -> None:
         if self.client is not None:
             await self.client.interrupt()
+
+    async def set_effort(self, level: str) -> None:
+        """Change effort mid-session. The SDK has no wrapper for this control request.
+
+        The CLI sends a change like this as a per-message effort where the model
+        and server allow it, which keeps the prompt cache.
+        """
+        if self.client is None:
+            raise ToolError("no session")
+        await self.client._query._send_control_request(
+            {"subtype": "apply_flag_settings", "settings": {"effortLevel": level}})
 
     async def disconnect(self) -> None:
         await self.stop_drain()

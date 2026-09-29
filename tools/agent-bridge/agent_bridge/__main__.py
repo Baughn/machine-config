@@ -50,7 +50,8 @@ def run(config: Config) -> None:
                           ask=config.ask, deny=config.deny, token=claude_token,
                           add_dirs=config.extra_dirs, skills=config.skills,
                           rcon=config.rcon_root is not None, ask_agents=config.ask_agents,
-                          ship=config.ship is not None)
+                          ship=config.ship is not None, identity=config.id, advisor=config.advisor,
+                          effort_levels=config.effort_levels)
 
     chat.bridge = Bridge(config, chat, session, tokens=(discord_token, claude_token))
     chat.client.run(discord_token, log_handler=None)

@@ -19,7 +19,7 @@ from agent_bridge.render import Outgoing
 from agent_bridge.session import Permission, ToolError, TurnResult
 
 from conftest import (ALICE, CAROL, CHANNEL, LAB, ME, OWNER, FakeChat, FakeSession, Harness, config_data,
-                      message)
+                      message, silent)
 
 
 async def run_turn(h: Harness) -> None:
@@ -870,3 +870,53 @@ async def test_ship_refuses_other_bookmarks_and_bad_hashes(tmp_path: Path) -> No
             await h.bridge.tool_ship({"bookmark": bookmark})
     with pytest.raises(ToolError, match="no bookmark"):
         await h.bridge.tool_ship({"bookmark": "tsugumi-minecraft/x"})
+
+
+# --- effort, advisor, subagents ------------------------------------------------
+
+
+async def test_effort_is_shown_and_reset_next_turn(tmp_path: Path) -> None:
+    h = Harness(tmp_path, max_effort="high")
+    seen: list[str] = []
+
+    async def script(session: FakeSession, prompt: str) -> TurnResult:
+        with pytest.raises(ToolError, match="level"):
+            await h.bridge.tool_effort({"level": "max", "reason": "x"})
+        with pytest.raises(ToolError, match="why"):
+            await h.bridge.tool_effort({"level": "high", "reason": " "})
+        await h.bridge.tool_effort({"level": "high", "reason": "planning the migration"})
+        assert h.bridge.status is not None
+        seen.append(h.bridge.status.render(h.clock()))
+        seen.append(h.bridge.describe())
+        return TurnResult("session-1")
+
+    h.session.script = script
+    await h.say(ALICE, "@me plan it", mention=True)
+    await run_turn(h)
+    assert "effort: high (planning the migration)" in seen[0]
+    assert "at high effort" in seen[1]
+    assert h.session.efforts == ["high"]
+    h.session.script = silent
+    await h.say(ALICE, "@me thanks", mention=True)
+    await run_turn(h)
+    assert h.session.efforts == ["high", "medium"]
+    await h.say(ALICE, "@me again", mention=True)
+    await run_turn(h)
+    assert h.session.efforts == ["high", "medium"]  # already at medium: no request
+
+
+async def test_advisor_and_subagent_calls_show_in_status(harness: Harness) -> None:
+    seen: list[str] = []
+
+    async def script(session: FakeSession, prompt: str) -> TurnResult:
+        await harness.bridge.advisor_called()
+        seen.append(harness.bridge.status.render(harness.clock()) if harness.bridge.status else "")
+        await harness.bridge.tool_started("Grep", {"pattern": "foo"}, subagent=True)
+        seen.append(harness.bridge.status.render(harness.clock()) if harness.bridge.status else "")
+        return TurnResult("session-1")
+
+    harness.session.script = script
+    await harness.say(ALICE, "@me look", mention=True)
+    await run_turn(harness)
+    assert "consulting the advisor" in seen[0] and "advisor ×1" in seen[0]
+    assert "last: subagent: Grep `foo`" in seen[1]

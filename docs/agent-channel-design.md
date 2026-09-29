@@ -461,6 +461,28 @@ The message is updated from the PreToolUse/PostToolUse hook callbacks
 ✓ done, ✗ error, ⏹ stopped, or 💤 no post. The full per-turn tool log is kept
 in `$STATE/turns/` and posted as an attachment on `!status <id> log`.
 
+### Subagents, the advisor and effort (2026-09-29)
+
+Baughn asked for these so the agents can take on bigger work.
+
+- **Subagents** (the Agent tool) are allowed and run inside the turn, since
+  background tasks are off. They inherit the bridge tools. Baughn preferred
+  discouraging their use to denying them, so that a subagent can still say
+  something he must know. The CLI's hidden `--append-subagent-system-prompt`
+  tells them to report back instead of posting. Their tool calls show in the
+  status message as `subagent: …`.
+- **Advisor:** option `advisor`, Fable 5.1 by default. It sets the
+  `advisorModel` setting and `CLAUDE_CODE_ENABLE_EXPERIMENTAL_ADVISOR_TOOL`.
+  The model calls this server-side tool itself. The bridge sees its
+  `server_tool_use` block in the stream and counts it in the status message.
+- **Effort:** every turn starts at medium. The `effort` tool (up to option
+  `maxEffort`, default high) raises it for the rest of the turn, with a reason
+  shown as `effort: high (reason)`. The bridge sends the CLI an
+  `apply_flag_settings` control request. The CLI turns that into the API's
+  per-message effort (`mid-conversation-output-config` beta) where the model
+  and server allow, so the prompt cache survives. A top-level effort change
+  would invalidate it. Turn logs record the cache token counts to check this.
+
 ### Approvals
 
 Basic tool use, exploration in particular, must be possible without pinging
