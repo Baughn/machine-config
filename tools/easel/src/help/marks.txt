@@ -1,0 +1,37 @@
+MARK PARAMETERS (dot, stipple, pointillize, dabs)
+
+  r=       radius in canvas px, number or range.                 default 2
+  color=   one colour for every mark.
+  colors=  weighted random choice per mark: colors=#c33*3,#36c
+           (dot/stipple/dabs need color= or colors=; pointillize takes
+           colours from its source and rejects both.)
+  jitter=  dL,dC,dH: per-mark random colour variation, uniform in +-d:
+           lightness (OKLab L 0..1), chroma, hue degrees; e.g.
+           jitter=0.04,0.02,8. Chroma varies along the colour's hue; greys
+           (chroma below dC) scatter in every hue direction instead, so
+           jitter never tints a neutral. The average colour stays the base
+           colour.                                          default 0,0,0
+  alpha=   per-mark opacity 0..1, number or range.                default 1
+  mark=    circle | square | dab | line                        default circle
+             circle  disc of radius r
+             square  side 2r, rotated by angle
+             dab     ellipse, 2*r*aspect long (along angle), 2r wide
+             line    stroke 2*r*aspect long, r wide, round ends
+  aspect=  dab/line elongation, number or range.                 default 2.5
+  angle=   degrees, number or range (0 = +x, clockwise).
+           default 0..180 for dab/line, 0 for circle/square.
+           angle=flow (pointillize): follow the source's contours.
+           angle=follow (dabs): follow the path direction.
+  soft=    edge softness in canvas px, number or range; 0 = crisp
+           (1 px anti-aliasing). soft=2 fades each edge over 2 px.  default 0
+  clip=L   keep each mark with probability = alpha of layer L at its centre
+           (e.g. paint only inside a mask layer; see `easel ops fill` for
+           combining masks). fill, gradient, clear, blur and stroke take
+           clip=L too, as a mask.
+  seed=N   integer seed (negative allowed; 2.5 is an error); default
+           derived from commit and line number.
+
+Marks are drawn in order with normal (source-over) blending onto the current
+layer. Sub-pixel marks keep their true area (a r=0.3 dot is a faint pixel,
+not a full one). Every mark op reports how many marks it drew and why
+candidates were rejected.

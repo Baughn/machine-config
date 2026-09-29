@@ -44,6 +44,7 @@
 
     rustManifestPaths = [
       "tools/aniwatch/Cargo.toml"
+      "tools/easel/Cargo.toml"
       "tools/game-watcher/Cargo.toml"
       "tools/irc-tool/Cargo.toml"
       "tools/magic-reboot/sender/Cargo.toml"
@@ -78,6 +79,7 @@
 
     rustPackages = {
       aniwatch = pkgs.callPackage ./tools/aniwatch { };
+      easel = pkgs.callPackage ./tools/easel { };
       game-watcher = pkgs.mkCranePackage {
         pname = "game-watcher";
         version = "0.1.0";

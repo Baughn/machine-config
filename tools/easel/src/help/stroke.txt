@@ -1,0 +1,18 @@
+stroke path=PATH width=W color=C [smooth=true] [alpha=0..1] [cap=round|butt] [taper=0..1] [clip=L]
+  A continuous anti-aliased line of width W along the path. Self-overlaps
+  do not darken it.
+  - path= as for dabs: points (smoothed unless smooth=false), a shape's
+    outline (circle(...) gives a ring) or arc(...).
+  - width= and alpha= may be ramps a->b along the path: width=6->1 thins
+    towards the end, alpha=1->0 fades out.
+  - cap= end style (default round).
+  - taper= narrows the width toward both ends with the dabs profile;
+    tapered or ramped strokes always have round ends.
+  - clip=L as for fill.
+  A stroke is a clean vector line. Among dots it can look pasted on; for
+  a hand-made line use dabs with angle=follow, close spacing and a little
+  scatter.
+  e.g. stroke path=120,620;300,660;480,620 width=6 color=#c0d0f0 alpha=0.6 taper=1
+  e.g. stroke path=0,0;100,100 width=2 color=black smooth=false cap=butt
+  e.g. stroke path=circle(300,300,40) width=1.5 color=#1a3050
+  e.g. stroke path=arc(300,300,60,200,340) width=4->0.5 color=#fff alpha=1->0.2

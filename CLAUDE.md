@@ -142,9 +142,11 @@ lib/
   agent-roster.nix         # Discord IDs of the agent channel's humans and agents
   mk-crane-package.nix     # crane wrapper behind pkgs.mkCranePackage
   stationeers-access.nix   # punch access spec for the Stationeers server on saya
-tools/                     # Rust crates: aniwatch, game-watcher, irc-tool,
+tools/                     # Rust crates: aniwatch, easel, game-watcher, irc-tool,
                            # magic-reboot, nix-build-balancer, nix-deploy, rolebot, victron-monitor;
                            # plus agent-bridge (Python)
+  easel/                   # painting CLI for Claude; SKILL.md is installed to
+                           # ~/.claude/skills/easel on every machine via home-manager
 tests/
   *-vm.nix                 # NixOS VM tests (agent-channel, minecraft-*, punch, saya-installer, ...)
   test_*.py                # unit tests for the Python helper scripts

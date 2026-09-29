@@ -1,0 +1,15 @@
+pointillize source=L [in=SHAPE] (count=N | density=D | spacing=PX) [placement=even|random] [min-alpha=0.5] [falloff=PX] [weight=...] [gamma=G] + mark parameters (no color/colors)
+  The central op: marks whose colour is sampled from layer L (usually a
+  hidden underpainting) at each mark's centre, made opaque and then varied
+  by jitter=. in= defaults to canvas. Placement keys, falloff=, weight=
+  and gamma= work as in stipple, except placement defaults to even.
+  - min-alpha= skips candidates where L's alpha is below this (default 0.5),
+    so unpainted parts of L stay unpainted.
+  - angle=flow orients dab/line marks along L's contours (perpendicular to
+    its luminance gradient, smoothed over about one mark length). Where L
+    is flat the angle is random (0..180).
+  Work big to small: a dense pass of large dabs, then smaller marks
+  restricted with in= where detail matters. Gaps show the layers below, so
+  fill a base colour first if you want none.
+  e.g. pointillize source=under density=35 r=2..3.5 mark=dab aspect=2..3 angle=flow jitter=0.04,0.015,10
+  e.g. pointillize source=under in=ellipse(300,320,90,40) spacing=2 r=0.8..1.4 alpha=0.7..1

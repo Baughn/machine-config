@@ -132,10 +132,11 @@
         secrets.magic-reboot-key.file = ../../secrets/magic-reboot.key.age;
       };
 
-      home.packages = [ magic-reboot ];
+      home.packages = [ magic-reboot (pkgs.callPackage ../../tools/easel { }) ];
 
       home.file = {
         ".claude/CLAUDE.md".source = ./claude/CLAUDE.md;
+        ".claude/skills/easel/SKILL.md".source = ../../tools/easel/SKILL.md;
         ".claude/agents" = {
           source = ./claude/agents;
           recursive = true;

@@ -1,0 +1,61 @@
+EASEL: paint by writing scripts, look by rendering PNGs.
+
+WORKFLOW
+
+  easel new face.easel --size 768x1024 --bg "#101018"
+  easel apply face.easel -m "block in" script.txt   # or a heredoc on stdin
+  easel view face.easel                    # -> face.easel/view.png
+  easel view face.easel --crop 300,200,160,120      # zoomed, with a grid
+  easel undo face.easel                    # and: easel redo face.easel
+
+Other commands (all take the document first):
+  apply --dry-run      run and report without committing; -m MSG sets the
+                       message (default: first comment line, else the ops);
+                       -q/--quiet reports only mark ops that placed nothing
+                       or not every mark. An apply (or amend) after undo
+                       discards the undone commits (no more redo).
+  amend N [FILE]       replace commit N's script and replay the commits
+                       after it (they keep their seeds); refused if any
+                       later commit then fails. -m MSG renames it. Use
+                       `show N > file`, edit, `amend N file` to change an
+                       old pass without redoing everything above it.
+  log / show N         list commits / print commit N's script (exactly:
+                       its header line goes to stderr)
+  info                 size, variables, layers (visibility, opacity, blend,
+                       coverage %, bbox of painted pixels)
+  sample X,Y ...       colour at points: #rrggbb, alpha, oklch(L C H);
+                       --layer L for one layer, --radius R to average the
+                       on-canvas part of a disc; off-canvas points say so
+  view options         -o FILE (default DOC/view.png; use it to keep views)
+                       --crop X,Y,W,H (may start off-canvas: --crop -10,-10,60,60)
+                       --max PX (long side, default 1000)
+                       --pixels (zoom by repeating canvas pixels instead
+                       of re-rendering; see below)
+                       --grid N|auto|off (default auto for crops)
+                       --solo L (one layer, hidden or not, over a checkerboard)
+                       --hide L1,L2  --show L1,L2  --at N (after commit N)
+                       --alpha (alpha as greyscale; use with --solo L, as
+                       the composite over the background is usually opaque)
+  export -o out.png [--scale S] [--hide ..] [--show ..]
+                       re-renders every mark at S times the resolution
+  import FILE.png [--name NAME]   then: image src=NAME
+  ops [OP|TOPIC]       this reference; topics: workflow syntax values marks
+
+Reading views: `view` prints the canvas region and zoom; canvas coordinate
+= crop origin + output pixel / zoom. Grid labels are canvas coordinates;
+the first label on each axis is prefixed with x or y. A zoomed crop fills
+--max and is re-rendered at that resolution (up to 16x; a small crop of a
+painting with large marks may come out smaller), so marks are
+sharp, as in `export --scale`: it is the painting as exported, and a
+weight/clip decision on a mark can differ marginally from the 1x view.
+It takes a second or few, since the document is replayed. --pixels shows
+the actual 1x canvas pixels instead, enlarged by a whole number.
+
+A typical painting:
+  1. `layer name=under visible=false`, block in big shapes with fill and
+     gradient (feather= softens edges). Check it: view --solo under.
+  2. `layer name=paint`, then pointillize source=under with large dabs,
+     angle=flow, some jitter; then smaller marks in detail areas
+     (in=ellipse(...)) with lower alpha.
+  3. Accents: dot / dabs / stroke; tonal stipple with weight=dark(under).
+  4. Undo freely; each apply is one step. Export with --scale 2 or 3.

@@ -1,0 +1,27 @@
+SYNTAX
+
+A script is a list of ops, one per line:
+
+  OPNAME key=value key=value ...
+
+- Tokens are separated by whitespace. Whitespace inside (...) is ignored, so
+  `color=rgb(1, 2, 3)` is one token.
+- '#' starts a comment when it begins a token (at line start or after a
+  space) outside parentheses: `color=#c33` is a colour, `fill ... # note`
+  ends in a comment.
+- A line ending in '\' continues on the next line. Blank lines are ignored.
+- Unknown ops/keys, duplicate keys, missing required keys and malformed
+  values are errors naming the line. `easel apply` is atomic: if any line
+  fails, nothing is committed. One apply = one commit = one undo step.
+- Coordinates are canvas pixels (floats allowed), origin top-left, y down.
+  Angles are degrees; 0 points right (+x) and positive turns clockwise on
+  screen (because y points down).
+- Layers: a new document has one layer, `paint`, selected. Drawing ops paint
+  on the current layer; `layer name=N` selects or creates one. New layers go
+  on top of the stack. Hidden layers still exist and can be read by
+  pointillize source=, weight= and clip=. Painting is painting: a later
+  fill on a layer covers what is already there, so repainting a shape on
+  the underpainting also covers any earlier shape it overlaps.
+- Randomness is deterministic: each op is seeded from (commit number, line
+  number), so a script re-applied at the same position gives identical
+  pixels. seed=N on a mark op overrides this.

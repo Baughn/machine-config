@@ -1,0 +1,5 @@
+set NAME=VALUE [NAME=VALUE ...]
+  Define variables, used as $NAME in any later value (this commit or later
+  ones). Substitution is textual, so a variable can hold a colour, range,
+  shape, path... Keys are processed left to right. See `easel ops values`.
+  e.g. set skin=#d9a07a shadow=mix($skin,#402030,0.5) head=ellipse(300,330,150,200)

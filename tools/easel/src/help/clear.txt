@@ -1,0 +1,8 @@
+clear [in=SHAPE] [feather=PX] [clip=L]
+  Erase (make transparent) part of the current layer, or the whole layer
+  when neither in= nor clip= is given. feather= softens the erased edge
+  (needs in=). clip=L erases only where layer L is painted (with in=,
+  only where both are).
+  e.g. clear in=circle(120,80,30) feather=8
+  e.g. clear in=rect(0,0,300,200) clip=under
+  e.g. clear

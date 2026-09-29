@@ -1,5 +1,8 @@
 { pkgs, agenix, ... }:
 
+let
+  easel = pkgs.callPackage ../tools/easel { };
+in
 {
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
@@ -15,7 +18,7 @@
     };
     home.sessionPath = [ "$HOME/.npm-global/bin" ];
 
-    home.packages = [ pkgs.nodejs ];
+    home.packages = [ pkgs.nodejs easel ];
 
     programs.neovim = {
       enable = true;
@@ -73,6 +76,7 @@
         - There may be project-specific documentation in docs/. Use it when it exists, though bear in mind it may be outdated. Check the 'last updated' tag at the top.
         - The user uses Jujutsu. Prioritize jj commands over git.
       '';
+      ".claude/skills/easel/SKILL.md".source = ../tools/easel/SKILL.md;
     };
 
     programs.home-manager.enable = true;

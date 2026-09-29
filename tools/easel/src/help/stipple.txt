@@ -1,0 +1,22 @@
+stipple in=SHAPE (count=N | density=D | spacing=PX) [placement=random|even] [falloff=PX] [weight=dark(L)|light(L)|alpha(L)] [gamma=G] + mark parameters
+  Scatter marks over the part of a shape that lies on the canvas.
+  - count=N candidates, or density=D candidates per 1000 px^2 of that area.
+  - placement=random (default): uniform. Extremely thin slivers may not
+    get every candidate; the report then says how many were not placed.
+    placement=even: Poisson-disk blue noise (no clumps). Its minimum
+    distance is spacing=PX; if omitted it is derived from count/density
+    (the report prints it) and the result is
+    thinned randomly to exactly the target. With placement=even,
+    spacing= alone is allowed: every point that fits is used.
+  - falloff=PX: keep probability ramps from 0 at the shape edge to 1 at PX
+    inside: soft-edged clouds.
+  - weight=dark(L): keep probability (1 - lightness)^gamma * alpha of layer
+    L at the point (lightness = OKLab L, 0 black .. 1 white) -- tonal
+    stippling from an underpainting. light(L) uses lightness^gamma * alpha,
+    alpha(L) uses alpha^gamma. gamma= (default 1; needs weight=) above 1
+    concentrates marks in the darkest/lightest areas.
+  - clip= (see marks) also filters candidates.
+  Candidates are placed in random order, so later marks do not sweep
+  across the shape. The report lists survivors and rejections by reason.
+  e.g. stipple in=ellipse(300,330,160,210) density=20 placement=even color=#1a1020 weight=dark(under) gamma=2 r=0.6..1.1
+  e.g. stipple in=circle(200,200,80) count=3000 falloff=40 colors=#fff*3,#fd8 r=0.5..1.5 alpha=0.3..0.8

@@ -1,0 +1,25 @@
+dabs path=PATH [smooth=true] (spacing=PX | count=N) [scatter=PX] [taper=0..1] + mark parameters
+  Marks along a path.
+  - path= is a point list P;P;... (a smooth Catmull-Rom curve through the
+    points; smooth=false for straight segments), a shape's closed outline
+    (circle(...), ellipse(...), rect(...), poly(...), blob(...)), or an
+    arc: arc(cx,cy,r,a0,a1) or arc(cx,cy,rx,ry,a0,a1) from angle a0 to a1
+    (degrees, 0 = +x, clockwise on screen; a1 < a0 runs the other way).
+  - spacing= arc length between marks (default: the largest r), starting
+    at the first point; count=N places N marks evenly from end to end.
+    On a shape's closed outline, spacing= is rounded to whole steps and
+    count=N gives N even gaps, so the ring closes without a doubled or
+    missing mark at the start.
+  - scatter=PX (number or range) moves each mark by a random offset of up
+    to PX; with a range, each mark draws its own limit.
+  - r=, alpha= and scatter= also take ramps a->b, changing linearly from
+    the path's start to its end; either end may be a range. r=5->1 shrinks
+    towards the end, alpha=0.9->0.1 fades out, scatter=2->30 fans out.
+  - taper= shrinks the radius toward both ends: r * (1 - taper*(1 - sin(pi*u)))
+    for u = 0 at the start .. 1 at the end (taper=1 ends in points).
+  - angle=follow aligns dab/line marks with the path direction.
+  For a cloud-like trail rather than a dotted line, use a scatter several
+  times r and a spacing below r.
+  e.g. dabs path=150,180;300,120;450,180 spacing=3 r=3..4 mark=dab angle=follow colors=#e0c040*2,#f0e090 scatter=4 taper=0.7
+  e.g. dabs path=circle(300,300,40) spacing=2 r=1.2 color=#8fd8ff alpha=0.8
+  e.g. dabs path=400,300;520,220;600,120 spacing=1.5 r=3..4->0.5..1 alpha=0.9->0.2 scatter=2->30 colors=#8fd8ff,#fff

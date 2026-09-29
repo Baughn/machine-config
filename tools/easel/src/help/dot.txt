@@ -1,0 +1,5 @@
+dot at=P[;P;...] + mark parameters
+  One mark at each point. All mark parameters apply (see `easel ops marks`);
+  random ranges are drawn per mark.
+  e.g. dot at=240,320;360,320 r=3 color=#fff alpha=0.8
+  e.g. dot at=100,100 r=6 mark=dab angle=30 aspect=3 color=oklch(0.7,0.12,40)

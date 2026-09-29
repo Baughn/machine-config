@@ -1,0 +1,18 @@
+layer name=N [opacity=0..1] [blend=MODE] [visible=BOOL] [above=L | below=L | top=true]
+  Select layer N, creating it (transparent, on top of the stack) if it does
+  not exist, then apply any properties given. Following drawing ops paint
+  on it.
+  - opacity= layer opacity when compositing (default 1).
+  - blend= normal (default) multiply screen overlay darken lighten add
+    color-dodge color-burn soft-light hard-light difference hue saturation
+    color luminosity.
+  - visible=false hides it from view/export; it can still be read by
+    pointillize source=, weight= and clip=. (`view --show N` peeks.)
+  - above=L / below=L move N directly above/below layer L; top=true moves it
+    to the top. Otherwise an existing layer keeps its place.
+  The report gives the stack position counted from the bottom. A new
+  document starts with one layer, paint; to paint a background first,
+  rename it (rename-layer name=paint to=bg) rather than leaving it empty
+  at the bottom, or create the background with below=paint.
+  e.g. layer name=under visible=false
+  e.g. layer name=glaze opacity=0.4 blend=multiply

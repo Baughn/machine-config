@@ -1,0 +1,6 @@
+blur r=PX [in=SHAPE] [clip=L]
+  Blur the current layer (Gaussian approximation, sigma = r/2). With in=,
+  only pixels inside the shape change (anti-aliased edge, not feathered).
+  clip=L limits it to where layer L is painted (with in=, to both).
+  e.g. blur r=4
+  e.g. blur r=6 in=rect(0,0,600,200)

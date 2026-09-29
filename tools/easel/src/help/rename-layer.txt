@@ -1,0 +1,3 @@
+rename-layer name=N to=M
+  Rename layer N to M (M must not exist yet).
+  e.g. rename-layer name=paint to=face

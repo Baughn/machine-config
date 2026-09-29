@@ -1,0 +1,45 @@
+VALUE TYPES
+
+number   12  -3.5  .25
+range    a..b   uniform random per mark in [a, b], e.g. r=1..2.5. Accepted
+         wherever a key says "number or range" (r, alpha, aspect, angle,
+         soft, and dabs scatter). a must not exceed b (3..1 is an error).
+ramp     a->b   changes linearly along a path, from a at its start to b at
+         its end: dabs r, alpha, scatter (each end may be a range,
+         r=4..5->1..2) and stroke width, alpha (numbers only).
+point    x,y                      e.g. at=120,80
+path     x,y;x,y;...              e.g. path=10,10;60,40;120,20
+         dabs and stroke also take a shape (its closed outline) or
+         arc(cx,cy,r,a0,a1) / arc(cx,cy,rx,ry,a0,a1), angles in degrees
+bool     true | false
+name     layer/variable/asset names: letters, digits, '_' and '-'
+color    #rgb  #rrggbb  #rrggbbaa
+         rgb(r,g,b)  rgba(r,g,b,a)      r,g,b 0..255; a 0..1 or 0%..100%
+         hsl(h,s%,l%)                   h degrees
+         oklch(L,C,H) or oklch(L,C,H,a) L 0..1, C 0..~0.37, H degrees;
+                                        out-of-gamut colours keep L and H
+                                        and lose chroma
+         mix(C1,C2,t)                   mix in OKLab; t=0 gives C1.
+                                        Premultiplied: mix(#fff,transparent,
+                                        0.5) is white at alpha 0.5
+         black  white  transparent  $var
+colors   weighted list for random choice: colors=#c33*3,#36c,$skin*2
+         (weight defaults to 1). No spaces after the commas: whitespace
+         ends a value, and ' #' would even start a comment.
+stops    C@t,C@t,...  gradient stops, t in 0..1: stops=#fff@0,#000@1
+shape    circle(cx,cy,r)
+         ellipse(cx,cy,rx,ry) or ellipse(cx,cy,rx,ry,rot_deg)
+         rect(x,y,w,h)
+         poly(x,y;x,y;...)    straight edges, even-odd fill
+         blob(x,y;x,y;...)    closed smooth curve through the points
+         canvas               the whole canvas
+
+VARIABLES
+
+  set skin=#d9a07a shadow=mix($skin,#402030,0.5) small=1..2
+  fill in=circle(50,50,20) color=$shadow
+
+`$name` is replaced textually before a value is parsed, so a variable can
+hold any value type (colour, range, shape, path...). Variables persist for
+the rest of the document, across commits. Within one `set`, later keys may
+use earlier ones.

@@ -1,0 +1,4 @@
+delete-layer name=N
+  Remove layer N. If it was the current layer, the top layer becomes
+  current (none if no layers remain; then use `layer` before drawing).
+  e.g. delete-layer name=scratch

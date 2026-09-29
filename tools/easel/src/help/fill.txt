@@ -1,0 +1,15 @@
+fill in=SHAPE color=C [feather=PX] [alpha=0..1] [clip=L]
+  Solid fill of a shape on the current layer.
+  - feather= softens the edge by blurring the shape's coverage (Gaussian,
+    sigma = feather/2): the edge fades over roughly feather px each side.
+    Stacking two feathered fills of the same shape leaves a faint rim of
+    the lower colour; feather only the top one.
+  - alpha= multiplies the colour's alpha.
+  - clip=L keeps the paint only where layer L is painted (weighted by its
+    alpha). L may be the current layer itself: an alpha lock. Hidden mask
+    layers combine shapes: both A and B = fill in=B clip=maskA; A but not
+    B = fill in=A, then clear in=B; outside A = fill in=canvas, then
+    clear in=A.
+  e.g. fill in=ellipse(300,330,150,200) color=#d9a07a feather=10
+  e.g. fill in=canvas color=#101018
+  e.g. fill in=circle(300,300,120) color=#402030 alpha=0.5 clip=under

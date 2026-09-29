@@ -1,0 +1,8 @@
+image src=NAME [at=P] [size=W,H] [alpha=0..1]
+  Draw an imported PNG (`easel import DOC file.png --name NAME`) onto the
+  current layer, e.g. as a reference/source layer or for collage.
+  - neither at= nor size=: fit inside the canvas, keeping aspect, centred.
+  - at= only: natural size with its top-left at P.
+  - size=W,H: stretched to W x H at at= (default 0,0).
+  e.g. image src=photo
+  e.g. image src=photo at=100,50 size=200,300 alpha=0.5

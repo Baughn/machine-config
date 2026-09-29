@@ -1,0 +1,16 @@
+gradient in=SHAPE stops=C@t,C@t,... (from=P to=P | center=P radius=R [focus=P]) [kind=linear|radial] [feather=PX] [alpha=0..1] [clip=L]
+  Gradient fill of a shape. Colours between stops are mixed in OKLab,
+  premultiplied, so a stop of `transparent` fades the neighbouring colour
+  out without darkening it (a clean glow); beyond the ends the end colours
+  continue.
+  - kind=linear uses from= (t=0) and to= (t=1); kind=radial uses center=
+    and radius= (t=1 at the rim). kind defaults to radial when center= is
+    given, else linear.
+  - focus= moves the t=0 point of a radial gradient off-centre (a
+    highlight towards a light source).
+  - feather=, alpha= and clip= as for fill. clip= keeps shading or a glow
+    on painted pixels (e.g. clip=figure) instead of lighting the whole
+    shape, background included.
+  e.g. gradient in=canvas stops=#1c2a4a@0,#101018@1 from=0,0 to=0,800
+  e.g. gradient in=circle(300,300,200) stops=#f0c8a0@0,#6a3a30@1 center=300,300 radius=200 focus=250,240
+  e.g. gradient in=canvas stops=#000@0,transparent@1 from=0,800 to=0,400 alpha=0.6 clip=under

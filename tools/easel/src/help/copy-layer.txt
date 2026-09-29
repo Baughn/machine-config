@@ -1,0 +1,6 @@
+copy-layer name=A to=B
+  Copy layer A (pixels, opacity, blend) into a new layer B directly above
+  it. B is visible and becomes the current layer. Use it to show a hidden
+  underpainting as a solid base under the marks (then `blur` it or move it
+  with `layer name=B below=...`), or to glaze a duplicate.
+  e.g. copy-layer name=under to=base
