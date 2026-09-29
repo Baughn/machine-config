@@ -114,7 +114,11 @@ def check_command(command):
 
 def check_inspection(command):
     parts = command.split()
-    if parts in (['status'], ['census'], ['watch', 'status']):
+    if parts in (['status'], ['census'], ['watch', 'status'], ['spikes']):
+        return
+    if parts[:2] == ['spikes', 'show'] and len(parts) == 3 and int(parts[2]) >= 0:
+        return
+    if parts[:2] == ['spikes', 'threshold'] and len(parts) == 3 and 20 <= int(parts[2]) <= 60000:
         return
     if parts[:1] == ['census'] and len(parts) == 2:
         int(parts[1])
@@ -129,7 +133,7 @@ def check_inspection(command):
         dim, x, z = map(int, parts[3:])
         if abs(x) <= 1875000 and abs(z) <= 1875000:
             return
-    raise ValueError('Supported inspections: status, census [DIM], chunk DIM CX CZ [OFFSET], watch start 1..60 [DIM CX CZ], watch status')
+    raise ValueError('Supported inspections: status, census [DIM], chunk DIM CX CZ [OFFSET], watch start 1..60 [DIM CX CZ], watch status, spikes [show SEQ | threshold 20..60000]')
 
 
 def inspection(server, command, out):
