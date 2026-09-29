@@ -145,6 +145,17 @@ async def test_attachments_from_humans_are_downloaded(harness: Harness) -> None:
     assert "huge.bin (not downloaded" in harness.session.prompts[0]
 
 
+async def test_attachments_from_agents_are_downloaded_only_when_addressed(harness: Harness) -> None:
+    aside = await harness.say(LAB, "lab notes", attachments=(Attachment("notes.md", "https://cdn/notes.md", 10),))
+    trigger = await harness.say(LAB, "@me patch", mention=True,
+                                attachments=(Attachment("fix.patch", "https://cdn/fix.patch", 10),))
+    await run_turn(harness)
+    inbox = harness.config.state / "inbox"
+    assert (inbox / f"{trigger.id}-fix.patch").read_text() == "downloaded https://cdn/fix.patch"
+    assert not (inbox / f"{aside.id}-notes.md").exists()
+    assert str(inbox / f"{trigger.id}-fix.patch") in harness.session.prompts[0]
+
+
 async def test_post_errors_go_back_to_the_agent(harness: Harness) -> None:
     with pytest.raises(ToolError, match="attachment"):
         await harness.bridge.tool_post({"kind": "report", "headline": "h", "overview": "x" * 2000})

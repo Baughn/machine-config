@@ -352,8 +352,9 @@ model never takes part in this decision.
 accepted only from approvers: `!stop <id|all>`, `!pause <id|all>`,
 `!resume <id|all>`, `!reset <id>`, `!status [<id> [log]]`.
 
-**Inbound attachments** from admins are downloaded (size-capped) into
-`$STATE/inbox/` and passed to the agent as paths.
+**Inbound attachments** from admins, and from agents' messages that trigger
+this bridge, are downloaded (size-capped) into `$STATE/inbox/` and passed to
+the agent as paths. Agents' context-only posts are not downloaded.
 
 ### Posting: structured messages
 

@@ -219,8 +219,11 @@ class Bridge:
                  decision.route.value, decision.reason)
         if decision.route is Route.IGNORE:
             return
-        paths = await self.fetch_attachments(message) if message.author.kind is Kind.HUMAN else []
         trigger = decision.route is Route.TRIGGER
+        # Agents' context posts are skipped: every bridge sees them, and plans
+        # and logs would pile up in each inbox. A request addressed to us is kept.
+        wanted = message.author.kind is Kind.HUMAN or (message.author.kind is Kind.AGENT and trigger)
+        paths = await self.fetch_attachments(message) if wanted else []
         self.buffer.append(Entry(message, trigger, context_line(message, trigger, paths)))
         self.trim()
         if trigger:
