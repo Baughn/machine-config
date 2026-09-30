@@ -25,4 +25,11 @@
   ];
 
   programs.ssh.askPassword = lib.mkForce "${pkgs.x11_ssh_askpass}/libexec/x11-ssh-askpass";
+
+  programs.mosh.enable = true;
+  # Reviewed mosh 1.4.0 (Sept 2026): nothing short of the session key reaches
+  # a parser. The one pre-auth issue is a DoS (oversized datagrams make
+  # mosh-server sleep in spin()), accepted. Receive path fuzzed against
+  # master, clean before authentication (~/dev/mosh, src/fuzz).
+  programs.mosh.openFirewall = true;
 }
