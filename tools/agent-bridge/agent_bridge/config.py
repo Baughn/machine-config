@@ -45,6 +45,7 @@ class Roster:
     humans: tuple[Human, ...]
     agents: tuple[Agent, ...]
     agents_role_id: str | None = None
+    context_webhook_ids: frozenset[str] = frozenset()  # like the watchdog: context, never triggers
 
     @property
     def owner(self) -> Human:
@@ -102,6 +103,8 @@ class Config:
     ship: Ship | None = None
     advisor: str | None = None  # model for the server-side advisor tool
     max_effort: str = "medium"  # the effort tool may raise effort up to this; medium: no tool
+    # Local trigger sources (spool.py): name -> what the agent is asked to do when one fires.
+    trigger_sources: dict[str, str] = field(default_factory=dict)
     idle_reset: float = 6 * 3600  # seconds without a turn before a handoff and new session; 0: never
     limits: Limits = field(default_factory=Limits)
     fake: bool = False
@@ -137,6 +140,7 @@ def parse_roster(data: dict[str, Any]) -> Roster:
         admin_role_id=str(data["admin_role_id"]),
         watchdog_webhook_id=str(data["watchdog_webhook_id"]) if data.get("watchdog_webhook_id") else None,
         agents_role_id=str(data["agents_role_id"]) if data.get("agents_role_id") else None,
+        context_webhook_ids=frozenset(_strings(data, "context_webhook_ids")),
         humans=humans,
         agents=agents,
     )
@@ -148,6 +152,13 @@ def parse_roster(data: dict[str, Any]) -> Roster:
     if len(ids) != len(set(ids)):
         raise ConfigError("duplicate Discord IDs in the roster")
     return roster
+
+
+def _sources(value: Any) -> dict[str, str]:
+    if not isinstance(value, dict) or not all(isinstance(k, str) and isinstance(v, str) and v.strip()
+                                              for k, v in value.items()):
+        raise ConfigError("trigger_sources must map names to non-empty instructions")
+    return dict(value)
 
 
 def parse(data: dict[str, Any], state: Path) -> Config:
@@ -182,6 +193,7 @@ def parse(data: dict[str, Any], state: Path) -> Config:
         idle_reset=float(data.get("idle_reset", 6 * 3600)),
         advisor=data.get("advisor") or None,
         max_effort=data.get("max_effort", "medium"),
+        trigger_sources=_sources(data.get("trigger_sources", {})),
     )
     validate(config)
     return config

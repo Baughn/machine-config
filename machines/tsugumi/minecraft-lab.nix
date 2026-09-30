@@ -248,7 +248,10 @@ in
         environment = {
           # Launch Java directly (start.py's daily-restart thread comes with it).
           MINECRAFT_UNIT = "%n";
+          # Off unless a clone's lab.env says CRASH_ANALYSIS=agent; then a crash
+          # starts a turn for tsugumi-lab, as it would for tsugumi-minecraft.
           CRASH_ANALYSIS = "0";
+          CRASH_ANALYSIS_TRIGGER_DIR = "/var/lib/agent-bridge/tsugumi-lab/triggers";
           NIX_PATH = lib.concatStringsSep ":" config.nix.nixPath;
         };
         restartIfChanged = false;
@@ -263,6 +266,8 @@ in
           WorkingDirectory = "/srv/minecraft-lab/%i";
           # update-and-start.sh would link into /home/minecraft/builder.
           ExecStart = "/srv/minecraft-lab/%i/server/start.py";
+          # Per-clone overrides (e.g. CRASH_ANALYSIS=agent); these win over environment.
+          EnvironmentFile = "-/srv/minecraft-lab/%i/lab.env";
           ExecStop = "-${stop} %i";
           Restart = "no";
           TimeoutStopSec = "7min";

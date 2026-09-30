@@ -9,6 +9,10 @@
   };
   adminRoleId = "280158066195038208"; # Discord role that marks server admins
   watchdogWebhookId = "1553401745449812120"; # its messages are context, never triggers
+  # Other webhooks whose messages are context, like the watchdog's.
+  contextWebhookIds = [
+    "1549730422131527760" # "Crash analysis": crash_analysis.py's notice (URL in ~minecraft/.config)
+  ];
   humans = {
     baughn = { discordId = "236112302590394368"; role = "owner"; };
   };

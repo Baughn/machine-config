@@ -15,6 +15,7 @@ let
     guild_id = roster.guildId;
     admin_role_id = roster.adminRoleId;
     watchdog_webhook_id = roster.watchdogWebhookId;
+    context_webhook_ids = roster.contextWebhookIds or [ ];
     agents_role_id = roster.agentsRoleId or null;
     humans = lib.mapAttrs (_: h: { discord_id = h.discordId; inherit (h) role; }) roster.humans;
     agents = lib.mapAttrs (_: a: { discord_id = a.discordId; display_name = a.displayName; inherit (a) description; }) roster.agents;
@@ -147,6 +148,17 @@ let
           and pre-approved for the Skill tool.
         '';
       };
+      triggerSources = lib.mkOption {
+        type = lib.types.attrsOf lib.types.str;
+        default = { };
+        example = { crash-analysis = "A server crashed. Use the crash-analysis skill."; };
+        description = ''
+          Local triggers: a program running as the agent's user writes
+          {"source": NAME, "note": TEXT} to /var/lib/agent-bridge/<id>/triggers/*.json
+          (tmp file, then rename), and the bridge starts a turn asking for this
+          instruction. The note is shown as data. Other sources are rejected.
+        '';
+      };
       path = lib.mkOption {
         type = lib.types.listOf (lib.types.either lib.types.package lib.types.str);
         default = [ ];
@@ -185,6 +197,7 @@ let
     ship = i.ship;
     inherit (i) advisor;
     max_effort = i.maxEffort;
+    trigger_sources = i.triggerSources;
     roster = rosterToml;
   });
 in
@@ -261,6 +274,11 @@ in
         "d ${i.workdir} 0700 ${i.user} - -"
         "d ${i.workdir}/.claude 0700 ${i.user} - -"
         "d ${i.workdir}/.claude/skills 0700 ${i.user} - -"
+      ]
+      # Before the bridge's first start, so trigger writers find it at boot.
+      ++ lib.optionals (i.triggerSources != { }) [
+        "d /var/lib/agent-bridge/${name} 0700 ${i.user} - -"
+        "d /var/lib/agent-bridge/${name}/triggers 0700 ${i.user} - -"
       ]
       ++ lib.mapAttrsToList (skill: src: "L+ ${i.workdir}/.claude/skills/${skill} - - - - ${src}") (skillsOf i)
     ) cfg.instances);

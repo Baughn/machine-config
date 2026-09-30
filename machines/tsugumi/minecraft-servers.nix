@@ -121,8 +121,11 @@ in
           MINECRAFT_UNIT = "%n";
           # The start.py shebang is `nix-shell -p …`, which needs <nixpkgs>.
           NIX_PATH = lib.concatStringsSep ":" config.nix.nixPath;
-          # Crash analysis escapes to the user manager via systemd-run --user,
-          # so the restart that follows a crash doesn't kill it.
+          # crash_analysis.py drops a local trigger for tsugumi-minecraft here
+          # (triggerSources in agents.nix).
+          CRASH_ANALYSIS_TRIGGER_DIR = "/var/lib/agent-bridge/tsugumi-minecraft/triggers";
+          # The older standalone analysis escapes to the user manager via
+          # systemd-run --user, so the restart that follows a crash doesn't kill it.
           XDG_RUNTIME_DIR = "/run/user/${uid}";
           DBUS_SESSION_BUS_ADDRESS = "unix:path=/run/user/${uid}/bus";
         };

@@ -1,5 +1,8 @@
 { config, ... }:
 # Agent-channel identities on tsugumi. See docs/agent-channel-design.md.
+let
+  crashTrigger = "A Minecraft server crashed. Use the crash-analysis skill on the pending snapshot(s).";
+in
 {
   age.secrets = {
     agent-claude-token.file = ../../secrets/agent-claude-token.age;
@@ -32,6 +35,9 @@
       # Baughn's tick-debugging workflow; its case records live in
       # /home/minecraft/agent-debugging, outside the skill.
       skills.minecraft-tick-debug = ./agents/skills/minecraft-tick-debug;
+      skills.crash-analysis = ./agents/skills/crash-analysis;
+      # crash_analysis.py (start.py, after an unrequested nonzero exit).
+      triggerSources.crash-analysis = crashTrigger;
       permissionMode = "auto";
       # Pinned rather than the "opus" alias, so a model change is a deliberate
       # edit. Needs Claude Code >= 2.1.280, from nixpkgs-fast (see flake.nix).
@@ -89,6 +95,9 @@
       rcon.root = "/srv/minecraft-lab";
       askAgents = [ "tsugumi-minecraft" "saya" ];
       path = [ config.system.build.minecraft-lab-client ];
+      # For testing crash analysis on clones whose lab.env enables it.
+      skills.crash-analysis = ./agents/skills/crash-analysis;
+      triggerSources.crash-analysis = crashTrigger;
       permissionMode = "auto";
       model = "claude-opus-5-5";
       allow = [

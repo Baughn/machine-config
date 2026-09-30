@@ -235,6 +235,24 @@ grid. Limits: 20 schedules, 30 days ahead, notes up to 2000 characters.
 (`CronCreate`, `ScheduleWakeup`, `Monitor`, …) are disallowed: they would
 start the agent between turns, where nothing reads its output.
 
+**Local triggers (2026-10-01).** The only other way to start a turn. It exists
+for crash analysis: `crash_analysis.py` runs inside `minecraft@`, as the same
+Unix user as tsugumi-minecraft, and used to run its own `claude -p` out of band.
+An instance's `triggerSources` maps a source name to an instruction. A program
+running as the agent's user writes `{"source": NAME, "note": TEXT}` into
+`$STATE/triggers/*.json` (tmpfiles creates the directory at boot; write a
+`.tmp` and rename). The bridge polls it with the schedules (`spool.py`), so a
+turn starts within a minute. All pending files of a source become one trigger
+(`[local trigger NAME] set up in your config, may ask you to act:
+<instruction>`), with the notes below it **labelled as data**: the instruction
+comes from Nix, never from the file. The live server JVM runs as the same
+user, so a compromised server could write here; it can only add notes, not
+ask for something new. Unknown sources, non-JSON and files over 8 KiB move to
+`triggers/rejected/`; notes are cut at 2000 characters. Files are deleted
+only after the turn that saw them, so a bridge restart in between repeats
+the trigger rather than losing it. Pause and the breaker hold them like
+schedules, and at most 6 spool batches start per hour; the rest wait.
+
 **Web search.** Claude Code's `WebSearch` (run on Anthropic's side) is in
 every identity's `allow` list; `WebFetch` is left to the permission mode.
 The base prompt treats both as data, like text from Minecraft.
@@ -338,7 +356,8 @@ model never takes part in this decision.
   (`adminRoleId`, checked against the live guild member, not just the roster),
   so removing someone's admin role in Discord revokes their access.
 - **Context:** other messages in the channel from roster members, admins and
-  the watchdog webhook. They are buffered, and the next turn's input starts
+  the watchdog webhook (and the roster's `contextWebhookIds`, e.g. crash
+  analysis's notice). They are buffered, and the next turn's input starts
   with "channel activity since your last turn", each line labelled with author
   name, kind (human/agent/watchdog) and role. A message from an author who
   isn't in `triggers` is marked as such, so the model can tell a request it
@@ -1085,6 +1104,7 @@ tools/agent-bridge/
     policy.py        # PURE: route(message, roles, state) -> Trigger|Context|Ignore
     limits.py        # PURE: rate limiter + bot-streak breaker, injected clock
     schedule.py      # the agent's schedules: validation, persistence, what's due
+    spool.py         # local triggers: $STATE/triggers/*.json from the agent's own user
     approval.py      # PURE: approval + AskUserQuestion state machine
     render.py        # PURE: post{} / questions -> Discord message(s), validation errors
     filter.py        # PURE: outbound secret filter

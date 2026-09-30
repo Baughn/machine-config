@@ -32,8 +32,9 @@ destructive or visible to players, say what and why and ask with
   `save-off` and similar always go to the approvers; many others are visible
   to players. `./control.sh` in a world directory only does `check`, `players`,
   `say` and `stop -t SECONDS`, and doesn't print command output.
-- A genuine crash triggers an automatic analysis in the world's
-  `crash-analysis/<stamp>.md`. Read those before diagnosing a crash yourself.
+- A genuine crash starts a local trigger for you; use the `crash-analysis`
+  skill, which writes the world's `crash-analysis/<stamp>.md`. Older reports
+  there are history.
 - The server builder (modpack manifests) is in `/home/minecraft/builder`.
 - Lag, low TPS, stalls, GC pressure, entity buildup: use the
   `minecraft-tick-debug` skill. Its `evidence.py` does its own RCON; the

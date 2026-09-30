@@ -76,7 +76,7 @@ def classify(config: Config, author_id: str, name: str, *, is_bot: bool,
     """Who wrote a message. `is_admin` is the live guild role check."""
     roster = config.roster
     if webhook_id is not None:
-        if webhook_id == roster.watchdog_webhook_id:
+        if webhook_id == roster.watchdog_webhook_id or webhook_id in roster.context_webhook_ids:
             return Author(author_id, name, Kind.WATCHDOG, None)
         return Author(author_id, name, Kind.OTHER, None)
     if author_id == config.me.discord_id:
