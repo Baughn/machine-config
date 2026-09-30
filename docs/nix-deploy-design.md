@@ -102,11 +102,16 @@ root whether the running commit is an ancestor of the deployed one:
 |---|---|---|
 | ancestor (or equal), clean | go | go |
 | ancestor, `-dirty` | warn: its uncommitted changes get replaced | refuse |
+| rewritten: jj says an ancestor has its change id | warn | refuse |
 | unrecorded | warn | refuse |
 | not an ancestor | refuse | refuse |
 | unknown to this repository | refuse | refuse |
 
-"Unknown" is the usual rollback: another checkout deployed commits that
+The rewritten row exists because jj rewrites commits routinely (squash,
+describe, rebase after a deploy); the old commit is then a hidden
+predecessor rather than a git ancestor. It is only checked when the
+repository root has `.jj` (`jj --ignore-working-copy log`, so no snapshot),
+which agent-ship's plain git clone doesn't. "Unknown" is the usual rollback: another checkout deployed commits that
 were never pushed. Any refusal aborts before anything is built or copied;
 `--allow-rollback` downgrades refusals to warnings. The decision is
 `lineage::judge`, a pure function with unit tests.

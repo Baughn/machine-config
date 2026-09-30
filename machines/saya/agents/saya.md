@@ -46,6 +46,10 @@ your reply who asked for what and why.
    machines whose config changed, and posts the result in the channel. The
    tool waits and returns the outcome. If he refuses, ask him what to change.
    Don't ship half-finished work, or ship again without a reason.
+   If it refuses because deploying would clobber what the machines run,
+   Baughn has deployed work that isn't on master (or uncommitted changes).
+   You can't fix that: tell him, and ship again once he has pushed it and
+   you have rebased onto it.
 
 ### Minecraft servers
 

@@ -5,6 +5,8 @@
 //! building, each selected machine's running revision must be an ancestor of
 //! the one being deployed, in this repository. Otherwise another checkout
 //! deployed commits this one lacks, and deploying would silently undo them.
+//! In a jj repository, a running commit that was since rewritten (squash,
+//! describe, rebase) counts as contained if its change is an ancestor.
 
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -53,6 +55,9 @@ pub enum Running {
     Unrecorded,
     /// The running commit is an ancestor of (or equal to) the deployed one.
     Ancestor(Rev),
+    /// The deployed commit contains a rewritten version of the running one
+    /// (same jj change id, different commit).
+    Rewritten(Rev),
     /// Both commits are known here, but the deployed one lacks the running one.
     Diverged(Rev),
     /// This repository doesn't have the running commit at all.
@@ -82,6 +87,11 @@ pub fn judge(machine: &str, running: &Running, strict: bool) -> Verdict {
         Running::Unrecorded => lax(format!(
             "{machine} doesn't record which revision it runs; \
              can't tell whether this deploy rolls anything back"
+        )),
+        Running::Rewritten(rev) => lax(format!(
+            "{machine} runs {}, which has since been rewritten (jj); \
+             this deploy replaces it with the rewritten version",
+            rev.short()
         )),
         Running::Diverged(rev) => Verdict::Refuse(format!(
             "{machine} runs {}, which this checkout doesn't contain; deploying would \
@@ -138,19 +148,68 @@ pub fn running(machine: &Machine, root: &Path, deploying: &Rev) -> Result<Runnin
     let Some(rev) = recorded_rev(&json)? else {
         return Ok(Running::Unrecorded);
     };
-    let known = git(root, &["cat-file", "-e", &format!("{}^{{commit}}", rev.commit)])?;
-    if !known.success() {
-        return Ok(Running::Unknown(rev));
-    }
-    let ancestor = git(
+    let known = git(
         root,
-        &["merge-base", "--is-ancestor", &rev.commit, &deploying.commit],
-    )?;
-    match ancestor.code() {
-        Some(0) => Ok(Running::Ancestor(rev)),
-        Some(1) => Ok(Running::Diverged(rev)),
-        _ => bail!("git merge-base --is-ancestor failed ({ancestor})"),
+        &["cat-file", "-e", &format!("{}^{{commit}}", rev.commit)],
+    )?
+    .success();
+    if known {
+        let ancestor = git(
+            root,
+            &[
+                "merge-base",
+                "--is-ancestor",
+                &rev.commit,
+                &deploying.commit,
+            ],
+        )?;
+        match ancestor.code() {
+            Some(0) => return Ok(Running::Ancestor(rev)),
+            Some(1) => {}
+            _ => bail!("git merge-base --is-ancestor failed ({ancestor})"),
+        }
     }
+    if root.join(".jj").is_dir() && jj_rewritten(root, &rev.commit, &deploying.commit)? {
+        return Ok(Running::Rewritten(rev));
+    }
+    Ok(if known {
+        Running::Diverged(rev)
+    } else {
+        Running::Unknown(rev)
+    })
+}
+
+/// Whether `new`'s ancestors include a rewrite of `old`: a commit with
+/// `old`'s jj change id. False if jj doesn't know `old`.
+fn jj_rewritten(root: &Path, old: &str, new: &str) -> Result<bool> {
+    let jj = |revset: &str, template: &str| {
+        Command::new("jj")
+            .args([
+                "--ignore-working-copy",
+                "--color=never",
+                "log",
+                "--no-graph",
+            ])
+            .args(["-r", revset, "-T", template])
+            .current_dir(root)
+            .stdin(Stdio::null())
+            .stderr(Stdio::null())
+            .output()
+            .context("spawning jj log")
+    };
+    let change = jj(old, "change_id")?;
+    if !change.status.success() {
+        return Ok(false);
+    }
+    let change = String::from_utf8_lossy(&change.stdout).trim().to_string();
+    let found = jj(
+        &format!("ancestors({new}) & change_id({change})"),
+        r#"commit_id ++ "\n""#,
+    )?;
+    if !found.status.success() {
+        bail!("jj log failed looking for rewrites of {old}");
+    }
+    Ok(!found.stdout.is_empty())
 }
 
 /// The `configurationRevision` from `nixos-version --json`, if recorded.
@@ -212,7 +271,10 @@ mod tests {
     #[test]
     fn ancestor_is_fine_in_both_modes() {
         for strict in [false, true] {
-            assert_eq!(judge("m", &Running::Ancestor(rev(false)), strict), Verdict::Ok);
+            assert_eq!(
+                judge("m", &Running::Ancestor(rev(false)), strict),
+                Verdict::Ok
+            );
         }
     }
 
@@ -226,8 +288,12 @@ mod tests {
     }
 
     #[test]
-    fn dirty_or_unrecorded_warns_unless_strict() {
-        for running in [Running::Ancestor(rev(true)), Running::Unrecorded] {
+    fn dirty_unrecorded_or_rewritten_warns_unless_strict() {
+        for running in [
+            Running::Ancestor(rev(true)),
+            Running::Unrecorded,
+            Running::Rewritten(rev(false)),
+        ] {
             assert!(matches!(judge("m", &running, false), Verdict::Warn(_)));
             assert!(matches!(judge("m", &running, true), Verdict::Refuse(_)));
         }
