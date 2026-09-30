@@ -862,6 +862,31 @@ async def test_ship_starts_the_unit_and_reports_its_result(tmp_path: Path, monke
     assert result.startswith(f"{unit}: success\npushed; deployed saya")
 
 
+async def test_a_ship_cut_off_by_a_restart_reports_on_the_next_start(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("agent_bridge.bridge.SHIP_POLL", 0)
+    h = ship_harness(tmp_path)
+    commands = Commands(["activating"] * 1000)
+    h.bridge.run_command = commands
+    call = asyncio.create_task(h.bridge.tool_ship({"bookmark": "tsugumi-minecraft/fix-it"}))
+    while not h.bridge.ship_file.exists():
+        await asyncio.sleep(0)
+    call.cancel()  # the deploy restarts the bridge mid-call
+    with pytest.raises(asyncio.CancelledError):
+        await call
+    assert h.bridge.ship_file.exists()
+    (tmp_path / "logs" / f"{'a' * 40}.log").write_text("all machines deployed")
+    again = Harness(tmp_path, ship=h.config.ship.__dict__ | {"repo": str(h.config.ship.repo),
+                                                             "logs": str(h.config.ship.logs)})
+    again.bridge.run_command = Commands(["active"])
+    await again.bridge.start()
+    assert again.bridge.ship_task is not None
+    await again.bridge.ship_task
+    [entry] = again.bridge.buffer
+    assert entry.trigger and entry.scheduled and "all machines deployed" in entry.line
+    assert "fix-it" in entry.line and not again.bridge.ship_file.exists()
+
+
 async def test_ship_refuses_other_bookmarks_and_bad_hashes(tmp_path: Path) -> None:
     h = ship_harness(tmp_path)
     h.bridge.run_command = Commands([], commit="not-a-hash")

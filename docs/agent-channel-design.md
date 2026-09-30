@@ -896,7 +896,11 @@ running as `svein` for his ssh key and sudo) checks everything itself:
 
 The unit has `restartIfChanged = false`, so deploying saya doesn't kill it
 mid-run. The saya bridge itself may restart during that deploy, which ends
-the waiting tool call; the outcome still reaches the channel.
+the waiting tool call; the outcome still reaches the channel, but only as
+context. So the tool records the ship in `$STATE/ship.json` while it waits;
+a bridge that starts and finds it waits for the unit itself and then queues
+a trigger with the outcome (`[ship <commit>] …`), so the agent learns how
+its ship ended (2026-10-01).
 
 **Permissions:** `permission_mode="default"` with an allow list (reads, edits
 in its workdir, `jj`, `nix build/eval/flake check/flake show/log`, `rg`,

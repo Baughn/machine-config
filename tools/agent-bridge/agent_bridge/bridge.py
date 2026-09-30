@@ -111,6 +111,7 @@ class Bridge:
         self.spool_queued: set[Path] = set()  # files in the buffer; seen again after a restart
         self.spool_turns: deque[float] = deque()  # when spool batches were queued, last hour
         self.effort = BASE_EFFORT  # what the CLI runs at now
+        self.ship_task: asyncio.Task[None] | None = None  # a ship outliving the bridge that started it
 
     # --- lifecycle ---------------------------------------------------------
 
@@ -127,6 +128,7 @@ class Bridge:
                 self.last_turn = float(saved.get("last_turn") or self.clock())
                 self.fresh = False
         await self.connect()
+        self.resume_ship()
         history = await self.chat.history(50)
         self.streak = Streak.from_history([m.author.kind for m in history])
 
@@ -788,7 +790,31 @@ class Bridge:
         self.note(f"ship {bookmark} ({commit[:12]})")
         if self.status is not None:
             self.status.last = f"waiting for Baughn's approval of {commit[:12]}"
-        started, seen = self.clock(), False
+        # A deploy may restart this bridge before the unit finishes; start() picks it up.
+        started = self.clock()
+        self.save_ship({"bookmark": bookmark, "commit": commit, "started": started})
+        # Not in a finally: a bridge shutting down cancels this call, and the file must outlive it.
+        outcome = await self.wait_ship(commit, started, lambda: self.stopping)
+        self.ship_file.unlink(missing_ok=True)
+        if outcome is None:
+            return f"Stopped waiting; {unit} carries on.{self.unread()}"
+        return outcome + self.unread()
+
+    @property
+    def ship_file(self) -> Path:
+        return self.config.state / "ship.json"
+
+    def save_ship(self, data: dict[str, Any]) -> None:
+        temporary = self.ship_file.with_suffix(".tmp")
+        temporary.write_text(json.dumps(data))
+        temporary.replace(self.ship_file)
+
+    async def wait_ship(self, commit: str, started: float, stop: Callable[[], bool]) -> str | None:
+        """Poll agent-ship@<commit> until it has run: its result and log tail; None if stopped."""
+        assert self.config.ship is not None
+        ship = self.config.ship
+        unit = f"{ship.unit}@{commit}.service"
+        seen = False
         while True:
             await asyncio.sleep(SHIP_POLL)
             _, output = await self.run_command("systemctl", "show", "-P", "ActiveState", unit)
@@ -797,17 +823,51 @@ class Bridge:
                 seen = True
             elif seen or self.clock() - started > 60:
                 break
-            if self.stopping:
-                return f"Stopped waiting; {unit} carries on.{self.unread()}"
+            if stop():
+                return None
             if self.clock() - started > SHIP_TIMEOUT:
-                return f"{unit} is still running; its result will be posted in the channel.{self.unread()}"
+                return f"{unit} is still running; its result will be posted in the channel."
         _, result = await self.run_command("systemctl", "show", "-P", "Result", unit)
         try:
             log_text = (ship.logs / f"{commit}.log").read_text()[-3000:]
         except OSError:
             log_text = "(no log)"
         self.note(f"ship {commit[:12]}: {result.strip()}")
-        return f"{unit}: {result.strip()}\n{log_text}{self.unread()}"
+        return f"{unit}: {result.strip()}\n{log_text}"
+
+    def resume_ship(self) -> None:
+        """A ship whose tool call died with the previous bridge (the deploy restarted it):
+        wait for it here, then start a turn with the outcome."""
+        if self.config.ship is None:
+            return
+        try:
+            saved = json.loads(self.ship_file.read_text())
+            bookmark, commit, started = str(saved["bookmark"]), str(saved["commit"]), float(saved["started"])
+        except (OSError, ValueError, KeyError, TypeError):
+            return
+        if re.fullmatch(r"[0-9a-f]{40}", commit) is None:
+            self.ship_file.unlink(missing_ok=True)
+            return
+
+        async def finish() -> None:
+            try:
+                outcome = await self.wait_ship(commit, started, lambda: False)
+            except Exception:
+                log.exception("waiting for ship %s failed", commit)
+                return
+            finally:
+                self.ship_file.unlink(missing_ok=True)
+            me = self.config.me
+            note = (f"Your ship of {bookmark} ({commit[:12]}) finished after the bridge restarted, "
+                    f"so the ship tool call was cut off. Outcome:\n{outcome}")
+            message = Incoming(f"ship-{commit[:12]}", self.config.channel_id, None,
+                               Author(me.discord_id, me.shown, Kind.SELF, "agent"), note)
+            line = f"[ship {commit[:12]}] may ask you to act: {note}"
+            self.buffer.append(Entry(message, True, line, scheduled=True, origin=f"its ship of {commit[:12]}"))
+            self.wake.set()
+
+        log.info("resuming the wait for ship %s", commit)
+        self.ship_task = asyncio.create_task(finish())
 
     async def tool_schedule(self, args: dict[str, Any]) -> str:
         # Allowed during the handoff: that is when follow-ups get written down.
