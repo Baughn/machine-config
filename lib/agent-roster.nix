@@ -14,15 +14,18 @@
   };
   agents = {
     tsugumi-minecraft = {
-      discordId = "1553405654218182708"; # ErisiAgent
+      discordId = "1553405654218182708";
+      displayName = "ErisiAgent"; # the bot's Discord username
       description = "Runs as `minecraft` on tsugumi; operates the live servers.";
     };
     tsugumi-lab = {
-      discordId = "1553406246269489152"; # LabAgent
+      discordId = "1553406246269489152";
+      displayName = "LabAgent";
       description = "Runs as `mclab` on tsugumi; experiments on ZFS clones of worlds.";
     };
     saya = {
-      discordId = "1553406970164281525"; # Saya
+      discordId = "1553406970164281525";
+      displayName = "Saya";
       description = "Runs as `saya-agent` on saya; edits machine-config; acts only for Baughn.";
     };
   };

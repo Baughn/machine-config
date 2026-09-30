@@ -19,7 +19,8 @@ def roster_block(config: Config) -> str:
     lines += ["", "Agents:"]
     for agent in roster.agents:
         me = " (you)" if agent.name == config.id else ""
-        lines.append(f"- {agent.name}{me} (<@{agent.discord_id}>): {agent.description}")
+        known = f" (id `{agent.name}`)" if agent.shown != agent.name else ""
+        lines.append(f"- {agent.shown}{me}{known} (<@{agent.discord_id}>): {agent.description}")
     lines += [
         "",
         f"Who may ask you to act: {', '.join(sorted(config.triggers))}.",
@@ -55,7 +56,7 @@ def working_block(config: Config) -> str:
 
 
 def system_prompt(config: Config) -> str:
-    base = base_prompt().replace("{id}", config.id)
+    base = base_prompt().replace("{name}", config.me.shown).replace("{id}", config.id)
     parts = [base, roster_block(config), working_block(config)]
     if config.prompt.strip():
         parts.append(config.prompt.strip())

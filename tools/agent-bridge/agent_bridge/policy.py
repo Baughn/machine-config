@@ -80,10 +80,10 @@ def classify(config: Config, author_id: str, name: str, *, is_bot: bool,
             return Author(author_id, name, Kind.WATCHDOG, None)
         return Author(author_id, name, Kind.OTHER, None)
     if author_id == config.me.discord_id:
-        return Author(author_id, config.id, Kind.SELF, "agent")
+        return Author(author_id, config.me.shown, Kind.SELF, "agent")
     agent = roster.agent(author_id)
     if agent is not None:
-        return Author(author_id, agent.name, Kind.AGENT, "agent")
+        return Author(author_id, agent.shown, Kind.AGENT, "agent")
     if is_bot:
         return Author(author_id, name, Kind.OTHER, None)
     human = roster.human(author_id)

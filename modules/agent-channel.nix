@@ -17,7 +17,7 @@ let
     watchdog_webhook_id = roster.watchdogWebhookId;
     agents_role_id = roster.agentsRoleId or null;
     humans = lib.mapAttrs (_: h: { discord_id = h.discordId; inherit (h) role; }) roster.humans;
-    agents = lib.mapAttrs (_: a: { discord_id = a.discordId; inherit (a) description; }) roster.agents;
+    agents = lib.mapAttrs (_: a: { discord_id = a.discordId; display_name = a.displayName; inherit (a) description; }) roster.agents;
   };
 
   instanceModule = { name, ... }: {

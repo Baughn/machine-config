@@ -27,9 +27,14 @@ class Human:
 
 @dataclass(frozen=True)
 class Agent:
-    name: str
+    name: str  # the id: units, state dirs, ask_agent
     discord_id: str
     description: str
+    display_name: str = ""  # the bot's Discord username; defaults to the id
+
+    @property
+    def shown(self) -> str:
+        return self.display_name or self.name
 
 
 @dataclass(frozen=True)
@@ -125,7 +130,7 @@ def _strings(data: dict[str, Any], key: str) -> tuple[str, ...]:
 def parse_roster(data: dict[str, Any]) -> Roster:
     humans = tuple(Human(name, str(h["discord_id"]), h["role"])
                    for name, h in data.get("humans", {}).items())
-    agents = tuple(Agent(name, str(a["discord_id"]), a.get("description", ""))
+    agents = tuple(Agent(name, str(a["discord_id"]), a.get("description", ""), a.get("display_name", ""))
                    for name, a in data.get("agents", {}).items())
     roster = Roster(
         guild_id=str(data["guild_id"]),

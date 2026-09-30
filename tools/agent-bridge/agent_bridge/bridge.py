@@ -189,7 +189,7 @@ class Bridge:
     def schedule_entry(self, schedule: Schedule) -> Entry:
         me = self.config.me
         message = Incoming(schedule.id, self.config.channel_id, None,
-                           Author(me.discord_id, self.config.id, Kind.SELF, "agent"), schedule.note)
+                           Author(me.discord_id, me.shown, Kind.SELF, "agent"), schedule.note)
         repeat = (f", repeating every {schedule.every / 60:g} min (cancel it with the schedules tool "
                   "when it has served its purpose)" if schedule.every is not None else "")
         line = (f"[schedule {schedule.id}] your own follow-up, set {stamp(schedule.created)}{repeat}, "

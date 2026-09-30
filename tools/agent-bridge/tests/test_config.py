@@ -9,7 +9,7 @@ from agent_bridge.config import ConfigError, check_workdir_settings, load
 from agent_bridge.prompt import system_prompt
 from agent_bridge.session import BRIDGE_TOOLS, CLI_SCHEDULERS, options_kwargs
 
-from conftest import config_data, make_config
+from conftest import LAB, ME, author, config_data, make_config
 
 
 def test_roundtrip_from_toml(tmp_path: Path) -> None:
@@ -133,3 +133,16 @@ def test_effort_levels_and_prompt() -> None:
     assert "`effort`" not in plain and "`advisor`" not in plain
     with pytest.raises(ConfigError):
         make_config(max_effort="low")
+
+
+def test_display_names() -> None:
+    data = config_data()
+    data["roster"]["agents"]["tsugumi-minecraft"]["display_name"] = "ErisiAgent"
+    data["roster"]["agents"]["tsugumi-lab"]["display_name"] = "LabAgent"
+    config = make_config(roster=data["roster"])
+    prompt = system_prompt(config)
+    assert "You are **ErisiAgent** (id `tsugumi-minecraft`)" in prompt
+    assert "- ErisiAgent (you) (id `tsugumi-minecraft`)" in prompt
+    assert "- LabAgent (id `tsugumi-lab`)" in prompt
+    assert author(config, LAB).label == "LabAgent (agent, agent)"
+    assert author(config, ME).label == "ErisiAgent (self, agent)"
