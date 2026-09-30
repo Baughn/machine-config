@@ -159,26 +159,43 @@ def request_text(commit, log, stat):
 # --- main ----------------------------------------------------------------------
 
 
-def ship(commit, out, deploy=None, sleep=time.sleep):
+def ship(commit, out, deploy=None, check=None, sleep=time.sleep):
     # A commit that is already in master (shipped before) fails the fast-forward check.
     repo = STATE / "nixos"
+    check = check or run_check
     log, stat, diff = prepare(repo, commit)
+    git(repo, "checkout", "--detach", "--force", commit)
+    check(repo)
     hook = webhook_id(webhook_url())
     message_id = post(request_text(commit, log, stat), [(f"{commit[:12]}.diff", diff.encode())])
     print(f"request posted as {message_id}; waiting for Baughn", file=out, flush=True)
     decided = await_verdict(message_id, hook, sleep)
     if decided != APPROVE:
         raise Refused("refused by Baughn" if decided == REFUSE else "no approval within an hour")
+    check(repo)  # again: someone may have deployed during the wait
     git(repo, "push", "origin", f"{commit}:refs/heads/master")
     print(f"pushed {commit} to master", file=out, flush=True)
-    git(repo, "checkout", "--detach", "--force", commit)
     status = (deploy or run_deploy)(repo, out)
     subprocess.run([JJ, "-R", str(USER_REPO), "git", "fetch"], capture_output=True)
     return status
 
 
+def run_check(repo):
+    """Refuse unless every machine runs an ancestor of the checked-out commit.
+
+    Otherwise deploying would roll back work deployed from another checkout,
+    such as Baughn's unpushed commits. --strict also refuses when a machine
+    runs uncommitted changes, or doesn't record what it runs.
+    """
+    result = subprocess.run(["deploy", "--check", "--strict"], cwd=repo, capture_output=True, text=True)
+    if result.returncode != 0:
+        lines = [l for l in result.stderr.splitlines() if not l.startswith("warning: Git tree")]
+        raise Refused("deploying would clobber what the machines run:\n" + "\n".join(lines)[-1200:])
+
+
 def run_deploy(repo, out):
-    return subprocess.run(["deploy", "--mode", "switch"], cwd=repo, stdout=out, stderr=subprocess.STDOUT).returncode
+    return subprocess.run(["deploy", "--mode", "switch", "--strict"], cwd=repo, stdout=out,
+                          stderr=subprocess.STDOUT).returncode
 
 
 def tail(path, size=1500):

@@ -88,10 +88,10 @@ class Ship(unittest.TestCase):
     def origin_master(self):
         return sh(self.root, "git", "--git-dir", "origin.git", "rev-parse", "master")
 
-    def run_ship(self, decision):
+    def run_ship(self, decision, check=lambda repo: None):
         deployed = []
         with patch.object(ship, "await_verdict", return_value=decision):
-            status = ship.ship(self.commit, io.StringIO(),
+            status = ship.ship(self.commit, io.StringIO(), check=check,
                                deploy=lambda repo, out: deployed.append(sh(repo, "git", "rev-parse", "HEAD")) or 0)
         return status, deployed
 
@@ -119,6 +119,32 @@ class Ship(unittest.TestCase):
         with self.assertRaisesRegex(ship.Refused, "rebase"):
             self.run_ship(ship.APPROVE)
         self.assertEqual(self.posts, [])  # nothing asked of Baughn
+
+    def test_lineage_is_checked_on_the_commit_before_asking_and_before_pushing(self):
+        checked = []
+        self.run_ship(ship.APPROVE, check=lambda repo: checked.append(sh(repo, "git", "rev-parse", "HEAD")))
+        self.assertEqual(checked, [self.commit, self.commit])
+
+    def test_clobbering_what_runs_is_refused_before_asking(self):
+        def clobbers(repo):
+            raise ship.Refused("deploying would clobber what the machines run")
+        before = self.origin_master()
+        with self.assertRaisesRegex(ship.Refused, "clobber"):
+            self.run_ship(ship.APPROVE, check=clobbers)
+        self.assertEqual(self.posts, [])
+        self.assertEqual(self.origin_master(), before)
+
+    def test_deploys_during_the_wait_are_caught_before_pushing(self):
+        calls = []
+        def second_fails(repo):
+            calls.append(repo)
+            if len(calls) == 2:
+                raise ship.Refused("deploying would clobber what the machines run")
+        before = self.origin_master()
+        with self.assertRaisesRegex(ship.Refused, "clobber"):
+            self.run_ship(ship.APPROVE, check=second_fails)
+        self.assertEqual(len(self.posts), 1)
+        self.assertEqual(self.origin_master(), before)
 
     def test_shipped_or_unknown_commits_are_refused(self):
         self.run_ship(ship.APPROVE)

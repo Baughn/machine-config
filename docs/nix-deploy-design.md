@@ -1,6 +1,6 @@
 # deploy: unified build + deploy tool
 
-*Deployment workflow updated: 2026-09-24. Status: implemented (v1). The
+*Deployment workflow updated: 2026-09-30 (lineage check). Status: implemented (v1). The
 crate lives in `tools/nix-deploy/`; the installed command is `deploy`.*
 
 ## Problem
@@ -46,7 +46,7 @@ the other tools, installed on saya via `environment.systemPackages`.
 Binary name: `deploy`.
 
 ```
-deploy [MACHINE...] [--mode switch|boot]
+deploy [MACHINE...] [--mode switch|boot] [--check] [--strict] [--allow-rollback]
 ```
 
 - No machine arguments: deploy every machine in the manifest, remotes first,
@@ -55,6 +55,10 @@ deploy [MACHINE...] [--mode switch|boot]
 - `--mode`: skip the interactive prompt and force that mode on every machine.
   Never auto-reboots anything; with `--mode switch` the reboot verdict is
   still printed as a warning.
+- `--check`: run only the lineage check (below), then stop without building.
+- `--strict`: the lineage check also refuses unrecorded or dirty running
+  revisions. For unattended deployers (agent-ship).
+- `--allow-rollback`: deploy even when the lineage check refuses.
 
 Run from the repository or a subdirectory; the tool locates the repository
 root. For unattended activation of the server, use `deploy --mode switch tsugumi`.
@@ -82,6 +86,36 @@ everything else derives from it. Root commands are wrapped in `sudo`
 an explicit `sudo = false` or a `root@` target skips the wrapping.
 
 ## Pipeline
+
+### 0. Lineage check
+
+Every system records the flake revision it was built from
+(`system.configurationRevision = self.rev or self.dirtyRev`, set in
+`modules/nix-deploy.nix`; `<commit>-dirty` when the tree had uncommitted
+changes, which is normal from a jj working copy with a non-empty `@`).
+Before building anything, for each selected machine the tool reads the
+running revision (`nixos-version --json` on the target) and the one it is
+about to build (`nix flake metadata --json`), and asks git in the repository
+root whether the running commit is an ancestor of the deployed one:
+
+| running revision | default | `--strict` |
+|---|---|---|
+| ancestor (or equal), clean | go | go |
+| ancestor, `-dirty` | warn: its uncommitted changes get replaced | refuse |
+| unrecorded | warn | refuse |
+| not an ancestor | refuse | refuse |
+| unknown to this repository | refuse | refuse |
+
+"Unknown" is the usual rollback: another checkout deployed commits that
+were never pushed. Any refusal aborts before anything is built or copied;
+`--allow-rollback` downgrades refusals to warnings. The decision is
+`lineage::judge`, a pure function with unit tests.
+
+Why: deploys come from Baughn's working copy and from agent-ship's clean
+clone of master. Without this, each silently rolled back the other's
+unpushed or unfetched work (September 2026). A side effect of recording the
+revision is that every commit yields a new toplevel, so "already up to
+date" only happens when nothing was committed in between.
 
 ### 1. Build (single eval)
 
@@ -254,6 +288,7 @@ tools/nix-deploy/
     log_model.rs      # internal-json parser + build-state model
     ui.rs             # render thread, tree drawing, non-TTY fallback
     diff.rs           # closure listing, structural + pattern checks, verdict
+    lineage.rs        # running vs. deployed revision, rollback refusal
     target.rs         # ssh/local command abstraction (run, copy, reboot-wait)
     activate.rs       # profile set + switch-to-configuration + reboot flow
 ```

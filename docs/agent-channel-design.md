@@ -1,6 +1,6 @@
 # Agent channel: Claude Code agents as Discord members
 
-*Status: design 2026-09-24, revised 2026-09-25; updated 2026-09-29 as the
+*Status: design 2026-09-24, revised 2026-09-25; updated 2026-09-30 as the
 pieces landed. Implemented: the server lifecycle (deployed), the snapshot
 watchdog (deployed), and the bridge with the tsugumi-minecraft identity
 (deployed 2026-09-26: observer mode in the test channel briefly, then `auto`
@@ -849,7 +849,14 @@ running as `svein` for his ssh key and sudo) checks everything itself:
    its clone directly would run `git upload-pack` there, which git refuses for
    other users' repos unless marked `safe.directory`.)
 2. Requires a fast-forward: `origin/master` must be an ancestor of the
-   commit, else it refuses and the agent rebases.
+   commit, else it refuses and the agent rebases. It then checks the commit
+   out detached and runs `deploy --check --strict` there, refusing if any
+   machine runs a revision the commit doesn't contain (Baughn's unpushed
+   work, deployed from his checkout), runs uncommitted changes, or doesn't
+   record its revision. See "Lineage check" in `docs/nix-deploy-design.md`.
+   (On 2026-09-29 both kinds of deploy silently rolled each other back:
+   Baughn's easel deploy dropped the agent's shipped agent-bridge changes,
+   and the next ship dropped easel.)
 3. Posts the request **through the watchdog webhook** (username "saya
    deploy"), with the log, `diff --stat` and the full diff it computed
    itself, mentioning Baughn. The agent can't write or edit that message:
@@ -859,10 +866,10 @@ running as `svein` for his ssh key and sudo) checks everything itself:
    to an hour: Baughn's ✅ proceeds, his ❌ or the timeout refuses. Anyone
    else's reactions are ignored, and so is a message that isn't the
    webhook's or has been edited.
-5. Pushes `<commit>:master` to GitHub, checks the commit out detached, and
-   runs a bare `deploy --mode switch` there: the exact commit, never
-   Baughn's working copy, and only machines whose closure changed are
-   switched.
+5. Repeats the lineage check (someone may have deployed during the wait),
+   pushes `<commit>:master` to GitHub, and runs `deploy --mode switch
+   --strict` in the checkout: the exact commit, never Baughn's working
+   copy, and only machines whose closure changed are switched.
 6. `jj git fetch` in `/home/svein/nixos`, so Baughn's repo sees the new
    master (his own unpushed work needs `./pull.sh` before his next push),
    then posts the outcome through the webhook and writes

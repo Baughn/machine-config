@@ -6,6 +6,7 @@
 mod activate;
 mod build;
 mod diff;
+mod lineage;
 mod log_model;
 mod manifest;
 mod target;
@@ -30,6 +31,20 @@ struct Cli {
     /// prompt. Never reboots anything.
     #[arg(long, value_enum)]
     mode: Option<CliMode>,
+
+    /// Check that no machine runs commits this checkout lacks, then stop
+    /// without building anything.
+    #[arg(long)]
+    check: bool,
+
+    /// Also refuse when a machine's running revision is unrecorded or has
+    /// uncommitted changes (for unattended deployers such as agent-ship).
+    #[arg(long)]
+    strict: bool,
+
+    /// Deploy even if that rolls back commits a machine is running.
+    #[arg(long, conflicts_with = "check")]
+    allow_rollback: bool,
 }
 
 #[derive(Debug, Clone, Copy, clap::ValueEnum)]
@@ -67,6 +82,12 @@ fn main() -> Result<()> {
     let manifest = manifest::load(&root)?;
     let machines = select_machines(&manifest.machines, &cli.machines)?;
     let reboot_timeout = Duration::from_secs(manifest.settings.reboot_timeout_secs);
+
+    check_lineage(&root, &machines, cli.strict, cli.allow_rollback)?;
+    if cli.check {
+        eprintln!("lineage check passed");
+        return Ok(());
+    }
 
     let names: Vec<&str> = machines.iter().map(|m| m.name.as_str()).collect();
     eprintln!("building {} (single evaluation) ...", names.join(", "));
@@ -119,6 +140,37 @@ fn main() -> Result<()> {
     }
 
     eprintln!("\nall machines deployed");
+    Ok(())
+}
+
+/// Refuse (before building anything) if deploying would roll back commits
+/// any selected machine runs; see `lineage`.
+fn check_lineage(
+    root: &std::path::Path,
+    machines: &[Machine],
+    strict: bool,
+    allow_rollback: bool,
+) -> Result<()> {
+    let deploying = lineage::deploying_rev(root)?;
+    let mut refusals = Vec::new();
+    for machine in machines {
+        let running = lineage::running(machine, root, &deploying)
+            .with_context(|| format!("checking what {} runs", machine.name))?;
+        match lineage::judge(&machine.name, &running, strict) {
+            lineage::Verdict::Ok => {}
+            lineage::Verdict::Warn(msg) => eprintln!("warning: {msg}"),
+            lineage::Verdict::Refuse(msg) if allow_rollback => {
+                eprintln!("warning: {msg} (deploying anyway: --allow-rollback)")
+            }
+            lineage::Verdict::Refuse(msg) => refusals.push(msg),
+        }
+    }
+    if !refusals.is_empty() {
+        bail!(
+            "refusing to deploy:\n  {}\n(--allow-rollback overrides)",
+            refusals.join("\n  ")
+        );
+    }
     Ok(())
 }
 

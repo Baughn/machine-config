@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, flakeSelf, ... }:
 
 {
   options.me.deploy.rebootPatterns = lib.mkOption {
@@ -11,6 +11,10 @@
       nix-deploy recommend `boot` instead of `switch` for this machine.
     '';
   };
+
+  # What nix-deploy's lineage check reads back (`nixos-version --json`) to
+  # refuse deploys that would roll back commits the machine is running.
+  config.system.configurationRevision = flakeSelf.rev or flakeSelf.dirtyRev or null;
 
   # Baked into the toplevel so nix-deploy can read the policy from the path
   # it just built, without a second evaluation.
