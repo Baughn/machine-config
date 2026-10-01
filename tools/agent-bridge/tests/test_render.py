@@ -126,3 +126,13 @@ def test_settled_keeps_the_outcome() -> None:
     text = render.settled("x" * 5000, footer)
     assert len(text) == render.MESSAGE_LIMIT and text.endswith("…\n" + footer)
     assert render.settled("short", footer) == "short\n" + footer
+
+
+@pytest.mark.parametrize("text", ["<@1553406246269489152> please", "<@!42> hi", "role <@&7>"])
+def test_post_refuses_mentions(tmp_path: Path, text: str) -> None:
+    roots = Roots((tmp_path,), 1000)
+    with pytest.raises(PostError, match="ask_agent"):
+        render_post({"kind": "status", "headline": "x", "overview": text}, owner_id="1", roots=roots)
+    with pytest.raises(PostError, match="mention"):
+        render_post({"kind": "status", "headline": text}, owner_id="1", roots=roots)
+    assert render_post({"kind": "status", "headline": "email a@b <@ not one>"}, owner_id="1", roots=roots)

@@ -400,6 +400,10 @@ post {
   the attachment, and the overview is what a human needs in order to decide.
 - `kind = "alert"` is rendered with a mention of the owner. This is how "tell
   Baughn" works without the model having to know or format Baughn's Discord ID.
+- Posts are sent with mentions disabled, so a `<@…>` in the headline or
+  overview is refused with an explanation (use `ask_agent`, or `alert`).
+  Before that, saya "pinged" the lab in a post; it rendered as a mention but
+  reached the lab as context (2026-10-01).
 - `path` attachments must resolve inside the workdir or `$STATE`. The size cap
   is the unboosted guild upload limit (check the current value; enforce 8 MiB
   to be safe).

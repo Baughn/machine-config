@@ -74,6 +74,10 @@ def _attachment(entry: Any, roots: Roots) -> File:
     return File(name, data)
 
 
+# A user or role mention. Posts never mention anyone (only alert, the owner).
+MENTION = re.compile(r"<@[!&]?\d+>")
+
+
 def render_post(args: dict[str, Any], *, owner_id: str, roots: Roots,
                 tokens: tuple[str, ...] = ()) -> Outgoing:
     """Validate the `post` tool's arguments and render the message. Never truncates."""
@@ -91,6 +95,11 @@ def render_post(args: dict[str, Any], *, owner_id: str, roots: Roots,
         raise PostError(f"overview is {len(overview)} characters, over the {OVERVIEW_LIMIT} limit; "
                         "move the detail into an attachment and keep the overview to what "
                         "a busy admin needs")
+    if MENTION.search(f"{headline}\n{overview}"):
+        raise PostError("refused: the post contains a Discord mention (<@…>). Posts are sent with "
+                        "mentions disabled, so it would neither ping nor trigger anyone. To get an "
+                        "agent to act, use ask_agent; to reach Baughn urgently, use kind alert. "
+                        "To refer to someone, write their name.")
     entries = args.get("attachments") or []
     if not isinstance(entries, list) or len(entries) > MAX_ATTACHMENTS:
         raise PostError(f"attachments must be a list of at most {MAX_ATTACHMENTS}")
