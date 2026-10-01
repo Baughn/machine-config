@@ -12,6 +12,7 @@ from typing import Any
 import pytest
 
 from agent_bridge.approval import STOP, Verdict
+from agent_bridge import bridge as bridge_module
 from agent_bridge.bridge import Bridge
 from agent_bridge.config import ConfigError, parse
 from agent_bridge.policy import Attachment, Incoming, Route, classify, may_approve, route
@@ -728,6 +729,39 @@ async def test_ask_agent_is_stopped_and_limited(tmp_path: Path) -> None:
         await task
 
 
+async def test_ask_agent_gives_up_when_the_other_bridge_does_not_acknowledge(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(bridge_module, "ACK_TIMEOUT", 0.01)
+    h = Harness(tmp_path, ask_agents=["tsugumi-lab"])
+    result = await h.bridge.tool_ask_agent({"agent": "tsugumi-lab", "headline": "anyone there?"})
+    assert result.startswith("tsugumi-lab didn't acknowledge your question")
+    assert h.bridge.waiters == {}
+
+
+async def test_ask_agent_waits_once_acknowledged(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(bridge_module, "ACK_TIMEOUT", 0.05)
+    h = Harness(tmp_path, ask_agents=["tsugumi-lab"])
+    task = asyncio.create_task(h.bridge.tool_ask_agent({"agent": "tsugumi-lab", "headline": "slow one"}))
+    await settle()
+    question_id = list(h.chat.sent)[-1]
+    # Someone else's reaction, or another emoji, is no acknowledgement; the lab's is.
+    await h.bridge.on_reaction(question_id, True, h.author(ALICE), bridge_module.RECEIVED)
+    await h.bridge.on_reaction(question_id, True, h.author(LAB), "👍")
+    await h.bridge.on_reaction(question_id, True, h.author(LAB), bridge_module.RECEIVED)
+    await asyncio.sleep(0.1)
+    assert not task.done()
+    await h.bridge.on_message(from_lab(h, "📄 **done**", question_id))
+    assert "done" in await task
+
+
+async def test_agent_triggers_are_acknowledged(tmp_path: Path) -> None:
+    h = Harness(tmp_path, triggers=["owner", "agent"], approvers=["owner"])
+    asked = await h.say(LAB, "a question for you", mention=True)
+    await h.say(LAB, "just chatting")
+    await h.say(OWNER, "you too", mention=True)
+    assert h.chat.reactions == [(asked.id, bridge_module.RECEIVED)]
+
+
 @pytest.mark.parametrize("names", [["nobody"], ["tsugumi-minecraft"]])
 def test_ask_agents_must_be_other_roster_agents(tmp_path: Path, names: list[str]) -> None:
     with pytest.raises(ConfigError):
@@ -757,6 +791,12 @@ class Channel:
                         mentions=frozenset(message.mention_users), reply_to_id=message.reply_to,
                         reply_to_author=channel.authors.get(message.reply_to or "")))
                 return message_id
+
+            async def react(self, message_id: str, emoji: str) -> None:
+                for bridge in channel.bridges.values():
+                    author = classify(bridge.config, sender_id, "x", is_bot=True, webhook_id=None, is_admin=False)
+                    ours = channel.authors.get(message_id) == bridge.config.me.discord_id
+                    await bridge.on_reaction(message_id, ours, author, emoji)
 
         return ChannelChat()
 

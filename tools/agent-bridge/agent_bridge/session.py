@@ -197,7 +197,9 @@ def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = 
         tools.append(tool("ask_agent", "Ask another agent in the channel something and wait for its "
                           "answer, which comes back as this tool's result. The question is posted "
                           "mentioning that agent; it answers with a reply to it. Later messages from it "
-                          "arrive as channel context.", ask_schema(ask_agents))(wrap(handlers.tool_ask_agent)))
+                          "arrive as channel context. If its bridge doesn't acknowledge the question "
+                          "within 2 minutes (it is down, restarting or paused), the call returns at once "
+                          "saying so.", ask_schema(ask_agents))(wrap(handlers.tool_ask_agent)))
     if ship:
         tools.append(tool("ship", "Ask Baughn to push a commit to master and deploy it. The deploy service "
                           "posts the diff for his approval, and pushes and deploys only after he approves. "

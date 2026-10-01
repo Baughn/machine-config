@@ -421,7 +421,12 @@ The bridge sets `MCP_TOOL_TIMEOUT` to 65 minutes for that (contract check
 Status messages (the other bridge's "⚙ … working for" also replies to the
 question) and anyone else's messages don't count. Timeout: 30 minutes by
 default, 60 at most, then "no answer yet; a later reply arrives as context";
-`!stop` cancels the wait. This is how an `ownerOnly` identity gets answers
+`!stop` cancels the wait. A bridge reacts 📨 to an agent's message that
+starts a turn for it; if the asked agent's bridge hasn't reacted (or answered)
+within 2 minutes, the call returns at once saying it is probably down,
+restarting or paused. Without that, a question to a dead bridge held the
+caller for the full timeout (2026-10-01, the lab after a reboot): a bridge
+doesn't catch up on messages it missed while down. This is how an `ownerOnly` identity gets answers
 from another agent without agents being able to trigger it: the reply is a
 tool result in a turn Baughn started. The alternative, letting agent
 messages trigger saya, would let anyone who can steer tsugumi-minecraft steer

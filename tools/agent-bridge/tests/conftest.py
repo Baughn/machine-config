@@ -80,6 +80,7 @@ class FakeChat:
         self.questions: dict[str, list[dict[str, Any]]] = {}
         self.backlog: list[Incoming] = []
         self.downloads: list[Path] = []
+        self.reactions: list[tuple[str, str]] = []
 
     def new_id(self) -> str:
         return f"m{next(self.ids)}"
@@ -101,6 +102,9 @@ class FakeChat:
         message_id = await self.send(message)
         self.questions[message_id] = questions
         return message_id
+
+    async def react(self, message_id: str, emoji: str) -> None:
+        self.reactions.append((message_id, emoji))
 
     async def history(self, limit: int) -> list[Incoming]:
         return self.backlog[-limit:]

@@ -6,7 +6,7 @@ import asyncio
 from collections import deque
 from collections.abc import Callable
 import contextlib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import json
 import logging
 from pathlib import Path
@@ -37,6 +37,11 @@ HANDOFF_RETRY = 3600.0
 HANDOFF_LIMIT = 8192
 ASK_TIMEOUT = 30.0  # minutes
 ASK_TIMEOUT_MAX = 60.0
+# A bridge reacts with RECEIVED to an agent's message that starts a turn for it.
+# An ask_agent call without that within ACK_TIMEOUT seconds gives up: the other
+# bridge is down, restarting (it doesn't catch up on missed messages) or paused.
+RECEIVED = "📨"
+ACK_TIMEOUT = 120.0
 SHIP_TIMEOUT = 65 * 60.0
 SHIP_POLL = 10.0
 BOOKMARK = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}\Z")
@@ -55,6 +60,7 @@ class Chat(Protocol):
     async def edit(self, message_id: str, content: str) -> None: ...
     async def approve(self, message: Outgoing) -> str: ...
     async def ask(self, message: Outgoing, questions: list[dict[str, Any]]) -> str: ...
+    async def react(self, message_id: str, emoji: str) -> None: ...
     async def history(self, limit: int) -> list[Incoming]: ...
     async def download(self, attachment: Attachment, path: Path) -> None: ...
 
@@ -65,6 +71,17 @@ class Waiter:
 
     agent_id: str
     future: asyncio.Future[Incoming]
+    received: asyncio.Event = field(default_factory=asyncio.Event)  # its bridge reacted RECEIVED
+
+    async def acknowledged(self, timeout: float) -> bool:
+        """Whether the other bridge acknowledged (or answered) within timeout seconds."""
+        ack = asyncio.create_task(self.received.wait())
+        try:
+            either: set[asyncio.Future[Any]] = {ack, self.future}
+            await asyncio.wait(either, timeout=timeout, return_when=asyncio.FIRST_COMPLETED)
+        finally:
+            ack.cancel()
+        return self.received.is_set() or self.future.done()
 
 
 @dataclass
@@ -276,6 +293,12 @@ class Bridge:
         if decision.route is Route.IGNORE:
             return
         trigger = decision.route is Route.TRIGGER
+        if trigger and message.author.kind is Kind.AGENT:
+            # Tells an asking bridge that we're up and will see this.
+            try:
+                await self.chat.react(message.id, RECEIVED)
+            except Exception:
+                log.exception("could not acknowledge message %s", message.id)
         # Agents' context posts are skipped: every bridge sees them, and plans
         # and logs would pile up in each inbox. A request addressed to us is kept.
         wanted = message.author.kind is Kind.HUMAN or (message.author.kind is Kind.AGENT and trigger)
@@ -321,6 +344,10 @@ class Bridge:
         return paths
 
     async def on_reaction(self, message_id: str, message_is_ours: bool, reactor: Author, emoji: str) -> None:
+        waiter = self.waiters.get(message_id)
+        if waiter is not None and emoji == RECEIVED and reactor.id == waiter.agent_id:
+            waiter.received.set()
+            return
         if not may_approve(self.config, reactor):
             return
         if emoji == approval.STOP and message_is_ours:
@@ -706,6 +733,12 @@ class Bridge:
         if self.status is not None:
             self.status.last = f"waiting for {name}"
         try:
+            if minutes * 60 > ACK_TIMEOUT and not await waiter.acknowledged(ACK_TIMEOUT):
+                self.note(f"{name}: no acknowledgement")
+                return (f"{name} didn't acknowledge your question (message {message_id}) within "
+                        f"{ACK_TIMEOUT / 60:g} minutes, so its bridge is probably down, restarting or "
+                        f"paused, and it won't see the question. Don't wait for it: tell the channel, or "
+                        f"ask again later.{self.unread()}")
             answer = await asyncio.wait_for(waiter.future, minutes * 60)
         except TimeoutError:
             self.note(f"{name}: no answer within {minutes:g} min")

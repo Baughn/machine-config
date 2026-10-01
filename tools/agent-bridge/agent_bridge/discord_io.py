@@ -218,6 +218,9 @@ class DiscordChat:
         view.message_id = message_id
         return message_id
 
+    async def react(self, message_id: str, emoji: str) -> None:
+        await self.partial(message_id).add_reaction(emoji)
+
     async def history(self, limit: int) -> list[Incoming]:
         messages = [m async for m in self.channel.history(limit=limit)]
         return [await self.convert(m) for m in reversed(messages)]
