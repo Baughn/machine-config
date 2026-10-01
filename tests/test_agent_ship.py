@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+import unittest.mock
 from unittest.mock import patch
 
 source = Path(__file__).resolve().parents[1] / "machines/saya/agent-ship.py"
@@ -46,6 +47,33 @@ class Verdict(unittest.TestCase):
         clock = iter(range(0, 10_000, 1000))
         with patch.object(ship, "bot", return_value={"webhook_id": HOOK, "reactions": []}):
             self.assertIsNone(ship.await_verdict("m", HOOK, sleep=lambda s: None, clock=lambda: next(clock)))
+
+
+class RateLimit(unittest.TestCase):
+    @staticmethod
+    def limited(body=b'{"retry_after": 1.5}'):
+        return ship.urllib.error.HTTPError("u", 429, "Too Many Requests", {}, io.BytesIO(body))
+
+    @staticmethod
+    def ok(body=b'{"id": "9"}'):
+        response = unittest.mock.MagicMock()
+        response.__enter__.return_value.read.return_value = body
+        return response
+
+    def test_429_waits_and_retries(self):
+        waits = []
+        with patch.object(ship.urllib.request, "urlopen", side_effect=[self.limited(), self.ok()]):
+            self.assertEqual(ship.request("https://x", sleep=waits.append), {"id": "9"})
+        self.assertEqual(waits, [1.5])
+
+    def test_429_gives_up_after_the_retries_and_other_errors_at_once(self):
+        with patch.object(ship.urllib.request, "urlopen", side_effect=[self.limited(b"")] * 10):
+            with self.assertRaises(ship.urllib.error.HTTPError):
+                ship.request("https://x", sleep=lambda s: None)
+        failed = ship.urllib.error.HTTPError("u", 500, "boom", {}, io.BytesIO(b""))
+        with patch.object(ship.urllib.request, "urlopen", side_effect=[failed, self.ok()]):
+            with self.assertRaises(ship.urllib.error.HTTPError):
+                ship.request("https://x", sleep=lambda s: None)
 
 
 class Ship(unittest.TestCase):

@@ -15,6 +15,7 @@ import re
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
@@ -35,6 +36,9 @@ API = "https://discord.com/api/v10"
 USER_AGENT = "agent-ship (https://github.com/Baughn/machine-config, 1)"
 APPROVE, REFUSE = "✅", "❌"
 POLL, APPROVAL_TIMEOUT = 15, 60 * 60
+# Discord answers 429 when the bot token (shared with saya's bridge) is busy; a
+# ship failed on one while waiting for the ✅ (2026-10-01). Wait and retry.
+RATE_LIMIT_RETRIES, RATE_LIMIT_MAX_WAIT = 5, 60.0
 COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 REFUSED = 3  # a normal outcome, not a unit failure (SuccessExitStatus)
 
@@ -53,12 +57,32 @@ def git(repo, *args, check=True):
 # --- Discord -------------------------------------------------------------------
 
 
-def request(url, data=None, headers=None, method=None):
+def request(url, data=None, headers=None, method=None, sleep=time.sleep):
     headers = {"User-Agent": USER_AGENT, **(headers or {})}
-    req = urllib.request.Request(url, data=data, headers=headers, method=method)
-    with urllib.request.urlopen(req, timeout=30) as response:
-        body = response.read()
-    return json.loads(body) if body else None
+    for attempt in range(RATE_LIMIT_RETRIES + 1):
+        req = urllib.request.Request(url, data=data, headers=headers, method=method)
+        try:
+            with urllib.request.urlopen(req, timeout=30) as response:
+                body = response.read()
+        except urllib.error.HTTPError as error:
+            if error.code != 429 or attempt == RATE_LIMIT_RETRIES:
+                raise
+            sleep(retry_after(error))
+            continue
+        return json.loads(body) if body else None
+
+
+def retry_after(error):
+    """Seconds to wait after a 429: Discord's retry_after, else Retry-After, else 5."""
+    wait = 5.0
+    try:
+        wait = float(json.loads(error.read())["retry_after"])
+    except (ValueError, KeyError, TypeError):
+        try:
+            wait = float(error.headers.get("Retry-After", wait))
+        except (ValueError, TypeError, AttributeError):
+            pass
+    return min(max(wait, 0.5), RATE_LIMIT_MAX_WAIT)
 
 
 def webhook_url():
