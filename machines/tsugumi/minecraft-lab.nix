@@ -207,6 +207,18 @@ in
           User = cfg.user;
           Group = cfg.user;
           RuntimeDirectory = "minecraft-lab-pasta";
+          # --config-net copies the host's IPv4 setup once, at start, but
+          # network-online can come from IPv6 alone: on 2026-10-01 pasta
+          # started 3 s before dhcpcd's IPv4 lease, and the namespace had no
+          # route until a restart. Wait for an IPv4 default route first.
+          ExecStartPre = pkgs.writeShellScript "minecraft-lab-wait-ipv4" ''
+            for _ in $(${pkgs.coreutils}/bin/seq 60); do
+              [[ -n $(${pkgs.iproute2}/bin/ip -4 route show default) ]] && exit 0
+              ${pkgs.coreutils}/bin/sleep 1
+            done
+            echo "no IPv4 default route after 60 s" >&2
+            exit 1
+          '';
           ExecStart = lib.escapeShellArgs [
             "${pkgs.passt}/bin/pasta" "--foreground" "--quiet" "--config-net" "--ipv4-only" "--no-map-gw"
             "-t" "127.0.0.1/${toString cfg.loginPort}:25565" "-u" "none" "-T" "none" "-U" "none"
