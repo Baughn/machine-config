@@ -52,6 +52,7 @@ in
     ./dessplay-seeder.nix
     ./dessplay-oracle.nix
     ./victron-monitor.nix
+    ./saya-agent.nix
   ];
 
   ## Boot

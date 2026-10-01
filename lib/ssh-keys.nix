@@ -6,6 +6,11 @@ rec {
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGppkBITukYVejPl3BiRmCDSfdrItzM59XpwwK7W/mXH svein@saya"
   ];
 
+  # The saya agent's read-only login on tsugumi (machines/tsugumi/saya-agent.nix).
+  saya-agent = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHIj6Cs5uJ+h6Z+l/pIZGoqLv42kpPbquWEfE/PYB8xT saya-agent@saya"
+  ];
+
   minecraft = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPi0pCZqmvbObrDkAg28EBwt/hriKcCXRlEreexhoNJd bloxgate-ed25519-2018"
     "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQChK01jTMsMS0sz7DOpArK6QyGd0vheV6gARoB5z6V/U5Y2Q6eXWnO1V4ZaE6HRQCBWp1KdwrqSSLUu9gS5kJTb1n+FsLx4wloCA1LggRSeQWinftZGxavhgdXm6/rnyDsnB42aHqusLiYaBL6OdlqFHiH916xzPxFktqd23rW64B1TV8VYcWa5ZxM8xd1n7svGfTXdb0O+w/RHIOLv4qKUmSmyJGPX7fGg+omHpPnTUpYV9CYInbWdy2nUoeiZU1TibkHuYaXaWLIzoWjIpuJqZdwqOkaK1e3WOrzkSYRHxteoNbzgcvQtdPAqM57TLM0Jwa3uJ5EiX6FCBaX0mZOZdZrNdQhQp0Yw3rkSKh7UySGimIBqFrJK9czVNbQBUUfllPL7x0zR8+PswYThpTecvfMoOoQoAVA2NQGSeglfeTQTgKxa/b85kdezMHoX+o/7hiItyez5tHmRbgfXxy2/8wco/w6hIhAujTeiUAMTu7xR0V8intUEXSuiI/arCJ0= lridge@kirin.local"
