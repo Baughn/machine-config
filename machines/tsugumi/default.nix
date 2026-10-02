@@ -53,6 +53,7 @@ in
     ./dessplay-oracle.nix
     ./victron-monitor.nix
     ./saya-agent.nix
+    ./agent-board.nix
   ];
 
   ## Boot

@@ -21,7 +21,9 @@ pkgs.testers.runNixOSTest {
       };
     };
     machine = { lib, pkgs, ... }: {
-      imports = [ ../machines/tsugumi/minecraft-storage.nix ../machines/tsugumi/minecraft-lab.nix ];
+      imports = [ ../machines/tsugumi/minecraft-storage.nix ../machines/tsugumi/minecraft-lab.nix
+                  ../machines/tsugumi/agent-board.nix ];
+      users.groups.caddy = { };
       virtualisation.vlans = [ 1 2 ];
       # vlan 1 stands in for the LAN (private), vlan 2 for the internet.
       networking.interfaces.eth2.ipv4.addresses = lib.mkForce [{ address = "198.51.100.2"; prefixLength = 24; }];
@@ -101,6 +103,10 @@ pkgs.testers.runNixOSTest {
           lab("cat /home/minecraft/erisia/secret", success=False)
           assert "1.1.1.1" in lab("cat /etc/resolv.conf")
           lab("sudo -n true", success=False)
+
+      with subtest("the sandbox reaches the agent board's socket, as tsugumi-lab"):
+          machine.wait_for_unit("agent-board-api.socket")
+          assert "tsugumi-lab" in lab("curl -sf --unix-socket /run/agent-board/api.sock http://board/whoami")
 
       with subtest("the helper answers the lab under NoNewPrivileges"):
           assert "0 of 3 lab clones" in lab("minecraft-lab list")

@@ -109,6 +109,13 @@
         reverse_proxy http://saya.local:8188
       }
 
+      # The agent board's read-only pages (agent-board.nix).
+      agents.brage.info {
+        import headers
+        import password
+        reverse_proxy unix//run/agent-board/html.sock
+      }
+
       status.brage.info {
         import headers
         import password

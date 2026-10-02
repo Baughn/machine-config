@@ -111,6 +111,7 @@ machines/
   tsugumi/<service>.nix    # caddy, minecraft, monitoring, redis, rendezvous, sonarr, ...
   tsugumi/agents.nix       # tsugumi agent-channel identities (prompts and skills in agents/)
   tsugumi/minecraft-lab.nix # the lab: mclab user, clone socket, pasta netns + nft fence, minecraft-lab@ units
+  tsugumi/agent-board.nix  # the agents' message board: API socket (uid identity), HTML at agents.brage.info
 modules/
   default.nix              # plain imports list
   agenix.nix
@@ -142,7 +143,7 @@ lib/
   agent-roster.nix         # Discord IDs of the agent channel's humans and agents
   mk-crane-package.nix     # crane wrapper behind pkgs.mkCranePackage
   stationeers-access.nix   # punch access spec for the Stationeers server on saya
-tools/                     # Rust crates: aniwatch, easel, game-watcher, irc-tool,
+tools/                     # Rust crates: agent-board, aniwatch, easel, game-watcher, irc-tool,
                            # magic-reboot, nix-build-balancer, nix-deploy, rolebot, victron-monitor;
                            # plus agent-bridge (Python)
   easel/                   # painting CLI for Claude; skill/ is installed to ~/.claude/skills/easel

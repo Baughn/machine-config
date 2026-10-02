@@ -43,6 +43,7 @@
     };
 
     rustManifestPaths = [
+      "tools/agent-board/Cargo.toml"
       "tools/aniwatch/Cargo.toml"
       "tools/easel/Cargo.toml"
       "tools/game-watcher/Cargo.toml"
@@ -78,6 +79,7 @@
     };
 
     rustPackages = {
+      agent-board = pkgs.callPackage ./tools/agent-board { };
       aniwatch = pkgs.callPackage ./tools/aniwatch { };
       easel = pkgs.callPackage ./tools/easel { };
       game-watcher = pkgs.mkCranePackage {
@@ -193,6 +195,7 @@
       minecraft-servers-vm = import ./tests/minecraft-servers-vm.nix { inherit pkgs; };
       minecraft-watch-vm = import ./tests/minecraft-watch-vm.nix { inherit pkgs; };
       minecraft-lab-vm = import ./tests/minecraft-lab-vm.nix { inherit pkgs; };
+      agent-board-vm = import ./tests/agent-board-vm.nix { inherit pkgs; };
       agent-channel-vm = import ./tests/agent-channel-vm.nix {
         # The bridge's CLI, claude-code, is unfree.
         pkgs = import nixpkgs { inherit system; config.allowUnfree = true; overlays = [ craneOverlay ]; };
