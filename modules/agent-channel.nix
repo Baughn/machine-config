@@ -135,6 +135,17 @@ let
         default = null;
         description = "Enables the ship tool: push and deploy a commit after the owner's approval.";
       };
+      board = lib.mkOption {
+        type = lib.types.nullOr (lib.types.submodule {
+          options = {
+            socket = lib.mkOption { type = lib.types.nullOr lib.types.str; default = null; description = "The board's API socket; the caller is identified by uid."; };
+            url = lib.mkOption { type = lib.types.nullOr lib.types.str; default = null; description = "The board's TCP API, used with tokenFile."; };
+            tokenFile = lib.mkOption { type = lib.types.nullOr lib.types.str; default = null; description = "Bearer token for url (read by root via LoadCredential)."; };
+          };
+        });
+        default = null;
+        description = "Gives the agent the board_* tools and a board briefing at session start (tools/agent-board).";
+      };
       environment = lib.mkOption {
         type = lib.types.attrsOf lib.types.str;
         default = { };
@@ -198,6 +209,10 @@ let
     inherit (i) advisor;
     max_effort = i.maxEffort;
     trigger_sources = i.triggerSources;
+    board = if i.board == null then null else lib.filterAttrs (_: v: v != null) {
+      inherit (i.board) socket url;
+      token = i.board.tokenFile != null;
+    };
     roster = rosterToml;
   });
 in
@@ -233,6 +248,11 @@ in
         message = "agent-channel: ${name}'s askAgents must be other roster agents";
       }
       {
+        assertion = i.board == null || ((i.board.socket == null) != (i.board.url == null)
+          && (i.board.url == null) == (i.board.tokenFile == null));
+        message = "agent-channel: ${name}'s board needs a socket, or a url with a tokenFile";
+      }
+      {
         assertion = roster.channels.${i.channel} != null;
         message = "agent-channel: the roster has no ${i.channel} channel (${name})";
       }
@@ -262,7 +282,7 @@ in
         LoadCredential = [
           "discord-token:${i.tokenFile}"
           "claude-token:${i.claudeTokenFile}"
-        ];
+        ] ++ lib.optional (i.board != null && i.board.tokenFile != null) "board-token:${i.board.tokenFile}";
         UMask = "0077";
         Restart = "on-failure";
         RestartSec = "30s";

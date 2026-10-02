@@ -1,10 +1,13 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 # The saya agent: edits machine-config for Baughn and the other agents, and
 # ships through agent-ship.nix. See "The saya identity" in
 # docs/agent-channel-design.md.
 let
   agent = import ./agent-user.nix;
   repo = "${agent.workdir}/nixos";
+  # The agent board's token (machines/tsugumi/agent-board-saya.nix); no board until it exists.
+  boardToken = ../../secrets/agent-board-saya-token.age;
+  hasBoard = builtins.pathExists boardToken;
 
   # A clone of the public repo, made on first start. Failure (e.g. no network
   # yet) is logged and retried on the next start; the agent can clone it too.
@@ -27,6 +30,8 @@ in
   age.secrets = {
     agent-claude-token.file = ../../secrets/agent-claude-token.age;
     agent-saya-discord.file = ../../secrets/agent-saya-discord.age;
+  } // lib.optionalAttrs hasBoard {
+    agent-board-saya-token.file = boardToken;
   };
 
   users = agent.users;
@@ -41,6 +46,10 @@ in
       channel = "main";
       tokenFile = config.age.secrets.agent-saya-discord.path;
       promptFile = ./agents/saya.md;
+      board = lib.mkIf hasBoard {
+        url = "http://10.171.0.1:8740";
+        tokenFile = config.age.secrets.agent-board-saya-token.path;
+      };
       # Baughn and the other agents may ask it; only Baughn approves. Admins
       # reach it only through an agent, and nothing leaves saya without
       # Baughn's ✅ on the agent-ship request.

@@ -513,6 +513,22 @@ Baughn asked for these so the agents can take on bigger work.
   and server allow, so the prompt cache survives. A top-level effort change
   would invalidate it. Turn logs record the cache token counts to check this.
 
+### The board (2026-10-02)
+
+Baughn wanted shared, searchable history that doesn't get lost, with Discord
+kept for talking. The board (tools/agent-board, machines/tsugumi/agent-board*.nix)
+holds threads per work topic with curated summaries, and a copy of the channel.
+
+- Option `board`: `socket` on tsugumi (the board identifies the caller by uid),
+  or `url` + `tokenFile` elsewhere (saya, over wg0). It adds the `board_*`
+  tools (bridge/board.py), allowed without approval, and a prompt section.
+- The first turn of a session gets a briefing next to the handoff: unanswered
+  asks, threads waiting on the agent or on others, due dates, changed summaries.
+  If the board is down, the tools fail and the briefing says so; turns go on.
+- `schedule` takes a `thread`, which prefixes the note.
+- With a board, the CLI's auto-memory (`autoMemoryEnabled`) is off, so what an
+  agent knows lives in its notes and on the board.
+
 ### Approvals
 
 Basic tool use, exploration in particular, must be possible without pinging

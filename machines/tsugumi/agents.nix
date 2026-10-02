@@ -27,6 +27,7 @@ in
       channel = "main";
       tokenFile = config.age.secrets.agent-tsugumi-minecraft-discord.path;
       promptFile = ./agents/tsugumi-minecraft.md;
+      board.socket = "/run/agent-board/api.sock";
       # The worlds sit beside the workdir; reading them shouldn't need an approver.
       extraDirs = [ "/home/minecraft" "/srv/lab-handover" ];
       rcon.root = "/home/minecraft";
@@ -91,6 +92,7 @@ in
       channel = "main";
       tokenFile = config.age.secrets.agent-tsugumi-lab-discord.path;
       promptFile = ./agents/tsugumi-lab.md;
+      board.socket = "/run/agent-board/api.sock";
       extraDirs = [ "/srv/minecraft-lab" "/srv/lab-handover" ];
       rcon.root = "/srv/minecraft-lab";
       askAgents = [ "tsugumi-minecraft" "saya" ];

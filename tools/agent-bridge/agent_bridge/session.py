@@ -10,6 +10,7 @@ import warnings
 from pathlib import Path
 from typing import Any, Protocol
 
+from .board import TOOL_NAMES as BOARD_TOOL_NAMES, TOOLS as BOARD_TOOLS
 from .config import BASE_EFFORT
 from .images import oversized_read
 
@@ -61,6 +62,7 @@ class Handlers(Protocol):
     async def tool_schedule(self, args: dict[str, Any]) -> str: ...
     async def tool_schedules(self, args: dict[str, Any]) -> str: ...
     async def tool_effort(self, args: dict[str, Any]) -> str: ...
+    async def tool_board(self, tool: str, args: dict[str, Any]) -> str: ...
     async def advisor_called(self) -> None: ...
 
 
@@ -138,6 +140,7 @@ SCHEDULE_SCHEMA: dict[str, Any] = {
                "(UTC if it has no offset)"},
         "every_minutes": {"type": "number", "minimum": 15,
                           "description": "Repeat at this interval until cancelled; omit for once"},
+        "thread": {"type": "integer", "description": "The board thread this follow-up belongs to"},
     },
     "required": ["note"],
 }
@@ -161,7 +164,7 @@ SCHEDULES_SCHEMA: dict[str, Any] = {
 
 
 def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = (), ship: bool = False,
-                  effort_levels: tuple[str, ...] = ()) -> Any:
+                  effort_levels: tuple[str, ...] = (), board: bool = False) -> Any:
     from claude_agent_sdk import create_sdk_mcp_server, tool
 
     def wrap(function: Any) -> Any:
@@ -209,6 +212,11 @@ def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = 
                           "higher. It holds for the rest of this turn; the next turn starts at "
                           f"{BASE_EFFORT} again. The level and reason are shown in the channel.",
                           effort_schema(effort_levels))(wrap(handlers.tool_effort)))
+    if board:
+        for name, (description, schema) in BOARD_TOOLS.items():
+            async def call_board(args: dict[str, Any], name: str = name) -> str:
+                return await handlers.tool_board(name, args)
+            tools.append(tool(name, description, schema)(wrap(call_board)))
     return create_sdk_mcp_server("bridge", tools=tools)
 
 
@@ -216,7 +224,7 @@ MCP_TOOL_TIMEOUT_MS = 65 * 60 * 1000
 RCON_TOOL = "mcp__bridge__rcon"
 BRIDGE_TOOLS = ["mcp__bridge__post", "mcp__bridge__history", "mcp__bridge__inbox", RCON_TOOL,
                 "mcp__bridge__ask_agent", "mcp__bridge__ship", "mcp__bridge__schedule",
-                "mcp__bridge__schedules", "mcp__bridge__effort"]
+                "mcp__bridge__schedules", "mcp__bridge__effort", *BOARD_TOOL_NAMES]
 # Whatever the subagent is for, the main agent does the talking.
 SUBAGENT_PROMPT = (
     "You are a subagent of {id}, working inside one of its turns. Report what you found or did in "
@@ -234,7 +242,7 @@ def options_kwargs(*, workdir: Path, state: Path, cli_path: str | None, model: s
                    allow: tuple[str, ...], ask: tuple[str, ...], deny: tuple[str, ...],
                    token: str, add_dirs: tuple[Path, ...] = (),
                    skills: tuple[str, ...] = (), identity: str = "the main agent",
-                   advisor: str | None = None) -> dict[str, Any]:
+                   advisor: str | None = None, auto_memory: bool = True) -> dict[str, Any]:
     """ClaudeAgentOptions arguments, apart from the callbacks. Pure, so it can be tested."""
     if permission_mode == "bypassPermissions":
         raise ValueError("bypassPermissions skips can_use_tool")
@@ -271,6 +279,9 @@ def options_kwargs(*, workdir: Path, state: Path, cli_path: str | None, model: s
         # model reads the whole transcript. Still behind an opt-in in 2.1.x.
         settings["advisorModel"] = advisor
         kwargs["env"]["CLAUDE_CODE_ENABLE_EXPERIMENTAL_ADVISOR_TOOL"] = "1"
+    if not auto_memory:
+        # With the board, the CLI's private memory directory would be a third place to look.
+        settings["autoMemoryEnabled"] = False
     if settings:
         kwargs["settings"] = json.dumps(settings)
     if model:
@@ -282,8 +293,10 @@ class SdkSession:
     """One long-lived ClaudeSDKClient."""
 
     def __init__(self, handlers: Handlers, rcon: bool = False, ask_agents: tuple[str, ...] = (),
-                 ship: bool = False, effort_levels: tuple[str, ...] = (), **kwargs: Any) -> None:
+                 ship: bool = False, effort_levels: tuple[str, ...] = (), board: bool = False,
+                 **kwargs: Any) -> None:
         self.handlers = handlers
+        self.board = board
         self.rcon = rcon
         self.ask_agents = ask_agents
         self.ship = ship
@@ -324,7 +337,7 @@ class SdkSession:
         options = ClaudeAgentOptions(
             **options_kwargs(**{**self.kwargs, "resume": resume}),
             mcp_servers={"bridge": bridge_server(handlers, self.rcon, self.ask_agents, self.ship,
-                                                 self.effort_levels)},
+                                                 self.effort_levels, self.board)},
             can_use_tool=can_use_tool,
             hooks={"PreToolUse": [HookMatcher(hooks=[pre])],
                    "PostToolUse": [HookMatcher(hooks=[post])],

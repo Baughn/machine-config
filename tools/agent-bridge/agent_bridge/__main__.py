@@ -42,6 +42,13 @@ def run(config: Config) -> None:
     (config.state / "claude").mkdir(mode=0o700, exist_ok=True)
     chat = DiscordChat(config)
     prompt = system_prompt(config)
+    board = None
+    board_token = credential("board-token") if config.board is not None and config.board.token else None
+    if config.board is not None:
+        from .board import BoardClient, BoardConfig, BoardTools
+        from .render import Roots
+        client = BoardClient(BoardConfig(config.board.socket, config.board.url, board_token))
+        board = BoardTools(client, config.id, Roots((config.workdir, config.state), config.attachment_limit))
 
     def session(bridge: Bridge) -> SdkSession:
         return SdkSession(bridge, workdir=config.workdir, state=config.state, cli_path=config.cli_path,
@@ -51,9 +58,10 @@ def run(config: Config) -> None:
                           add_dirs=config.extra_dirs, skills=config.skills,
                           rcon=config.rcon_root is not None, ask_agents=config.ask_agents,
                           ship=config.ship is not None, identity=config.id, advisor=config.advisor,
-                          effort_levels=config.effort_levels)
+                          effort_levels=config.effort_levels, board=board is not None,
+                          auto_memory=board is None)
 
-    chat.bridge = Bridge(config, chat, session, tokens=(discord_token, claude_token))
+    chat.bridge = Bridge(config, chat, session, tokens=tuple(t for t in (discord_token, claude_token, board_token) if t), board=board)
     chat.client.run(discord_token, log_handler=None)
     if chat.failed:
         sys.exit(1)

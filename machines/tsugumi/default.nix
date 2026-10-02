@@ -55,6 +55,7 @@ in
     ./saya-agent.nix
     ./agent-board.nix
     ./agent-board-discord.nix
+    ./agent-board-saya.nix
   ];
 
   ## Boot

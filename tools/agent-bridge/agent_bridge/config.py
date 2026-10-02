@@ -76,6 +76,15 @@ class Ship:
 
 
 @dataclass(frozen=True)
+class Board:
+    """The agent board: a unix socket (identity by uid) or a URL with a bearer token."""
+
+    socket: Path | None = None
+    url: str | None = None
+    token: bool = False  # the token is the board-token credential
+
+
+@dataclass(frozen=True)
 class Config:
     id: str
     workdir: Path
@@ -106,6 +115,7 @@ class Config:
     # Local trigger sources (spool.py): name -> what the agent is asked to do when one fires.
     trigger_sources: dict[str, str] = field(default_factory=dict)
     idle_reset: float = 6 * 3600  # seconds without a turn before a handoff and new session; 0: never
+    board: Board | None = None
     limits: Limits = field(default_factory=Limits)
     fake: bool = False
 
@@ -161,6 +171,20 @@ def _sources(value: Any) -> dict[str, str]:
     return dict(value)
 
 
+def _board(value: Any) -> Board | None:
+    if not value:
+        return None
+    if not isinstance(value, dict):
+        raise ConfigError("board must be a table")
+    board = Board(socket=Path(value["socket"]) if value.get("socket") else None,
+                  url=str(value["url"]) if value.get("url") else None, token=bool(value.get("token", False)))
+    if (board.socket is None) == (board.url is None):
+        raise ConfigError("board needs exactly one of socket and url")
+    if board.url is not None and not board.token:
+        raise ConfigError("a board url needs a token")
+    return board
+
+
 def parse(data: dict[str, Any], state: Path) -> Config:
     limits = Limits(**data.get("limits", {}))
     config = Config(
@@ -194,6 +218,7 @@ def parse(data: dict[str, Any], state: Path) -> Config:
         advisor=data.get("advisor") or None,
         max_effort=data.get("max_effort", "medium"),
         trigger_sources=_sources(data.get("trigger_sources", {})),
+        board=_board(data.get("board")),
     )
     validate(config)
     return config

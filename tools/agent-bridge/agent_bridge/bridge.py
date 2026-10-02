@@ -16,6 +16,7 @@ from typing import Any, Protocol
 
 from . import approval, rcon, spool
 from .approval import Cancelled, Pending, Verdict
+from .board import BoardError, BoardTools
 from .config import BASE_EFFORT, Config
 from .limits import Breaker, Streak
 from .policy import (Attachment, Author, Command, Incoming, Kind, Route, command_applies,
@@ -96,8 +97,10 @@ class Entry:
 
 class Bridge:
     def __init__(self, config: Config, chat: Chat, session: Callable[[Bridge], AgentSession], *,
-                 clock: Callable[[], float] = time.time, tokens: tuple[str, ...] = ()) -> None:
+                 clock: Callable[[], float] = time.time, tokens: tuple[str, ...] = (),
+                 board: BoardTools | None = None) -> None:
         self.config = config
+        self.board = board
         self.chat = chat
         self.session = session(self)
         self.clock = clock
@@ -476,7 +479,7 @@ class Bridge:
                 raise
             prompt = turn_prompt(lines)
             if self.fresh:
-                prompt = new_session_preamble(self.read_handoff()) + prompt
+                prompt = new_session_preamble(self.read_handoff(), await self.board_briefing()) + prompt
                 self.fresh = False
             ticker = asyncio.create_task(self.tick())
             result: TurnResult | None = None
@@ -507,6 +510,23 @@ class Bridge:
             self.status = None
             with contextlib.suppress(Exception):
                 await self.chat.edit(self.status_id, status.render(self.clock(), final))
+
+    async def board_briefing(self) -> str | None:
+        if self.board is None:
+            return None
+        try:
+            return await self.board.briefing()
+        except BoardError as error:
+            log.warning("board briefing: %s", error)
+            return f"(No board briefing: {error})"
+
+    async def tool_board(self, tool: str, args: dict[str, Any]) -> str:
+        if self.board is None:
+            raise ToolError("this agent has no board")
+        try:
+            return await self.board.call(tool, args) + self.unread()
+        except BoardError as error:
+            raise ToolError(f"{error}{self.unread()}") from error
 
     def read_handoff(self) -> str | None:
         try:
@@ -905,6 +925,8 @@ class Bridge:
     async def tool_schedule(self, args: dict[str, Any]) -> str:
         # Allowed during the handoff: that is when follow-ups get written down.
         now = self.clock()
+        if args.get("thread") is not None and args.get("note"):
+            args = {**args, "note": f"(board thread #{args['thread']}) {args['note']}"}
         try:
             schedule = self.schedules.add(args, now)
         except ScheduleError as error:
