@@ -17,7 +17,8 @@ use crate::error::AppError;
 /// The `search` table holds one row per thread (title + current summary) with rowid
 /// `-thread_id`, so it can be replaced in place when the summary changes, and one row per
 /// post and attachment with ordinary positive rowids.
-const MIGRATIONS: &[&str] = &[r#"
+const MIGRATIONS: &[&str] = &[
+    r#"
 CREATE TABLE threads (
     id INTEGER PRIMARY KEY,
     title TEXT NOT NULL,
@@ -69,7 +70,26 @@ CREATE VIRTUAL TABLE search USING fts5(
     kind UNINDEXED, ref UNINDEXED, thread UNINDEXED, author UNINDEXED, created UNINDEXED,
     title, body, tokenize = 'porter unicode61'
 );
-"#];
+"#,
+    r#"
+CREATE TABLE discord (
+    id INTEGER PRIMARY KEY,
+    channel INTEGER NOT NULL,
+    thread INTEGER,
+    author TEXT NOT NULL,
+    author_kind TEXT NOT NULL,
+    created INTEGER NOT NULL,
+    edited INTEGER,
+    reply_to INTEGER,
+    content TEXT NOT NULL,
+    attachments TEXT NOT NULL DEFAULT '[]',
+    url TEXT NOT NULL,
+    search_row INTEGER NOT NULL
+);
+CREATE INDEX discord_place ON discord(channel, thread, id);
+CREATE INDEX discord_created ON discord(created);
+"#,
+];
 
 pub const MAX_TITLE: usize = 200;
 pub const MAX_BODY: usize = 256 * 1024;
@@ -180,10 +200,12 @@ pub struct Attachment {
 #[derive(Clone, Debug, Serialize)]
 pub struct SearchHit {
     pub kind: String,
-    /// Thread id for `thread` hits, post id for `post`, attachment id for `attachment`.
+    /// Thread id for `thread` hits, post id for `post`, attachment id for `attachment`,
+    /// message id for `discord`.
     pub id: i64,
-    pub thread: i64,
-    pub thread_title: String,
+    /// The board thread; none for `discord` hits.
+    pub thread: Option<i64>,
+    pub thread_title: Option<String>,
     pub author: String,
     pub created: i64,
     pub snippet: String,
@@ -284,7 +306,7 @@ pub struct SearchQuery {
 }
 
 pub struct Board {
-    conn: Connection,
+    pub(crate) conn: Connection,
 }
 
 fn now() -> i64 {
@@ -884,9 +906,9 @@ impl Board {
             return Err(bad("empty query"));
         }
         if let Some(kind) = &query.kind {
-            if !matches!(kind.as_str(), "thread" | "post" | "attachment") {
+            if !matches!(kind.as_str(), "thread" | "post" | "attachment" | "discord") {
                 return Err(bad(format!(
-                    "kind {kind:?}: use thread, post or attachment"
+                    "kind {kind:?}: use thread, post, attachment or discord"
                 )));
             }
         }
@@ -911,7 +933,7 @@ impl Board {
             "SELECT s.kind, s.ref, s.thread, t.title, s.author, s.created, \
                     snippet(search, -1, '[', ']', ' ... ', 24), \
                     p.superseded_by IS NOT NULL \
-             FROM search s JOIN threads t ON t.id = s.thread \
+             FROM search s LEFT JOIN threads t ON t.id = s.thread \
              LEFT JOIN posts p ON s.kind = 'post' AND p.id = s.ref \
              WHERE search MATCH :q \
                AND (:kind IS NULL OR s.kind = :kind) \

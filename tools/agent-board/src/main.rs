@@ -6,6 +6,7 @@
 
 mod api;
 mod db;
+mod discord;
 mod error;
 mod html;
 

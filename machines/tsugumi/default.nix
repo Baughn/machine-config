@@ -54,6 +54,7 @@ in
     ./victron-monitor.nix
     ./saya-agent.nix
     ./agent-board.nix
+    ./agent-board-discord.nix
   ];
 
   ## Boot

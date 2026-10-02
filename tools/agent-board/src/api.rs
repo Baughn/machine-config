@@ -18,6 +18,10 @@ use crate::db::{
     Attachment, Board, Briefing, NewPost, NewThread, SearchHit, SearchQuery, SummaryRevision,
     Thread, ThreadFilter, ThreadUpdate, ThreadView,
 };
+use crate::discord::{
+    ArchivedMessage, IncomingAttachment, IncomingMessage, IngestResult, MessageContext,
+    INGEST_IDENTITY,
+};
 use crate::error::AppError;
 
 /// Unix socket peers: uid to agent id.
@@ -133,6 +137,10 @@ pub fn routes() -> Router<AppState> {
         .route("/attachments/{id}", get(attachment))
         .route("/search", get(search))
         .route("/briefing", get(briefing))
+        .route("/discord", get(discord_day).post(ingest_discord))
+        .route("/discord/cursor", get(discord_cursor))
+        .route("/discord/{id}", get(discord_context))
+        .route("/discord/{id}/attachments/{index}", get(discord_attachment))
         // Attachments are up to 1 MiB each, 10 per post.
         .layer(DefaultBodyLimit::max(16 * 1024 * 1024))
 }
@@ -284,6 +292,94 @@ async fn briefing(
     Ok(Json(
         state
             .with_board(move |board| board.briefing(&agent, query.since))
+            .await?,
+    ))
+}
+
+#[derive(Deserialize)]
+struct Ingest {
+    messages: Vec<IncomingMessage>,
+}
+
+async fn ingest_discord(
+    State(state): State<AppState>,
+    Extension(Author(author)): Extension<Author>,
+    Json(ingest): Json<Ingest>,
+) -> Result<Json<IngestResult>, AppError> {
+    if author != INGEST_IDENTITY {
+        return Err(AppError::Forbidden(
+            "only the Discord poller writes the archive".into(),
+        ));
+    }
+    Ok(Json(
+        state
+            .with_board(move |board| board.ingest_discord(&ingest.messages))
+            .await?,
+    ))
+}
+
+#[derive(Deserialize)]
+struct CursorQuery {
+    channel: i64,
+    thread: Option<i64>,
+}
+
+#[derive(Serialize)]
+struct Cursor {
+    last: Option<i64>,
+}
+
+async fn discord_cursor(
+    State(state): State<AppState>,
+    Query(query): Query<CursorQuery>,
+) -> Result<Json<Cursor>, AppError> {
+    let last = state
+        .with_board(move |board| board.discord_cursor(query.channel, query.thread))
+        .await?;
+    Ok(Json(Cursor { last }))
+}
+
+#[derive(Deserialize)]
+struct ContextQuery {
+    context: Option<usize>,
+}
+
+async fn discord_context(
+    State(state): State<AppState>,
+    Path(id): Path<i64>,
+    Query(query): Query<ContextQuery>,
+) -> Result<Json<MessageContext>, AppError> {
+    let context = query.context.unwrap_or(5);
+    Ok(Json(
+        state
+            .with_board(move |board| board.discord_context(id, context))
+            .await?,
+    ))
+}
+
+async fn discord_attachment(
+    State(state): State<AppState>,
+    Path((id, index)): Path<(i64, usize)>,
+) -> Result<Json<IncomingAttachment>, AppError> {
+    Ok(Json(
+        state
+            .with_board(move |board| board.discord_attachment(id, index))
+            .await?,
+    ))
+}
+
+#[derive(Deserialize)]
+struct DayQuery {
+    day: String,
+}
+
+async fn discord_day(
+    State(state): State<AppState>,
+    Query(query): Query<DayQuery>,
+) -> Result<Json<Vec<ArchivedMessage>>, AppError> {
+    Ok(Json(
+        state
+            .with_board(move |board| board.discord_day(&query.day))
             .await?,
     ))
 }
@@ -522,6 +618,48 @@ mod tests {
         // The failed create rolled back.
         let (_, all) = call(lab(), Method::GET, "/threads?status=all", None).await;
         assert_eq!(all, json!([]));
+    }
+
+    #[tokio::test]
+    async fn only_the_poller_writes_the_archive() {
+        let state = state();
+        let batch = json!({"messages": [{
+            "id": 1555567596084924429_i64, "channel": 1, "author": "baughn",
+            "author_kind": "human", "created": 1759400000, "content": "Not raw, but yes",
+            "url": "https://discord.com/channels/1/1/1555567596084924429"}]});
+        let (status, _) = call(
+            app(&state, "tsugumi-lab"),
+            Method::POST,
+            "/discord",
+            Some(batch.clone()),
+        )
+        .await;
+        assert_eq!(status, StatusCode::FORBIDDEN);
+        let (status, result) = call(
+            app(&state, "discord"),
+            Method::POST,
+            "/discord",
+            Some(batch),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK, "{result}");
+        assert_eq!(result["inserted"], 1);
+        let (_, context) = call(
+            app(&state, "tsugumi-lab"),
+            Method::GET,
+            "/discord/1555567596084924429",
+            None,
+        )
+        .await;
+        assert_eq!(context["messages"][0]["content"], "Not raw, but yes");
+        let (_, cursor) = call(
+            app(&state, "discord"),
+            Method::GET,
+            "/discord/cursor?channel=1",
+            None,
+        )
+        .await;
+        assert_eq!(cursor["last"], 1555567596084924429_i64);
     }
 
     #[tokio::test]

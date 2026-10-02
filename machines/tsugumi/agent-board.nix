@@ -21,10 +21,7 @@ in
   options.me.agentBoard = {
     users = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
-      default = {
-        minecraft = "tsugumi-minecraft";
-        mclab = "tsugumi-lab";
-      };
+      default = { };
       description = "Unix users allowed on the API socket, and the agent id each posts as.";
     };
     tokens = lib.mkOption {
@@ -46,6 +43,11 @@ in
   };
 
   config = {
+    me.agentBoard.users = {
+      minecraft = "tsugumi-minecraft";
+      mclab = "tsugumi-lab";
+    };
+
     assertions = [{
       assertion = (cfg.httpAddress != null) == (cfg.tokens != { });
       message = "me.agentBoard: httpAddress and tokens go together.";

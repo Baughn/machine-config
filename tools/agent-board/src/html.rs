@@ -13,6 +13,7 @@ use serde::Deserialize;
 
 use crate::api::AppState;
 use crate::db::{SearchQuery, Thread, ThreadFilter};
+use crate::discord::ArchivedMessage;
 use crate::error::AppError;
 
 const STYLE: &str = "
@@ -28,6 +29,7 @@ table { border-collapse: collapse; width: 100%; } td, th { padding: .3rem .5rem;
 .summary { background: #f3f6ec; border-left: 4px solid #8a3; padding: .2rem 1rem; }
 .post { border-top: 1px solid #ddd; padding: .5rem 0; }
 .superseded { opacity: .55; }
+.focus { background: #fff8e1; }
 .ask { background: #fff3cd; padding: 0 .3rem; border-radius: 3px; }
 pre { background: #f2f2f2; padding: .5rem; overflow-x: auto; }
 code { background: #f2f2f2; }
@@ -41,6 +43,10 @@ pub fn router(state: AppState) -> Router {
         .route("/t/{id}/summaries", get(summaries))
         .route("/a/{id}", get(attachment))
         .route("/search", get(search))
+        .route("/d/{id}", get(discord_message))
+        .route("/d/{id}/a/{index}", get(discord_attachment))
+        .route("/day", get(discord_today))
+        .route("/day/{day}", get(discord_day))
         .layer(axum::middleware::from_fn(security_headers))
         .with_state(state)
 }
@@ -132,6 +138,7 @@ fn page(title: &str, query: &str, body: Markup) -> Markup {
                 header {
                     h2 { a href="/" { "Agent board" } }
                     a href="/?status=all" { "all threads" }
+                    a href="/day" { "Discord archive" }
                     form action="/search" {
                         input type="search" name="q" value=(query) placeholder="search";
                     }
@@ -307,16 +314,112 @@ async fn search(
             @for hit in &hits {
                 div.post.superseded[hit.superseded] {
                     p.meta {
+                        @let thread = hit.thread.unwrap_or_default();
+                        @let title = hit.thread_title.as_deref().unwrap_or_default();
                         @match hit.kind.as_str() {
-                            "post" => { a href={ "/t/" (hit.thread) "#p" (hit.id) } { (hit.thread_title) " #" (hit.id) } }
-                            "attachment" => { a href={ "/a/" (hit.id) } { "attachment" } " in " a href={ "/t/" (hit.thread) } { (hit.thread_title) } }
-                            _ => { a href={ "/t/" (hit.thread) } { (hit.thread_title) } " (summary)" }
+                            "post" => { a href={ "/t/" (thread) "#p" (hit.id) } { (title) " #" (hit.id) } }
+                            "attachment" => { a href={ "/a/" (hit.id) } { "attachment" } " in " a href={ "/t/" (thread) } { (title) } }
+                            "discord" => { a href={ "/d/" (hit.id) } { "Discord message" } }
+                            _ => { a href={ "/t/" (thread) } { (title) } " (summary)" }
                         }
                         " · " (hit.author) " · " (time(hit.created))
                     }
                     p { (hit.snippet) }
                 }
             }
+        },
+    ))
+}
+
+fn discord_message_html(message: &ArchivedMessage, focus: bool) -> Markup {
+    html! {
+        div.post.focus[focus] id={ "d" (message.id) } {
+            p.meta {
+                a href={ "/d/" (message.id) } { (time(message.created)) } " "
+                strong { (message.author) } " (" (message.author_kind) ")"
+                @if let Some(thread) = message.thread { " · in thread " (thread) }
+                @if let Some(parent) = message.reply_to { " · reply to " a href={ "/d/" (parent) } { (parent) } }
+                @if message.edited.is_some() { " · edited" }
+                " · " a href=(message.url) { "on Discord" }
+            }
+            (markdown(&message.content))
+            @for file in &message.attachments {
+                p.meta {
+                    "Attachment: "
+                    @if file.has_text {
+                        a href={ "/d/" (message.id) "/a/" (file.index) } { (file.name) }
+                    } @else { (file.name) }
+                    " (" (file.size) " bytes)"
+                }
+            }
+        }
+    }
+}
+
+async fn discord_message(
+    State(state): State<AppState>,
+    Path(id): Path<i64>,
+) -> Result<Markup, AppError> {
+    let context = state
+        .with_board(move |board| board.discord_context(id, 10))
+        .await?;
+    Ok(page(
+        "Discord message",
+        "",
+        html! {
+            @if let Some(first) = context.messages.first() {
+                p.meta { "Context in the channel; " a href={ "/day/" (day_of(first.created)) } { "the whole day" } }
+            }
+            @for message in &context.messages { (discord_message_html(message, message.id == context.focus)) }
+        },
+    ))
+}
+
+async fn discord_attachment(
+    State(state): State<AppState>,
+    Path((id, index)): Path<(i64, usize)>,
+) -> Result<Response, AppError> {
+    let file = state
+        .with_board(move |board| board.discord_attachment(id, index))
+        .await?;
+    Ok((
+        [(CONTENT_TYPE, "text/plain; charset=utf-8")],
+        file.text.unwrap_or_default(),
+    )
+        .into_response())
+}
+
+fn day_of(timestamp: i64) -> String {
+    chrono::DateTime::from_timestamp(timestamp, 0)
+        .map_or_else(String::new, |at| at.format("%Y-%m-%d").to_string())
+}
+
+async fn discord_today(state: State<AppState>) -> Result<Markup, AppError> {
+    discord_day(state, Path(day_of(chrono::Utc::now().timestamp()))).await
+}
+
+async fn discord_day(
+    State(state): State<AppState>,
+    Path(day): Path<String>,
+) -> Result<Markup, AppError> {
+    let wanted = day.clone();
+    let messages = state
+        .with_board(move |board| board.discord_day(&wanted))
+        .await?;
+    let date = chrono::NaiveDate::parse_from_str(&day, "%Y-%m-%d").unwrap_or_default();
+    let step = |days: i64| {
+        (date + chrono::Duration::days(days))
+            .format("%Y-%m-%d")
+            .to_string()
+    };
+    Ok(page(
+        &format!("Discord {day}"),
+        "",
+        html! {
+            h3 { "Discord archive, " (day) " (UTC)" }
+            p.meta { a href={ "/day/" (step(-1)) } { "previous day" } " · " a href={ "/day/" (step(1)) } { "next day" } }
+            @for message in &messages { (discord_message_html(message, false)) }
+            @if messages.is_empty() { p { "No messages." } }
         },
     ))
 }

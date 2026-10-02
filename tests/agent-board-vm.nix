@@ -12,7 +12,11 @@ pkgs.testers.runNixOSTest {
     # Stands in for Caddy, which owns the HTML socket's group in production.
     users.groups.caddy = { };
     users.users.proxy = { isSystemUser = true; group = "caddy"; };
+    # Stands in for agent-board-discord, which needs a real bot token.
+    users.users.poller = { isSystemUser = true; group = "poller"; };
+    users.groups.poller = { };
     me.agentBoard = {
+      users.poller = "discord";
       httpAddress = "127.0.0.1:8740";
       tokens.saya = pkgs.writeText "token" "test-token-0123456789abcdef0123456789";
     };
@@ -72,6 +76,23 @@ pkgs.testers.runNixOSTest {
         status = curl("proxy", "-o /dev/null -w '%{http_code}' -X POST " + HTML + f"/t/{thread}", success=False)
         assert status.strip() == "405", status
         curl("minecraft", HTML + "/", success=False)
+
+    with subtest("only the poller writes the Discord archive; everyone can read it"):
+        batch = {"messages": [{"id": 1555569477968724201, "channel": 1553121660532432926,
+                               "author": "baughn", "author_kind": "human", "created": 1790947064,
+                               "content": "Cleaned-up history makes sense.",
+                               "attachments": [{"name": "plan.md", "size": 9, "text": "use restic"}],
+                               "url": "https://discord.com/channels/1/2/1555569477968724201"}]}
+        machine.fail("sudo -u mclab curl -sf -X POST -H 'content-type: application/json' -d "
+                     + shlex.quote(json.dumps(batch)) + " " + API + "/discord")
+        assert post("poller", "/discord", batch)["inserted"] == 1
+        hits = json.loads(curl("mclab", API + "/search?q=restic&kind=discord"))
+        assert hits[0]["id"] == 1555569477968724201, hits
+        context = json.loads(curl("minecraft", API + "/discord/1555569477968724201"))
+        assert context["messages"][0]["author"] == "baughn"
+        page = curl("proxy", HTML + "/d/1555569477968724201")
+        assert "Cleaned-up history" in page and "plan.md" in page
+        assert "Cleaned-up history" in curl("proxy", HTML + "/day/2026-10-02")
 
     with subtest("data survives a restart; the nightly copy works"):
         machine.succeed("systemctl restart agent-board.service")
