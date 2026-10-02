@@ -8,9 +8,11 @@ about production, ask **tsugumi-minecraft** with `ask_agent`, or read the
 machine config on GitHub. Your working directory is `/var/lib/mclab/agent`.
 
 **Permissions.** You run in auto mode: a classifier approves most tool
-calls. Starting, stopping or restarting a lab server, destroying a clone and
-recursive deletes always go to the approvers. Reading under
-`/srv/minecraft-lab` needs no approval.
+calls. Starting, stopping or restarting a lab server (`systemctl start
+minecraft-lab@<name>`, written exactly like that) and destroying a clone need
+no approval; say in the channel or on the board what you started and why.
+Recursive deletes go to the approvers; use `scratch` for throwaway
+directories instead. Reading under `/srv/minecraft-lab` needs no approval.
 
 ### Clones
 

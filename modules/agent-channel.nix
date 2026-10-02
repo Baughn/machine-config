@@ -8,6 +8,8 @@ let
   # Every agent can paint: the easel CLI and its skill come with each instance.
   easel = pkgs.callPackage ../tools/easel { };
   skillsOf = i: { easel = ../tools/easel/skill; } // i.skills;
+  # Throwaway directories, deletable without an approval for rm -r.
+  scratch = pkgs.callPackage ../tools/agent-scratch { };
   toml = pkgs.formats.toml { };
   roles = lib.types.enum [ "owner" "admin" "agent" ];
 
@@ -191,7 +193,7 @@ let
   configFile = name: i: toml.generate "agent-bridge-${name}.toml" (lib.filterAttrs (_: v: v != null) {
     id = name;
     inherit (i) workdir triggers approvers ask deny model fake limits;
-    allow = i.allow ++ [ "Bash(easel *)" ];
+    allow = i.allow ++ [ "Bash(easel *)" "Bash(scratch *)" ];
     channel_id = roster.channels.${i.channel};
     owner_only = i.ownerOnly;
     permission_mode = i.permissionMode;
@@ -264,12 +266,13 @@ in
       wants = [ "network-online.target" ];
       after = [ "network-online.target" ];
       # The agent gets the system's tools, as in an interactive shell,
-      # ImageMagick to shrink images the bridge won't let it Read, and easel.
-      path = [ "/run/current-system/sw" pkgs.imagemagick easel ] ++ i.path;
+      # ImageMagick to shrink images the bridge won't let it Read, easel and scratch.
+      path = [ "/run/current-system/sw" pkgs.imagemagick easel scratch ] ++ i.path;
       environment = {
         AGENT_BRIDGE_CONFIG = "${configFile name i}";
         SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
         DISABLE_AUTOUPDATER = "1";
+        AGENT_SCRATCH = "${i.workdir}/scratch";
       } // i.environment;
       serviceConfig = {
         ExecStart = "${lib.getExe bridge} run";
@@ -294,6 +297,7 @@ in
         "d ${i.workdir} 0700 ${i.user} - -"
         "d ${i.workdir}/.claude 0700 ${i.user} - -"
         "d ${i.workdir}/.claude/skills 0700 ${i.user} - -"
+        "d ${i.workdir}/scratch 0700 ${i.user} - -"
       ]
       # Before the bridge's first start, so trigger writers find it at boot.
       ++ lib.optionals (i.triggerSources != { }) [

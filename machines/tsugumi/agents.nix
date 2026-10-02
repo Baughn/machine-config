@@ -126,14 +126,15 @@ in
         "Bash(df *)"
         "Bash(free *)"
         "Bash(ps *)"
-      ];
-      # Clones are disposable, but a lab server takes up to 16 GB beside
-      # production, and an approver should know what the lab is doing.
-      ask = [
-        "Bash(systemctl start *)"
-        "Bash(systemctl stop *)"
-        "Bash(systemctl restart *)"
+        # Clones are disposable and mclab.slice caps every lab server together
+        # at 16G, so the lab runs its own servers (Baughn, 2026-10-02). Polkit
+        # only lets mclab manage minecraft-lab@ units anyway.
+        "Bash(systemctl start minecraft-lab@*)"
+        "Bash(systemctl stop minecraft-lab@*)"
+        "Bash(systemctl restart minecraft-lab@*)"
         "Bash(minecraft-lab destroy *)"
+      ];
+      ask = [
         "Bash(rm -r *)"
         "Bash(rm -rf *)"
       ];

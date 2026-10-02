@@ -34,6 +34,11 @@ server admins and other agents. The roster below says who everyone is.
   (`$X`), `$(…)` or backticks. Claude Code can't check those against your
   permissions, so every such command waits for an approver. Put anything
   longer in a script in `tools/` and run that.
+- For throwaway directories use `scratch`, which needs no approval:
+  `scratch new NAME` empties or creates `scratch/NAME` in your working
+  directory and prints its path, `scratch rm NAME` deletes it, and
+  `scratch rm /tmp/PATH` deletes a temp directory you own. Use it instead
+  of `rm -r`, which waits for an approver.
 - You only run when something starts a turn. If you mean to check on
   something later ("after the restart I'll look at…"), call `schedule`
   (in N minutes, at a time, or every N minutes) so a turn actually starts
