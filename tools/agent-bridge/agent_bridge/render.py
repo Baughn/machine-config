@@ -23,10 +23,19 @@ class PostError(ValueError):
     """A post the agent must restructure; the message says how."""
 
 
+class ChatError(Exception):
+    """Discord refused or couldn't place a message; the text says what to do about it."""
+
+
 @dataclass(frozen=True)
 class File:
     name: str
     data: bytes
+
+
+MAIN = "main"
+THREAD_TITLE_LIMIT = 100
+SNOWFLAKE = re.compile(r"\d{15,21}\Z")
 
 
 @dataclass(frozen=True)
@@ -35,6 +44,11 @@ class Outgoing:
     files: tuple[File, ...] = ()
     reply_to: str | None = None
     mention_users: tuple[str, ...] = ()
+    # Where it goes: a thread id of the channel, MAIN, or None (the thread of
+    # reply_to, else the main channel).
+    thread: str | None = None
+    # Start a thread with this title from the message (sent in the main channel).
+    new_thread: str | None = None
 
 
 @dataclass(frozen=True)
@@ -78,6 +92,26 @@ def _attachment(entry: Any, roots: Roots) -> File:
 MENTION = re.compile(r"<@[!&]?\d+>")
 
 
+def parse_thread(value: Any) -> tuple[str | None, str | None]:
+    """The `thread` argument: (thread, new_thread title). None means the default."""
+    if value is None or value == "":
+        return None, None
+    text = str(value).strip()
+    if text.lower() == MAIN:
+        return MAIN, None
+    if text.lower().startswith("new:"):
+        title = " ".join(text[4:].split())
+        if not title or len(title) > THREAD_TITLE_LIMIT:
+            raise PostError(f"a new thread needs a title of 1-{THREAD_TITLE_LIMIT} characters: "
+                            "thread \"new: <title>\"")
+        if MENTION.search(title):
+            raise PostError("a thread title can't contain a mention")
+        return None, title
+    if SNOWFLAKE.fullmatch(text) is None:
+        raise PostError("thread must be a thread id, \"new: <title>\" or \"main\"")
+    return text, None
+
+
 def render_post(args: dict[str, Any], *, owner_id: str, roots: Roots,
                 tokens: tuple[str, ...] = ()) -> Outgoing:
     """Validate the `post` tool's arguments and render the message. Never truncates."""
@@ -112,13 +146,16 @@ def render_post(args: dict[str, Any], *, owner_id: str, roots: Roots,
     content = f"{mention}{KINDS[kind]} **{headline}**" + (f"\n{overview}" if overview else "")
     if len(content) > MESSAGE_LIMIT:
         raise PostError("the message is too long; shorten the overview")
-    for text in (content, *(f.data.decode("utf-8", "replace") for f in files)):
+    thread, new_thread = parse_thread(args.get("thread"))
+    reply_to = args.get("reply_to")
+    if new_thread is not None and reply_to:
+        raise PostError("a post that starts a thread can't also be a reply; drop reply_to")
+    for text in (content, new_thread or "", *(f.data.decode("utf-8", "replace") for f in files)):
         secret = find_secret(text, tokens)
         if secret is not None:
             raise PostError(f"refused: the post appears to contain a secret ({secret})")
-    reply_to = args.get("reply_to")
     return Outgoing(content, files, str(reply_to) if reply_to else None,
-                    (owner_id,) if kind == "alert" else ())
+                    (owner_id,) if kind == "alert" else (), thread, new_thread)
 
 
 STATUS_LINE = re.compile(r"[⚙✓✗⏹💤] \S+ · working for ")
@@ -227,7 +264,10 @@ def settled(text: str, footer: str) -> str:
 
 def context_line(message: Incoming, trigger: bool, attachments: list[str]) -> str:
     """How a channel message appears in the agent's input."""
-    where = f" in thread {message.thread_id}" if message.thread_id else ""
+    where = ""
+    if message.thread_id:
+        name = f" \"{message.thread_name}\"" if message.thread_name else ""
+        where = f" in thread{name} {message.thread_id}"
     marker = "may ask you to act" if trigger else "context only"
     line = f"[{message.id}{where}] {message.author.label}, {marker}: {message.content}"
     if attachments:

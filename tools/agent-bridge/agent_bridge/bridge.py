@@ -6,7 +6,7 @@ import asyncio
 from collections import deque
 from collections.abc import Callable
 import contextlib
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 import json
 import logging
 from pathlib import Path
@@ -22,7 +22,7 @@ from .limits import Breaker, Streak
 from .policy import (Attachment, Author, Command, Incoming, Kind, Route, command_applies,
                      may_approve, parse_command, route)
 from .prompt import HANDOFF_FILE, handoff_prompt, new_session_preamble, turn_prompt
-from .render import (File, Outgoing, PostError, Roots, Status, answer_footer, approval_request, context_line,
+from .render import (MAIN, ChatError, File, Outgoing, PostError, Roots, Status, answer_footer, approval_request, context_line,
                      is_status, question_text, render_post, settled, summarize_tool)
 from .schedule import Schedule, ScheduleError, Schedules, stamp
 from .session import AgentSession, Permission, ToolError, TurnResult
@@ -62,7 +62,7 @@ class Chat(Protocol):
     async def approve(self, message: Outgoing) -> str: ...
     async def ask(self, message: Outgoing, questions: list[dict[str, Any]]) -> str: ...
     async def react(self, message_id: str, emoji: str) -> None: ...
-    async def history(self, limit: int) -> list[Incoming]: ...
+    async def history(self, limit: int, thread: str | None = None) -> list[Incoming]: ...
     async def download(self, attachment: Attachment, path: Path) -> None: ...
 
 
@@ -112,6 +112,8 @@ class Bridge:
         self.pending: dict[str, Pending] = {}
         self.waiters: dict[str, Waiter] = {}  # by question message id
         self.asked_by: set[str] = set()  # agents whose questions started the current turn
+        # The Discord thread the current turn started in: posts default to it.
+        self.turn_thread: str | None = None
         self.run_command = run_command
         self.status: Status | None = None
         self.status_id: str | None = None
@@ -472,12 +474,21 @@ class Bridge:
             self.status, self.stopping = status, False
             try:
                 reply_to = None if last.scheduled else trigger.id
-                self.status_id = await self.chat.send(Outgoing(status.render(now), reply_to=reply_to))
+                self.turn_thread = None if last.scheduled else trigger.thread_id
+                try:
+                    self.status_id = await self.chat.send(Outgoing(status.render(now), reply_to=reply_to,
+                                                                   thread=self.turn_thread))
+                except ChatError as error:
+                    # E.g. the thread was deleted: work on, visibly, from the main channel.
+                    log.warning("status message in thread %s: %s", self.turn_thread, error)
+                    self.turn_thread = None
+                    self.status_id = await self.chat.send(Outgoing(status.render(now), thread=MAIN))
             except Exception:
                 self.status, self.buffer = None, entries + self.buffer
                 self.omitted += omitted
                 raise
-            prompt = turn_prompt(lines)
+            prompt = turn_prompt(lines, None if self.turn_thread is None
+                                 else (self.turn_thread, trigger.thread_name))
             if self.fresh:
                 prompt = new_session_preamble(self.read_handoff(), await self.board_briefing()) + prompt
                 self.fresh = False
@@ -505,6 +516,7 @@ class Bridge:
             else:
                 final = "done" if status.posts else "silent"
             self.turns += 1
+            self.turn_thread = None
             self.last_log = status.log
             self.write_turn_log(status, final, result)
             self.status = None
@@ -722,16 +734,35 @@ class Bridge:
             if not already:
                 await self.trip()
             raise ToolError("Rate limit reached; the bridge is now paused.")
-        message_id = await self.chat.send(outgoing)
+        try:
+            message_id = await self.chat.send(outgoing)
+        except ChatError as error:
+            raise ToolError(f"{error}{self.unread()}") from error
         if self.status is not None:
             self.status.posts += 1
         return message_id
 
+    def placed(self, outgoing: Outgoing) -> Outgoing:
+        """With no thread or reply_to given, a post goes to the thread the turn started in."""
+        if outgoing.thread is None and outgoing.new_thread is None and outgoing.reply_to is None:
+            return replace(outgoing, thread=self.turn_thread)
+        return outgoing
+
+    @staticmethod
+    def where(outgoing: Outgoing, message_id: str) -> str:
+        if outgoing.new_thread is not None:
+            return (f"posted as message {message_id}, which starts thread {message_id} "
+                    f"\"{outgoing.new_thread}\"; post there with thread {message_id}")
+        if outgoing.thread is not None and outgoing.thread != MAIN:
+            return f"posted as message {message_id} in thread {outgoing.thread}"
+        return f"posted as message {message_id}"
+
     async def tool_post(self, args: dict[str, Any]) -> str:
         self.refuse_during_handoff()
-        message_id = await self.send_post(self.render(args))
+        outgoing = self.placed(self.render(args))
+        message_id = await self.send_post(outgoing)
         self.note(f"posted {args.get('kind')}: {args.get('headline')}")
-        return f"posted as message {message_id}{self.unread()}"
+        return f"{self.where(outgoing, message_id)}{self.unread()}"
 
     async def tool_ask_agent(self, args: dict[str, Any]) -> str:
         self.refuse_during_handoff()
@@ -743,9 +774,9 @@ class Bridge:
             raise ToolError(f"{name} asked you something this turn and is waiting for your reply, so it "
                             "can't answer you now. Put your questions in that reply instead.")
         minutes = min(max(float(args.get("timeout_minutes") or ASK_TIMEOUT), 0.0), ASK_TIMEOUT_MAX)
-        question = self.render({**args, "kind": "question", "reply_to": None})
-        question = Outgoing(f"<@{agent.discord_id}> {question.content}", question.files,
-                            mention_users=(agent.discord_id,))
+        question = self.placed(self.render({**args, "kind": "question", "reply_to": None}))
+        question = replace(question, content=f"<@{agent.discord_id}> {question.content}",
+                           mention_users=(agent.discord_id,))
         message_id = await self.send_post(question)
         self.note(f"asked {name}: {args.get('headline')}")
         waiter = Waiter(agent.discord_id, asyncio.get_running_loop().create_future())
@@ -777,7 +808,13 @@ class Bridge:
 
     async def tool_history(self, args: dict[str, Any]) -> str:
         limit = max(1, min(int(args.get("limit") or 20), 100))
-        messages = await self.chat.history(limit)
+        thread = str(args.get("thread") or "").strip() or None
+        if thread is not None and not thread.isdigit():
+            raise ToolError("thread must be a thread id")
+        try:
+            messages = await self.chat.history(limit, thread)
+        except ChatError as error:
+            raise ToolError(f"{error}{self.unread()}") from error
         heard = [m for m in messages if m.author.kind in (Kind.AGENT, Kind.SELF, Kind.WATCHDOG)
                  or (m.author.kind is Kind.HUMAN and m.author.role is not None)]
         lines = [f"[{m.id}] {m.author.label}: {m.content}" for m in heard]

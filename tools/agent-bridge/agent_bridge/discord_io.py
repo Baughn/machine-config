@@ -15,7 +15,11 @@ import discord
 from .approval import Verdict
 from .config import Config
 from .policy import Attachment, Author, Incoming, classify
-from .render import Outgoing
+from .render import MAIN, ChatError, Outgoing
+
+# Threads the agents open stay in the sidebar for a week without activity.
+ARCHIVE_MINUTES = 10080
+THREAD_PERMISSIONS = "Send Messages in Threads and Create Public Threads"
 
 
 def mentioned_users(users: Any, roles: Any) -> frozenset[str]:
@@ -49,6 +53,8 @@ class DiscordChat:
         self.channel: Any = None
         # Message id -> channel id, so replies to thread messages go to the thread.
         self.where: OrderedDict[int, int] = OrderedDict()
+        # Thread id -> the owner's user id (see `thread_owner`).
+        self.owners: dict[int, str | None] = {}
         self.ready = False
         self.tasks: set[asyncio.Task[None]] = set()
         self.failed = False
@@ -79,8 +85,22 @@ class DiscordChat:
                         is_bot=bool(user.bot), webhook_id=str(webhook_id) if webhook_id else None,
                         is_admin=self.is_admin(user))
 
-    async def convert(self, message: Any) -> Incoming:
-        channel = message.channel
+    async def thread_owner(self, thread: Any) -> str | None:
+        """The author of the message a thread hangs off (its id is that message's), else
+        whoever created it. A human writing in an agent's thread addresses that agent."""
+        if thread.id not in self.owners:
+            owner = str(thread.owner_id) if thread.owner_id else None
+            parent = thread.parent
+            if parent is not None and hasattr(parent, "fetch_message"):
+                try:
+                    owner = str((await parent.fetch_message(thread.id)).author.id)
+                except discord.HTTPException:
+                    pass  # a standalone thread, or the message is gone
+            self.owners[thread.id] = owner
+        return self.owners[thread.id]
+
+    async def convert(self, message: Any, channel: Any = None) -> Incoming:
+        channel = channel or message.channel
         thread = isinstance(channel, discord.Thread)
         reply_to_author = reply_to_id = None
         reference = message.reference
@@ -107,6 +127,8 @@ class DiscordChat:
             reply_to_author=reply_to_author,
             attachments=tuple(Attachment(a.filename, a.url, a.size) for a in message.attachments),
             reply_to_id=reply_to_id,
+            thread_name=channel.name if thread else None,
+            thread_owner=await self.thread_owner(channel) if thread else None,
         )
 
     def remember(self, message_id: int, channel_id: int) -> None:
@@ -156,7 +178,15 @@ class DiscordChat:
             return
         if str(message.guild.id) != self.config.roster.guild_id or self.bridge is None:
             return  # no bridge: selftest
-        await self.bridge.on_message(await self.convert(message))
+        channel = message.channel
+        if isinstance(channel, discord.PartialMessageable):
+            # A thread discord.py hasn't cached (e.g. just unarchived) arrives partial.
+            try:
+                channel = await self.client.fetch_channel(channel.id)
+            except discord.HTTPException:
+                log.warning("message %s: could not fetch its channel %s", message.id, channel.id)
+                return
+        await self.bridge.on_message(await self.convert(message, channel))
 
     async def on_raw_reaction_add(self, payload: Any) -> None:
         if not self.ready or payload.guild_id is None or str(payload.guild_id) != self.config.roster.guild_id:
@@ -180,8 +210,29 @@ class DiscordChat:
                     return thread
         return self.channel
 
+    async def thread(self, thread_id: str) -> Any:
+        """One of the channel's threads, archived ones included."""
+        thread = self.client.get_channel(int(thread_id))
+        if thread is None:
+            try:
+                thread = await self.client.fetch_channel(int(thread_id))
+            except discord.NotFound as error:
+                raise ChatError(f"there is no thread {thread_id}") from error
+            except discord.HTTPException as error:
+                raise ChatError(f"could not open thread {thread_id}: {error}") from error
+        if not isinstance(thread, discord.Thread) or thread.parent_id != self.channel.id:
+            raise ChatError(f"{thread_id} is not a thread of this channel")
+        return thread
+
+    async def destination(self, message: Outgoing) -> Any:
+        if message.new_thread is not None or message.thread == MAIN:
+            return self.channel
+        if message.thread is not None:
+            return await self.thread(message.thread)
+        return self.target(message.reply_to)
+
     async def send(self, message: Outgoing, view: Any = None) -> str:
-        channel = self.target(message.reply_to)
+        channel = await self.destination(message)
         reference = None
         if message.reply_to is not None:
             reference = discord.MessageReference(message_id=int(message.reply_to), channel_id=channel.id,
@@ -193,8 +244,22 @@ class DiscordChat:
                                       allowed_mentions=mentions)
         if view is not None:
             kwargs["view"] = view
-        sent = await channel.send(**kwargs)
+        try:
+            sent = await channel.send(**kwargs)
+        except discord.Forbidden as error:
+            where = "this thread" if isinstance(channel, discord.Thread) else "the channel"
+            raise ChatError(f"Discord refused the message in {where} ({error.text}); the bot may lack "
+                            f"{THREAD_PERMISSIONS}. Ask Baughn to grant it.") from error
         self.remember(sent.id, channel.id)
+        if message.new_thread is not None:
+            try:
+                thread = await sent.create_thread(name=message.new_thread,
+                                                  auto_archive_duration=ARCHIVE_MINUTES)
+            except discord.HTTPException as error:
+                raise ChatError(f"posted message {sent.id} in the main channel, but couldn't start the "
+                                f"thread ({error.text}); the bot may lack {THREAD_PERMISSIONS}. "
+                                "Ask Baughn to grant it.") from error
+            self.owners[thread.id] = self.config.me.discord_id
         return str(sent.id)
 
     def partial(self, message_id: str) -> Any:
@@ -221,9 +286,10 @@ class DiscordChat:
     async def react(self, message_id: str, emoji: str) -> None:
         await self.partial(message_id).add_reaction(emoji)
 
-    async def history(self, limit: int) -> list[Incoming]:
-        messages = [m async for m in self.channel.history(limit=limit)]
-        return [await self.convert(m) for m in reversed(messages)]
+    async def history(self, limit: int, thread: str | None = None) -> list[Incoming]:
+        channel = self.channel if thread is None else await self.thread(thread)
+        messages = [m async for m in channel.history(limit=limit)]
+        return [await self.convert(m, channel) for m in reversed(messages)]
 
     async def download(self, attachment: Attachment, path: Path) -> None:
         async with aiohttp.ClientSession() as session, session.get(attachment.url) as response:

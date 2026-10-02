@@ -94,6 +94,9 @@ POST_SCHEMA: dict[str, Any] = {
             }},
         },
         "reply_to": {"type": "string", "description": "Message id to reply to"},
+        "thread": {"type": "string",
+                   "description": "A Discord thread id, \"new: <title>\" to start a thread from this "
+                                  "post, or \"main\". Default: the thread this turn started in"},
     },
     "required": ["kind", "headline"],
 }
@@ -110,7 +113,7 @@ RCON_SCHEMA: dict[str, Any] = {
 
 
 def ask_schema(agents: tuple[str, ...]) -> dict[str, Any]:
-    properties = {k: v for k, v in POST_SCHEMA["properties"].items() if k in ("headline", "overview", "attachments")}
+    properties = {k: v for k, v in POST_SCHEMA["properties"].items() if k in ("headline", "overview", "attachments", "thread")}
     return {
         "type": "object",
         "properties": {
@@ -179,8 +182,11 @@ def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = 
     tools = [
         tool("post", "Post a message in the Discord channel. This is the only way to say "
              "anything there; your final answer is never shown.", POST_SCHEMA)(wrap(handlers.tool_post)),
-        tool("history", "Recent channel messages, oldest first, labelled with their authors.",
-             {"type": "object", "properties": {"limit": {"type": "integer", "minimum": 1, "maximum": 100}}})
+        tool("history", "Recent messages in the channel, or in one of its threads, oldest first, "
+             "labelled with their authors.",
+             {"type": "object", "properties": {
+                 "limit": {"type": "integer", "minimum": 1, "maximum": 100},
+                 "thread": {"type": "string", "description": "A thread id; default the main channel"}}})
         (wrap(handlers.tool_history)),
         tool("inbox", "Messages that arrived since your turn started (see `unread` in tool results). "
              "Reading them marks them delivered.", {"type": "object", "properties": {}})

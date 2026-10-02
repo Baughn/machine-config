@@ -136,3 +136,21 @@ def test_post_refuses_mentions(tmp_path: Path, text: str) -> None:
     with pytest.raises(PostError, match="mention"):
         render_post({"kind": "status", "headline": text}, owner_id="1", roots=roots)
     assert render_post({"kind": "status", "headline": "email a@b <@ not one>"}, owner_id="1", roots=roots)
+
+
+def test_post_thread_argument() -> None:
+    roots = Roots((), 1000)
+    base = {"kind": "status", "headline": "h"}
+    assert render_post(base, owner_id="1", roots=roots).thread is None
+    assert render_post({**base, "thread": "main"}, owner_id="1", roots=roots).thread == "main"
+    assert render_post({**base, "thread": "155559000000000001"}, owner_id="1",
+                       roots=roots).thread == "155559000000000001"
+    new = render_post({**base, "thread": "new:  Dupers   check "}, owner_id="1", roots=roots)
+    assert (new.thread, new.new_thread) == (None, "Dupers check")
+    for bad in ("12", "new:", "new: " + "x" * 101, "new: hi <@123>", "elsewhere"):
+        with pytest.raises(PostError):
+            render_post({**base, "thread": bad}, owner_id="1", roots=roots)
+    with pytest.raises(PostError):
+        render_post({**base, "thread": "new: T", "reply_to": "5"}, owner_id="1", roots=roots)
+    with pytest.raises(PostError):
+        render_post({**base, "thread": "new: tok-secret"}, owner_id="1", roots=roots, tokens=("tok-secret",))

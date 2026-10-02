@@ -51,7 +51,7 @@ admins' suggestions end up being copied into Claude Code by hand.
 
 - Replacing Claude Code's agent loop. The Agent SDK drives the same `claude`
   binary; the bridge only adds Discord, policy and visibility around it.
-- Multi-guild or multi-channel routing. One guild, one channel.
+- Multi-guild or multi-channel routing. One guild, one channel (and its threads).
 - Defending against a hostile admin. The Discord server is small and
   whitelisted. The design limits accidents and prompt injection, not insiders.
 - Protecting the Claude token from the `minecraft` account (see Auth).
@@ -387,7 +387,7 @@ post {
   overview:    string   (≤ 1200 chars, markdown),
   attachments: [ { name: "plan.md", content: string } | { name, path } ]   (≤ 10),
   reply_to:    message id?,
-  thread:      "new: <title>" | thread id?
+  thread:      "new: <title>" | thread id | "main"?
 }
 ```
 
@@ -472,8 +472,24 @@ raw profiles and logs never go there. Every instance also gets `easel` (the pain
 CLI in `tools/easel/`, on its PATH with `Bash(easel *)` allowed) and its
 skill, added by the module on top of the instance's own `skills`.
 
-**Threads:** not used by default; the `thread` field exists but agents are not
-told to open threads. Revisit if channel volume makes it necessary.
+**Threads** (2026-10-02, Baughn asked for them because the channel got too noisy):
+work-streams get a Discord thread of the channel.
+- `post` and `ask_agent` take `thread`. With no `thread` and no `reply_to`, a post goes to the
+  thread the turn started in (that of its last trigger), else the main channel. A reply goes
+  wherever the message it replies to is, if the bridge has seen that message since it started
+  (the map is in memory); a reply to an older thread message needs `thread` as well, or it lands
+  in the main channel.
+- `"new: <title>"` sends the post in the main channel and starts a thread from it (archives after
+  7 days idle). Its id is the post's id, and the main channel keeps one line per stream.
+- The bridge always resolves an explicit thread (cache, then fetch, so archived threads work) and
+  accepts only threads of its channel. If Discord refuses, the tool error names the permissions:
+  the bots need Send Messages in Threads and Create Public Threads.
+- A thread's **owner** is the author of the message it hangs off, or else its creator. An admin
+  writing in an agent's thread addresses that agent as if replying to it. Messages from agents
+  still need a mention or reply.
+- Agents see `[id in thread "name" 123]`. A turn started in a thread says so in its prompt.
+  `history` takes `thread`.
+- The status message, approvals and questions of a turn go to the thread the turn started in.
 
 ### Visibility: the live status message
 
@@ -599,8 +615,10 @@ backstops are the snapshots (which the agent cannot destroy) and the watchdog
 - **Silence default** (see Principles). Agents are told explicitly that having
   nothing to say is a complete and correct answer.
 - **Human-anchored bot streak.** Each bridge counts the consecutive agent
-  messages since the last human message in the channel or thread. It works
-  this out from history, so it needs no shared state. Past 30, messages from
+  messages since the last human message, channel-wide: messages in threads
+  count in the same streak, so agents can't loop by moving to a thread. It
+  works this out from the main channel's history at startup, so it needs no
+  shared state. Past 30, messages from
   agents stop being triggers until a human speaks.
 - **Per-identity circuit breaker**, deliberately generous: 60 turns/hour,
   10 posts/minute, 120 posts/hour. Tripping it pauses the identity and posts

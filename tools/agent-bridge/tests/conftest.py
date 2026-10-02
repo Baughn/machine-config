@@ -11,7 +11,7 @@ import pytest
 from agent_bridge.bridge import Bridge
 from agent_bridge.config import Config, parse
 from agent_bridge.policy import Attachment, Author, Incoming, Kind, classify
-from agent_bridge.render import Outgoing
+from agent_bridge.render import ChatError, Outgoing
 from agent_bridge.session import TurnResult
 
 CHANNEL = "50"
@@ -63,12 +63,14 @@ counter = itertools.count(1000)
 def message(config: Config, who: str, content: str = "hi", *, mention: bool = False,
             admin: bool = True, channel: str = CHANNEL, reply_to_author: str | None = None,
             role_mentions: frozenset[str] = frozenset(),
-            attachments: tuple[Attachment, ...] = ()) -> Incoming:
+            attachments: tuple[Attachment, ...] = (), thread: str | None = None,
+            thread_name: str | None = None, thread_owner: str | None = None) -> Incoming:
     return Incoming(
-        id=str(next(counter)), channel_id=channel, thread_id=None,
+        id=str(next(counter)), channel_id=channel, thread_id=thread,
         author=author(config, who, admin=admin), content=content,
         mentions=frozenset({ME}) if mention else frozenset(),
-        role_mentions=role_mentions, reply_to_author=reply_to_author, attachments=attachments)
+        role_mentions=role_mentions, reply_to_author=reply_to_author, attachments=attachments,
+        thread_name=thread_name, thread_owner=thread_owner)
 
 
 class FakeChat:
@@ -81,11 +83,15 @@ class FakeChat:
         self.backlog: list[Incoming] = []
         self.downloads: list[Path] = []
         self.reactions: list[tuple[str, str]] = []
+        self.histories: list[str | None] = []  # the thread each history call read
+        self.refuse: str | None = None  # a ChatError every send raises
 
     def new_id(self) -> str:
         return f"m{next(self.ids)}"
 
     async def send(self, message: Outgoing) -> str:
+        if self.refuse is not None:
+            raise ChatError(self.refuse)
         message_id = self.new_id()
         self.sent[message_id] = message
         return message_id
@@ -106,7 +112,8 @@ class FakeChat:
     async def react(self, message_id: str, emoji: str) -> None:
         self.reactions.append((message_id, emoji))
 
-    async def history(self, limit: int) -> list[Incoming]:
+    async def history(self, limit: int, thread: str | None = None) -> list[Incoming]:
+        self.histories.append(thread)
         return self.backlog[-limit:]
 
     async def download(self, attachment: Attachment, path: Path) -> None:

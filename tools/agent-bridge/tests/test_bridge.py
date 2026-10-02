@@ -16,7 +16,7 @@ from agent_bridge import bridge as bridge_module
 from agent_bridge.bridge import Bridge
 from agent_bridge.config import ConfigError, parse
 from agent_bridge.policy import Attachment, Incoming, Route, classify, may_approve, route
-from agent_bridge.render import Outgoing
+from agent_bridge.render import ChatError, Outgoing
 from agent_bridge.session import Permission, ToolError, TurnResult
 
 from conftest import (ALICE, CAROL, CHANNEL, LAB, ME, OWNER, FakeChat, FakeSession, Harness, config_data,
@@ -985,3 +985,112 @@ async def test_advisor_and_subagent_calls_show_in_status(harness: Harness) -> No
     await run_turn(harness)
     assert "consulting the advisor" in seen[0] and "advisor ×1" in seen[0]
     assert "last: subagent: Grep `foo`" in seen[1]
+
+
+# --- Discord threads ---------------------------------------------------------
+
+THREAD = "155559000000000001"
+
+
+async def test_a_turn_in_a_thread_answers_there(harness: Harness) -> None:
+    results: list[str] = []
+
+    async def script(session: FakeSession, prompt: str) -> TurnResult:
+        results.append(await session.bridge.tool_post({"kind": "report", "headline": "In the thread"}))
+        results.append(await session.bridge.tool_post({"kind": "status", "headline": "Main",
+                                                       "thread": "main"}))
+        results.append(await session.bridge.tool_post({"kind": "plan", "headline": "New stream",
+                                                       "thread": "new: Autosave spike",
+                                                       "attachments": [{"name": "p.md", "content": "x"}]}))
+        return TurnResult("session-1")
+
+    harness.session.script = script
+    trigger = await harness.say(ALICE, "@me look", mention=True, thread=THREAD, thread_name="Dupers")
+    await run_turn(harness)
+    prompt = harness.session.prompts[0]
+    assert f'[{trigger.id} in thread "Dupers" {THREAD}] alice' in prompt
+    assert f'This turn started in thread "Dupers" ({THREAD})' in prompt
+    sid = status_id(harness)
+    assert harness.chat.sent[sid].thread == THREAD and harness.chat.sent[sid].reply_to == trigger.id
+    posts = [m for i, m in harness.chat.sent.items() if i != sid]
+    assert [(m.thread, m.new_thread) for m in posts] == [(THREAD, None), ("main", None),
+                                                         (None, "Autosave spike")]
+    assert results[0].startswith(f"posted as message m2 in thread {THREAD}")
+    assert results[1].startswith("posted as message m3\n") or results[1].startswith("posted as message m3")
+    assert 'starts thread m4 "Autosave spike"' in results[2]
+    assert harness.bridge.turn_thread is None
+
+
+async def test_a_reply_follows_its_message_not_the_turn_thread(harness: Harness) -> None:
+    async def script(session: FakeSession, prompt: str) -> TurnResult:
+        await session.bridge.tool_post({"kind": "report", "headline": "x", "reply_to": "777"})
+        return TurnResult("session-1")
+
+    harness.session.script = script
+    await harness.say(ALICE, "@me look", mention=True, thread=THREAD)
+    await run_turn(harness)
+    reply = [m for m in harness.chat.sent.values() if m.reply_to == "777"][0]
+    assert reply.thread is None  # the chat routes it by the message replied to
+
+
+async def test_ask_agent_defaults_to_the_turn_thread(tmp_path: Path) -> None:
+    h = Harness(tmp_path, ask_agents=["tsugumi-lab"])
+    h.bridge.turn_thread = THREAD
+    result = await h.bridge.tool_ask_agent({"agent": "tsugumi-lab", "headline": "Which clone?",
+                                            "timeout_minutes": 0.0001})
+    assert "No answer" in result
+    asked = [m for m in h.chat.sent.values() if "Which clone?" in m.content]
+    assert asked[0].thread == THREAD and asked[0].mention_users == (LAB,)
+    assert asked[0].content.startswith(f"<@{LAB}> ")
+
+
+async def test_discord_refusals_reach_the_agent(harness: Harness) -> None:
+    errors: list[str] = []
+
+    async def script(session: FakeSession, prompt: str) -> TurnResult:
+        harness.chat.refuse = "the bot may lack Create Public Threads. Ask Baughn to grant it."
+        with pytest.raises(ToolError) as error:
+            await session.bridge.tool_post({"kind": "status", "headline": "x", "thread": "new: T"})
+        errors.append(str(error.value))
+        return TurnResult("session-1")
+
+    harness.session.script = script
+    await harness.say(ALICE, "@me look", mention=True)
+    await run_turn(harness)
+    assert "Create Public Threads" in errors[0]
+
+
+async def test_history_reads_a_thread(harness: Harness) -> None:
+    await harness.bridge.tool_history({"thread": THREAD})
+    await harness.bridge.tool_history({})
+    assert harness.chat.histories == [THREAD, None]
+    with pytest.raises(ToolError):
+        await harness.bridge.tool_history({"thread": "new: x"})
+
+
+def test_a_human_in_my_thread_addresses_me(harness: Harness) -> None:
+    config = harness.config
+    mine = harness.msg(ALICE, "what about steel?", thread=THREAD, thread_owner=ME)
+    assert route(config, mine, bot_streak=0, paused=False).route is Route.TRIGGER
+    others = harness.msg(ALICE, "what about steel?", thread=THREAD, thread_owner=LAB)
+    assert route(config, others, bot_streak=0, paused=False).route is Route.CONTEXT
+    agent = harness.msg(LAB, "noted", thread=THREAD, thread_owner=ME)
+    assert route(config, agent, bot_streak=0, paused=False).route is Route.CONTEXT
+
+
+async def test_a_gone_thread_moves_the_turn_to_the_main_channel(harness: Harness) -> None:
+    sends = 0
+    original = harness.chat.send
+
+    async def send(message: Outgoing) -> str:
+        nonlocal sends
+        sends += 1
+        if message.thread == THREAD:
+            raise ChatError("there is no thread")
+        return await original(message)
+
+    harness.chat.send = send  # type: ignore[method-assign]
+    await harness.say(ALICE, "@me look", mention=True, thread=THREAD)
+    await run_turn(harness)
+    assert sends == 2 and harness.chat.sent[status_id(harness)].thread == "main"
+    assert "This turn started in thread" not in harness.session.prompts[0]
