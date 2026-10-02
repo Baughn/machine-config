@@ -1094,3 +1094,27 @@ async def test_a_gone_thread_moves_the_turn_to_the_main_channel(harness: Harness
     await run_turn(harness)
     assert sends == 2 and harness.chat.sent[status_id(harness)].thread == "main"
     assert "This turn started in thread" not in harness.session.prompts[0]
+
+
+async def test_messages_addressed_to_the_agent_are_announced_mid_turn(harness: Harness) -> None:
+    news: list[str | None] = []
+
+    async def script(session: FakeSession, prompt: str) -> TurnResult:
+        bridge = session.bridge
+        news.append(await bridge.tool_finished("Bash", False))
+        await harness.say(CAROL, "just chatting")  # context only: not announced
+        await harness.say(ALICE, "@me also: the pack syncs to clients\nmore detail", mention=True,
+                          thread=THREAD, thread_name="E36")
+        news.append(await bridge.tool_finished("Bash", False, subagent=True))
+        news.append(await bridge.tool_finished("Bash", False))
+        news.append(await bridge.tool_finished("Read", False))  # told once
+        return TurnResult("session-1")
+
+    harness.session.script = script
+    await harness.say(ALICE, "@me start", mention=True)
+    await run_turn(harness)
+    assert news[0] is None and news[1] is None and news[3] is None
+    assert news[2] is not None
+    assert 'in thread "E36"] alice (human, admin): @me also: the pack syncs to clients' in news[2]
+    assert "more detail" not in news[2] and "chatting" not in news[2] and "`inbox`" in news[2]
+    assert not harness.bridge.announced

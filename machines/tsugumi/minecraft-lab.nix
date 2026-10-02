@@ -122,7 +122,9 @@ in
     # Handover from the lab to production (mods, configs, instructions): the
     # lab writes, tsugumi-minecraft reads. setgid keeps new entries in the
     # group; files copied with mode 0600 still need chmod g+r.
-    users.groups.lab-handover.members = [ "minecraft" ];
+    # The lab is a member too, so it can chgrp what it makes there (cp keeps
+    # group mclab; the bridge's umask makes files 0600).
+    users.groups.lab-handover.members = [ "minecraft" cfg.user ];
 
     environment.systemPackages = [ client ];
     system.build.minecraft-lab-client = client;

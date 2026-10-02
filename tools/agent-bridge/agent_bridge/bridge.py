@@ -114,6 +114,7 @@ class Bridge:
         self.asked_by: set[str] = set()  # agents whose questions started the current turn
         # The Discord thread the current turn started in: posts default to it.
         self.turn_thread: str | None = None
+        self.announced: set[str] = set()  # triggers already told to the agent mid-turn
         self.run_command = run_command
         self.status: Status | None = None
         self.status_id: str | None = None
@@ -517,6 +518,7 @@ class Bridge:
                 final = "done" if status.posts else "silent"
             self.turns += 1
             self.turn_thread = None
+            self.announced.clear()
             self.last_log = status.log
             self.write_turn_log(status, final, result)
             self.status = None
@@ -661,8 +663,28 @@ class Bridge:
         self.note(f"effort {level}: {reason}")
         return f"effort is {level} for the rest of this turn{self.unread()}"
 
-    async def tool_finished(self, name: str, failed: bool) -> None:
+    async def tool_finished(self, name: str, failed: bool, subagent: bool = False) -> str | None:
         self.note(f"← {name}{' (failed)' if failed else ''}")
+        return None if subagent or self.status is None else self.news()
+
+    def news(self) -> str | None:
+        """Messages addressed to the agent that arrived during the turn, each told once:
+        the unread count only shows in the bridge's own tool results."""
+        fresh = [e for e in self.buffer if e.trigger and not e.scheduled and e.message.id not in self.announced]
+        if not fresh:
+            return None
+        self.announced.update(e.message.id for e in fresh)
+        lines = []
+        for entry in fresh:
+            message = entry.message
+            where = f" in thread \"{message.thread_name or message.thread_id}\"" if message.thread_id else ""
+            first = next((line.strip() for line in message.content.splitlines() if line.strip()), "")
+            if len(first) > 200:
+                first = first[:199] + "…"
+            lines.append(f"- [{message.id}{where}] {message.author.label}: {first}")
+        return ("New message" + ("s" if len(lines) > 1 else "") + " addressed to you arrived while you work:\n"
+                + "\n".join(lines) + "\nRead with `inbox` and answer at a good stopping point; "
+                "keep the current work going unless the message changes it.")
 
     async def permission(self, name: str, tool_input: dict[str, Any], reason: str | None) -> Permission:
         if self.handoff:
