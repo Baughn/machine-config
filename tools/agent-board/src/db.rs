@@ -89,6 +89,16 @@ CREATE TABLE discord (
 CREATE INDEX discord_place ON discord(channel, thread, id);
 CREATE INDEX discord_created ON discord(created);
 "#,
+    r#"
+CREATE TABLE status (
+    agent TEXT NOT NULL,
+    key TEXT NOT NULL,
+    updated INTEGER NOT NULL,
+    ttl INTEGER NOT NULL,
+    body TEXT NOT NULL,
+    PRIMARY KEY (agent, key)
+) WITHOUT ROWID;
+"#,
 ];
 
 pub const MAX_TITLE: usize = 200;
@@ -212,13 +222,15 @@ pub struct SearchHit {
     pub superseded: bool,
 }
 
-/// One unanswered question, for the session-start briefing.
+/// One unanswered question, for the session-start briefing and the dashboard.
 #[derive(Clone, Debug, Serialize)]
 pub struct Ask {
     pub post: i64,
     pub thread: i64,
     pub thread_title: String,
     pub author: String,
+    /// Who is asked.
+    pub asked: String,
     pub created: i64,
     pub first_line: String,
 }
@@ -309,7 +321,7 @@ pub struct Board {
     pub(crate) conn: Connection,
 }
 
-fn now() -> i64 {
+pub(crate) fn now() -> i64 {
     chrono::Utc::now().timestamp()
 }
 
@@ -987,26 +999,7 @@ impl Board {
                 |row| row.get(0),
             )?,
         };
-        let mut asks_statement = self.conn.prepare_cached(
-            "SELECT p.id, p.thread, t.title, p.author, p.created, p.body \
-             FROM posts p JOIN threads t ON t.id = p.thread \
-             WHERE p.ask = ?1 AND t.status = 'open' AND p.superseded_by IS NULL \
-               AND NOT EXISTS (SELECT 1 FROM posts r WHERE r.reply_to = p.id AND r.author = ?1) \
-             ORDER BY p.id",
-        )?;
-        let asks = asks_statement
-            .query_map([agent], |row| {
-                let body: String = row.get(5)?;
-                Ok(Ask {
-                    post: row.get(0)?,
-                    thread: row.get(1)?,
-                    thread_title: row.get(2)?,
-                    author: row.get(3)?,
-                    created: row.get(4)?,
-                    first_line: first_line(&body),
-                })
-            })?
-            .collect::<rusqlite::Result<_>>()?;
+        let asks = self.open_asks(Some(agent))?;
         let threads = |condition: &str, order: &str| -> Result<Vec<Thread>, AppError> {
             let sql = format!(
                 "SELECT {THREAD_COLUMNS} FROM {THREAD_FROM} \
@@ -1044,5 +1037,49 @@ impl Board {
                 "s.created DESC",
             )?,
         })
+    }
+
+    /// Unanswered questions in open threads: those asked of `agent`, or all of them.
+    pub(crate) fn open_asks(&self, agent: Option<&str>) -> Result<Vec<Ask>, AppError> {
+        let mut statement = self.conn.prepare_cached(
+            "SELECT p.id, p.thread, t.title, p.author, p.ask, p.created, p.body \
+             FROM posts p JOIN threads t ON t.id = p.thread \
+             WHERE p.ask IS NOT NULL AND (?1 IS NULL OR p.ask = ?1) \
+               AND t.status = 'open' AND p.superseded_by IS NULL \
+               AND NOT EXISTS (SELECT 1 FROM posts r WHERE r.reply_to = p.id AND r.author = p.ask) \
+             ORDER BY p.id",
+        )?;
+        let asks = statement
+            .query_map([agent], |row| {
+                let body: String = row.get(6)?;
+                Ok(Ask {
+                    post: row.get(0)?,
+                    thread: row.get(1)?,
+                    thread_title: row.get(2)?,
+                    author: row.get(3)?,
+                    asked: row.get(4)?,
+                    created: row.get(5)?,
+                    first_line: first_line(&body),
+                })
+            })?
+            .collect::<rusqlite::Result<_>>()?;
+        Ok(asks)
+    }
+
+    /// Open threads that wait on someone, and open threads with a due date (soonest first).
+    pub(crate) fn waiting_and_due(&self) -> Result<(Vec<Thread>, Vec<Thread>), AppError> {
+        let threads = |condition: &str, order: &str| -> Result<Vec<Thread>, AppError> {
+            let sql = format!(
+                "SELECT {THREAD_COLUMNS} FROM {THREAD_FROM} \
+                 WHERE t.status = 'open' AND {condition} ORDER BY {order}"
+            );
+            let mut statement = self.conn.prepare(&sql)?;
+            let rows = statement.query_map([], |row| thread_from_row(row, false))?;
+            Ok(rows.collect::<rusqlite::Result<_>>()?)
+        };
+        Ok((
+            threads("t.waiting_on IS NOT NULL", "t.updated DESC")?,
+            threads("t.due IS NOT NULL", "t.due, t.id")?,
+        ))
     }
 }

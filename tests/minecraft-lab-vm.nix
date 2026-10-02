@@ -127,6 +127,16 @@ pkgs.testers.runNixOSTest {
           machine.fail("sudo -u mclab systemctl start fake-rcon")
           machine.fail("sudo -u mclab systemctl stop minecraft-lab-pasta")
           machine.fail("sudo -u mclab systemctl start 'minecraft@x'")
+
+      with subtest("the status timer posts the lab's card to the board"):
+          machine.succeed("systemctl start minecraft-lab-status")
+          status = machine.succeed("sudo -u mclab curl -sf --unix-socket /run/agent-board/api.sock http://board/status")
+          assert '"title":"Lab (timer)"' in status, status
+          assert "server x: active" in status, status
+          assert "1 server running, 0 clones" in status, status
           machine.succeed("sudo -u mclab systemctl stop minecraft-lab@x")
+          machine.succeed("systemctl start minecraft-lab-status")
+          status = machine.succeed("sudo -u mclab curl -sf --unix-socket /run/agent-board/api.sock http://board/status")
+          assert "0 servers running" in status, status
     '';
 }

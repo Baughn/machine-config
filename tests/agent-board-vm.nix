@@ -77,6 +77,15 @@ pkgs.testers.runNixOSTest {
         assert status.strip() == "405", status
         curl("minecraft", HTML + "/", success=False)
 
+    with subtest("status cards show on the status page"):
+        curl("mclab", "-X PUT -H 'content-type: application/json' -d "
+             + shlex.quote(json.dumps({"title": "Lab (timer)", "state": "1 server running", "ttl": 180,
+                                       "lines": [{"text": "server x: active", "level": "info"}]}))
+             + " " + API + "/status/lab")
+        page = curl("proxy", HTML + "/status")
+        assert "Lab (timer)" in page and "server x: active" in page and "tsugumi-lab/lab" in page, page
+        assert 'http-equiv="refresh"' in page, page
+
     with subtest("only the poller writes the Discord archive; everyone can read it"):
         batch = {"messages": [{"id": 1555569477968724201, "channel": 1553121660532432926,
                                "author": "baughn", "author_kind": "human", "created": 1790947064,

@@ -9,6 +9,7 @@ mod db;
 mod discord;
 mod error;
 mod html;
+mod status;
 
 use std::collections::HashMap;
 use std::os::fd::{FromRawFd, RawFd};

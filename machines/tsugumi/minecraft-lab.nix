@@ -287,6 +287,34 @@ in
       };
     };
 
+    # The lab's card on the board's status page (agents.brage.info/status): clones and
+    # running servers. Posts as the lab user, which the board knows as tsugumi-lab.
+    systemd.services.minecraft-lab-status = {
+      description = "Post the Minecraft lab's status to the agent board";
+      after = [ "agent-board-api.socket" "minecraft-lab-setup.service" ];
+      path = [ client pkgs.systemd ];
+      serviceConfig = {
+        Type = "oneshot";
+        User = cfg.user;
+        Group = cfg.user;
+        ExecStart = "${pkgs.python3}/bin/python3 -I ${./minecraft-lab-status.py} /run/agent-board/api.sock";
+        ProtectSystem = "strict";
+        ProtectHome = true;
+        PrivateTmp = true;
+        NoNewPrivileges = true;
+        RestrictAddressFamilies = [ "AF_UNIX" ];
+        TimeoutStartSec = 60;
+      };
+    };
+    systemd.timers.minecraft-lab-status = {
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnBootSec = "2min";
+        OnUnitActiveSec = "1min";
+        AccuracySec = "10s";
+      };
+    };
+
     systemd.timers.minecraft-lab-expire = {
       wantedBy = [ "timers.target" ];
       timerConfig = {

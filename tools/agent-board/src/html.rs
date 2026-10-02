@@ -12,9 +12,10 @@ use pulldown_cmark::{CowStr, Event, Options, Parser, Tag};
 use serde::Deserialize;
 
 use crate::api::AppState;
-use crate::db::{SearchQuery, Thread, ThreadFilter};
+use crate::db::{Board, SearchQuery, Thread, ThreadFilter};
 use crate::discord::ArchivedMessage;
 use crate::error::AppError;
+use crate::status::{Level, StatusCard};
 
 const STYLE: &str = "
 body { font: 15px/1.45 system-ui, sans-serif; max-width: 60rem; margin: 1rem auto; padding: 0 1rem;
@@ -31,6 +32,13 @@ table { border-collapse: collapse; width: 100%; } td, th { padding: .3rem .5rem;
 .superseded { opacity: .55; }
 .focus { background: #fff8e1; }
 .ask { background: #fff3cd; padding: 0 .3rem; border-radius: 3px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: .8rem; }
+.card { border: 1px solid #ddd; border-left: 4px solid #8a3; padding: .3rem .7rem; background: #fff; }
+.card ul { margin: .3rem 0; padding-left: 1.1rem; }
+.lvl-info { border-left-color: #1a5fb4; } .lvl-warn { border-left-color: #e5a50a; color: #7a5200; }
+.lvl-alert { border-left-color: #c01c28; color: #a51d2d; font-weight: 600; }
+.stale { opacity: .6; border-left-color: #999; }
+li.lvl-warn, li.lvl-alert { list-style: square; }
 pre { background: #f2f2f2; padding: .5rem; overflow-x: auto; }
 code { background: #f2f2f2; }
 ";
@@ -39,6 +47,7 @@ code { background: #f2f2f2; }
 pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/", get(index))
+        .route("/status", get(status))
         .route("/t/{id}", get(thread))
         .route("/t/{id}/summaries", get(summaries))
         .route("/a/{id}", get(attachment))
@@ -125,18 +134,25 @@ fn markdown(source: &str) -> Markup {
 }
 
 fn page(title: &str, query: &str, body: Markup) -> Markup {
+    page_refreshing(title, query, None, body)
+}
+
+/// A page, reloading itself every `refresh` seconds when given (no script needed).
+fn page_refreshing(title: &str, query: &str, refresh: Option<u32>, body: Markup) -> Markup {
     html! {
         (DOCTYPE)
         html lang="en" {
             head {
                 meta charset="utf-8";
                 meta name="viewport" content="width=device-width, initial-scale=1";
+                @if let Some(seconds) = refresh { meta http-equiv="refresh" content=(seconds); }
                 title { (title) " - agent board" }
                 style { (PreEscaped(STYLE)) }
             }
             body {
                 header {
                     h2 { a href="/" { "Agent board" } }
+                    a href="/status" { "status" }
                     a href="/?status=all" { "all threads" }
                     a href="/day" { "Discord archive" }
                     form action="/search" {
@@ -195,6 +211,107 @@ async fn index(
                 }
             }
             @if threads.is_empty() { p { "No threads." } }
+        },
+    ))
+}
+
+/// "5 min ago" style ages for the dashboard.
+fn age(now: i64, then: i64) -> String {
+    let seconds = (now - then).max(0);
+    match seconds {
+        0..=89 => format!("{seconds} s ago"),
+        90..=5399 => format!("{} min ago", (seconds + 30) / 60),
+        5400..=172_799 => format!("{} h ago", (seconds + 1800) / 3600),
+        _ => format!("{} d ago", seconds / 86_400),
+    }
+}
+
+fn level_class(level: Option<Level>) -> &'static str {
+    match level {
+        Some(Level::Info) => "lvl-info",
+        Some(Level::Warn) => "lvl-warn",
+        Some(Level::Alert) => "lvl-alert",
+        Some(Level::Ok) | None => "",
+    }
+}
+
+fn card_html(now: i64, card: &StatusCard) -> Markup {
+    let body = &card.body;
+    let class = if card.stale { "card stale" } else { "card" };
+    html! {
+        div class={ (class) " " (level_class(body.level)) } {
+            p {
+                strong { (body.title) }
+                @if let Some(state) = &body.state { " · " (state) }
+            }
+            ul {
+                @for line in &body.lines {
+                    li class=(level_class(line.level)) {
+                        @match &line.link {
+                            Some(link) => { a href=(safe_url(CowStr::Borrowed(link))) { (line.text) } }
+                            None => { (line.text) }
+                        }
+                    }
+                }
+            }
+            p.meta {
+                (card.agent) "/" (card.key) " · " (age(now, card.updated))
+                @if card.stale { " · " strong { "stale" } " (expected every " (body.ttl / 60) " min)" }
+            }
+        }
+    }
+}
+
+async fn status(State(state): State<AppState>) -> Result<Markup, AppError> {
+    let board = state.with_board(Board::dashboard).await?;
+    let now = board.now;
+    Ok(page_refreshing(
+        "Status",
+        "",
+        Some(60),
+        html! {
+            h3 { "Status" }
+            p.meta { "As of " (time(now)) "; reloads every minute." }
+            div.cards {
+                @for card in &board.cards { (card_html(now, card)) }
+            }
+            @if board.cards.is_empty() { p { "No status cards yet." } }
+            h3 { "Open questions on the board" }
+            @if board.asks.is_empty() { p.meta { "None." } }
+            table {
+                @for ask in &board.asks {
+                    tr {
+                        td { span.ask { (ask.author) " asks " (ask.asked) } }
+                        td { a href={ "/t/" (ask.thread) "#p" (ask.post) } { (ask.first_line) }
+                             br; span.meta { (ask.thread_title) } }
+                        td.meta { (age(now, ask.created)) }
+                    }
+                }
+            }
+            h3 { "Waiting" }
+            @if board.waiting.is_empty() { p.meta { "Nothing." } }
+            table {
+                @for thread in &board.waiting {
+                    tr {
+                        td { a href={ "/t/" (thread.id) } { (thread.title) } br; span.meta { (thread.summary) } }
+                        td { (thread_meta(thread)) }
+                    }
+                }
+            }
+            h3 { "Due" }
+            @if board.due.is_empty() { p.meta { "Nothing." } }
+            table {
+                @for thread in &board.due {
+                    @let overdue = thread.due.as_deref().is_some_and(|due| due < day_of(now).as_str());
+                    tr {
+                        td { a href={ "/t/" (thread.id) } { (thread.title) } }
+                        td class=(if overdue { "lvl-alert" } else { "" }) {
+                            (thread.due.as_deref().unwrap_or_default()) @if overdue { " (overdue)" }
+                        }
+                        td { (thread_meta(thread)) }
+                    }
+                }
+            }
         },
     ))
 }
@@ -427,6 +544,33 @@ async fn discord_day(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn status_cards_escape_text_and_links() {
+        use crate::status::{NewStatus, StatusLine};
+        let card = StatusCard {
+            agent: "tsugumi-lab".into(),
+            key: "lab".into(),
+            updated: 1000,
+            stale: true,
+            body: NewStatus {
+                title: "<b>Lab</b>".into(),
+                state: None,
+                level: Some(Level::Warn),
+                lines: vec![StatusLine {
+                    text: "x".into(),
+                    link: Some("javascript:alert(1)".into()),
+                    level: None,
+                }],
+                ttl: 180,
+            },
+        };
+        let out = card_html(1300, &card).0;
+        assert!(out.contains("&lt;b&gt;Lab"), "{out}");
+        assert!(out.contains(r##"href="#""##), "{out}");
+        assert!(out.contains("stale"), "{out}");
+        assert!(out.contains("5 min ago"), "{out}");
+    }
 
     #[test]
     fn markdown_escapes_html_and_bad_links() {

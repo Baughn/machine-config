@@ -23,6 +23,7 @@ use crate::discord::{
     INGEST_IDENTITY,
 };
 use crate::error::AppError;
+use crate::status::{Dashboard, NewStatus};
 
 /// Unix socket peers: uid to agent id.
 pub type UidMap = HashMap<u32, String>;
@@ -141,6 +142,8 @@ pub fn routes() -> Router<AppState> {
         .route("/discord/cursor", get(discord_cursor))
         .route("/discord/{id}", get(discord_context))
         .route("/discord/{id}/attachments/{index}", get(discord_attachment))
+        .route("/status", get(dashboard))
+        .route("/status/{key}", axum::routing::put(put_status).delete(delete_status))
         // Attachments are up to 1 MiB each, 10 per post.
         .layer(DefaultBodyLimit::max(16 * 1024 * 1024))
 }
@@ -217,6 +220,33 @@ async fn read_thread(
         .with_board(move |board| board.read_thread(id, query.since_post, query.limit))
         .await?;
     Ok(Json(view))
+}
+
+async fn dashboard(State(state): State<AppState>) -> Result<Json<Dashboard>, AppError> {
+    Ok(Json(state.with_board(Board::dashboard).await?))
+}
+
+async fn put_status(
+    State(state): State<AppState>,
+    Extension(Author(author)): Extension<Author>,
+    Path(key): Path<String>,
+    Json(status): Json<NewStatus>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    state
+        .with_board(move |board| board.put_status(&author, &key, &status))
+        .await?;
+    Ok(Json(serde_json::json!({ "ok": true })))
+}
+
+async fn delete_status(
+    State(state): State<AppState>,
+    Extension(Author(author)): Extension<Author>,
+    Path(key): Path<String>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    state
+        .with_board(move |board| board.delete_status(&author, &key))
+        .await?;
+    Ok(Json(serde_json::json!({ "ok": true })))
 }
 
 async fn update_thread(
@@ -426,6 +456,84 @@ mod tests {
             status,
             serde_json::from_slice(&bytes).unwrap_or(Value::Null),
         )
+    }
+
+    #[tokio::test]
+    async fn status_cards_and_dashboard() {
+        let state = state();
+        let lab = || app(&state, "tsugumi-lab");
+        let erisi = || app(&state, "tsugumi-minecraft");
+        let card = json!({
+            "title": "Lab", "state": "1 server running", "level": "info", "ttl": 180,
+            "lines": [{"text": "dupers: expires in 3 d", "level": "warn"},
+                      {"text": "on Discord", "link": "https://discord.com/channels/1/2/3"}]
+        });
+        let (status, _) = call(lab(), Method::PUT, "/status/lab", Some(card.clone())).await;
+        assert_eq!(status, StatusCode::OK);
+        // Replaced in place, not duplicated.
+        let (status, _) = call(lab(), Method::PUT, "/status/lab", Some(card.clone())).await;
+        assert_eq!(status, StatusCode::OK);
+        for bad in [
+            json!({"title": "", "ttl": 180}),
+            json!({"title": "x", "ttl": 5}),
+            json!({"title": "x", "ttl": 180, "lines": [{"text": "y".repeat(500)}]}),
+            json!({"title": "x", "ttl": 180, "level": "purple"}),
+        ] {
+            let (status, _) = call(lab(), Method::PUT, "/status/lab", Some(bad)).await;
+            assert!(status.is_client_error(), "{status}");
+        }
+        let (status, _) = call(lab(), Method::PUT, "/status/Bad_Key", Some(card.clone())).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        let (status, _) = call(app(&state, "discord"), Method::PUT, "/status/x", Some(card)).await;
+        assert_eq!(status, StatusCode::FORBIDDEN);
+
+        // An ask from the lab to Erisi, answered later; and a waiting, due thread.
+        let (_, created) = call(
+            lab(),
+            Method::POST,
+            "/threads",
+            Some(json!({"title": "Q", "waiting_on": "tsugumi-minecraft", "due": "2026-01-01",
+                        "post": {"body": "Which world?", "ask": "tsugumi-minecraft"}})),
+        )
+        .await;
+        let thread = created["thread"].as_i64().unwrap();
+        let (status, board) = call(erisi(), Method::GET, "/status", None).await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(board["cards"].as_array().unwrap().len(), 1);
+        assert_eq!(board["cards"][0]["agent"], "tsugumi-lab");
+        assert_eq!(board["cards"][0]["stale"], false);
+        assert_eq!(board["cards"][0]["lines"][0]["level"], "warn");
+        assert_eq!(board["asks"][0]["asked"], "tsugumi-minecraft");
+        assert_eq!(board["asks"][0]["author"], "tsugumi-lab");
+        assert_eq!(board["waiting"][0]["id"], thread);
+        assert_eq!(board["due"][0]["id"], thread);
+        let ask = created["post"].as_i64().unwrap();
+        call(
+            erisi(),
+            Method::POST,
+            &format!("/threads/{thread}/posts"),
+            Some(json!({"body": "survival", "reply_to": ask})),
+        )
+        .await;
+        let (_, board) = call(erisi(), Method::GET, "/status", None).await;
+        assert!(board["asks"].as_array().unwrap().is_empty());
+
+        // An old card is stale; a deleted one is gone, and only its writer can delete it.
+        state
+            .with_board(|board| {
+                board.conn.execute("UPDATE status SET updated = updated - 1000", [])?;
+                Ok(())
+            })
+            .await
+            .unwrap();
+        let (_, board) = call(erisi(), Method::GET, "/status", None).await;
+        assert_eq!(board["cards"][0]["stale"], true);
+        let (status, _) = call(erisi(), Method::DELETE, "/status/lab", None).await;
+        assert_eq!(status, StatusCode::NOT_FOUND);
+        let (status, _) = call(lab(), Method::DELETE, "/status/lab", None).await;
+        assert_eq!(status, StatusCode::OK);
+        let (_, board) = call(erisi(), Method::GET, "/status", None).await;
+        assert!(board["cards"].as_array().unwrap().is_empty());
     }
 
     #[tokio::test]
