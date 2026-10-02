@@ -1118,3 +1118,36 @@ async def test_messages_addressed_to_the_agent_are_announced_mid_turn(harness: H
     assert 'in thread "E36"] alice (human, admin): @me also: the pack syncs to clients' in news[2]
     assert "more detail" not in news[2] and "chatting" not in news[2] and "`inbox`" in news[2]
     assert not harness.bridge.announced
+
+
+async def test_the_status_card_shows_turns_and_waiting_approvals(harness: Harness) -> None:
+    bridge = harness.bridge
+    card = bridge.card(harness.clock.now)
+    assert card["state"] == "idle" and card["level"] == "ok" and card["title"]
+    cards: list[dict[str, Any]] = []
+
+    async def script(session: FakeSession, prompt: str) -> TurnResult:
+        cards.append(bridge.card(harness.clock.now))
+        task = asyncio.create_task(bridge.permission("Bash", {"command": "systemctl start x"}, None))
+        await settle()
+        harness.clock.now += 180
+        cards.append(bridge.card(harness.clock.now))
+        assert bridge.card_changed.is_set()
+        await bridge.on_decide(harness.chat.approvals[0], harness.author(OWNER), Verdict.ALLOW)
+        await task
+        cards.append(bridge.card(harness.clock.now))
+        return TurnResult("session-1")
+
+    harness.session.script = script
+    trigger = await harness.say(ALICE, "@me go", mention=True)
+    await run_turn(harness)
+    assert cards[0]["state"].startswith("working for alice") and cards[0]["level"] == "info"
+    assert cards[0]["lines"][0]["link"] == f"https://discord/{trigger.id}"
+    waiting = cards[1]["lines"][0]
+    assert cards[1]["level"] == "alert" and waiting["level"] == "alert"
+    assert waiting["text"].startswith("approval waiting 3 min: Bash `systemctl start x`")
+    assert waiting["link"] == f"https://discord/{harness.chat.approvals[0]}"
+    assert not any("approval" in line["text"] for line in cards[2]["lines"])
+    after = bridge.card(harness.clock.now)
+    assert after["state"] == "idle" and after["ttl"] > 300
+    assert bridge.turn_trigger is None

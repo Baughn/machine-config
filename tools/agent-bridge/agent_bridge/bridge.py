@@ -43,6 +43,11 @@ ASK_TIMEOUT_MAX = 60.0
 # bridge is down, restarting (it doesn't catch up on missed messages) or paused.
 RECEIVED = "📨"
 ACK_TIMEOUT = 120.0
+# The bridge's card on the board's status page: sent on changes and at least
+# every CARD_HEARTBEAT seconds; the board shows it stale after CARD_TTL.
+CARD_HEARTBEAT = 300.0
+CARD_TTL = 720
+CARD_DEBOUNCE = 2.0
 SHIP_TIMEOUT = 65 * 60.0
 SHIP_POLL = 10.0
 BOOKMARK = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}\Z")
@@ -63,6 +68,7 @@ class Chat(Protocol):
     async def ask(self, message: Outgoing, questions: list[dict[str, Any]]) -> str: ...
     async def react(self, message_id: str, emoji: str) -> None: ...
     async def history(self, limit: int, thread: str | None = None) -> list[Incoming]: ...
+    def url(self, message_id: str) -> str: ...
     async def download(self, attachment: Attachment, path: Path) -> None: ...
 
 
@@ -115,6 +121,10 @@ class Bridge:
         # The Discord thread the current turn started in: posts default to it.
         self.turn_thread: str | None = None
         self.announced: set[str] = set()  # triggers already told to the agent mid-turn
+        self.turn_trigger: str | None = None  # the message the current turn answers
+        self.waiting: dict[str, tuple[str, float]] = {}  # approval message id -> (what, since)
+        self.card_changed = asyncio.Event()
+        self.card_task: asyncio.Task[None] | None = None
         self.run_command = run_command
         self.status: Status | None = None
         self.status_id: str | None = None
@@ -154,6 +164,8 @@ class Bridge:
         self.resume_ship()
         history = await self.chat.history(50)
         self.streak = Streak.from_history([m.author.kind for m in history])
+        if self.board is not None:
+            self.card_task = asyncio.create_task(self.card_loop())
 
     async def reconnect(self) -> None:
         """At start, or after the CLI died: a client on the same session, or a fresh one."""
@@ -390,10 +402,12 @@ class Bridge:
                 await self.stop(f"stopped by {who}")
             case "pause":
                 self.paused = True
+                self.changed()
                 await self.say(f"⏸ {self.config.id} paused by {who}.", message.id)
             case "resume":
                 self.paused = False
                 self.breaker.reset()
+                self.changed()
                 await self.say(f"▶ {self.config.id} resumed by {who}.", message.id)
                 self.wake.set()
             case "reset":
@@ -455,6 +469,69 @@ class Bridge:
             f"<@{owner}> 🧯 {self.config.id} tripped its circuit breaker ({self.breaker.tripped}) "
             f"and is paused. `!resume {self.config.id}` clears it.", mention_users=(owner,)))
         await self.stop("circuit breaker tripped")
+        self.changed()
+
+    # --- the status card ----------------------------------------------------
+
+    def changed(self) -> None:
+        """Something the status card shows changed."""
+        self.card_changed.set()
+
+    def card(self, now: float) -> dict[str, Any]:
+        """This bridge's card for the board's status page (see tools/agent-board, status.rs)."""
+        def minutes(since: float) -> str:
+            return f"{int(max(0.0, now - since) // 60)} min"
+
+        lines: list[dict[str, Any]] = []
+        for message_id, (what, since) in self.waiting.items():
+            lines.append({"text": f"approval waiting {minutes(since)}: {what}"[:400],
+                          "link": self.chat.url(message_id), "level": "alert"})
+        status = self.status
+        if status is not None:
+            state = f"working for {status.requester}, {minutes(status.started)}"
+            line: dict[str, Any] = {"text": f"now: {status.last or 'starting'}"[:400]}
+            if self.turn_trigger is not None:
+                line["link"] = self.chat.url(self.turn_trigger)
+            lines.append(line)
+        else:
+            state = "idle"
+            if self.last_turn is not None:
+                lines.append({"text": f"last turn ended {minutes(self.last_turn)} ago"})
+        queued = sum(1 for e in self.buffer if e.trigger)
+        if queued:
+            lines.append({"text": f"{queued} request{'s' if queued != 1 else ''} queued", "level": "info"})
+        due = self.schedules.next_due()
+        if due is not None:
+            count = len(self.schedules.items)
+            lines.append({"text": f"{count} schedule{'s' if count != 1 else ''}; next in "
+                                  f"{int(max(0.0, due - now) // 60)} min"})
+        if self.breaker.tripped:
+            state, level = f"circuit breaker tripped ({self.breaker.tripped})", "alert"
+        elif self.paused:
+            state, level = f"paused; {state}", "warn"
+        else:
+            level = "alert" if self.waiting else "info" if status is not None else "ok"
+        return {"title": self.config.me.shown, "state": state[:80], "level": level,
+                "lines": lines[:50], "ttl": CARD_TTL}
+
+    async def publish_card(self) -> None:
+        if self.board is None:
+            return
+        try:
+            await self.board.client.request("PUT", "/status/bridge", body=self.card(self.clock()))
+        except BoardError as error:
+            log.warning("status card: %s", error)
+
+    async def card_loop(self) -> None:
+        while True:
+            with contextlib.suppress(TimeoutError):
+                await asyncio.wait_for(self.card_changed.wait(), CARD_HEARTBEAT)
+            self.card_changed.clear()
+            try:
+                await self.publish_card()
+            except Exception:
+                log.exception("status card failed")
+            await asyncio.sleep(CARD_DEBOUNCE)
 
     # --- turns -------------------------------------------------------------
 
@@ -476,6 +553,7 @@ class Bridge:
             try:
                 reply_to = None if last.scheduled else trigger.id
                 self.turn_thread = None if last.scheduled else trigger.thread_id
+                self.turn_trigger = None if last.scheduled else trigger.id
                 try:
                     self.status_id = await self.chat.send(Outgoing(status.render(now), reply_to=reply_to,
                                                                    thread=self.turn_thread))
@@ -493,6 +571,7 @@ class Bridge:
             if self.fresh:
                 prompt = new_session_preamble(self.read_handoff(), await self.board_briefing()) + prompt
                 self.fresh = False
+            self.changed()
             ticker = asyncio.create_task(self.tick())
             result: TurnResult | None = None
             try:
@@ -517,11 +596,12 @@ class Bridge:
             else:
                 final = "done" if status.posts else "silent"
             self.turns += 1
-            self.turn_thread = None
+            self.turn_thread = self.turn_trigger = None
             self.announced.clear()
             self.last_log = status.log
             self.write_turn_log(status, final, result)
             self.status = None
+            self.changed()
             with contextlib.suppress(Exception):
                 await self.chat.edit(self.status_id, status.render(self.clock(), final))
 
@@ -706,6 +786,10 @@ class Bridge:
             text = request.content
             pending = Pending(message_id, loop.create_future())
         self.pending[message_id] = pending
+        what = (f"question: {pending.questions[0].get('question', '')}" if pending.questions
+                else summarize_tool(name, tool_input))
+        self.waiting[message_id] = (what, self.clock())
+        self.changed()
         if self.status is not None:
             self.status.pending += 1
         self.note(f"? {name}: waiting for an approver")
@@ -727,6 +811,8 @@ class Bridge:
                 footer = answer_footer(pending.questions or [], outcome, pending.answered_by)
         finally:
             self.pending.pop(message_id, None)
+            self.waiting.pop(message_id, None)
+            self.changed()
             if self.status is not None:
                 self.status.pending -= 1
         self.note(f"{name}: {footer}")

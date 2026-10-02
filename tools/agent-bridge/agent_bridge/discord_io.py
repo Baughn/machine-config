@@ -262,6 +262,10 @@ class DiscordChat:
             self.owners[thread.id] = self.config.me.discord_id
         return str(sent.id)
 
+    def url(self, message_id: str) -> str:
+        channel_id = self.where.get(int(message_id), self.channel.id)
+        return f"https://discord.com/channels/{self.config.roster.guild_id}/{channel_id}/{message_id}"
+
     def partial(self, message_id: str) -> Any:
         channel_id = self.where.get(int(message_id), self.channel.id)
         channel: Any = self.client.get_channel(channel_id) or self.channel

@@ -116,6 +116,9 @@ class FakeChat:
         self.histories.append(thread)
         return self.backlog[-limit:]
 
+    def url(self, message_id: str) -> str:
+        return f"https://discord/{message_id}"
+
     async def download(self, attachment: Attachment, path: Path) -> None:
         path.write_text(f"downloaded {attachment.url}")
         self.downloads.append(path)
