@@ -93,6 +93,19 @@ in
       default = 25665;
       description = "Host 127.0.0.1 port forwarded to the lab's 25565: ssh -L 25565:localhost:<port> tsugumi.";
     };
+    remoteLogin = {
+      address = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "10.171.0.1:25666";
+        description = "Also offer the login port here (wg0), for the listed clients only.";
+      };
+      allow = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = "Client addresses allowed to connect to remoteLogin.address.";
+      };
+    };
     serviceConfig = lib.mkOption {
       type = lib.types.attrsOf lib.types.anything;
       readOnly = true;
@@ -147,7 +160,42 @@ in
       };
     };
 
+    # The login port for remote clients: saya's client-tester agent joins lab servers here.
+    # A socket unit's IP access list applies to its listening socket (so to who may connect),
+    # not to the proxy's own connection to the login port. The proxy runs outside the lab
+    # and its fence; it only ever reaches pasta's host-side listener.
+    systemd.sockets.minecraft-lab-login-remote = lib.mkIf (cfg.remoteLogin.address != null) {
+      description = "Remote clients' way to the lab's login port";
+      wantedBy = [ "sockets.target" ];
+      socketConfig = {
+        ListenStream = cfg.remoteLogin.address;
+        # wg0 may come up after the socket.
+        FreeBind = true;
+        IPAddressAllow = cfg.remoteLogin.allow;
+        IPAddressDeny = "any";
+      };
+    };
+    networking.firewall.interfaces.wg0.allowedTCPPorts = lib.mkIf (cfg.remoteLogin.address != null)
+      [ (lib.toInt (lib.last (lib.splitString ":" cfg.remoteLogin.address))) ];
+
     systemd.services = {
+      minecraft-lab-login-remote = lib.mkIf (cfg.remoteLogin.address != null) {
+        description = "Remote clients' way to the lab's login port";
+        requires = [ "minecraft-lab-login-remote.socket" ];
+        after = [ "minecraft-lab-login-remote.socket" ];
+        serviceConfig = {
+          ExecStart = "${config.systemd.package}/lib/systemd/systemd-socket-proxyd --exit-idle-time=10min 127.0.0.1:${toString cfg.loginPort}";
+          DynamicUser = true;
+          PrivateTmp = true;
+          PrivateDevices = true;
+          ProtectHome = true;
+          ProtectSystem = "strict";
+          NoNewPrivileges = true;
+          RestrictAddressFamilies = [ "AF_INET" "AF_UNIX" ];
+          CapabilityBoundingSet = "";
+        };
+      };
+
       "minecraft-lab-control@" = {
         description = "Minecraft lab helper request";
         after = [ "minecraft-lab-setup.service" ];

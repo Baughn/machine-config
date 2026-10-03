@@ -103,6 +103,12 @@ in
     peers = wireguardPeers;
   };
 
+  # saya's client-tester agent joins lab servers over wg0 (Baughn, msg 1555925717873594463).
+  me.minecraft.lab.remoteLogin = {
+    address = "10.171.0.1:25666";
+    allow = [ "10.171.0.6" ];
+  };
+
   ## DessPlay Rendezvous
   services.rendezvous = {
     enable = true;
