@@ -38,6 +38,14 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
+# With aiodns installed (nixpkgs' aiohttp brings it), aiohttp resolves through one c-ares
+# channel per event loop, kept for the life of the process and reading resolv.conf itself.
+# In the lab's network namespace that channel got stuck on 2026-10-03: every lookup failed
+# with "Could not contact DNS servers" for an hour while fresh lookups worked, and the lab's
+# bridge fell off Discord. getaddrinfo in a thread goes through nscd, like every other
+# program there. This covers every aiohttp session in the process (discord.py's, the board's).
+setattr(aiohttp.connector, "DefaultResolver", aiohttp.ThreadedResolver)
+
 
 class DiscordChat:
     def __init__(self, config: Config) -> None:

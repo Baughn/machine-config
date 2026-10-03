@@ -4,6 +4,7 @@ import asyncio
 from types import SimpleNamespace
 from typing import Any
 
+import aiohttp
 import discord
 import pytest
 
@@ -63,3 +64,14 @@ def test_only_this_channels_threads() -> None:
     for target in ("62", "63", "64"):
         with pytest.raises(ChatError):
             asyncio.run(c.destination(Outgoing("x", thread=target)))
+
+
+def test_aiohttp_resolves_with_getaddrinfo() -> None:
+    async def resolver() -> object:
+        connector = aiohttp.TCPConnector()
+        try:
+            return connector._resolver
+        finally:
+            await connector.close()
+
+    assert isinstance(asyncio.run(resolver()), aiohttp.ThreadedResolver)
