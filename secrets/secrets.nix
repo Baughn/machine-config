@@ -28,9 +28,11 @@ in
   "agent-tsugumi-minecraft-discord.age".publicKeys = [ svein tsugumi ];
   "agent-tsugumi-lab-discord.age".publicKeys = [ svein tsugumi ];
   "agent-saya-discord.age".publicKeys = [ svein saya ];
+  "agent-saya-client-discord.age".publicKeys = [ svein saya ];
   # agent-board-discord's read-only bot (machines/tsugumi/agent-board-discord.nix).
   "agent-board-discord.age".publicKeys = [ svein tsugumi ];
   "agent-board-saya-token.age".publicKeys = [ svein saya tsugumi ];
+  "agent-board-saya-client-token.age".publicKeys = [ svein saya tsugumi ];
   "irc-tool.env.age".publicKeys = [ svein tsugumi ];
   "grafana-admin-password.age".publicKeys = [ svein tsugumi ];
   "redis-password.age".publicKeys = [ svein tsugumi ];
