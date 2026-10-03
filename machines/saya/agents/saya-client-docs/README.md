@@ -7,7 +7,7 @@ read-only and replaced on each deploy.
 ## The pack (from tsugumi-minecraft, msg 1555926134124707882)
 
 - The current pack, **E36**, runs on **Cleanroom 0.6.12-alpha**: Minecraft 1.12.2, compatible
-  with Forge mods, and it needs **Java 21+** (`java` on your PATH is 21). Give it an 8 GB+ heap.
+  with Forge mods. It needs **Java 25** (`java` on your PATH is 25). Give it an 8 GB+ heap.
 - **Live pack:** an MCUpdater manifest at `https://madoka.brage.info/pack/ServerPack.xml`
   (server id `e36`). Players launch it with Prism Launcher: Prism supplies Cleanroom, and
   MCUpdater's `instances/e36` directory serves as the Prism instance's `.minecraft`.
@@ -38,7 +38,10 @@ read-only and replaced on each deploy.
 - **Screenshots:** `grim` takes them under a wlroots compositor. The game's own screenshot
   (F2, or from your mod via `ScreenShotHelper`) also works. Images you read are capped at
   2048x2048.
-- **Input fallback:** `xdotool` against the Xwayland display.
+- **Input fallback:** `xdotool` can't reach a headless cage. Drive the GUI from your mod.
+- **GLFW:** Cleanroom uses LWJGL 3. GLFW picks Wayland whenever a socket exists, and then
+  crashes without a keyboard under headless cage, so force X11. It dlopens its X11/GL
+  libraries, so give the game `LD_LIBRARY_PATH=/run/current-system/sw/share/nix-ld/lib`.
 - **Native libraries:** saya has nix-ld with the libraries Minecraft and LWJGL load (OpenAL,
   GL, X11, udev). Downloaded natives and JDKs usually just work. If one doesn't, ask saya
   to add the library.

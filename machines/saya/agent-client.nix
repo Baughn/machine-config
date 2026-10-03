@@ -55,7 +55,8 @@ lib.mkIf ready {
     permissionMode = "auto";
     model = "claude-opus-5-5";
     path = with pkgs; [
-      jdk21 git curl unzip zip python3
+      # Cleanroom 0.6.12 needs Java 25 (class file 69), found by AdventurAgent.
+      jdk25 git curl unzip zip python3
       # Headless display on the GPU, screenshots, input, and checking what renders.
       cage gamescope xwayland xvfb xdotool grim mesa-demos vulkan-tools
     ];
