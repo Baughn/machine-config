@@ -123,7 +123,9 @@
           request_header -X-Board-Authelia
           reverse_proxy unix//run/agent-board/html.sock
         }
-        @session expression {http.request.cookie.board_session} != ""
+        # Not an expression on {http.request.cookie.board_session}: without the cookie that
+        # placeholder isn't "" and the matcher matched every request.
+        @session header_regexp Cookie (^|;\s*)board_session=
         handle @session {
           request_header -X-Board-Authelia
           reverse_proxy unix//run/agent-board/html.sock
