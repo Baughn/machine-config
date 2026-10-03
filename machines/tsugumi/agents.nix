@@ -97,6 +97,11 @@ in
       board.socket = "/run/agent-board/api.sock";
       extraDirs = [ "/srv/minecraft-lab" "/srv/lab-handover" ];
       rcon.root = "/srv/minecraft-lab";
+      # Serving the client tester needs no approver (Baughn, msg 1555957535054241905):
+      # whitelist and op its offline account, and undo both. Added to the defaults.
+      rcon.readOnly = lib.mkOptionDefault (lib.concatMap (name: [
+        "whitelist add ${name}" "whitelist remove ${name}" "op ${name}" "deop ${name}"
+      ]) [ "AdventurAgent" "adventuragent" ]);
       askAgents = [ "tsugumi-minecraft" "saya" ] ++ client;
       path = [ config.system.build.minecraft-lab-client ];
       # For testing crash analysis on clones whose lab.env enables it.
