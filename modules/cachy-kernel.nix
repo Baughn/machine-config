@@ -604,8 +604,15 @@ in
     boot.kernel.sysfs = {
       kernel.mm.transparent_hugepage = {
         enabled = "always";
-        defrag = "defer+madvise";
+        # Not "defer+madvise": with fragmented memory, every opportunistic THP
+        # fault then wakes kswapd (~7/s during builds), which shrinks ARC and
+        # swaps anon with tens of GB free. "madvise" just falls back instead.
+        defrag = "madvise";
       };
+      # CachyOS defaults MGLRU thrashing protection to 100ms (mainline: 0).
+      # Once swap is full only the file LRU counts, and with ZFS the cache
+      # lives in ARC, not page cache — so kswapd OOM-kills with RAM free.
+      kernel.mm.lru_gen.min_ttl_ms = 0;
     };
 
     services.udev.extraRules = ''
