@@ -337,6 +337,29 @@ in
       };
     };
 
+    # Self-healing for the lab's internet: probes from inside the namespace every 3 minutes
+    # and restarts pasta after two failures (Baughn, msg 1555937291078344726).
+    systemd.services.minecraft-lab-netcheck = {
+      description = "Check the Minecraft lab's internet access, and restart pasta if it's gone";
+      after = [ "minecraft-lab-pasta.service" ];
+      requisite = [ "minecraft-lab-pasta.service" ];
+      path = [ pkgs.util-linux pkgs.iproute2 pkgs.nftables config.systemd.package config.me.discordNotify.package ];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${pkgs.python3}/bin/python3 -I ${./minecraft-lab-netcheck.py} ${netns} /var/lib/minecraft-lab-netcheck";
+        StateDirectory = "minecraft-lab-netcheck";
+        SupplementaryGroups = [ "discord-notify" ];
+        TimeoutStartSec = "5min";
+      };
+    };
+    systemd.timers.minecraft-lab-netcheck = {
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnBootSec = "5min";
+        OnUnitActiveSec = "3min";
+      };
+    };
+
     # The lab's card on the board's status page (agents.brage.info/status): clones and
     # running servers. Posts as the lab user, which the board knows as tsugumi-lab.
     systemd.services.minecraft-lab-status = {
