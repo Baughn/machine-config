@@ -15,11 +15,15 @@ anyhow = "1"
 axum = "0.8"
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 clap = { version = "4", features = ["derive"] }
+ed25519-dalek = "2"
+getrandom = "0.4"
+hex = "0.4"
 maud = { version = "0.27", features = ["axum"] }
 pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
 rusqlite = { version = "0.40", features = ["bundled"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+sha2 = "0.10"
 tokio = { version = "1", features = ["rt-multi-thread", "net", "macros", "signal"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

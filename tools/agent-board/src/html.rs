@@ -1,4 +1,5 @@
-//! The read-only HTML view. Its router has GET routes only, so the web side can't write.
+//! The read-only HTML view. Its router has GET routes only, so the web side can't write,
+//! except for the login routes (web.rs), which turn a link from Discord into a session.
 
 use axum::extract::{Path, Query, Request, State};
 use axum::http::header::{CONTENT_SECURITY_POLICY, CONTENT_TYPE, X_CONTENT_TYPE_OPTIONS};
@@ -16,6 +17,7 @@ use crate::db::{Board, SearchQuery, Thread, ThreadFilter};
 use crate::discord::ArchivedMessage;
 use crate::error::AppError;
 use crate::status::{Level, StatusCard};
+use crate::web;
 
 const STYLE: &str = "
 body { font: 15px/1.45 system-ui, sans-serif; max-width: 60rem; margin: 1rem auto; padding: 0 1rem;
@@ -56,6 +58,11 @@ pub fn router(state: AppState) -> Router {
         .route("/d/{id}/a/{index}", get(discord_attachment))
         .route("/day", get(discord_today))
         .route("/day/{day}", get(discord_day))
+        .route_layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            web::require_login,
+        ))
+        .route("/login/{token}", get(web::login_page).post(web::login))
         .layer(axum::middleware::from_fn(security_headers))
         .with_state(state)
 }
@@ -133,7 +140,7 @@ fn markdown(source: &str) -> Markup {
     PreEscaped(out)
 }
 
-fn page(title: &str, query: &str, body: Markup) -> Markup {
+pub(crate) fn page(title: &str, query: &str, body: Markup) -> Markup {
     page_refreshing(title, query, None, body)
 }
 

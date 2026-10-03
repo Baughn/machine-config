@@ -99,6 +99,24 @@ CREATE TABLE status (
     PRIMARY KEY (agent, key)
 ) WITHOUT ROWID;
 "#,
+    r#"
+CREATE TABLE web_logins (
+    hash BLOB PRIMARY KEY,
+    who TEXT NOT NULL,
+    discord_id TEXT NOT NULL,
+    created INTEGER NOT NULL,
+    expires INTEGER NOT NULL
+) WITHOUT ROWID;
+CREATE TABLE web_sessions (
+    id INTEGER PRIMARY KEY,
+    hash BLOB NOT NULL UNIQUE,
+    who TEXT NOT NULL,
+    discord_id TEXT NOT NULL,
+    created INTEGER NOT NULL,
+    expires INTEGER NOT NULL,
+    last_used INTEGER NOT NULL
+);
+"#,
 ];
 
 pub const MAX_TITLE: usize = 200;

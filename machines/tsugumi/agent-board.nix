@@ -4,14 +4,33 @@
 # full-text search. The agents reach the API on a unix socket that identifies them by uid
 # (the lab's network fence lets unix sockets through), saya over wg0 with a bearer token,
 # and Baughn reads the HTML at agents.brage.info (caddy.nix). Plan: msg 1554845772414189569.
+# Admins get browser access from Discord: `/board` hands out a one-time login link
+# (tools/agent-board/src/web.rs; Baughn, msg 1555908517964284076).
 let
   cfg = config.me.agentBoard;
   board = pkgs.callPackage ../../tools/agent-board { };
+  roster = import ../../lib/agent-roster.nix;
   stateDir = "/var/lib/agent-board";
-  configFile = pkgs.writeText "agent-board.json" (builtins.toJSON {
+  configFile = pkgs.writeText "agent-board.json" (builtins.toJSON ({
     inherit (cfg) users;
     tokens = lib.mapAttrs (agent: _: "token-${agent}") cfg.tokens;
-  });
+  } // lib.optionalAttrs (cfg.discordPublicKey != null) {
+    discord = {
+      public_key = cfg.discordPublicKey;
+      guild = roster.guildId;
+      admin_role = roster.adminRoleId;
+      owners = map (who: who.discordId) (builtins.attrValues roster.humans);
+      base_url = "https://agents.brage.info";
+    };
+  }));
+  interactions = cfg.discordPublicKey != null;
+  sockets = [ "agent-board-api.socket" "agent-board-html.socket" ]
+    ++ lib.optional (cfg.httpAddress != null) "agent-board-http.socket"
+    ++ lib.optional interactions "agent-board-interactions.socket";
+  # For Baughn: list or revoke the browser sessions made from login links.
+  sessionsTool = pkgs.writeShellScriptBin "agent-board-sessions" ''
+    exec /run/wrappers/bin/sudo -u agent-board ${board}/bin/agent-board sessions --db ${stateDir}/board.db "$@"
+  '';
   # The sockets outlive service restarts, so callers queue instead of failing.
   socketDefaults = {
     wantedBy = [ "sockets.target" ];
@@ -35,6 +54,15 @@ in
       example = "10.171.0.1:8740";
       description = "TCP address for token-authenticated API callers; off when null.";
     };
+    discordPublicKey = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = ''
+        Public key (hex) of the Discord application answering `/board` (the archive bot),
+        whose Interactions Endpoint URL is https://agents.brage.info/discord/interactions.
+        Login links are off when null.
+      '';
+    };
     htmlGroup = lib.mkOption {
       type = lib.types.str;
       default = config.services.caddy.group;
@@ -51,6 +79,11 @@ in
     assertions = [{
       assertion = (cfg.httpAddress != null) == (cfg.tokens != { });
       message = "me.agentBoard: httpAddress and tokens go together.";
+    } {
+      # A bad key would stop the whole board, API included, at startup.
+      assertion = cfg.discordPublicKey == null
+        || builtins.match "[0-9a-fA-F]{64}" cfg.discordPublicKey != null;
+      message = "me.agentBoard.discordPublicKey must be 64 hex digits.";
     }];
 
     users.users.agent-board = {
@@ -91,17 +124,28 @@ in
       };
     });
 
+    systemd.sockets.agent-board-interactions = lib.mkIf interactions (socketDefaults // {
+      listenStreams = [ "/run/agent-board/interactions.sock" ];
+      socketConfig = {
+        Service = "agent-board.service";
+        FileDescriptorName = "interactions";
+        SocketUser = "agent-board";
+        SocketGroup = cfg.htmlGroup;
+        SocketMode = "0660";
+        DirectoryMode = "0755";
+      };
+    });
+
+    environment.systemPackages = [ sessionsTool ];
+
     systemd.services.agent-board = {
       description = "Agent board";
-      requires = [ "agent-board-api.socket" "agent-board-html.socket" ]
-        ++ lib.optional (cfg.httpAddress != null) "agent-board-http.socket";
-      after = [ "agent-board-api.socket" "agent-board-html.socket" ]
-        ++ lib.optional (cfg.httpAddress != null) "agent-board-http.socket";
+      requires = sockets;
+      after = sockets;
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         ExecStart = "${board}/bin/agent-board serve --db ${stateDir}/board.db --config ${configFile}";
-        Sockets = [ "agent-board-api.socket" "agent-board-html.socket" ]
-          ++ lib.optional (cfg.httpAddress != null) "agent-board-http.socket";
+        Sockets = sockets;
         LoadCredential = lib.mapAttrsToList (agent: file: "token-${agent}:${file}") cfg.tokens;
         User = "agent-board";
         Group = "agent-board";

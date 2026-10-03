@@ -2,7 +2,8 @@
 //!
 //! Listeners come from systemd socket activation, by name: `api` (unix socket, caller
 //! identified by uid), `http` (TCP, caller identified by bearer token) and `html`
-//! (unix socket, read-only pages for the reverse proxy).
+//! (unix socket, read-only pages for the reverse proxy), and `interactions` (unix socket,
+//! Discord's signed `/board` commands via the reverse proxy; see web.rs).
 
 mod api;
 mod db;
@@ -10,6 +11,7 @@ mod discord;
 mod error;
 mod html;
 mod status;
+mod web;
 
 use std::collections::HashMap;
 use std::os::fd::{FromRawFd, RawFd};
@@ -48,6 +50,21 @@ enum Command {
         #[arg(long, default_value_t = 7)]
         keep: usize,
     },
+    /// List or revoke browser sessions made from Discord login links.
+    Sessions {
+        #[arg(long)]
+        db: PathBuf,
+        #[command(subcommand)]
+        action: SessionAction,
+    },
+}
+
+#[derive(Subcommand)]
+enum SessionAction {
+    /// Show the live sessions.
+    List,
+    /// End one session by id, or every session and unused link with `all`.
+    Revoke { id: String },
 }
 
 /// The service config, written by the NixOS module.
@@ -59,6 +76,8 @@ struct Config {
     /// Agent id to the name of a systemd credential holding its token, for `http`.
     #[serde(default)]
     tokens: HashMap<String, String>,
+    /// Login links from Discord's `/board` command; off when absent.
+    discord: Option<web::DiscordLogin>,
 }
 
 /// Looks up a user's uid in /etc/passwd.
@@ -177,6 +196,21 @@ async fn serve(db: &Path, config: &Path) -> anyhow::Result<()> {
                         .await
                 });
             }
+            "interactions" => {
+                let discord = config
+                    .discord
+                    .clone()
+                    .context("an interactions socket but no discord config")?;
+                let listener = unsafe { std::os::unix::net::UnixListener::from_raw_fd(fd) };
+                listener.set_nonblocking(true)?;
+                let listener = tokio::net::UnixListener::from_std(listener)?;
+                let app = web::interactions_router(web::Interactions::new(state.clone(), discord)?);
+                servers.spawn(async move {
+                    axum::serve(listener, app)
+                        .with_graceful_shutdown(shutdown())
+                        .await
+                });
+            }
             other => bail!("unexpected socket {other:?}"),
         }
         tracing::info!("serving {name}");
@@ -222,6 +256,38 @@ fn backup(db: &Path, dir: &Path, keep: usize) -> anyhow::Result<()> {
     Ok(())
 }
 
+fn sessions(db: &Path, action: SessionAction) -> anyhow::Result<()> {
+    let board = Board::open(db)?;
+    let format = |time: i64| {
+        chrono::DateTime::from_timestamp(time, 0)
+            .map_or_else(|| time.to_string(), |time| time.format("%Y-%m-%d %H:%M").to_string())
+    };
+    match action {
+        SessionAction::List => {
+            println!("id\twho\tdiscord id\tcreated\tlast used\texpires (UTC)");
+            for session in board.list_sessions().map_err(error::AppError::into_anyhow)? {
+                println!(
+                    "{}\t{}\t{}\t{}\t{}\t{}",
+                    session.id,
+                    session.who,
+                    session.discord_id,
+                    format(session.created),
+                    format(session.last_used),
+                    format(session.expires)
+                );
+            }
+        }
+        SessionAction::Revoke { id } => {
+            let id = if id == "all" { None } else { Some(id.parse()?) };
+            let ended = board
+                .revoke_sessions(id)
+                .map_err(error::AppError::into_anyhow)?;
+            println!("ended {ended} session(s)");
+        }
+    }
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
@@ -235,6 +301,7 @@ async fn main() -> anyhow::Result<()> {
         Command::Backup { db, dir, keep } => {
             tokio::task::spawn_blocking(move || backup(&db, &dir, keep)).await?
         }
+        Command::Sessions { db, action } => sessions(&db, action),
     }
 }
 

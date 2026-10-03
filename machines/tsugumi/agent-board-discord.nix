@@ -8,11 +8,16 @@
 # channel (permissions integer 66560), plus the Message Content intent in the developer
 # portal. Its token is secrets/agent-board-discord.age; until Baughn has created that file
 # (agenix -e), this module does nothing.
+#
+# Its application also answers `/board` (login links for the board's pages): the poller
+# registers the command at startup, and Discord delivers it to the Interactions Endpoint URL
+# https://agents.brage.info/discord/interactions. That needs the bot invited with the
+# applications.commands scope as well, and me.agentBoard.discordPublicKey set.
 let
   tokenFile = config.me.agentBoard.discordTokenFile;
   roster = import ../../lib/agent-roster.nix;
   agentIds = map (agent: agent.discordId) (builtins.attrValues roster.agents);
-  configFile = pkgs.writeText "agent-board-discord.json" (builtins.toJSON {
+  configFile = pkgs.writeText "agent-board-discord.json" (builtins.toJSON ({
     socket = "/run/agent-board/api.sock";
     guild = roster.guildId;
     channels = [ roster.channels.main ];
@@ -21,7 +26,14 @@ let
     names = lib.mapAttrs' (name: who: lib.nameValuePair who.discordId name)
       (roster.agents // roster.humans);
     interval = 30;
-  });
+  } // lib.optionalAttrs (config.me.agentBoard.discordPublicKey != null) {
+    # Answered by the board over the interactions endpoint (agent-board.nix).
+    commands = [{
+      name = "board";
+      type = 1;
+      description = "Get a one-time login link for the agent board (agents.brage.info)";
+    }];
+  }));
 in
 {
   options.me.agentBoard.discordTokenFile = lib.mkOption {
@@ -39,6 +51,8 @@ in
     };
     users.groups.agent-board-discord = { };
     me.agentBoard.users.agent-board-discord = "discord";
+    # The archive bot application's public key, for /board (Baughn, msg 1555916312549662846).
+    me.agentBoard.discordPublicKey = "987cea47a1d96144023538fb9959dd1b9505165517fb6d0555de6964f266c45a";
 
     systemd.services.agent-board-discord = {
       description = "Agent board: copy the Discord channel into the archive";

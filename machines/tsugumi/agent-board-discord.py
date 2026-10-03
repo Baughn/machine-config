@@ -166,9 +166,16 @@ class Discord:
         self.token = token
 
     def get(self, path):
+        return self.request("GET", path)
+
+    def request(self, method, path, body=None):
+        headers = {"Authorization": f"Bot {self.token}", "User-Agent": USER_AGENT}
+        data = None
+        if body is not None:
+            data = json.dumps(body).encode()
+            headers["Content-Type"] = "application/json"
         while True:
-            request = urllib.request.Request(API + path, headers={
-                "Authorization": f"Bot {self.token}", "User-Agent": USER_AGENT})
+            request = urllib.request.Request(API + path, data=data, method=method, headers=headers)
             try:
                 with urllib.request.urlopen(request, timeout=60) as response:
                     if response.headers.get("X-RateLimit-Remaining") == "0":
@@ -255,11 +262,25 @@ class Poller:
             self.refresh_edits(channel, thread)
 
 
+def register_commands(discord, guild, commands):
+    """Make the guild's slash commands for this bot exactly `commands` (the board answers
+    them; see web.rs). Needs the bot invited with the applications.commands scope."""
+    application = discord.get("/oauth2/applications/@me")["id"]
+    discord.request("PUT", f"/applications/{application}/guilds/{guild}/commands", commands)
+    log.info("registered commands: %s", ", ".join(c["name"] for c in commands) or "none")
+
+
 def main():
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     config = json.loads(Path(sys.argv[1]).read_text())
     token = (Path(os.environ["CREDENTIALS_DIRECTORY"]) / "discord-token").read_text().strip()
-    poller = Poller(config, Discord(token), Board(config["socket"]))
+    discord = Discord(token)
+    if "commands" in config:
+        try:
+            register_commands(discord, config["guild"], config["commands"])
+        except Exception:  # noqa: BLE001 - archiving doesn't depend on it
+            log.exception("registering slash commands failed")
+    poller = Poller(config, discord, Board(config["socket"]))
     while True:
         try:
             poller.cycle()

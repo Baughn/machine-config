@@ -26,6 +26,17 @@ impl From<anyhow::Error> for AppError {
     }
 }
 
+impl AppError {
+    /// For command-line use, outside a request.
+    pub fn into_anyhow(self) -> anyhow::Error {
+        match self {
+            AppError::Sqlite(error) => error.into(),
+            AppError::Internal(error) => error,
+            other => anyhow::anyhow!("{other:?}"),
+        }
+    }
+}
+
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let (status, message) = match self {
