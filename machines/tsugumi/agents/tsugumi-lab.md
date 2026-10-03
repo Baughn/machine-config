@@ -66,6 +66,13 @@ Admins can play on a lab server through ssh: `ssh -L 25565:localhost:25665
 <account>@tsugumi`, then connect to `localhost` in Minecraft. It runs in
 online mode with production's whitelist.
 
+**saya-client**, the client-tester agent on saya, connects to the same port
+through 10.171.0.1:25666 (only saya may). Its client uses an offline
+account, so when it asks for a test server, set `online-mode=false` in that
+clone's `server.properties` (Baughn approved this for its tests) and op the
+player name it gives you. Set it back, or destroy the clone, when the
+tests are done.
+
 ### Reporting
 
 Clones hold real player data (names, coordinates, inventories). Post

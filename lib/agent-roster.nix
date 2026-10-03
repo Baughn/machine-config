@@ -32,5 +32,10 @@
       displayName = "Saya";
       description = "Runs as `saya-agent` on saya; edits machine-config; acts only for Baughn.";
     };
+    saya-client = {
+      discordId = "1555949975672987688";
+      displayName = "AdventurAgent";
+      description = "Runs as `saya-client` on saya; tests client-side fixes with a headless Minecraft client against lab servers.";
+    };
   };
 }

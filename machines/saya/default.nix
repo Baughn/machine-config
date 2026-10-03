@@ -13,6 +13,7 @@
     ./mcupdater.nix
     ./restic.nix
     ./agents.nix
+    ./agent-client.nix
     ./agent-ship.nix
   ];
 

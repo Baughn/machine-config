@@ -1,6 +1,8 @@
-{ config, ... }:
+{ config, lib, ... }:
 # Agent-channel identities on tsugumi. See docs/agent-channel-design.md.
 let
+  # saya's client tester (machines/saya/agent-client.nix), once it's in the roster.
+  client = lib.optional ((import ../../lib/agent-roster.nix).agents ? saya-client) "saya-client";
   crashTrigger = "A Minecraft server crashed. Use the crash-analysis skill on the pending snapshot(s).";
 in
 {
@@ -32,7 +34,7 @@ in
       extraDirs = [ "/home/minecraft" "/srv/lab-handover" ];
       rcon.root = "/home/minecraft";
       # NixOS-level changes (units, scripts, its own permissions) go through saya.
-      askAgents = [ "saya" "tsugumi-lab" ];
+      askAgents = [ "saya" "tsugumi-lab" ] ++ client;
       # Baughn's tick-debugging workflow; its case records live in
       # /home/minecraft/agent-debugging, outside the skill.
       skills.minecraft-tick-debug = ./agents/skills/minecraft-tick-debug;
@@ -95,7 +97,7 @@ in
       board.socket = "/run/agent-board/api.sock";
       extraDirs = [ "/srv/minecraft-lab" "/srv/lab-handover" ];
       rcon.root = "/srv/minecraft-lab";
-      askAgents = [ "tsugumi-minecraft" "saya" ];
+      askAgents = [ "tsugumi-minecraft" "saya" ] ++ client;
       path = [ config.system.build.minecraft-lab-client ];
       # For testing crash analysis on clones whose lab.env enables it.
       skills.crash-analysis = ./agents/skills/crash-analysis;

@@ -8,6 +8,8 @@ let
   # The agent board's token (machines/tsugumi/agent-board-saya.nix); no board until it exists.
   boardToken = ../../secrets/agent-board-saya-token.age;
   hasBoard = builtins.pathExists boardToken;
+  # The client tester (agent-client.nix), once it's in the roster.
+  client = lib.optional ((import ../../lib/agent-roster.nix).agents ? saya-client) "saya-client";
 
   # A clone of the public repo, made on first start. Failure (e.g. no network
   # yet) is logged and retried on the next start; the agent can clone it too.
@@ -62,7 +64,7 @@ in
         inherit repo;
         logs = "/var/lib/agent-ship";
       };
-      askAgents = [ "tsugumi-minecraft" "tsugumi-lab" ];
+      askAgents = [ "tsugumi-minecraft" "tsugumi-lab" ] ++ client;
       permissionMode = "auto";
       model = "claude-opus-5-5";
       path = [ pkgs.jujutsu pkgs.git publish ];
