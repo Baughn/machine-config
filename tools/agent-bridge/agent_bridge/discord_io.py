@@ -180,6 +180,8 @@ class DiscordChat:
             log.error("the turn loop died", exc_info=task.exception())
             self.failed = True
             self.tasks.add(asyncio.create_task(self.client.close()))
+        elif self.bridge is not None and self.bridge.restart_requested:
+            self.tasks.add(asyncio.create_task(self.client.close()))
 
     async def on_message(self, message: Any) -> None:
         if not self.ready or message.guild is None:

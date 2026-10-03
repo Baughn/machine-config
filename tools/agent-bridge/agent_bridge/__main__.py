@@ -27,7 +27,7 @@ def load_config(args: argparse.Namespace) -> Config:
 
 
 def run(config: Config) -> None:
-    from .bridge import Bridge
+    from .bridge import RESTART_EXIT, Bridge
     from .discord_io import DiscordChat
     from .prompt import system_prompt
     from .session import SdkSession
@@ -61,10 +61,14 @@ def run(config: Config) -> None:
                           effort_levels=config.effort_levels, board=board is not None,
                           auto_memory=board is None)
 
-    chat.bridge = Bridge(config, chat, session, tokens=tuple(t for t in (discord_token, claude_token, board_token) if t), board=board)
+    unit_file = Path(f"/etc/systemd/system/agent-bridge-{config.id}.service")
+    chat.bridge = Bridge(config, chat, session, tokens=tuple(t for t in (discord_token, claude_token, board_token) if t),
+                         board=board, unit_file=unit_file)
     chat.client.run(discord_token, log_handler=None)
     if chat.failed:
         sys.exit(1)
+    if chat.bridge.restart_requested:
+        sys.exit(RESTART_EXIT)
 
 
 def selftest(config: Config) -> None:

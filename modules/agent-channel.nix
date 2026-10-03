@@ -288,8 +288,17 @@ in
         ] ++ lib.optional (i.board != null && i.board.tokenFile != null) "board-token:${i.board.tokenFile}";
         UMask = "0077";
         Restart = "on-failure";
-        RestartSec = "30s";
+        # Exit status 75: the bridge restarting itself onto a new deploy (below). Quick,
+        # while repeated failures back off to a minute.
+        SuccessExitStatus = "75";
+        RestartForceExitStatus = "75";
+        RestartSec = "2s";
+        RestartSteps = 5;
+        RestartMaxDelaySec = "60s";
       } // i.serviceConfig;
+      # A deploy doesn't cut a running turn: the bridge sees its unit file change and
+      # restarts itself between turns (agent_bridge/bridge.py, update_ready).
+      restartIfChanged = false;
     }) cfg.instances;
 
     systemd.tmpfiles.rules = lib.concatLists (lib.mapAttrsToList (name: i:

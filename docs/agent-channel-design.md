@@ -194,7 +194,13 @@ record it. If it's sensible, the bridge can feed messages directly and drop
 `inbox`.
 
 **Sessions** are resumed across bridge restarts (`$STATE/session.json` holds
-the ID and the time of the last turn). Within a session, Claude Code's
+the ID and the time of the last turn). Deploys don't restart a bridge
+(`restartIfChanged = false`): it notices that its unit file now resolves to a
+new store path and exits with status 75 between turns, when nothing is queued
+and it isn't paused, and systemd starts the new one. A bridge that stops
+mid-turn anyway (crash, reboot, a restart by hand) leaves `$STATE/turn.json`;
+the next start opens a turn telling the agent its last turn was cut off, once
+(a resumed turn that is cut off too only gets a warning in the channel). Within a session, Claude Code's
 auto-compaction handles growth. Each agent keeps its durable knowledge in
 files in its workdir (`tools/`, `notes/`), not in conversation memory, and
 sessions are deliberately short-lived:

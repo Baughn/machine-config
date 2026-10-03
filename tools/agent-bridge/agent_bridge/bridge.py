@@ -33,6 +33,8 @@ STATUS_INTERVAL = 3.0
 KEEP_TURN_LOGS = 50
 BUFFER_CONTEXT = 50  # context-only messages kept for the next turn; history has the rest
 IDLE_CHECK = 60.0
+# Exit status asking systemd for a restart onto a newly deployed bridge (agent-channel.nix).
+RESTART_EXIT = 75
 HANDOFF_TIMEOUT = 600.0
 HANDOFF_RETRY = 3600.0
 HANDOFF_LIMIT = 8192
@@ -104,7 +106,7 @@ class Entry:
 class Bridge:
     def __init__(self, config: Config, chat: Chat, session: Callable[[Bridge], AgentSession], *,
                  clock: Callable[[], float] = time.time, tokens: tuple[str, ...] = (),
-                 board: BoardTools | None = None) -> None:
+                 board: BoardTools | None = None, unit_file: Path | None = None) -> None:
         self.config = config
         self.board = board
         self.chat = chat
@@ -145,12 +147,42 @@ class Bridge:
         self.spool_turns: deque[float] = deque()  # when spool batches were queued, last hour
         self.effort = BASE_EFFORT  # what the CLI runs at now
         self.ship_task: asyncio.Task[None] | None = None  # a ship outliving the bridge that started it
+        # Deploys don't restart the bridge (restartIfChanged = false): it notices that its unit
+        # changed and exits between turns, so systemd starts the new one.
+        self.unit_file = unit_file
+        self.unit_version = self.read_unit()
+        self.restart_requested = False
 
     # --- lifecycle ---------------------------------------------------------
 
     @property
     def session_file(self) -> Path:
         return self.config.state / "session.json"
+
+    @property
+    def turn_file(self) -> Path:
+        """Present while a turn runs: a bridge that finds it at start was stopped mid-turn."""
+        return self.config.state / "turn.json"
+
+    def read_unit(self) -> str | None:
+        """Where the unit file resolves to: a store path that changes with every deploy
+        that would have restarted this unit."""
+        if self.unit_file is None:
+            return None
+        try:
+            return str(self.unit_file.resolve(strict=True))
+        except OSError:
+            return None
+
+    def update_ready(self) -> bool:
+        """A new bridge is deployed, and this one may stop now: no turn, nothing queued, not
+        paused (that state isn't saved). Pending approvals only exist inside a turn."""
+        if self.unit_version is None or self.lock.locked() or any(e.trigger for e in self.buffer):
+            return False
+        if self.paused or self.breaker.tripped:
+            return False
+        current = self.read_unit()
+        return current is not None and current != self.unit_version
 
     async def start(self) -> None:
         with contextlib.suppress(FileNotFoundError, ValueError, KeyError):
@@ -162,6 +194,7 @@ class Bridge:
                 self.fresh = False
         await self.connect()
         self.resume_ship()
+        await self.resume_turn()
         history = await self.chat.history(50)
         self.streak = Streak.from_history([m.author.kind for m in history])
         if self.board is not None:
@@ -214,6 +247,10 @@ class Bridge:
                     # queued; the next trigger retries rather than spinning here.
                     log.exception("turn failed outside the session")
                     break
+            if self.update_ready():
+                log.info("a new bridge is deployed; restarting between turns")
+                self.restart_requested = True
+                return
 
     def sleep_time(self) -> float:
         due = self.schedules.next_due()
@@ -566,6 +603,7 @@ class Bridge:
                 self.status, self.buffer = None, entries + self.buffer
                 self.omitted += omitted
                 raise
+            self.write_turn_file(now, requester, resumed=trigger.id.startswith("resume-"))
             prompt = turn_prompt(lines, None if self.turn_thread is None
                                  else (self.turn_thread, trigger.thread_name))
             if self.fresh:
@@ -600,6 +638,7 @@ class Bridge:
             self.announced.clear()
             self.last_log = status.log
             self.write_turn_log(status, final, result)
+            self.turn_file.unlink(missing_ok=True)
             self.status = None
             self.changed()
             with contextlib.suppress(Exception):
@@ -1032,6 +1071,43 @@ class Bridge:
             log_text = "(no log)"
         self.note(f"ship {commit[:12]}: {result.strip()}")
         return f"{unit}: {result.strip()}\n{log_text}"
+
+    def write_turn_file(self, started: float, requester: str, *, resumed: bool) -> None:
+        temporary = self.turn_file.with_suffix(".tmp")
+        temporary.write_text(json.dumps({"started": started, "requester": requester,
+                                         "thread": self.turn_thread, "resumed": resumed}))
+        temporary.replace(self.turn_file)
+
+    async def resume_turn(self) -> None:
+        """The previous bridge stopped mid-turn (a crash, a reboot, a restart by hand): start a
+        turn telling the agent so, since the session it resumes ends in a half-done turn.
+        Only once: a resumed turn that is cut off as well is left to the humans."""
+        try:
+            saved = json.loads(self.turn_file.read_text())
+            started, requester = float(saved["started"]), str(saved["requester"])
+            thread, resumed = saved.get("thread"), bool(saved.get("resumed"))
+        except (OSError, ValueError, KeyError, TypeError):
+            return
+        finally:
+            self.turn_file.unlink(missing_ok=True)
+        if resumed:
+            log.warning("the resumed turn was cut off too; not resuming again")
+            with contextlib.suppress(Exception):
+                await self.say(f"⚠ {self.config.id}'s turn was cut off by a bridge stop twice in a row; "
+                               "not resuming it again.")
+            return
+        log.info("the previous turn (started %s) was cut off; resuming it", stamp(started))
+        where = f" It started in Discord thread {thread}; pass `thread` to post there." if thread else ""
+        note = (f"Your previous turn, started {stamp(started)} for {requester}, was cut off: the bridge "
+                f"stopped before it finished, and any command or background process it ran was killed "
+                f"with it.{where} Check what was done (files, units, posts) and finish the work, or say "
+                "plainly what is left.")
+        me = self.config.me
+        message = Incoming(f"resume-{int(started)}", self.config.channel_id, None,
+                           Author(me.discord_id, me.shown, Kind.SELF, "agent"), note)
+        line = f"[restart] may ask you to act: {note}"
+        self.buffer.append(Entry(message, True, line, scheduled=True, origin="its interrupted turn"))
+        self.wake.set()
 
     def resume_ship(self) -> None:
         """A ship whose tool call died with the previous bridge (the deploy restarted it):

@@ -391,6 +391,74 @@ async def test_restart_resumes_the_session(tmp_path: Path) -> None:
     assert third.session.connects == ["session-1", None]
 
 
+async def cut_off_turn(h: Harness) -> None:
+    """Start a turn and kill it midway, as a bridge stopping mid-turn would."""
+    started = asyncio.Event()
+
+    async def hang(session: FakeSession, prompt: str) -> TurnResult:
+        started.set()
+        await asyncio.Event().wait()
+        raise AssertionError("unreachable")
+
+    h.session.script = hang
+    task = asyncio.create_task(run_turn(h))
+    await started.wait()
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+
+async def test_a_turn_cut_off_by_a_restart_is_resumed_once(tmp_path: Path) -> None:
+    first = Harness(tmp_path)
+    await first.say(ALICE, "@me deploy it", mention=True)
+    await cut_off_turn(first)
+    assert first.bridge.turn_file.exists()
+
+    second = Harness(tmp_path)
+    await second.bridge.start()
+    assert not second.bridge.turn_file.exists()
+    await cut_off_turn(second)  # the resumed turn is cut off as well
+    assert "was cut off" in second.session.prompts[-1]
+
+    third = Harness(tmp_path)
+    await third.bridge.start()
+    assert not any(e.trigger for e in third.bridge.buffer)
+    assert any("not resuming it again" in text for text in third.chat.texts())
+
+    # A turn that ends normally leaves nothing behind.
+    await third.say(ALICE, "@me hi", mention=True)
+    await run_turn(third)
+    assert not third.bridge.turn_file.exists()
+    fourth = Harness(tmp_path)
+    await fourth.bridge.start()
+    assert not any(e.trigger for e in fourth.bridge.buffer)
+
+
+async def test_a_deploy_restarts_the_bridge_between_turns(harness: Harness, tmp_path: Path) -> None:
+    old, new, unit = tmp_path / "old.service", tmp_path / "new.service", tmp_path / "unit.service"
+    old.write_text("old")
+    new.write_text("new")
+    unit.symlink_to(old)
+    bridge = harness.bridge
+    bridge.unit_file = unit
+    bridge.unit_version = bridge.read_unit()
+    assert not bridge.update_ready()
+
+    unit.unlink()
+    unit.symlink_to(new)
+    assert bridge.update_ready()
+    bridge.paused = True
+    assert not bridge.update_ready()
+    bridge.paused = False
+    await harness.say(ALICE, "@me hi", mention=True)
+    assert not bridge.update_ready()  # a trigger is queued: that turn runs first
+
+    bridge.wake.set()
+    await asyncio.wait_for(bridge.run(), 5)
+    assert bridge.restart_requested
+    assert len(harness.session.prompts) == 1
+
+
 # --- two agents ---------------------------------------------------------------
 
 
