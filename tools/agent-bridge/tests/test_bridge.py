@@ -1055,6 +1055,59 @@ async def test_advisor_and_subagent_calls_show_in_status(harness: Harness) -> No
     assert "last: subagent: Grep `foo`" in seen[1]
 
 
+
+async def test_a_long_turn_gets_a_fresh_status_message(harness: Harness,
+                                                       monkeypatch: pytest.MonkeyPatch) -> None:
+    # Discord stops accepting edits to an hour-old message; the status would freeze.
+    monkeypatch.setattr(bridge_module, "STATUS_INTERVAL", 0.001)
+
+    async def script(session: FakeSession, prompt: str) -> TurnResult:
+        await asyncio.sleep(0.02)
+        harness.clock.now += 46 * 60
+        await asyncio.sleep(0.02)
+        return TurnResult("session-1")
+
+    harness.session.script = script
+    trigger = await harness.say(ALICE, "@me port it", mention=True)
+    await run_turn(harness)
+    first, second = [i for i, m in harness.chat.sent.items() if "working for" in m.content]
+    assert harness.chat.deleted == [first]
+    assert harness.chat.sent[second].reply_to == trigger.id
+    assert harness.chat.final(second).startswith("💤")
+
+
+async def test_a_failed_status_edit_renews_an_old_message(harness: Harness,
+                                                          monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(bridge_module, "STATUS_INTERVAL", 0.001)
+    failing: set[str] = set()
+    edit = harness.chat.edit
+
+    async def rate_limited(message_id: str, content: str) -> None:
+        if message_id in failing:
+            raise ChatError("429")
+        await edit(message_id, content)
+
+    harness.chat.edit = rate_limited  # type: ignore[method-assign]
+
+    async def script(session: FakeSession, prompt: str) -> TurnResult:
+        await asyncio.sleep(0.02)
+        failing.add(status_id(harness))
+        await harness.bridge.tool_started("Grep", {"pattern": "a"}, subagent=False)
+        await asyncio.sleep(0.02)
+        assert len(harness.chat.deleted) == 0  # young: only logged
+        harness.clock.now += 11 * 60
+        await harness.bridge.tool_started("Grep", {"pattern": "b"}, subagent=False)
+        await asyncio.sleep(0.02)
+        return TurnResult("session-1")
+
+    harness.session.script = script
+    await harness.say(ALICE, "@me look", mention=True)
+    await run_turn(harness)
+    first, second = [i for i, m in harness.chat.sent.items() if "working for" in m.content]
+    assert harness.chat.deleted == [first]
+    assert "Grep `b`" in harness.chat.sent[second].content
+
+
 # --- Discord threads ---------------------------------------------------------
 
 THREAD = "155559000000000001"

@@ -285,6 +285,9 @@ class DiscordChat:
         # Also drops any buttons or menus: edits only settle or update messages.
         await self.partial(message_id).edit(content=content, view=None)
 
+    async def delete(self, message_id: str) -> None:
+        await self.partial(message_id).delete()
+
     async def approve(self, message: Outgoing) -> str:
         view = ApprovalView(self, self.config.approval_timeout)
         message_id = await self.send(message, view=view)

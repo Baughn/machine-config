@@ -85,6 +85,7 @@ class FakeChat:
         self.reactions: list[tuple[str, str]] = []
         self.histories: list[str | None] = []  # the thread each history call read
         self.refuse: str | None = None  # a ChatError every send raises
+        self.deleted: list[str] = []
 
     def new_id(self) -> str:
         return f"m{next(self.ids)}"
@@ -98,6 +99,9 @@ class FakeChat:
 
     async def edit(self, message_id: str, content: str) -> None:
         self.edits.setdefault(message_id, []).append(content)
+
+    async def delete(self, message_id: str) -> None:
+        self.deleted.append(message_id)
 
     async def approve(self, message: Outgoing) -> str:
         message_id = await self.send(message)

@@ -30,6 +30,11 @@ from .session import AgentSession, Permission, ToolError, TurnResult
 log = logging.getLogger(__name__)
 
 STATUS_INTERVAL = 3.0
+# Discord rate-limits edits to messages older than an hour so hard that a status
+# message stops updating (every edit gets a 429). A long turn gets a fresh one
+# after STATUS_RENEW seconds, or after a failed edit once it is STATUS_RENEW_FAILED old.
+STATUS_RENEW = 45 * 60.0
+STATUS_RENEW_FAILED = 10 * 60.0
 KEEP_TURN_LOGS = 50
 BUFFER_CONTEXT = 50  # context-only messages kept for the next turn; history has the rest
 IDLE_CHECK = 60.0
@@ -66,6 +71,7 @@ async def run_command(*argv: str) -> tuple[int, str]:
 class Chat(Protocol):
     async def send(self, message: Outgoing) -> str: ...
     async def edit(self, message_id: str, content: str) -> None: ...
+    async def delete(self, message_id: str) -> None: ...
     async def approve(self, message: Outgoing) -> str: ...
     async def ask(self, message: Outgoing, questions: list[dict[str, Any]]) -> str: ...
     async def react(self, message_id: str, emoji: str) -> None: ...
@@ -130,6 +136,8 @@ class Bridge:
         self.run_command = run_command
         self.status: Status | None = None
         self.status_id: str | None = None
+        self.status_where = Outgoing("")  # where status_id went: its reply_to and thread
+        self.status_since = 0.0  # when status_id was sent
         self.last_log: list[str] = []
         self.session_id: str | None = None
         self.wake = asyncio.Event()
@@ -591,14 +599,16 @@ class Bridge:
                 reply_to = None if last.scheduled else trigger.id
                 self.turn_thread = None if last.scheduled else trigger.thread_id
                 self.turn_trigger = None if last.scheduled else trigger.id
+                self.status_where = Outgoing("", reply_to=reply_to, thread=self.turn_thread)
                 try:
-                    self.status_id = await self.chat.send(Outgoing(status.render(now), reply_to=reply_to,
-                                                                   thread=self.turn_thread))
+                    self.status_id = await self.chat.send(replace(self.status_where, content=status.render(now)))
                 except ChatError as error:
                     # E.g. the thread was deleted: work on, visibly, from the main channel.
                     log.warning("status message in thread %s: %s", self.turn_thread, error)
                     self.turn_thread = None
-                    self.status_id = await self.chat.send(Outgoing(status.render(now), thread=MAIN))
+                    self.status_where = Outgoing("", thread=MAIN)
+                    self.status_id = await self.chat.send(replace(self.status_where, content=status.render(now)))
+                self.status_since = now
             except Exception:
                 self.status, self.buffer = None, entries + self.buffer
                 self.omitted += omitted
@@ -718,11 +728,33 @@ class Bridge:
         shown = ""
         while self.status is not None and self.status_id is not None:
             text = self.status.render(self.clock())
-            if text != shown:
-                with contextlib.suppress(Exception):
+            age = self.clock() - self.status_since
+            if age >= STATUS_RENEW:
+                await self.renew_status(text)
+                shown = text
+            elif text != shown:
+                try:
                     await self.chat.edit(self.status_id, text)
+                except Exception as error:
+                    log.warning("status message %s: %s", self.status_id, error)
+                    if age >= STATUS_RENEW_FAILED:
+                        await self.renew_status(text)
                 shown = text
             await asyncio.sleep(STATUS_INTERVAL)
+
+    async def renew_status(self, text: str) -> None:
+        """Replace the status message with a fresh one, which Discord lets us edit again."""
+        old = self.status_id
+        try:
+            self.status_id = await self.chat.send(replace(self.status_where, content=text))
+        except Exception as error:
+            log.warning("renewing status message %s: %s", old, error)
+            self.status_since = self.clock()  # try again later rather than every tick
+            return
+        self.status_since = self.clock()
+        if old is not None:
+            with contextlib.suppress(Exception):
+                await self.chat.delete(old)
 
     def write_turn_log(self, status: Status, final: str, result: TurnResult) -> None:
         turns = self.config.state / "turns"
