@@ -3,11 +3,13 @@
 import argparse
 import asyncio
 import fcntl
+import fnmatch
 import ipaddress
 import json
 import logging
 import math
 import os
+import re
 import secrets
 import sqlite3
 import subprocess
@@ -33,29 +35,55 @@ class Grants:
         self.nft = nft
         self.directory.mkdir(mode=0o700, parents=True, exist_ok=True)
 
+    def prepare(self, db, now):
+        """Create the table, drop expired and policy-incompatible grants; whether any were pruned."""
+        db.execute(
+            "CREATE TABLE IF NOT EXISTS grants (user TEXT, ip TEXT, group_id TEXT, expiry REAL, "
+            "PRIMARY KEY(user, ip, group_id))"
+        )
+        db.execute("CREATE INDEX IF NOT EXISTS grants_expiry ON grants(expiry)")
+        db.execute("DELETE FROM grants WHERE expiry <= ?", (now,))
+        configured = self.config["groups"]
+        reconciled = False
+        for group, ip in db.execute("SELECT DISTINCT group_id, ip FROM grants").fetchall():
+            if group not in configured or ipaddress.ip_address(
+                ip
+            ).version not in configured[group].get("addressFamilies", [4, 6]):
+                db.execute("DELETE FROM grants WHERE group_id=? AND ip=?", (group, ip))
+                reconciled = True
+        return reconciled
+
+    def renew(self, address, group, now=None):
+        """Extend every live grant of `address` in `group` by a full lease; never create one.
+        Returns how many grants were extended."""
+        if group not in self.config["groups"]:
+            raise GrantError("invalid_groups")
+        if "%" in address:
+            raise ValueError("Scoped addresses are not supported")
+        address = str(ipaddress.ip_address(address))
+        with (self.directory / "lock").open("a") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            now = time.time() if now is None else now
+            with closing(sqlite3.connect(self.directory / "grants.sqlite")) as db, db:
+                reconciled = self.prepare(db, now)
+                renewed = db.execute(
+                    "UPDATE grants SET expiry=? WHERE ip=? AND group_id=?",
+                    (now + self.config["leaseSeconds"], address, group),
+                ).rowcount
+                if renewed or reconciled:
+                    rows = db.execute(
+                        "SELECT group_id, ip, max(expiry) FROM grants GROUP BY group_id, ip"
+                    ).fetchall()
+                    self.apply(rows, now)
+                return renewed
+
     def run(self, user=None, address=None, now=None, groups=None):
         with (self.directory / "lock").open("a") as lock:
             fcntl.flock(lock, fcntl.LOCK_EX)
             now = time.time() if now is None else now
             with closing(sqlite3.connect(self.directory / "grants.sqlite")) as db, db:
-                db.execute(
-                    "CREATE TABLE IF NOT EXISTS grants (user TEXT, ip TEXT, group_id TEXT, expiry REAL, "
-                    "PRIMARY KEY(user, ip, group_id))"
-                )
-                db.execute("CREATE INDEX IF NOT EXISTS grants_expiry ON grants(expiry)")
-                db.execute("DELETE FROM grants WHERE expiry <= ?", (now,))
                 configured = self.config["groups"]
-                reconciled = False
-                for group, ip in db.execute(
-                    "SELECT DISTINCT group_id, ip FROM grants"
-                ).fetchall():
-                    if group not in configured or ipaddress.ip_address(
-                        ip
-                    ).version not in configured[group].get("addressFamilies", [4, 6]):
-                        db.execute(
-                            "DELETE FROM grants WHERE group_id=? AND ip=?", (group, ip)
-                        )
-                        reconciled = True
+                reconciled = self.prepare(db, now)
                 if user is not None and (
                     not isinstance(user, str)
                     or not user.isascii()
@@ -185,6 +213,76 @@ class Grants:
         )
 
 
+# A player's login as the server logs it, anchored on the logger so that chat
+# quoting such a line can't match. Java prints IPv6 without brackets.
+LOGIN = re.compile(
+    r"\[\d\d:\d\d:\d\d\] \[Server thread/INFO\] \[minecraft/PlayerList\]: "
+    r"[A-Za-z0-9_]{1,16}\[/([0-9A-Fa-f:.]+):\d{1,5}\] logged in with entity id \d+ at \("
+)
+RENEW_INTERVAL = 3600
+
+
+def login_address(line):
+    """The address a Minecraft login line came from, or None."""
+    match = LOGIN.match(line)
+    if match is None:
+        return None
+    try:
+        ip = ipaddress.ip_address(match.group(1))
+    except ValueError:
+        return None
+    if ip.version == 6 and ip.ipv4_mapped is not None:
+        ip = ip.ipv4_mapped
+    return str(ip)
+
+
+async def watch_logins(grants, group, units, journalctl="@journalctl@"):
+    """Renew a group's grants for addresses that log in to its Minecraft servers.
+    Only an address that already has a grant can connect, so this never creates one."""
+    # Not --unit: it expands globs once, against units already in the journal.
+    command = [
+        journalctl, "--follow", "--lines=0", "--output=json",
+        "--output-fields=MESSAGE,_SYSTEMD_UNIT", "--grep=logged in with entity id",
+    ]
+    renewed = {}
+    while True:
+        process = await asyncio.create_subprocess_exec(
+            *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+        )
+        try:
+            async for raw in process.stdout:
+                try:
+                    entry = json.loads(raw)
+                except ValueError:
+                    continue
+                unit, message = entry.get("_SYSTEMD_UNIT"), entry.get("MESSAGE")
+                if not isinstance(unit, str) or not isinstance(message, str):
+                    continue
+                if not any(fnmatch.fnmatchcase(unit, pattern) for pattern in units):
+                    continue
+                address = login_address(message)
+                if address is None:
+                    continue
+                now = time.monotonic()
+                if now - renewed.get(address, -RENEW_INTERVAL) < RENEW_INTERVAL:
+                    continue
+                renewed[address] = now
+                try:
+                    count = await asyncio.to_thread(grants.renew, address, group)
+                except (OSError, ValueError, sqlite3.Error, subprocess.SubprocessError):
+                    logger.error("Renewing a %s grant after a login failed", group)
+                    continue
+                if count:
+                    logger.info("A %s login renewed %d grant(s)", group, count)
+        finally:
+            if process.returncode is None:
+                process.kill()
+            await process.wait()
+        error = (await process.stderr.read()).decode("utf-8", "replace").strip()[-500:]
+        logger.error("journalctl for %s logins exited (%s); restarting in 10 s", group, error)
+        await asyncio.sleep(10)
+
+
 def create_app(grants, token=None):
     async def handle(request):
         if token is not None and not secrets.compare_digest(
@@ -229,6 +327,7 @@ def main():
     parser.add_argument("--restore", action="store_true")
     args = parser.parse_args()
     config = json.loads(Path(args.config).read_text())
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     os.umask(0o007)
     grants = Grants(
         config,
@@ -261,8 +360,21 @@ def main():
             if address is not None
             else {"path": "/run/punch-firewall/http.sock"}
         )
+        app = create_app(grants, token)
+
+        async def watchers(app):
+            tasks = [
+                asyncio.create_task(watch_logins(grants, name, group["minecraftLoginUnits"]))
+                for name, group in config["groups"].items()
+                if group.get("minecraftLoginUnits")
+            ]
+            yield
+            for task in tasks:
+                task.cancel()
+
+        app.cleanup_ctx.append(watchers)
         web.run_app(
-            create_app(grants, token),
+            app,
             **endpoint,
             access_log=None,
             print=None,

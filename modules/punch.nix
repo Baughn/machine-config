@@ -11,7 +11,8 @@ let
   source = pkgs.runCommand "punch-source" { } ''
     mkdir -p "$out"
     cp ${./punch}/* "$out/"
-    substituteInPlace "$out/firewall.py" --replace-fail '@nft@' '${pkgs.nftables}/bin/nft'
+    substituteInPlace "$out/firewall.py" --replace-fail '@nft@' '${pkgs.nftables}/bin/nft' \
+      --replace-fail '@journalctl@' '${config.systemd.package}/bin/journalctl'
   '';
   settings = pkgs.writeText "punch.json" (
     builtins.toJSON {
@@ -98,6 +99,15 @@ in
             ports.udp = lib.mkOption {
               type = lib.types.listOf lib.types.port;
               default = [ ];
+            };
+            minecraftLoginUnits = lib.mkOption {
+              type = lib.types.listOf lib.types.str;
+              default = [ ];
+              example = [ "minecraft@*.service" ];
+              description = ''
+                Units (globs allowed) of Minecraft servers whose player logins renew this
+                group's existing grants for the login's address. Never creates a grant.
+              '';
             };
           };
         }

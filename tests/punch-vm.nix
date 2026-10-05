@@ -92,6 +92,7 @@ pkgs.testers.runNixOSTest {
           ];
           udp = [ 24454 ];
         };
+        minecraftLoginUnits = [ "minecraft@*.service" ];
       };
       groups.stationeers = {
         label = "Stationeers";
@@ -234,6 +235,23 @@ pkgs.testers.runNixOSTest {
     status = json.loads(machine.succeed(main + "/api/status"))
     assert status["grants"] and status["errors"][0]["groups"] == ["remote"], status
     remote.succeed("systemctl start punch-firewall")
+
+    # A Minecraft login renews its address's grants. Chat quoting a login line doesn't.
+    grants_db = "sqlite3 /var/lib/punch-firewall/grants.sqlite "
+    machine.succeed(grants_db + shlex.quote("update grants set expiry=unixepoch()+100"))
+    login = "[21:29:25] [Server thread/INFO] [minecraft/PlayerList]: Steve[/{}:65508] logged in with entity id 7 at (96.5, 63.0, 754.5)"
+    for unit, line in (
+        ("minecraft@chat", "[21:29:24] [Server thread/INFO] [minecraft/DedicatedServer]: <Bob> " + login.format("192.0.2.12")),
+        ("other", login.format("192.0.2.11")),
+        ("minecraft@test", login.format("192.0.2.10")),
+    ):
+        machine.succeed(f"systemd-run --wait --unit={unit} echo " + shlex.quote(line))
+    def renewed(ip):
+        return grants_db + shlex.quote(f"select count(*) from grants where ip='{ip}' and group_id='minecraft' and expiry > unixepoch()+200")
+    machine.wait_until_succeeds("test $(" + renewed("192.0.2.10") + ") = 1", timeout=30)
+    machine.succeed("test $(" + renewed("192.0.2.12") + ") = 0")
+    machine.succeed("test $(" + grants_db + shlex.quote("select count(*) from grants where ip='192.0.2.11' and expiry > unixepoch()+200") + ") = 0")
+    machine.succeed("journalctl -u punch-firewall --no-pager | grep -q 'A minecraft login renewed 1 grant'")
 
     # Reboot restores remaining lifetime, not a new lease.
     before = machine.succeed("sqlite3 /var/lib/punch-firewall/grants.sqlite 'select ip,expiry from grants order by ip'")

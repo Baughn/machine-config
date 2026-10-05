@@ -17,6 +17,8 @@
     roleIds = [ "480078714709737473" ];
     ports.tcp = [ 25565 25566 ];
     ports.udp = [ 24454 ]; # Simple voice chat
+    # Playing keeps access open: a login renews its address's grants (Baughn, 2026-10-05).
+    minecraftLoginUnits = [ "minecraft@*.service" ];
   };
   services.prometheus.scrapeConfigs = [
     {

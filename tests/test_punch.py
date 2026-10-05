@@ -1,4 +1,6 @@
+import asyncio
 import importlib.util
+import json
 import sqlite3
 import subprocess
 import sys
@@ -145,6 +147,103 @@ class GrantTests(unittest.TestCase):
             .split("}", 1)[0],
         )
 
+
+LOGIN = (
+    "[21:29:25] [Server thread/INFO] [minecraft/PlayerList]: Hellexar[/{ip}:65508] "
+    "logged in with entity id 7584198 at (96.5, 63.0, 754.5)"
+)
+
+
+class LoginRenewalTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.grants = firewall.Grants(CONFIG, self.temp.name, "/nft")
+        self.nft = patch.object(subprocess, "run").start()
+        self.addCleanup(patch.stopall)
+
+    def test_login_lines(self):
+        self.assertEqual(firewall.login_address(LOGIN.format(ip="192.0.2.7")), "192.0.2.7")
+        # Java prints IPv6 unbracketed and uncompressed.
+        self.assertEqual(
+            firewall.login_address(LOGIN.format(ip="2001:db8:0:0:0:0:0:1")), "2001:db8::1"
+        )
+        self.assertEqual(firewall.login_address(LOGIN.format(ip="::ffff:192.0.2.7")), "192.0.2.7")
+        for line in (
+            # Chat quoting a login line, another logger, a failed login.
+            "[21:29:25] [Server thread/INFO] [minecraft/DedicatedServer]: <Bob> "
+            + LOGIN.format(ip="192.0.2.9"),
+            LOGIN.format(ip="192.0.2.9").replace("minecraft/PlayerList", "minecraft/Fake"),
+            "[21:26:14] [Server thread/INFO] [minecraft/NetHandlerLoginServer]: com.mojang.authlib."
+            "GameProfile@1d4c5252[id=af9a,name=Hellexar] (/192.0.2.9:14483) lost connection: "
+            "You are not white-listed on this server!",
+            LOGIN.format(ip="999.0.2.9"),
+            LOGIN.format(ip="fe80:0:0:0:0:0:0:1%eth0"),
+        ):
+            self.assertIsNone(firewall.login_address(line), line)
+
+    def test_renew_extends_existing_grants_only(self):
+        self.grants.run("1", "192.0.2.1", groups=["minecraft", "stationeers"], now=100)
+        self.grants.run("2", "192.0.2.1", groups=["minecraft"], now=200)
+        self.nft.reset_mock()
+        self.assertEqual(self.grants.renew("192.0.2.2", "minecraft", now=300), 0)
+        self.nft.assert_not_called()
+        self.assertEqual(self.grants.renew("192.0.2.1", "minecraft", now=300), 2)
+        lease = CONFIG["leaseSeconds"]
+        self.assertIn(f"192.0.2.1 timeout {lease}s", self.nft.call_args.kwargs["input"])
+        expiry = {g["group"]: g["expires"] for g in self.grants.run("1", now=300)}
+        self.assertEqual(expiry, {"minecraft": 300 + lease, "stationeers": 100 + lease})
+        # Expired grants stay expired.
+        self.assertEqual(self.grants.renew("192.0.2.1", "stationeers", now=101 + lease), 0)
+        with self.assertRaises(ValueError):
+            self.grants.renew("192.0.2.1", "admin")
+        with self.assertRaises(ValueError):
+            self.grants.renew("192.0.2.0/24", "minecraft")
+
+
+class LoginWatchTests(unittest.IsolatedAsyncioTestCase):
+    async def test_logins_renew_at_most_hourly_per_address(self):
+        renewed = []
+
+        class Grants:
+            def renew(self, address, group):
+                renewed.append((address, group))
+                return 1
+
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        journal = Path(temp.name) / "journalctl"
+        entries = [
+            {"_SYSTEMD_UNIT": unit, "MESSAGE": LOGIN.format(ip=ip)}
+            for unit, ip in (
+                ("minecraft@erisia.service", "192.0.2.1"),
+                ("minecraft-lab@x.service", "192.0.2.3"),
+                ("minecraft@erisia.service", "192.0.2.2"),
+                ("minecraft@erisia.service", "192.0.2.1"),
+            )
+        ]
+        entries.insert(1, {"_SYSTEMD_UNIT": "minecraft@erisia.service", "MESSAGE": [1, 2]})
+        journal.write_text(
+            "#!/bin/sh\n"
+            + f"printf '%s\\n' \"$@\" > {temp.name}/args\n"
+            + "echo 'not json'\n"
+            + "".join(f"echo '{json.dumps(entry)}'\n" for entry in entries)
+            + "exec sleep 60\n"
+        )
+        journal.chmod(0o755)
+        task = asyncio.create_task(
+            firewall.watch_logins(Grants(), "minecraft", ["minecraft@*.service"], str(journal))
+        )
+        for _ in range(100):
+            if len(renewed) >= 2:
+                break
+            await asyncio.sleep(0.02)
+        await asyncio.sleep(0.1)
+        task.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await task
+        self.assertEqual(renewed, [("192.0.2.1", "minecraft"), ("192.0.2.2", "minecraft")])
+        self.assertIn("--grep=logged in with entity id", (Path(temp.name) / "args").read_text())
 
 class FrontendTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):

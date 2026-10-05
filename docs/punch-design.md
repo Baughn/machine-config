@@ -73,10 +73,24 @@ me.punch = {
 me.punch.groups.minecraft = {
   label = "Minecraft";
   roleIds = [ "480078714709737473" ];
-  ports.tcp = [ 25565 25566 25575 ];
+  ports.tcp = [ 25565 25566 ];
   ports.udp = [ 24454 ];
+  minecraftLoginUnits = [ "minecraft@*.service" ];
 };
 ```
+
+### Renewal by playing
+
+A group with `minecraftLoginUnits` stays open for people who play. The broker
+follows the journal for Minecraft's login line,
+`[…] [Server thread/INFO] [minecraft/PlayerList]: Name[/IP:port] logged in with
+entity id …`, from units matching those globs, and extends every live grant of
+that address in the group to a full lease. It never creates a grant: only an
+address that already has one can reach the server to log in. The match is
+anchored on the PlayerList logger, so chat quoting the line doesn't count. Each
+address renews at most once an hour. The unit filter is applied in the broker,
+because `journalctl --unit` expands globs only against units already in the
+journal when it starts.
 
 Add games by adding groups. Group names use lowercase letters, digits and
 underscores, starting with a letter. Port lists default to empty. Multiple groups
