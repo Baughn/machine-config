@@ -139,6 +139,7 @@ class Bridge:
         self.status_where = Outgoing("")  # where status_id went: its reply_to and thread
         self.status_since = 0.0  # when status_id was sent
         self.last_log: list[str] = []
+        self.last_error: str | None = None  # why the last turn failed
         self.session_id: str | None = None
         self.wake = asyncio.Event()
         self.lock = asyncio.Lock()
@@ -542,6 +543,8 @@ class Bridge:
             state = "idle"
             if self.last_turn is not None:
                 lines.append({"text": f"last turn ended {minutes(self.last_turn)} ago"})
+            if self.last_error is not None:
+                lines.append({"text": f"last turn failed: {self.last_error}"[:400], "level": "alert"})
         queued = sum(1 for e in self.buffer if e.trigger)
         if queued:
             lines.append({"text": f"{queued} request{'s' if queued != 1 else ''} queued", "level": "info"})
@@ -555,7 +558,8 @@ class Bridge:
         elif self.paused:
             state, level = f"paused; {state}", "warn"
         else:
-            level = "alert" if self.waiting else "info" if status is not None else "ok"
+            level = ("alert" if self.waiting else "info" if status is not None
+                     else "warn" if self.last_error is not None else "ok")
         return {"title": self.config.me.shown, "state": state[:80], "level": level,
                 "lines": lines[:50], "ttl": CARD_TTL}
 
@@ -634,12 +638,14 @@ class Bridge:
                 for pending in list(self.pending.values()):
                     pending.cancel("the turn ended")
             self.last_turn = self.clock()
+            self.last_error = None if result.interrupted else result.error
             self.consumed(entries)
             self.save_session(result.session_id or self.session_id)
             if result.interrupted or self.stopping:
                 final = "stopped"
             elif result.error:
                 final = "error"
+                status.error = result.error
                 status.log.append(f"error: {result.error}")
             else:
                 final = "done" if status.posts else "silent"

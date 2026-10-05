@@ -179,6 +179,7 @@ class Status:
     posts: int = 0
     effort: str | None = None  # "high (reason)" while raised
     advisor: int = 0  # advisor consultations
+    error: str | None = None  # why the turn failed, shown on the final message
     log: list[str] = field(default_factory=list)
 
     def render(self, now: float, final: str | None = None) -> str:
@@ -196,6 +197,8 @@ class Status:
         lines.append(counts)
         if self.effort:
             lines.append(f"  effort: {self.effort}")
+        if self.error:
+            lines.append(f"  error: {self.error}")
         text = "\n".join(lines)
         return text if len(text) <= MESSAGE_LIMIT else text[:MESSAGE_LIMIT - 1] + "…"
 

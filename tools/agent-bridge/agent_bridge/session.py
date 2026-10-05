@@ -6,6 +6,7 @@ import asyncio
 from dataclasses import dataclass
 import json
 import logging
+import time
 import warnings
 from pathlib import Path
 from typing import Any, Protocol
@@ -31,6 +32,27 @@ class TurnResult:
     interrupted: bool = False
     cost_usd: float | None = None
     cache: str | None = None  # prompt-cache token counts, for the turn log
+
+
+LIMIT_NAMES = {"five_hour": "5-hour", "seven_day": "weekly", "seven_day_opus": "weekly Opus",
+               "seven_day_sonnet": "weekly Sonnet", "overage": "overage"}
+
+
+def turn_error(result: Any, limit: Any, assistant_error: str | None, text: str) -> str:
+    """Why a turn failed, readably: a usage limit with its reset time, else what the CLI said."""
+    if limit is not None or assistant_error == "rate_limit" or result.api_error_status == 429:
+        what = "usage limit reached"
+        if limit is not None and limit.rate_limit_type:
+            what += f" ({LIMIT_NAMES.get(limit.rate_limit_type, limit.rate_limit_type)})"
+        if limit is not None and limit.resets_at:
+            what += time.strftime(", resets %Y-%m-%d %H:%M UTC", time.gmtime(limit.resets_at))
+        elif text:
+            what += f": {text}"
+        return what
+    error = "; ".join(result.errors or []) or text or result.result or assistant_error or result.subtype
+    if result.api_error_status:
+        error += f" (HTTP {result.api_error_status})"
+    return " ".join(str(error).split())[:300]
 
 
 def cache_usage(usage: dict[str, Any] | None) -> str | None:
@@ -362,20 +384,31 @@ class SdkSession:
         self.start_drain()
 
     async def turn(self, prompt: str) -> TurnResult:
-        from claude_agent_sdk import AssistantMessage, ResultMessage, ServerToolUseBlock
+        from claude_agent_sdk import AssistantMessage, RateLimitEvent, ResultMessage, ServerToolUseBlock, TextBlock
 
         await self.stop_drain()
+        limit: Any = None  # the rate limit that refused us, if any
+        assistant_error: str | None = None
+        text = ""
         try:
             await self.client.query(prompt)
             async for message in self.client.receive_response():
+                if isinstance(message, RateLimitEvent):
+                    info = message.rate_limit_info
+                    log.info("rate limit %s: %s, resets %s", info.rate_limit_type, info.status, info.resets_at)
+                    limit = info if info.status == "rejected" else None
                 if isinstance(message, AssistantMessage):
                     if any(isinstance(b, ServerToolUseBlock) and b.name == "advisor" for b in message.content):
                         await self.handlers.advisor_called()
+                    if message.error:
+                        assistant_error = message.error
+                        text = " ".join(b.text for b in message.content if isinstance(b, TextBlock)).strip()
                 if isinstance(message, ResultMessage):
                     interrupted = message.terminal_reason in INTERRUPTED
                     error = None
                     if message.is_error and not interrupted:
-                        error = "; ".join(message.errors or []) or message.subtype
+                        error = turn_error(message, limit, assistant_error, text)
+                        log.warning("turn failed: %s", error)
                     return TurnResult(message.session_id, error, interrupted, message.total_cost_usd,
                                       cache_usage(message.usage))
             return TurnResult(None, "the session ended without a result")

@@ -77,6 +77,25 @@ async def test_errors(harness: Harness) -> None:
         await harness.say(OWNER, "go", mention=True)
         await run_turn(harness)
         assert harness.chat.final(status_id(harness)).startswith("✗")
+    assert "error: RuntimeError: cli died" in harness.chat.final(status_id(harness))
+
+
+async def test_a_failed_turn_shows_why(harness: Harness) -> None:
+    async def limited(session: FakeSession, prompt: str) -> TurnResult:
+        return TurnResult("session-1", error="usage limit reached (5-hour), resets 2026-10-05 17:00 UTC")
+
+    harness.session.script = limited
+    await harness.say(OWNER, "go", mention=True)
+    await run_turn(harness)
+    assert harness.chat.final(status_id(harness)).endswith(
+        "error: usage limit reached (5-hour), resets 2026-10-05 17:00 UTC")
+    card = harness.bridge.card(harness.clock.now)
+    assert card["level"] == "warn"
+    assert any(line["text"].startswith("last turn failed: usage limit") for line in card["lines"])
+    harness.session.script = silent
+    await harness.say(OWNER, "again", mention=True)
+    await run_turn(harness)
+    assert harness.bridge.card(harness.clock.now)["level"] == "ok"
 
 
 async def test_context_is_delivered_with_the_next_turn(harness: Harness) -> None:
