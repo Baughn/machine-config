@@ -108,6 +108,11 @@ in
     address = "10.171.0.1:25666";
     allow = [ "10.171.0.6" ];
   };
+  # Builds for it to test (EA port jars etc.) at http://10.171.0.1:8741/ (AdventurAgent, 2026-10-05).
+  me.minecraft.lab.outbox = {
+    port = 8741;
+    allow = [ "10.171.0.6" ];
+  };
 
   ## DessPlay Rendezvous
   services.rendezvous = {

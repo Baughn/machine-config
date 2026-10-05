@@ -95,7 +95,7 @@ in
       tokenFile = config.age.secrets.agent-tsugumi-lab-discord.path;
       promptFile = ./agents/tsugumi-lab.md;
       board.socket = "/run/agent-board/api.sock";
-      extraDirs = [ "/srv/minecraft-lab" "/srv/lab-handover" ];
+      extraDirs = [ "/srv/minecraft-lab" "/srv/lab-handover" "/srv/lab-outbox" ];
       rcon.root = "/srv/minecraft-lab";
       # Serving the client tester needs no approver (Baughn, msg 1555957535054241905):
       # whitelist and op its offline account, and undo both. Added to the defaults.
@@ -120,6 +120,8 @@ in
         "Write(//srv/minecraft-lab/**)"
         "Edit(//srv/lab-handover/**)"
         "Write(//srv/lab-handover/**)"
+        "Edit(//srv/lab-outbox/**)"
+        "Write(//srv/lab-outbox/**)"
         "Bash(minecraft-lab list)"
         "Bash(systemctl status *)"
         "Bash(systemctl show *)"

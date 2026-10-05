@@ -106,6 +106,22 @@ in
         description = "Client addresses allowed to connect to remoteLogin.address.";
       };
     };
+    outbox = {
+      port = lib.mkOption {
+        type = lib.types.nullOr lib.types.port;
+        default = null;
+        example = 8741;
+        description = ''
+          Serve /srv/lab-outbox (builds the lab hands to remote testers) read-only
+          over HTTP on this wg0 port, to the listed clients only.
+        '';
+      };
+      allow = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = "Client addresses allowed to fetch from the outbox.";
+      };
+    };
     serviceConfig = lib.mkOption {
       type = lib.types.attrsOf lib.types.anything;
       readOnly = true;
@@ -145,7 +161,20 @@ in
     systemd.tmpfiles.rules = [
       "d /srv/minecraft-lab 0755 root root -"
       "d /srv/lab-handover 2750 ${cfg.user} lab-handover -"
-    ];
+    ] ++ lib.optional (cfg.outbox.port != null)
+      # The lab writes; caddy serves it to the testers, so it is world-readable.
+      "d /srv/lab-outbox 0755 ${cfg.user} ${cfg.user} -";
+
+    # Caddy listens on every address (wg0 may come up after it); the firewall
+    # opens the port on wg0 only, and the matcher admits only the testers.
+    services.caddy.extraConfig = lib.mkIf (cfg.outbox.port != null) ''
+      http://:${toString cfg.outbox.port} {
+        @denied not remote_ip ${lib.concatStringsSep " " cfg.outbox.allow}
+        abort @denied
+        root * /srv/lab-outbox
+        file_server browse
+      }
+    '';
 
     systemd.sockets.minecraft-lab-control = {
       description = "Minecraft lab helper";
@@ -175,8 +204,10 @@ in
         IPAddressDeny = "any";
       };
     };
-    networking.firewall.interfaces.wg0.allowedTCPPorts = lib.mkIf (cfg.remoteLogin.address != null)
-      [ (lib.toInt (lib.last (lib.splitString ":" cfg.remoteLogin.address))) ];
+    networking.firewall.interfaces.wg0.allowedTCPPorts =
+      lib.optional (cfg.remoteLogin.address != null)
+        (lib.toInt (lib.last (lib.splitString ":" cfg.remoteLogin.address)))
+      ++ lib.optional (cfg.outbox.port != null) cfg.outbox.port;
 
     systemd.services = {
       minecraft-lab-login-remote = lib.mkIf (cfg.remoteLogin.address != null) {

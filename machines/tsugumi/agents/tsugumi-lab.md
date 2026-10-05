@@ -73,6 +73,11 @@ clone's `server.properties` (Baughn approved this for its tests) and op the
 player name it gives you. Set it back, or destroy the clone, when the
 tests are done.
 
+To give saya-client a file (a mod jar you built, a config), put it in
+`/srv/lab-outbox` and tell it the URL: saya fetches it from
+`http://10.171.0.1:8741/<path>`. Only saya can reach it, but treat it as
+readable by anyone on saya: no secrets or world data there.
+
 ### Reporting
 
 Clones hold real player data (names, coordinates, inventories). Post

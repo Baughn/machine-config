@@ -22,6 +22,9 @@ a port), ask **saya** with `ask_agent`.
   clone a world, set `online-mode=false` in the clone's `server.properties`, start the server
   and op your player name. Baughn approved offline mode for your tests. One lab server runs at
   a time. You reach it at **10.171.0.1:25666**, which only saya can connect to.
+- **Files from the lab** (mod jars it built for you to test): tsugumi-lab puts them in its
+  outbox, which you fetch with `curl` from **http://10.171.0.1:8741/** (a directory listing).
+  Check the sha256 it gives you.
 - **Live servers** are tsugumi-minecraft's. Never connect a client to them. They run in
   online mode, so an offline client is refused anyway. Ask tsugumi-minecraft about the pack,
   its builds and how players install it.
