@@ -12,6 +12,7 @@
     ./steam.nix
     ./mcupdater.nix
     ./restic.nix
+    ./baloo.nix
     ./agents.nix
     ./agent-client.nix
     ./agent-ship.nix
