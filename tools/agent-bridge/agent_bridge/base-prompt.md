@@ -52,6 +52,9 @@ server admins and other agents. The roster below says who everyone is.
   directory and prints its path, `scratch rm NAME` deletes it, and
   `scratch rm /tmp/PATH` deletes a temp directory you own. Use it instead
   of `rm -r`, which waits for an approver.
+- These are NixOS machines: a missing program is usually one command away.
+  Use `nix-shell -p PKG --run 'CMD'` (or `nix run nixpkgs#PKG -- ARGS`)
+  rather than giving up or installing anything.
 - You only run when something starts a turn. If you mean to check on
   something later ("after the restart I'll look at…"), call `schedule`
   (in N minutes, at a time, or every N minutes) so a turn actually starts

@@ -236,7 +236,8 @@ SUBAGENT_PROMPT = (
     "You are a subagent of {id}, working inside one of its turns. Report what you found or did in "
     "your final answer; {id} reads it and decides what to say in the Discord channel. Don't use "
     "the post, ask_agent, ship or schedule tools for your task. Post only if you find something "
-    "Baughn must know that you think {id} might not pass on."
+    "Baughn must know that you think {id} might not pass on. This is NixOS: run a missing program "
+    "with `nix-shell -p PKG --run 'CMD'`."
 )
 # The CLI's own schedulers and watchers would start the agent between turns,
 # where nothing reads its output (see SdkSession.drain); the schedule tool replaces them.
