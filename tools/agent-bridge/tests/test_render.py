@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -8,6 +9,7 @@ from agent_bridge.filter import find_secret
 from agent_bridge.limits import Breaker, Streak
 from agent_bridge.config import Limits
 from agent_bridge.policy import Kind
+from agent_bridge.shellfmt import format_shell
 from agent_bridge.render import (HEADLINE_LIMIT, MESSAGE_LIMIT, OVERVIEW_LIMIT, PostError, Roots, Status,
                                  approval_request, render_post, summarize_tool)
 
@@ -90,8 +92,25 @@ def test_summaries_and_approval_requests() -> None:
     assert summarize_tool("Bash", {"command": "ls\n-la"}) == "Bash `ls -la`"
     assert summarize_tool("mcp__bridge__post", {"kind": "x"}) == "post"
     assert len(summarize_tool("Bash", {"command": "x" * 500})) < 140
-    short = approval_request("id", "Bash", {"command": "ls"}, "because")
-    assert "```json" in short.content and not short.files
+    short = approval_request("id", "Bash", {"command": "ls\n```", "description": "List", "timeout": 1800000},
+                             "because")
+    assert not short.files
+    assert "command:\n```sh\nls\nʼʼʼ\n```" in short.content
+    assert "description: `List`" in short.content and "timeout: `1800000` (30 min)" in short.content
+    edit = approval_request("id", "Edit", {"file_path": "/a", "old_string": "x\ny", "replace_all": False}, None)
+    assert "file_path: `/a`" in edit.content and "old_string:\n```\nx\ny\n```" in edit.content
+    assert "replace_all: `false`" in edit.content
+
+
+def test_bash_commands_are_shown_reformatted() -> None:
+    command = "cd /tmp && ls; python3 - <<'EOF'\nprint(1); print(2)\nEOF\necho done"
+    request = approval_request("id", "Bash", {"command": command}, None, format_shell)
+    assert "cd /tmp && ls\npython3 - <<'EOF'\nprint(1); print(2)\nEOF\necho done\n```" in request.content
+    assert request.files and json.loads(request.files[0].data)["command"] == command
+    tidy = approval_request("id", "Bash", {"command": "ls -la"}, None, format_shell)
+    assert "command:\n```sh\nls -la\n```" in tidy.content and not tidy.files
+    broken = approval_request("id", "Bash", {"command": "echo 'unclosed; ls"}, None, format_shell)
+    assert "echo 'unclosed; ls" in broken.content and not broken.files
     long = approval_request("id", "Write", {"content": "x" * 3000}, None)
     assert long.files and len(long.content) <= MESSAGE_LIMIT
 

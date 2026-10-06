@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 import json
 from pathlib import Path
@@ -221,16 +222,46 @@ def summarize_tool(name: str, tool_input: dict[str, Any]) -> str:
     return f"{name} `{detail.replace('`', 'ʼ')}`"
 
 
+def pretty_input(name: str, tool_input: dict[str, Any], command: str | None = None) -> str:
+    """A tool's input as an approver reads it: short values on a line each, long
+    or multi-line text (a shell command, file contents) in its own code block.
+    `command` replaces a Bash command for display (reformatted by shfmt)."""
+    lines: list[str] = []
+    for key, value in tool_input.items():
+        shell = name == "Bash" and key == "command"
+        if shell and command is not None:
+            lines.append(f"command (reformatted by shfmt; exact text attached):\n```sh\n{command.replace('```', 'ʼʼʼ')}\n```")
+        elif isinstance(value, str) and ("\n" in value or len(value) > 80 or shell):
+            language = "sh" if shell else ""
+            lines.append(f"{key}:\n```{language}\n{value.replace('```', 'ʼʼʼ')}\n```")
+        else:
+            text = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
+            line = f"{key}: `{text.replace('`', 'ʼ')}`"
+            if key == "timeout" and name == "Bash" and isinstance(value, (int, float)):
+                line += f" ({value / 60000:g} min)"
+            lines.append(line)
+    return "\n".join(lines)
+
+
 def approval_request(identity: str, name: str, tool_input: dict[str, Any],
-                     reason: str | None) -> Outgoing:
-    body = json.dumps(tool_input, indent=2, ensure_ascii=False)
+                     reason: str | None,
+                     shell_format: Callable[[str], str | None] | None = None) -> Outgoing:
     head = f"🔐 **{identity} asks to run {name}**"
     if reason:
         head += f"\n> {' '.join(reason.split())[:300]}"
-    inline = f"{head}\n```json\n{body.replace('```', 'ʼʼʼ')}\n```"
+    body = json.dumps(tool_input, indent=2, ensure_ascii=False)
+    exact = (File("tool-input.json", body.encode()),)
+    command = tool_input.get("command")
+    if name == "Bash" and isinstance(command, str) and shell_format is not None:
+        formatted = shell_format(command)
+        if formatted is not None and formatted != command.strip():
+            inline = f"{head}\n{pretty_input(name, tool_input, formatted)}"
+            if len(inline) <= MESSAGE_LIMIT:
+                return Outgoing(inline, exact)
+    inline = f"{head}\n{pretty_input(name, tool_input)}"
     if len(inline) <= MESSAGE_LIMIT:
         return Outgoing(inline)
-    return Outgoing(f"{head}\n(input attached)", (File("tool-input.json", body.encode()),))
+    return Outgoing(f"{head}\n(input attached)", exact)
 
 
 def question_text(identity: str, questions: list[dict[str, Any]]) -> str:

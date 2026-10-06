@@ -582,7 +582,7 @@ agent's stated reason, with **Allow** and **Deny** buttons. A click from a bot
 or non-approver is ignored (they get a private "only approvers can decide"),
 and the settled request is edited to say who decided, with the buttons
 removed. (The first version used ✅/❌ reactions; buttons are clearer and
-don't need the bot to pre-add reactions.) After a timeout (default 15 min) the call is
+don't need the bot to pre-add reactions.) After a timeout (default 60 min) the call is
 denied. `PermissionResultDeny(message=…)` tells the agent why. The callback
 may stay pending indefinitely, so the timeout is ours, not the SDK's.
 

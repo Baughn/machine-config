@@ -68,7 +68,7 @@ let
           "medium" here leaves the tool out.
         '';
       };
-      approvalTimeout = lib.mkOption { type = lib.types.int; default = 900; };
+      approvalTimeout = lib.mkOption { type = lib.types.int; default = 3600; };
       idleReset = lib.mkOption {
         type = lib.types.int;
         default = 6 * 3600;

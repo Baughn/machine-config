@@ -26,6 +26,7 @@ from .render import (MAIN, ChatError, File, Outgoing, PostError, Roots, Status, 
                      is_status, question_text, render_post, settled, summarize_tool)
 from .schedule import Schedule, ScheduleError, Schedules, stamp
 from .session import AgentSession, Permission, ToolError, TurnResult
+from .shellfmt import format_shell
 
 log = logging.getLogger(__name__)
 
@@ -858,7 +859,7 @@ class Bridge:
             message_id = await self.chat.ask(Outgoing(text, reply_to=reply_to), questions)
             pending = Pending(message_id, loop.create_future(), questions)
         else:
-            request = approval_request(self.config.id, name, tool_input, reason)
+            request = approval_request(self.config.id, name, tool_input, reason, format_shell)
             message_id = await self.chat.approve(Outgoing(request.content, request.files, reply_to))
             text = request.content
             pending = Pending(message_id, loop.create_future())

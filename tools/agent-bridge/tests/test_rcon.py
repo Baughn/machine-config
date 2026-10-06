@@ -94,7 +94,7 @@ async def test_other_commands_need_an_approver(tmp_path: Path, server: FakeServe
         await asyncio.sleep(0)
     assert server.commands == []
     [request] = h.chat.approvals
-    assert '"command": "say hello"' in h.chat.sent[request].content
+    assert 'command: `say hello`' in h.chat.sent[request].content
     await h.bridge.on_decide(request, h.author(ALICE), Verdict.ALLOW)
     assert (await call).startswith("ran say hello")
     assert server.commands == ["say hello"]

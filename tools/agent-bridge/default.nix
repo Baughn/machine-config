@@ -9,6 +9,11 @@ pkgs.python3Packages.buildPythonApplication {
   build-system = [ pkgs.python3Packages.setuptools ];
   dependencies = with pkgs.python3Packages; [ discordpy claude-agent-sdk ];
 
+  postPatch = ''
+    substituteInPlace agent_bridge/shellfmt.py \
+      --replace-fail 'SHFMT = "shfmt"' 'SHFMT = "${pkgs.shfmt}/bin/shfmt"'
+  '';
+
   nativeCheckInputs = with pkgs.python3Packages; [ pytestCheckHook pytest-asyncio hypothesis mypy ];
   preCheck = ''
     mypy

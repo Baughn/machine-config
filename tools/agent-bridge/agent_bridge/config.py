@@ -101,7 +101,7 @@ class Config:
     prompt: str = ""
     cli_path: str | None = None
     model: str | None = None
-    approval_timeout: float = 900.0
+    approval_timeout: float = 3600.0
     attachment_limit: int = 8 * 1024 * 1024
     extra_dirs: tuple[Path, ...] = ()
     rcon_root: Path | None = None  # worlds live in <rcon_root>/<world>
@@ -203,7 +203,7 @@ def parse(data: dict[str, Any], state: Path) -> Config:
         prompt=Path(data["prompt_file"]).read_text() if data.get("prompt_file") else "",
         cli_path=data.get("cli_path"),
         model=data.get("model"),
-        approval_timeout=float(data.get("approval_timeout", 900)),
+        approval_timeout=float(data.get("approval_timeout", 3600)),
         limits=limits,
         fake=bool(data.get("fake", False)),
         extra_dirs=tuple(Path(d) for d in _strings(data, "extra_dirs")),
