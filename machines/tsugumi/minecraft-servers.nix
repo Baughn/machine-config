@@ -185,5 +185,12 @@ in
     '';
 
     environment.systemPackages = [ mcConsole ];
+
+    # The builder checkout and the E36 world carry .envrc files (a command
+    # list, pack-docs) written by the builder; load them without `direnv allow`.
+    programs.direnv.settings.whitelist.exact = [
+      "/home/minecraft/builder/.envrc"
+      "/home/minecraft/erisia/.envrc"
+    ];
   };
 }
