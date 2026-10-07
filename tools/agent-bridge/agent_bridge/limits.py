@@ -11,21 +11,22 @@ from .policy import Kind
 
 @dataclass
 class Streak:
-    """Consecutive agent messages since the last human one, channel-wide."""
+    """Agent messages addressed to us since the last human message, channel-wide.
+    Other agents' chatter doesn't count: a busy agent mustn't silence requests to us."""
 
     count: int = 0
 
-    def observe(self, kind: Kind) -> None:
+    def observe(self, kind: Kind, addressed: bool) -> None:
         if kind is Kind.HUMAN:
             self.count = 0
-        elif kind in (Kind.AGENT, Kind.SELF):
+        elif kind is Kind.AGENT and addressed:
             self.count += 1
 
     @classmethod
-    def from_history(cls, kinds_oldest_first: list[Kind]) -> Streak:
+    def from_history(cls, oldest_first: list[tuple[Kind, bool]]) -> Streak:
         streak = cls()
-        for kind in kinds_oldest_first:
-            streak.observe(kind)
+        for kind, addressed in oldest_first:
+            streak.observe(kind, addressed)
         return streak
 
 

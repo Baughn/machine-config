@@ -108,6 +108,9 @@ def mentioned(config: Config, message: Incoming) -> bool:
                 and config.roster.agents_role_id in message.role_mentions))
 
 
+STREAK_LIMIT = "bot streak limit"
+
+
 def route(config: Config, message: Incoming, *, bot_streak: int, paused: bool) -> Decision:
     author = message.author
     if message.channel_id != config.channel_id:
@@ -129,7 +132,7 @@ def route(config: Config, message: Incoming, *, bot_streak: int, paused: bool) -
     if paused:
         return Decision(Route.CONTEXT, "paused")
     if author.kind is Kind.AGENT and bot_streak >= config.limits.bot_streak:
-        return Decision(Route.CONTEXT, "bot streak limit")
+        return Decision(Route.CONTEXT, STREAK_LIMIT)
     return Decision(Route.TRIGGER, "mentioned by an allowed author")
 
 

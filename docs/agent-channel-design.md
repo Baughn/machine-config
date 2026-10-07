@@ -627,12 +627,15 @@ backstops are the snapshots (which the agent cannot destroy) and the watchdog
 
 - **Silence default** (see Principles). Agents are told explicitly that having
   nothing to say is a complete and correct answer.
-- **Human-anchored bot streak.** Each bridge counts the consecutive agent
-  messages since the last human message, channel-wide: messages in threads
-  count in the same streak, so agents can't loop by moving to a thread. It
-  works this out from the main channel's history at startup, so it needs no
-  shared state. Past 30, messages from
-  agents stop being triggers until a human speaks.
+- **Human-anchored bot streak.** Each bridge counts the agent messages
+  addressed to it (mentions, replies) since the last human message,
+  channel-wide: messages in threads count in the same streak, so agents can't
+  loop by moving to a thread. It works this out from the main channel's
+  history at startup, so it needs no shared state. Past the limit (30; 8 for
+  saya and saya-client), requests from agents stop being triggers until a
+  human speaks; the bridge reacts ✋ to each one it holds, and an asking
+  agent's `ask_agent` returns saying so. (Until 2026-10-07 every agent message
+  counted, so one busy agent's thread silenced requests to the others.)
 - **Per-identity circuit breaker**, deliberately generous: 60 turns/hour,
   10 posts/minute, 120 posts/hour. Tripping it pauses the identity and posts
   one notice mentioning the owner. Only `!resume` clears it.

@@ -20,7 +20,7 @@ from .board import BoardError, BoardTools
 from .config import BASE_EFFORT, Config
 from .limits import Breaker, Streak
 from .policy import (Attachment, Author, Command, Incoming, Kind, Route, command_applies,
-                     may_approve, parse_command, route)
+                     STREAK_LIMIT, may_approve, mentioned, parse_command, route)
 from .prompt import HANDOFF_FILE, handoff_prompt, new_session_preamble, turn_prompt
 from .render import (MAIN, ChatError, File, Outgoing, PostError, Roots, Status, answer_footer, approval_request, context_line,
                      is_status, question_text, render_post, settled, summarize_tool)
@@ -50,6 +50,8 @@ ASK_TIMEOUT_MAX = 60.0
 # An ask_agent call without that within ACK_TIMEOUT seconds gives up: the other
 # bridge is down, restarting (it doesn't catch up on missed messages) or paused.
 RECEIVED = "📨"
+# On an agent's request held back by the bot streak limit: tells an asking bridge why.
+HELD = "✋"
 ACK_TIMEOUT = 120.0
 # The bridge's card on the board's status page: sent on changes and at least
 # every CARD_HEARTBEAT seconds; the board shows it stale after CARD_TTL.
@@ -82,6 +84,10 @@ class Chat(Protocol):
     async def download(self, attachment: Attachment, path: Path) -> None: ...
 
 
+class Held(Exception):
+    """The asked agent's bridge held the question back (bot streak limit)."""
+
+
 @dataclass
 class Waiter:
     """An ask_agent call waiting for that agent's reply to the question."""
@@ -89,6 +95,7 @@ class Waiter:
     agent_id: str
     future: asyncio.Future[Incoming]
     received: asyncio.Event = field(default_factory=asyncio.Event)  # its bridge reacted RECEIVED
+    held: bool = False  # its bridge reacted HELD: it won't take agent requests until a human speaks
 
     async def acknowledged(self, timeout: float) -> bool:
         """Whether the other bridge acknowledged (or answered) within timeout seconds."""
@@ -207,7 +214,7 @@ class Bridge:
         self.resume_ship()
         await self.resume_turn()
         history = await self.chat.history(50)
-        self.streak = Streak.from_history([m.author.kind for m in history])
+        self.streak = Streak.from_history([(m.author.kind, mentioned(self.config, m)) for m in history])
         if self.board is not None:
             self.card_task = asyncio.create_task(self.card_loop())
 
@@ -346,7 +353,7 @@ class Bridge:
             return  # another bridge's status message: it replies to its trigger, but is noise
         decision = route(self.config, message, bot_streak=self.streak.count,
                          paused=self.paused or self.breaker.tripped is not None)
-        self.streak.observe(message.author.kind)
+        self.streak.observe(message.author.kind, mentioned(self.config, message))
         waiter = self.waiters.get(message.reply_to_id or "")
         if (waiter is not None and message.author.id == waiter.agent_id
                 and not is_status(message.content) and not waiter.future.done()):
@@ -359,10 +366,11 @@ class Bridge:
         if decision.route is Route.IGNORE:
             return
         trigger = decision.route is Route.TRIGGER
-        if trigger and message.author.kind is Kind.AGENT:
-            # Tells an asking bridge that we're up and will see this.
+        held = decision.reason == STREAK_LIMIT and mentioned(self.config, message)
+        if (trigger or held) and message.author.kind is Kind.AGENT:
+            # Tells an asking bridge that we're up and will see this, or why we won't act on it.
             try:
-                await self.chat.react(message.id, RECEIVED)
+                await self.chat.react(message.id, RECEIVED if trigger else HELD)
             except Exception:
                 log.exception("could not acknowledge message %s", message.id)
         # Agents' context posts are skipped: every bridge sees them, and plans
@@ -411,8 +419,12 @@ class Bridge:
 
     async def on_reaction(self, message_id: str, message_is_ours: bool, reactor: Author, emoji: str) -> None:
         waiter = self.waiters.get(message_id)
-        if waiter is not None and emoji == RECEIVED and reactor.id == waiter.agent_id:
+        if waiter is not None and emoji in (RECEIVED, HELD) and reactor.id == waiter.agent_id:
             waiter.received.set()
+            if emoji == HELD:
+                waiter.held = True
+                if not waiter.future.done():
+                    waiter.future.set_exception(Held())
             return
         if not may_approve(self.config, reactor):
             return
@@ -516,7 +528,7 @@ class Bridge:
         return (f"ℹ {self.config.id}: {state}; {queued} queued, {len(self.buffer) + self.omitted} unread, "
                 f"{len(self.pending)} pending approvals, {len(self.schedules.items)} schedules, "
                 f"{self.turns} turns since start, "
-                f"agent streak {self.streak.count}, {session}")
+                f"agent requests in a row {self.streak.count}/{self.config.limits.bot_streak}, {session}")
 
     async def say(self, text: str, reply_to: str | None = None) -> None:
         await self.chat.send(Outgoing(text, reply_to=reply_to))
@@ -1000,6 +1012,12 @@ class Bridge:
                         f"paused, and it won't see the question. Don't wait for it: tell the channel, or "
                         f"ask again later.{self.unread()}")
             answer = await asyncio.wait_for(waiter.future, minutes * 60)
+        except Held:
+            self.note(f"{name}: held by its bot streak limit")
+            return (f"{name} got your question (message {message_id}) but won't act on it: it has had "
+                    "too many agent requests in a row since a human last wrote in the channel (its loop "
+                    "guard), and any human message resets that. Don't ask again; tell the channel what "
+                    f"you need from {name} and wait for a human.{self.unread()}")
         except TimeoutError:
             self.note(f"{name}: no answer within {minutes:g} min")
             return (f"No answer from {name} within {minutes:g} minutes (question {message_id}). "

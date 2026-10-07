@@ -116,9 +116,11 @@ def test_bash_commands_are_shown_reformatted() -> None:
 
 
 def test_streak() -> None:
-    streak = Streak.from_history([Kind.HUMAN, Kind.AGENT, Kind.SELF, Kind.WATCHDOG, Kind.AGENT])
-    assert streak.count == 3
-    streak.observe(Kind.HUMAN)
+    # Only agent messages addressed to us count; our own and other agents' chatter don't.
+    streak = Streak.from_history([(Kind.HUMAN, True), (Kind.AGENT, True), (Kind.SELF, True),
+                                  (Kind.WATCHDOG, True), (Kind.AGENT, False), (Kind.AGENT, True)])
+    assert streak.count == 2
+    streak.observe(Kind.HUMAN, False)
     assert streak.count == 0
 
 

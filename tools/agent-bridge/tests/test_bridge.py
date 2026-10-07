@@ -586,7 +586,8 @@ async def test_two_agents_are_stopped_by_the_streak_breaker(tmp_path: Path) -> N
         await settle()
     for runner in runners:
         runner.cancel()
-    assert 6 <= relay.posts <= 8, relay.posts
+    # Each bridge counts only the other's requests: 6 each, plus one in flight.
+    assert 12 <= relay.posts <= 14, relay.posts
 
 
 # --- failures -------------------------------------------------------------------
@@ -889,6 +890,39 @@ async def test_ask_agent_waits_once_acknowledged(tmp_path: Path, monkeypatch: py
     assert not task.done()
     await h.bridge.on_message(from_lab(h, "📄 **done**", question_id))
     assert "done" in await task
+
+
+async def test_other_agents_chatter_does_not_hold_requests(tmp_path: Path) -> None:
+    h = Harness(tmp_path, triggers=["owner", "agent"], approvers=["owner"], limits={"bot_streak": 3})
+    for _ in range(10):
+        await h.say(LAB, "busy elsewhere")
+    asked = await h.say(LAB, "a question for you", mention=True)
+    assert h.chat.reactions == [(asked.id, bridge_module.RECEIVED)]
+    assert h.bridge.buffer[-1].trigger
+
+
+async def test_requests_past_the_streak_limit_are_held_visibly(tmp_path: Path) -> None:
+    h = Harness(tmp_path, triggers=["owner", "agent"], approvers=["owner"], limits={"bot_streak": 2})
+    for _ in range(2):
+        await h.say(LAB, "again", mention=True)
+    held = await h.say(LAB, "and again", mention=True)
+    assert h.chat.reactions[-1] == (held.id, bridge_module.HELD)
+    assert not h.bridge.buffer[-1].trigger
+    await h.say(ALICE, "carry on")  # a human resets it
+    asked = await h.say(LAB, "now?", mention=True)
+    assert h.chat.reactions[-1] == (asked.id, bridge_module.RECEIVED)
+
+
+async def test_ask_agent_reports_a_held_question(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(bridge_module, "ACK_TIMEOUT", 5)
+    h = Harness(tmp_path, ask_agents=["tsugumi-lab"])
+    task = asyncio.create_task(h.bridge.tool_ask_agent({"agent": "tsugumi-lab", "headline": "test this"}))
+    await settle()
+    question_id = list(h.chat.sent)[-1]
+    await h.bridge.on_reaction(question_id, True, h.author(LAB), bridge_module.HELD)
+    result = await asyncio.wait_for(task, 1)
+    assert result.startswith("tsugumi-lab got your question") and "human message resets" in result
+    assert h.bridge.waiters == {}
 
 
 async def test_agent_triggers_are_acknowledged(tmp_path: Path) -> None:
