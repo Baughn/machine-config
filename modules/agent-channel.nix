@@ -84,6 +84,7 @@ let
         description = ''
           Directories besides the workdir that Claude Code treats as part of the
           project: read-only commands and reads there run without asking.
+          /nix/store is always added (it's world-readable and immutable).
         '';
       };
       rcon = {
@@ -201,7 +202,7 @@ let
     cli_path = lib.getExe pkgs.claude-code;
     approval_timeout = i.approvalTimeout;
     idle_reset = i.idleReset;
-    extra_dirs = i.extraDirs;
+    extra_dirs = [ "/nix/store" ] ++ i.extraDirs;
     rcon_root = i.rcon.root;
     rcon_read_only = i.rcon.readOnly;
     rcon_ask = i.rcon.ask;

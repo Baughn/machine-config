@@ -461,7 +461,9 @@ without a prompt); in `default` mode an approver decides.
 only inside the working directories. `extraDirs` (the SDK's `add_dirs`) adds
 to them: for tsugumi-minecraft, `/home/minecraft`, so reading the worlds
 beside its workdir needs no approver (checked by the contract test). Without
-it, every `cat` in a world directory asked.
+it, every `cat` in a world directory asked. Every instance also gets
+`/nix/store`: it is world-readable and immutable, and agents kept being
+asked for reads through symlinks into it (build results, GC roots).
 
 **Skills.** An instance's `skills` (name → path in the repo) are symlinked
 from the Nix store into `<workdir>/.claude/skills/`, where Claude Code
