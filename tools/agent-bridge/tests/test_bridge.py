@@ -238,6 +238,15 @@ async def test_approval_denied(harness: Harness) -> None:
     assert asker.result == Permission(False, "Denied by baughn.")
 
 
+async def test_approval_denied_with_a_reason(harness: Harness) -> None:
+    asker = Asker()
+    turn, request = await start_approval(harness, asker)
+    await harness.bridge.on_decide(request, harness.author(OWNER), Verdict.DENY, "  review the source first ")
+    await turn
+    assert asker.result == Permission(False, "Denied by baughn: review the source first")
+    assert harness.chat.final(request).endswith("❌ denied by baughn: review the source first")
+
+
 async def test_approval_times_out(tmp_path: Path) -> None:
     h = Harness(tmp_path, approval_timeout=0.05)
     asker = Asker()
@@ -335,6 +344,47 @@ async def test_stop_reaction_on_our_message(harness: Harness) -> None:
     await harness.say(ALICE, "@me again", mention=True)
     await run_turn(harness)
     assert len(harness.session.prompts) == 2
+
+
+async def test_stop_button(harness: Harness) -> None:
+    harness.session.script = interruptible
+    await harness.say(ALICE, "@me sleep", mention=True)
+    turn = asyncio.create_task(run_turn(harness))
+    await settle()
+    status = status_id(harness)
+    assert harness.chat.sent[status].stop_button
+    for reactor in (harness.author(LAB), harness.author(CAROL, admin=False)):
+        assert await harness.bridge.on_stop(status, reactor) == "Only approvers can stop it."
+    assert "already over" in await harness.bridge.on_stop("m999", harness.author(ALICE))
+    await settle()
+    assert not turn.done()
+    assert status not in harness.chat.buttons_dropped  # status updates keep the button
+    assert await harness.bridge.on_stop(status, harness.author(ALICE), "  ") == "Stopped."
+    await turn
+    assert harness.chat.final(status).startswith("⏹")
+    assert status in harness.chat.buttons_dropped
+    assert not any(e.trigger for e in harness.bridge.buffer)  # no note: no new turn
+    assert "already over" in await harness.bridge.on_stop(status, harness.author(ALICE))
+
+
+async def test_stop_button_with_a_note_starts_the_next_turn(harness: Harness) -> None:
+    harness.session.script = interruptible
+    await harness.say(ALICE, "@me sleep", mention=True, thread="t1", thread_name="work")
+    turn = asyncio.create_task(run_turn(harness))
+    await settle()
+    status = status_id(harness)
+    note = await harness.bridge.on_stop(status, harness.author(OWNER), "review the installer first")
+    assert "next turn" in note
+    await turn
+    assert harness.session.interrupted.is_set()
+    harness.session.script = lambda s, p: asyncio.sleep(0, TurnResult("session-1"))
+    await run_turn(harness)
+    prompt = harness.session.prompts[-1]
+    assert "may ask you to act: baughn stopped your previous turn and says: review the installer first" in prompt
+    # The next turn's status answers the stopped one, in the same thread.
+    nxt = [i for i, m in harness.chat.sent.items() if "working for" in m.content][-1]
+    assert nxt != status
+    assert harness.chat.sent[nxt].reply_to == status and harness.chat.sent[nxt].thread == "t1"
 
 
 async def test_pause_resume_and_status(harness: Harness) -> None:

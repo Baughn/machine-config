@@ -50,6 +50,8 @@ class Outgoing:
     thread: str | None = None
     # Start a thread with this title from the message (sent in the main channel).
     new_thread: str | None = None
+    # Carries a Stop button (the status message of a running turn).
+    stop_button: bool = False
 
 
 @dataclass(frozen=True)

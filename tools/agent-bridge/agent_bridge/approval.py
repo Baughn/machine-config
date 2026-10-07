@@ -55,6 +55,7 @@ class Pending:
     selections: dict[int, list[str]] = field(default_factory=dict)
     answered_by: dict[int, str] = field(default_factory=dict)
     decided_by: str | None = None
+    reason: str | None = None  # a denial's reason, from the Deny form
 
     def select(self, index: int, labels: list[str], by: str) -> bool:
         """Record an approver's selection. True once every question is answered."""

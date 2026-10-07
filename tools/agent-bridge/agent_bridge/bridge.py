@@ -71,7 +71,8 @@ async def run_command(*argv: str) -> tuple[int, str]:
 
 class Chat(Protocol):
     async def send(self, message: Outgoing) -> str: ...
-    async def edit(self, message_id: str, content: str) -> None: ...
+    # Drops the message's buttons unless keep_buttons.
+    async def edit(self, message_id: str, content: str, keep_buttons: bool = False) -> None: ...
     async def delete(self, message_id: str) -> None: ...
     async def approve(self, message: Outgoing) -> str: ...
     async def ask(self, message: Outgoing, questions: list[dict[str, Any]]) -> str: ...
@@ -418,16 +419,36 @@ class Bridge:
         if emoji == approval.STOP and message_is_ours:
             await self.stop(f"stopped by {reactor.name}")
 
-    async def on_decide(self, message_id: str, reactor: Author, verdict: Verdict) -> str:
-        """An Allow/Deny button. Returns a note for the clicker."""
+    async def on_decide(self, message_id: str, reactor: Author, verdict: Verdict,
+                        reason: str | None = None) -> str:
+        """An Allow/Deny button; a denial may carry a reason. Returns a note for the clicker."""
         if not may_approve(self.config, reactor):
             return "Only approvers can decide."
         pending = self.pending.get(message_id)
         if pending is None or pending.questions is not None or pending.future.done():
             return "This request is no longer open."
         pending.decided_by = reactor.name
+        pending.reason = (reason or "").strip() or None
         pending.decide(verdict)
         return "Allowed." if verdict is Verdict.ALLOW else "Denied."
+
+    async def on_stop(self, message_id: str, reactor: Author, note: str | None = None) -> str:
+        """The Stop button on a status message, with an optional note for the agent's
+        next turn. Returns a note for the clicker."""
+        if not may_approve(self.config, reactor):
+            return "Only approvers can stop it."
+        if self.status is None or message_id != self.status_id:
+            return "That turn is already over."
+        note = (note or "").strip() or None
+        thread = self.turn_thread
+        await self.stop(f"stopped by {reactor.name}")
+        if note is None:
+            return "Stopped."
+        text = f"{reactor.name} stopped your previous turn and says: {note}"
+        message = Incoming(message_id, self.config.channel_id, thread, reactor, text)
+        self.buffer.append(Entry(message, True, context_line(message, True, [])))
+        self.wake.set()
+        return "Stopped; your note starts its next turn."
 
     async def on_select(self, message_id: str, reactor: Author, index: int, labels: list[str]) -> str:
         """An answer to a question's select menu. Returns a note for the clicker."""
@@ -604,14 +625,14 @@ class Bridge:
                 reply_to = None if last.scheduled else trigger.id
                 self.turn_thread = None if last.scheduled else trigger.thread_id
                 self.turn_trigger = None if last.scheduled else trigger.id
-                self.status_where = Outgoing("", reply_to=reply_to, thread=self.turn_thread)
+                self.status_where = Outgoing("", reply_to=reply_to, thread=self.turn_thread, stop_button=True)
                 try:
                     self.status_id = await self.chat.send(replace(self.status_where, content=status.render(now)))
                 except ChatError as error:
                     # E.g. the thread was deleted: work on, visibly, from the main channel.
                     log.warning("status message in thread %s: %s", self.turn_thread, error)
                     self.turn_thread = None
-                    self.status_where = Outgoing("", thread=MAIN)
+                    self.status_where = Outgoing("", thread=MAIN, stop_button=True)
                     self.status_id = await self.chat.send(replace(self.status_where, content=status.render(now)))
                 self.status_since = now
             except Exception:
@@ -741,7 +762,7 @@ class Bridge:
                 shown = text
             elif text != shown:
                 try:
-                    await self.chat.edit(self.status_id, text)
+                    await self.chat.edit(self.status_id, text, keep_buttons=True)
                 except Exception as error:
                     log.warning("status message %s: %s", self.status_id, error)
                     if age >= STATUS_RENEW_FAILED:
@@ -883,7 +904,9 @@ class Bridge:
             if outcome is Verdict.ALLOW:
                 result, footer = Permission(True), f"✅ approved by {by}"
             elif outcome is Verdict.DENY:
-                result, footer = Permission(False, f"Denied by {by}."), f"❌ denied by {by}"
+                because = f": {pending.reason}" if pending.reason else ""
+                result = Permission(False, f"Denied by {by}{because or '.'}")
+                footer = f"❌ denied by {by}{because}"
             else:
                 result = Permission(True, updated_input={**tool_input, "answers": outcome})
                 footer = answer_footer(pending.questions or [], outcome, pending.answered_by)

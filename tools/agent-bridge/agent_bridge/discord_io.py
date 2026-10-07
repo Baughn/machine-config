@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import OrderedDict
+from collections.abc import Awaitable, Callable
 import asyncio
 import io
 import logging
@@ -63,6 +64,8 @@ class DiscordChat:
         self.where: OrderedDict[int, int] = OrderedDict()
         # Thread id -> the owner's user id (see `thread_owner`).
         self.owners: dict[int, str | None] = {}
+        # Message id -> the buttons on it, stopped when an edit or delete drops them.
+        self.views: dict[int, discord.ui.View] = {}
         self.ready = False
         self.tasks: set[asyncio.Task[None]] = set()
         self.failed = False
@@ -252,6 +255,8 @@ class DiscordChat:
         files = [discord.File(io.BytesIO(f.data), filename=f.name) for f in message.files]
         kwargs: dict[str, Any] = dict(content=message.content, files=files or None, reference=reference,
                                       allowed_mentions=mentions)
+        if view is None and message.stop_button:
+            view = StopView(self)
         if view is not None:
             kwargs["view"] = view
         try:
@@ -261,6 +266,10 @@ class DiscordChat:
             raise ChatError(f"Discord refused the message in {where} ({error.text}); the bot may lack "
                             f"{THREAD_PERMISSIONS}. Ask Baughn to grant it.") from error
         self.remember(sent.id, channel.id)
+        if view is not None:
+            self.views[sent.id] = view
+            if isinstance(view, (ApprovalView, QuestionView, StopView)):
+                view.message_id = str(sent.id)
         if message.new_thread is not None:
             try:
                 thread = await sent.create_thread(name=message.new_thread,
@@ -281,24 +290,27 @@ class DiscordChat:
         channel: Any = self.client.get_channel(channel_id) or self.channel
         return channel.get_partial_message(int(message_id))
 
-    async def edit(self, message_id: str, content: str) -> None:
-        # Also drops any buttons or menus: edits only settle or update messages.
+    def drop_view(self, message_id: str) -> None:
+        view = self.views.pop(int(message_id), None)
+        if view is not None:
+            view.stop()
+
+    async def edit(self, message_id: str, content: str, keep_buttons: bool = False) -> None:
+        if keep_buttons:
+            await self.partial(message_id).edit(content=content)
+            return
+        self.drop_view(message_id)
         await self.partial(message_id).edit(content=content, view=None)
 
     async def delete(self, message_id: str) -> None:
+        self.drop_view(message_id)
         await self.partial(message_id).delete()
 
     async def approve(self, message: Outgoing) -> str:
-        view = ApprovalView(self, self.config.approval_timeout)
-        message_id = await self.send(message, view=view)
-        view.message_id = message_id
-        return message_id
+        return await self.send(message, view=ApprovalView(self, self.config.approval_timeout))
 
     async def ask(self, message: Outgoing, questions: list[dict[str, Any]]) -> str:
-        view = QuestionView(self, questions, self.config.approval_timeout)
-        message_id = await self.send(message, view=view)
-        view.message_id = message_id
-        return message_id
+        return await self.send(message, view=QuestionView(self, questions, self.config.approval_timeout))
 
     async def react(self, message_id: str, emoji: str) -> None:
         await self.partial(message_id).add_reaction(emoji)
@@ -331,12 +343,62 @@ class ApprovalView(discord.ui.View):
         async def callback(interaction: Any) -> None:
             chat = self.chat
             author = chat.author(interaction.user, None)
+            if verdict is Verdict.DENY:
+                async def deny(reason: str | None) -> str:
+                    if chat.bridge is None:
+                        return f"selftest: {author.label} denied ({reason})"
+                    return await chat.bridge.on_decide(self.message_id, author, verdict, reason)
+                await interaction.response.send_modal(NoteModal(
+                    "Deny", "Reason for the agent (optional)", deny))
+                return
             if chat.bridge is None:
                 note = f"selftest: {author.label} pressed {verdict.value}"
             else:
                 note = await chat.bridge.on_decide(self.message_id, author, verdict)
             await interaction.response.send_message(note, ephemeral=True)
         return callback
+
+
+class StopView(discord.ui.View):
+    """A Stop button on a running turn's status message. It opens a form for an optional
+    note, which starts the agent's next turn."""
+
+    def __init__(self, chat: DiscordChat) -> None:
+        super().__init__(timeout=None)
+        self.chat = chat
+        self.message_id = ""
+        button: discord.ui.Button[StopView] = discord.ui.Button(label="Stop", style=discord.ButtonStyle.danger)
+        button.callback = self.callback  # type: ignore[method-assign]
+        self.add_item(button)
+
+    async def callback(self, interaction: Any) -> None:
+        chat = self.chat
+        author = chat.author(interaction.user, None)
+
+        async def stop(note: str | None) -> str:
+            if chat.bridge is None:
+                return f"selftest: {author.label} stopped ({note})"
+            return await chat.bridge.on_stop(self.message_id, author, note)
+        await interaction.response.send_modal(NoteModal(
+            f"Stop {chat.config.id}", "Note for its next turn (optional)", stop))
+
+
+class NoteModal(discord.ui.Modal):
+    """A form with one optional text field; `submit` gets the text and returns a note
+    for the clicker."""
+
+    def __init__(self, title: str, label: str, submit: Callable[[str | None], Awaitable[str]]) -> None:
+        super().__init__(title=title[:45])
+        self.submit = submit
+        self.text: discord.ui.TextInput[NoteModal] = discord.ui.TextInput(
+            label=label[:45], style=discord.TextStyle.paragraph, required=False, max_length=500)
+        self.add_item(self.text)
+
+    async def on_submit(self, interaction: Any) -> None:
+        # Stopping waits for the interrupt, which can outlast Discord's 3 s to respond.
+        await interaction.response.defer(ephemeral=True, thinking=True)
+        note = await self.submit(self.text.value or None)
+        await interaction.followup.send(note, ephemeral=True)
 
 
 class QuestionView(discord.ui.View):

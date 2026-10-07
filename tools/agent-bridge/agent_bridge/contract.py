@@ -199,6 +199,40 @@ class Contract:
         self.report("PASS" if ok else "FAIL", "interrupt() stops a long Bash call; the session takes the next query",
                     f"terminal_reason={first.terminal_reason if first else None} next={again.text[:40]!r}")
 
+    async def subagent_interrupt(self) -> None:
+        record = Record()
+        options = self.options(record, allowed_tools=["Agent", "Task", "Bash(sleep 120)"])
+        loop = asyncio.get_running_loop()
+
+        async def interrupt_when_sleeping() -> float:
+            # The PreToolUse hook sees the subagent's Bash call too.
+            while not any(n == "Bash" and "sleep 120" in str(i.get("command", "")) for n, i in record.used):
+                await asyncio.sleep(0.5)
+            await asyncio.sleep(3)
+            await client.interrupt()
+            return loop.time()
+
+        async with ClaudeSDKClient(options) as client:
+            await client.query("Use the Agent tool to start a general-purpose subagent whose only job is to "
+                               "run the Bash command `sleep 120`. Then reply finished.")
+            watcher = asyncio.create_task(interrupt_when_sleeping())
+            async for message in client.receive_response():
+                if isinstance(message, ResultMessage):
+                    record.results.append(message)
+                    break
+            ended = loop.time()
+            stopped = watcher.result() if watcher.done() else None
+            watcher.cancel()
+            first = record.results[-1] if record.results else None
+            again = Record()
+            client_result = await asyncio.wait_for(self.ask(client, again, "Reply with exactly: pong"), 120)
+        took = None if stopped is None else ended - stopped
+        ok = (took is not None and took < 30 and first is not None and first.terminal_reason in INTERRUPTED
+              and not client_result.is_error)
+        self.report("PASS" if ok else "FAIL", "interrupt() stops a turn while a subagent runs a long Bash call",
+                    f"interrupted={stopped is not None} took={took} "
+                    f"terminal_reason={first.terminal_reason if first else None} next={again.text[:40]!r}")
+
     async def resume(self) -> None:
         record = await self.once("Remember the word walrus. Reply ok.")
         session_id = record.results[-1].session_id
@@ -360,7 +394,8 @@ async def main() -> int:
     with tempfile.TemporaryDirectory(prefix="agent-bridge-contract-") as root:
         contract = Contract(Path(root), token, cli, model)
         checks = [contract.pairing, contract.default_mode, contract.deny_wins, contract.auto_ask,
-                  contract.question, contract.mcp_and_hooks, contract.interrupt, contract.resume,
+                  contract.question, contract.mcp_and_hooks, contract.interrupt,
+                  contract.subagent_interrupt, contract.resume,
                   contract.extra_dirs, contract.auto_mcp, contract.skills, contract.user_bypass_ignored, contract.hot_reload,
                   contract.mid_turn]
         if os.environ.get("CONTRACT_LONG"):

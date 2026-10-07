@@ -263,9 +263,13 @@ schedules, and at most 6 spool batches start per hour; the rest wait.
 every identity's `allow` list; `WebFetch` is left to the permission mode.
 The base prompt treats both as data, like text from Minecraft.
 
-**Interrupts:** `!stop <id>`, or a 🛑 reaction from an approver on any message
-from that agent, calls `client.interrupt()` and fails any pending approval
-with a deny. The session continues.
+**Interrupts:** the **Stop** button on a running turn's status message,
+`!stop <id>`, or a 🛑 reaction from an approver on any message from that
+agent, calls `client.interrupt()` and fails any pending approval with a deny.
+The session continues. The button opens a form with an optional note; a note
+starts the agent's next turn ("baughn stopped your previous turn and says: …"),
+as a reply to the stopped turn's status message. Status updates keep the
+button; the final edit removes it.
 
 **Auth:** `CLAUDE_CODE_OAUTH_TOKEN` from agenix, passed via the SDK's `env`.
 All identities share the one subscription. *Accepted risk:* the token is
@@ -585,7 +589,8 @@ or non-approver is ignored (they get a private "only approvers can decide"),
 and the settled request is edited to say who decided, with the buttons
 removed. (The first version used ✅/❌ reactions; buttons are clearer and
 don't need the bot to pre-add reactions.) After a timeout (default 60 min) the call is
-denied. `PermissionResultDeny(message=…)` tells the agent why. The callback
+denied. `PermissionResultDeny(message=…)` tells the agent why. **Deny** opens a
+form with an optional reason, passed on as "Denied by baughn: <reason>". The callback
 may stay pending indefinitely, so the timeout is ours, not the SDK's.
 
 **Questions.** The built-in `AskUserQuestion` tool reaches `can_use_tool`
@@ -1280,7 +1285,7 @@ that:
   effect under `setting_sources=["project"]`.
 - In-process MCP tools are callable, and hooks fire with the expected fields.
 - `interrupt()` stops a long Bash call, and the session accepts the next
-  `query()`.
+  `query()`. The same while a subagent runs the call (`subagent_interrupt`).
 - `resume=` after a disconnect continues the conversation.
 - What a mid-turn `query()` does. This is recorded and decides whether
   `inbox` stays.
@@ -1447,5 +1452,5 @@ Changes to existing config:
   to run as different users.
 - Threads, if channel volume demands them.
 - Discord application (slash) commands in place of `!stop`/`!status`, and a
-  richer UI with buttons (stop, status, log) on the status message.
+  richer UI with buttons (status, log) on the status message; Stop exists.
 - Idmapped mounts for lab clones instead of chown.
