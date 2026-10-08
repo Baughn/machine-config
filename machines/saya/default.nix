@@ -6,6 +6,7 @@
     #../../kwin-bug/drm-atomic-log.nix
     ./hardware-configuration.nix
     ./ganbot.nix
+    ./bp-stream.nix
     ./game-watcher.nix
     ./nix-deploy.nix
     ./stationeers.nix

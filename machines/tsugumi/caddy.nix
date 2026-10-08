@@ -103,6 +103,19 @@
         reverse_proxy http://127.0.0.1:8124
       }
 
+      # Blue Prince stream from saya (~/dev/blueprince/headless): public, view-only.
+      # /bp/* is MediaMTX LL-HLS (unstripped: its redirects use absolute paths);
+      # the rest is the viewer page + narrator digest.
+      bp.brage.info {
+        import headers
+        handle /bp/* {
+          reverse_proxy http://saya.local:8888
+        }
+        handle {
+          reverse_proxy http://saya.local:8890
+        }
+      }
+
       comfyui.brage.info {
         import headers
         import password
