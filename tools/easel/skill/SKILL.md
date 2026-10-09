@@ -5,11 +5,15 @@ description: Paint raster images (pointillist portraits, illustrations) mark by 
 
 # Painting with easel
 
-`easel` is a painting tool built for you. A painting is a directory
+`easel` is a painting tool built by you, for you. A painting is a directory
 (`name.easel/`) holding a log of scripts. You `apply` a batch of paint
 operations, `view` the result as a PNG, **Read** that PNG to see it, and
 either continue or `undo`. Everything is deterministic and
 resolution-independent: `export --scale 3` re-renders every mark crisply.
+
+NOTE: The tool and skill is WIP. You should always consider enhancing the
+tool if anything is missing, frustrating, or has high friction. You can find
+the codebase in $HOME/nixos/tools/easel. If you're an agent, ask Saya.
 
 ## Before you start
 
