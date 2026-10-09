@@ -25,6 +25,7 @@ in
   "minecraft-access-discord-secret.age".publicKeys = [ svein tsugumi ];
   "minecraft-watch-webhook.age".publicKeys = [ svein saya tsugumi ];
   "agent-claude-token.age".publicKeys = [ svein saya tsugumi ];
+  "agent-ea-pat.age".publicKeys = [ svein saya tsugumi ];
   "agent-tsugumi-minecraft-discord.age".publicKeys = [ svein tsugumi ];
   "agent-tsugumi-lab-discord.age".publicKeys = [ svein tsugumi ];
   "agent-saya-discord.age".publicKeys = [ svein saya ];
