@@ -1,15 +1,27 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 # Agent-channel identities on tsugumi. See docs/agent-channel-design.md.
 let
   # saya's client tester (machines/saya/agent-client.nix), once it's in the roster.
   client = lib.optional ((import ../../lib/agent-roster.nix).agents ? saya-client) "saya-client";
   crashTrigger = "A Minecraft server crashed. Use the crash-analysis skill on the pending snapshot(s).";
+  # Git credential helper handing the lab's GitHub PAT (Baughn, 2026-10-09: so it can
+  # publish its Electrical Age port) to https://github.com. Only answers `get`.
+  labGitCredential = pkgs.writeShellScript "lab-git-credential" ''
+    [[ "$1" == get ]] || exit 0
+    echo username=x-access-token
+    echo "password=$(< ${config.age.secrets.agent-ea-pat.path})"
+  '';
 in
 {
   age.secrets = {
     agent-claude-token.file = ../../secrets/agent-claude-token.age;
     agent-tsugumi-minecraft-discord.file = ../../secrets/agent-tsugumi-minecraft-discord.age;
     agent-tsugumi-lab-discord.file = ../../secrets/agent-tsugumi-lab-discord.age;
+    agent-ea-pat = {
+      file = ../../secrets/agent-ea-pat.age;
+      owner = config.me.minecraft.lab.user;
+      mode = "0400";
+    };
   };
 
   # The lab agent lives in the lab's network namespace, beside its servers.
@@ -104,6 +116,12 @@ in
       ]) [ "AdventurAgent" "adventuragent" ]);
       askAgents = [ "tsugumi-minecraft" "saya" ] ++ client;
       path = [ config.system.build.minecraft-lab-client ];
+      # git push to https://github.com/… authenticates with the PAT, no setup needed.
+      environment = {
+        GIT_CONFIG_COUNT = "1";
+        GIT_CONFIG_KEY_0 = "credential.https://github.com.helper";
+        GIT_CONFIG_VALUE_0 = "${labGitCredential}";
+      };
       # For testing crash analysis on clones whose lab.env enables it.
       skills.crash-analysis = ./agents/skills/crash-analysis;
       triggerSources.crash-analysis = crashTrigger;
