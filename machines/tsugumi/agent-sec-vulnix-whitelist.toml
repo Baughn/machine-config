@@ -1,0 +1,7 @@
+# vulnix whitelist for tsugumi's security watch (agent-sec.nix): findings Baughn has accepted.
+# Format: https://github.com/nix-community/vulnix#whitelist
+#
+# ["package-1.2.3"]
+# cve = [ "CVE-2026-00000" ]
+# comment = "Why it doesn't apply here"
+# until = "2026-12-31"
