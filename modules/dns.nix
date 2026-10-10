@@ -1,4 +1,4 @@
-{ ... }:
+{ lib, ... }:
 
 {
   services.resolved = {
@@ -23,4 +23,12 @@
       DNSOverTLS = "yes";
     };
   };
+
+  # resolved (LLMNR, mDNS) and avahi listen on UDP 5353/5355. The LAN interfaces also carry
+  # public IPv6, so a plain open port reaches them from the internet (Garibaldi's review,
+  # 2026-10-10). Accept local name resolution only from the home LAN and link-local.
+  networking.firewall.extraCommands = lib.concatMapStrings (port: ''
+    iptables -A nixos-fw -p udp --dport ${toString port} -s 192.168.0.0/16 -j nixos-fw-accept
+    ip6tables -A nixos-fw -p udp --dport ${toString port} -s fe80::/10 -j nixos-fw-accept
+  '') [ 5353 5355 ];
 }

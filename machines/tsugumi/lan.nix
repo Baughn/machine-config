@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ ... }:
 
 {
   services.udev.extraRules = ''
@@ -38,12 +38,5 @@
     firewall.allowedUDPPorts = [
       34197
     ];
-    # mDNS (5353) and LLMNR (5355) only from the LAN: lan also carries the public IPv6
-    # prefix, so a plain open port exposed resolved to the internet (Garibaldi's review,
-    # 2026-10-10; Baughn asked).
-    firewall.extraCommands = lib.concatMapStrings (port: ''
-      iptables -A nixos-fw -p udp --dport ${toString port} -s 192.168.0.0/24 -j nixos-fw-accept
-      ip6tables -A nixos-fw -p udp --dport ${toString port} -s fe80::/10 -j nixos-fw-accept
-    '') [ 5353 5355 ];
   };
 }

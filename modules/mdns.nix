@@ -20,6 +20,8 @@ in
       enable = true;
       nssmdns4 = false;
       nssmdns6 = false;
+      # dns.nix opens 5353 to the LAN only; avahi's own rule would open it to everyone.
+      openFirewall = false;
       publish = lib.mkIf cfg.publish {
         enable = true;
         addresses = true;
