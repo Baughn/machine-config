@@ -47,11 +47,12 @@ let
 
   inventoryScript = pkgs.writers.writePython3 "${id}-inventory" { flakeIgnore = [ "E501" ]; }
     (builtins.readFile ./agent-sec-inventory.py);
-  # 2a02:8080::/29 is Virgin Media Ireland, tsugumi's and saya's ISP (Baughn: "deny the entire ISP").
+  # The home ISP's whole range (Baughn: "deny the entire ISP"): 2001:bb6::/32 (NGA/eir, what
+  # tsugumi and saya have now) and 2a02:8080::/29 (Virgin Media Ireland, the older prefix in lan.nix).
   denied = [
     "localhost" "link-local" "multicast"
     "10.0.0.0/8" "172.16.0.0/12" "192.168.0.0/16" "100.64.0.0/10" "fc00::/7"
-    "2a02:8080::/29"
+    "2001:bb6::/32" "2a02:8080::/29"
   ];
 in
 lib.mkIf ready {
