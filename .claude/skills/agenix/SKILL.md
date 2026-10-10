@@ -15,7 +15,7 @@ description: >
 
 ```
 secrets/
-├── secrets.nix    # Which public keys can decrypt each .age file
+├── agenix-rules.nix  # Which public keys can decrypt each .age file
 └── *.age          # Encrypted secret files
 ```
 
@@ -23,18 +23,18 @@ Secrets are decrypted at NixOS activation time to `/run/agenix/<name>` (tmpfs, n
 
 ## Key architecture
 
-Always read `secrets/secrets.nix` first. It defines:
+Always read `secrets/agenix-rules.nix` first. It defines:
 
 - Machine host keys (from `/etc/ssh/ssh_host_ed25519_key.pub`)
 - User SSH keys (for encrypting during development)
 - `allKeys` — convenience list of all keys
 
-Don't trust any cached key list — secrets.nix is the source of truth for
+Don't trust any cached key list — agenix-rules.nix is the source of truth for
 which keys exist and which machines they belong to.
 
 ## Adding a new secret
 
-### 1. Register in secrets.nix
+### 1. Register in agenix-rules.nix
 
 ```nix
 # Single machine + user:
@@ -47,13 +47,13 @@ which keys exist and which machines they belong to.
 
 **NEVER use `agenix -e`** (interactive editor, unusable by Claude).
 
-Collect recipient keys from secrets.nix for the entry, then use `age` directly:
+Collect recipient keys from agenix-rules.nix for the entry, then use `age` directly:
 
 ```bash
 # From a string (use echo -n to avoid trailing newline):
 echo -n "secret value" | nix run nixpkgs#age -- --encrypt \
-  -r "ssh-ed25519 <machine host key from secrets.nix>" \
-  -r "ssh-ed25519 <svein user key from secrets.nix>" \
+  -r "ssh-ed25519 <machine host key from agenix-rules.nix>" \
+  -r "ssh-ed25519 <svein user key from agenix-rules.nix>" \
   -o secrets/my-secret.age
 
 # From a file:
@@ -105,9 +105,9 @@ nix run nixpkgs#age -- --decrypt -i /home/svein/.ssh/id_ed25519 secrets/my-secre
 ## Updating an existing secret
 
 Same as creating — overwrite the `.age` file with new encrypted content.
-The recipient keys must match what `secrets.nix` specifies.
+The recipient keys must match what `agenix-rules.nix` specifies.
 
-## Rekeying (after adding/removing keys in secrets.nix)
+## Rekeying (after adding/removing keys in agenix-rules.nix)
 
 ```bash
 cd /home/svein/nixos/secrets && agenix -r

@@ -152,7 +152,7 @@ tests/
   *-vm.nix                 # NixOS VM tests (agent-channel, minecraft-*, punch, saya-installer, ...)
   test_*.py                # unit tests for the Python helper scripts
 secrets/
-  secrets.nix
+  agenix-rules.nix
   *.age
 kwin-bug/                  # NVIDIA modeset bug investigation (see above)
 agents/rust.md             # Rust code-quality guidelines for AI agents
