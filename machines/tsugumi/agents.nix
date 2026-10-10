@@ -109,11 +109,9 @@ in
       board.socket = "/run/agent-board/api.sock";
       extraDirs = [ "/srv/minecraft-lab" "/srv/lab-handover" "/srv/lab-outbox" ];
       rcon.root = "/srv/minecraft-lab";
-      # Serving the client tester needs no approver (Baughn, msg 1555957535054241905):
-      # whitelist and op its offline account, and undo both. Added to the defaults.
-      rcon.readOnly = lib.mkOptionDefault (lib.concatMap (name: [
-        "whitelist add ${name}" "whitelist remove ${name}" "op ${name}" "deop ${name}"
-      ]) [ "AdventurAgent" "adventuragent" ]);
+      # Any console command on its clones, without an approver or the classifier (Baughn,
+      # msg 1558472455818055812: "Nothing there they couldn't do from the filesystem already").
+      rcon.ask = [ ];
       askAgents = [ "tsugumi-minecraft" "saya" ] ++ client;
       path = [ config.system.build.minecraft-lab-client ];
       # git push to https://github.com/… authenticates with the PAT, no setup needed.
@@ -160,6 +158,7 @@ in
         "Bash(systemctl stop minecraft-lab@*)"
         "Bash(systemctl restart minecraft-lab@*)"
         "Bash(minecraft-lab destroy *)"
+        "mcp__bridge__rcon"
       ];
       ask = [
         "Bash(rm -r *)"
