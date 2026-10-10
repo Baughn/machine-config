@@ -91,11 +91,6 @@
         reverse_proxy unix//run/caddy-static/http.sock
       }
 
-      grafana.brage.info {
-        import headers
-        reverse_proxy http://localhost:1230
-      }
-
       map.brage.info {
         import headers
         import readonly-map

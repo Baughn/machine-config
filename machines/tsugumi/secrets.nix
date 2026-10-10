@@ -28,12 +28,6 @@
       mode = "0400";
     };
 
-    "grafana-admin-password" = {
-      file = ../../secrets/grafana-admin-password.age;
-      owner = "grafana";
-      mode = "0400";
-    };
-
     "redis-password" = {
       file = ../../secrets/redis-password.age;
       owner = "redis-default";

@@ -1,7 +1,6 @@
-{ config, pkgs, ... }:
+{ ... }:
 
 let
-  grafanaPort = 1230;
   prometheusPort = 9090;
   alertmanagerPort = 9093;
   nodeExporterPort = 9100;
@@ -24,10 +23,6 @@ in
       {
         job_name = "alertmanager";
         static_configs = [{ targets = [ "127.0.0.1:${toString alertmanagerPort}" ]; }];
-      }
-      {
-        job_name = "grafana";
-        static_configs = [{ targets = [ "127.0.0.1:${toString grafanaPort}" ]; }];
       }
     ];
     rules = [
@@ -94,65 +89,7 @@ in
     };
   };
 
-  services.grafana = {
-    enable = true;
-    settings = {
-      server = {
-        http_port = grafanaPort;
-        http_addr = "127.0.0.1";
-        domain = "grafana.brage.info";
-        root_url = "https://grafana.brage.info/";
-      };
-      security = {
-        admin_user = "admin";
-        admin_password = "$__file{${config.age.secrets."grafana-admin-password".path}}";
-        disable_gravatar = true;
-        secret_key = "$__file{${config.age.secrets."grafana-admin-password".path}}";
-      };
-      "auth.anonymous".enabled = false;
-      users = {
-        allow_sign_up = false;
-        allow_org_create = false;
-        auto_assign_org = true;
-        auto_assign_org_role = "Viewer";
-      };
-      analytics = {
-        reporting_enabled = false;
-        check_for_updates = false;
-      };
-    };
-    provision = {
-      enable = true;
-      datasources.settings.datasources = [{
-        name = "Prometheus";
-        type = "prometheus";
-        access = "proxy";
-        url = "http://127.0.0.1:${toString prometheusPort}";
-        isDefault = true;
-      }];
-      dashboards.settings.providers = [{
-        name = "default";
-        type = "file";
-        options.path = pkgs.writeTextDir "system-overview.json" (builtins.toJSON {
-          dashboard = {
-            id = null;
-            title = "System Overview";
-            tags = [ "system" ];
-            timezone = "browser";
-            panels = [ ];
-            time = {
-              from = "now-1h";
-              to = "now";
-            };
-            refresh = "5s";
-          };
-        });
-      }];
-    };
-  };
-
   networking.firewall.interfaces.lo.allowedTCPPorts = [
-    grafanaPort
     prometheusPort
     alertmanagerPort
     nodeExporterPort
@@ -161,9 +98,5 @@ in
   systemd.services.prometheus = {
     wants = [ "prometheus-node-exporter.service" ];
     after = [ "prometheus-node-exporter.service" ];
-  };
-  systemd.services.grafana = {
-    wants = [ "prometheus.service" ];
-    after = [ "prometheus.service" ];
   };
 }
