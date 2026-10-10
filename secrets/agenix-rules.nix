@@ -28,6 +28,7 @@ in
   "agent-ea-pat.age".publicKeys = [ svein saya tsugumi ];
   "agent-tsugumi-minecraft-discord.age".publicKeys = [ svein tsugumi ];
   "agent-tsugumi-lab-discord.age".publicKeys = [ svein tsugumi ];
+  "agent-tsugumi-security-discord.age".publicKeys = [ svein tsugumi ];
   "agent-saya-discord.age".publicKeys = [ svein saya ];
   "agent-saya-client-discord.age".publicKeys = [ svein saya ];
   "agent-tsugumi-sec-discord.age".publicKeys = [ svein tsugumi ];
