@@ -175,3 +175,14 @@ def test_post_thread_argument() -> None:
         render_post({**base, "thread": "new: T", "reply_to": "5"}, owner_id="1", roots=roots)
     with pytest.raises(PostError):
         render_post({**base, "thread": "new: tok-secret"}, owner_id="1", roots=roots, tokens=("tok-secret",))
+
+
+def test_context_line_says_what_a_message_replies_to() -> None:
+    from agent_bridge.policy import Author, Incoming, Kind
+    from agent_bridge.render import context_line
+    author = Author("1", "baughn", Kind.HUMAN, "owner")
+    reply = Incoming("9", "c", None, author, "accepted risk", reply_to_id="8", reply_to_name="Garibaldi")
+    assert context_line(reply, False, []) == \
+        "[9] baughn (human, owner) (reply to 8 by Garibaldi), context only: accepted risk"
+    plain = Incoming("10", "c", None, author, "hi")
+    assert context_line(plain, True, []) == "[10] baughn (human, owner), may ask you to act: hi"

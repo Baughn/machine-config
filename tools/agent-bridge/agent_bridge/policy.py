@@ -53,6 +53,15 @@ class Incoming:
     thread_name: str | None = None
     # Whose thread it is: the author of the message it hangs off, else its creator.
     thread_owner: str | None = None
+    reply_to_name: str | None = None  # who wrote the message this replies to, for display
+
+    @property
+    def reply_note(self) -> str:
+        """` (reply to <id> by <name>)` for a reply, else empty."""
+        if self.reply_to_id is None:
+            return ""
+        by = f" by {self.reply_to_name}" if self.reply_to_name else ""
+        return f" (reply to {self.reply_to_id}{by})"
 
 
 class Route(enum.Enum):

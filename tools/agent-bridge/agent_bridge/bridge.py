@@ -1080,7 +1080,7 @@ class Bridge:
             raise ToolError(f"{error}{self.unread()}") from error
         heard = [m for m in messages if m.author.kind in (Kind.AGENT, Kind.SELF, Kind.WATCHDOG)
                  or (m.author.kind is Kind.HUMAN and m.author.role is not None)]
-        lines = [f"[{m.id}] {m.author.label}: {m.content}" for m in heard]
+        lines = [f"[{m.id}] {m.author.label}{m.reply_note}: {m.content}" for m in heard]
         return "\n".join(lines) + self.unread()
 
     async def tool_rcon(self, args: dict[str, Any]) -> str:

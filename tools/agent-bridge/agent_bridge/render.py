@@ -305,7 +305,7 @@ def context_line(message: Incoming, trigger: bool, attachments: list[str]) -> st
         name = f" \"{message.thread_name}\"" if message.thread_name else ""
         where = f" in thread{name} {message.thread_id}"
     marker = "may ask you to act" if trigger else "context only"
-    line = f"[{message.id}{where}] {message.author.label}, {marker}: {message.content}"
+    line = f"[{message.id}{where}] {message.author.label}{message.reply_note}, {marker}: {message.content}"
     if attachments:
         line += "\n  attachments: " + ", ".join(attachments)
     return line

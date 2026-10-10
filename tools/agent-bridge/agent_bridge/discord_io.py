@@ -113,7 +113,7 @@ class DiscordChat:
     async def convert(self, message: Any, channel: Any = None) -> Incoming:
         channel = channel or message.channel
         thread = isinstance(channel, discord.Thread)
-        reply_to_author = reply_to_id = None
+        reply_to_author = reply_to_id = reply_to_name = None
         reference = message.reference
         if reference is not None and reference.message_id is not None:
             resolved = reference.resolved
@@ -126,6 +126,7 @@ class DiscordChat:
             reply_to_id = str(reference.message_id)
             if isinstance(resolved, discord.Message):
                 reply_to_author = str(resolved.author.id)
+                reply_to_name = self.author(resolved.author, resolved.webhook_id).name
         self.remember(message.id, channel.id)
         return Incoming(
             id=str(message.id),
@@ -138,6 +139,7 @@ class DiscordChat:
             reply_to_author=reply_to_author,
             attachments=tuple(Attachment(a.filename, a.url, a.size) for a in message.attachments),
             reply_to_id=reply_to_id,
+            reply_to_name=reply_to_name,
             thread_name=channel.name if thread else None,
             thread_owner=await self.thread_owner(channel) if thread else None,
         )
