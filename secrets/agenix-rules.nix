@@ -31,7 +31,6 @@ in
   "agent-tsugumi-security-discord.age".publicKeys = [ svein tsugumi ];
   "agent-saya-discord.age".publicKeys = [ svein saya ];
   "agent-saya-client-discord.age".publicKeys = [ svein saya ];
-  "agent-tsugumi-sec-discord.age".publicKeys = [ svein tsugumi ];
   # agent-board-discord's read-only bot (machines/tsugumi/agent-board-discord.nix).
   "agent-board-discord.age".publicKeys = [ svein tsugumi ];
   "agent-board-saya-token.age".publicKeys = [ svein saya tsugumi ];

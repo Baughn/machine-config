@@ -32,6 +32,13 @@
       displayName = "Saya";
       description = "Runs as `saya-agent` on saya; edits machine-config; acts only for Baughn.";
     };
+    tsugumi-sec = {
+      discordId = "1558449510089359371";
+      displayName = "Garibaldi";
+      description = "Runs as `tsugumi-sec` on tsugumi; daily security watch over tsugumi's network-facing code, sandboxed.";
+      # It reads hostile text all day: its messages are context for every bridge, never triggers.
+      contextOnly = true;
+    };
     saya-client = {
       discordId = "1555949975672987688";
       displayName = "AdventurAgent";

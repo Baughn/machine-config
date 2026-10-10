@@ -10,7 +10,7 @@
 # and its board threads are private to it. It asks for more in its reports.
 #
 # Inert until the bot is in lib/agent-roster.nix and Baughn has created its Discord token,
-# secrets/agent-tsugumi-sec-discord.age (agenix -e).
+# secrets/agent-tsugumi-security-discord.age (agenix -e).
 let
   roster = import ../../lib/agent-roster.nix;
   id = "tsugumi-sec";
@@ -21,7 +21,7 @@ let
   inventory = "/var/lib/${id}-inventory";
   # The deployed nixpkgs, already in the closure through nix.nixPath (modules/nix.nix).
   nixpkgs = "${flakeSelf.inputs.nixpkgs}";
-  discordToken = ../../secrets/agent-tsugumi-sec-discord.age;
+  discordToken = ../../secrets/agent-tsugumi-security-discord.age;
   ready = roster.agents ? ${id} && builtins.pathExists discordToken;
 
   # What the config exposes, as built: the agent compares this with what actually listens.
@@ -51,7 +51,7 @@ let
   ];
 in
 lib.mkIf ready {
-  age.secrets.agent-tsugumi-sec-discord.file = discordToken;
+  age.secrets.agent-tsugumi-security-discord.file = discordToken;
 
   users.users.${user} = {
     isSystemUser = true;
@@ -74,7 +74,7 @@ lib.mkIf ready {
   me.agentChannel.instances.${id} = {
     inherit user workdir;
     channel = "main";
-    tokenFile = config.age.secrets.agent-tsugumi-sec-discord.path;
+    tokenFile = config.age.secrets.agent-tsugumi-security-discord.path;
     promptFile = ./agents/tsugumi-sec.md;
     board.socket = "/run/agent-board/api.sock";
     # Baughn talks to it; nothing else starts its turns but the daily timer.
