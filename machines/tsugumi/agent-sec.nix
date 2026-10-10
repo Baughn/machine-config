@@ -31,7 +31,11 @@ let
       inherit (fw) allowedTCPPorts allowedUDPPorts allowedTCPPortRanges allowedUDPPortRanges;
       interfaces = lib.mapAttrs (_: v: { inherit (v) allowedTCPPorts allowedUDPPorts; }) fw.interfaces;
     };
-    caddy = lib.mapAttrs (_: v: { inherit (v) serverAliases extraConfig; }) config.services.caddy.virtualHosts;
+    caddy = {
+      # Most sites live in extraConfig, not virtualHosts.
+      inherit (config.services.caddy) globalConfig extraConfig;
+      virtualHosts = lib.mapAttrs (_: v: { inherit (v) serverAliases extraConfig; }) config.services.caddy.virtualHosts;
+    };
     openssh = {
       inherit (config.services.openssh) ports;
       settings = lib.filterAttrs (_: v: v != null) config.services.openssh.settings;
@@ -154,7 +158,7 @@ lib.mkIf ready {
 
   systemd.services."${id}-inventory" = {
     description = "Daily inventory for the security watch (${id})";
-    path = [ pkgs.iproute2 pkgs.vulnix config.nix.package ];
+    path = [ pkgs.iproute2 pkgs.vulnix config.nix.package config.systemd.package ];
     environment = {
       VULNIX_CACHE = "/var/cache/${id}-vulnix";
       VULNIX_WHITELIST = "${./agent-sec-vulnix-whitelist.toml}";

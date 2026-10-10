@@ -20,6 +20,13 @@ import sys
 import time
 
 STORE = re.compile(r"/nix/store/[0-9a-z]{32}-([^/]+)")
+# Output suffixes on store path names (openssl-3.4.1-bin): not part of the version.
+OUTPUTS = re.compile(r"-(bin|dev|lib|out|man|doc|devdoc|info|debug|etc|dist|py|terminfo|static|"
+                     r"modules|data|env|share|getent|mount|login|tools)$")
+VERSIONED = re.compile(r"^(\S+?)-([0-9]\S*)$")
+UNIT_PROPERTIES = ["User", "DynamicUser", "ProtectSystem", "ProtectHome", "PrivateTmp", "PrivateDevices",
+                   "NoNewPrivileges", "CapabilityBoundingSet", "RestrictAddressFamilies",
+                   "SystemCallFilter", "ReadWritePaths", "IPAddressDeny"]
 
 
 def store_name(path: str) -> str | None:
@@ -46,14 +53,45 @@ def listening() -> list[dict[str, object]]:
                 unit = Path(f"/proc/{pid}/cgroup").read_text().strip().rsplit("/", 1)[-1]
             except OSError:
                 unit = ""
-            processes.append({"name": name, "pid": int(pid), "exe": exe, "package": store_name(exe), "unit": unit})
+            processes.append({"name": name, "pid": int(pid), "exe": exe, "package": store_name(exe), "unit": unit,
+                              "unit_settings": unit_settings(unit)})
         sockets.append({"proto": proto, "local": local, "processes": processes})
     return sockets
 
 
-def vulnix() -> dict[str, object]:
+def unit_settings(unit: str, cache: dict[str, dict[str, str]] = {}) -> dict[str, str]:
+    """The unit's user and hardening, as systemd reports them."""
+    if not unit.endswith(".service"):
+        return {}
+    if unit not in cache:
+        result = subprocess.run(["systemctl", "show", unit, "--property=" + ",".join(UNIT_PROPERTIES)],
+                                capture_output=True, text=True)
+        cache[unit] = dict(line.split("=", 1) for line in result.stdout.splitlines() if "=" in line)
+    return cache[unit]
+
+
+def packages(out: Path) -> Path:
+    """A vulnix packages.json from the system closure's store path names. tsugumi has no .drv
+    files (systems are built on saya and copied), so vulnix can't read derivations; this loses
+    the patch lists, so expect more false positives."""
+    closure = subprocess.run(["nix-store", "--query", "--requisites", "/run/current-system"],
+                             capture_output=True, text=True, check=True).stdout.split()
+    found = {}
+    for path in closure:
+        name = store_name(path)
+        if name is None or name.endswith((".drv", ".patch", ".tar.gz", ".tar.xz", ".zip")):
+            continue
+        name = OUTPUTS.sub("", name)
+        if VERSIONED.match(name):
+            found[name] = {"name": name, "patches": []}
+    target = out / ".packages.json"
+    target.write_text(json.dumps(found))
+    return target
+
+
+def vulnix(out: Path) -> dict[str, object]:
     cache = os.environ["VULNIX_CACHE"]
-    argv = ["vulnix", "--system", "--json", "--cache-dir", cache]
+    argv = ["vulnix", "--json", "--cache-dir", cache, "--from-file", str(packages(out))]
     if os.environ.get("VULNIX_WHITELIST"):
         argv += ["--whitelist", os.environ["VULNIX_WHITELIST"]]
     result = subprocess.run(argv, capture_output=True, text=True, timeout=3600)
@@ -62,7 +100,10 @@ def vulnix() -> dict[str, object]:
         findings = json.loads(result.stdout) if result.stdout.strip() else []
     except json.JSONDecodeError:
         findings = []
-    return {"exit": result.returncode, "findings": findings, "stderr": result.stderr[-4000:]}
+    if result.returncode not in (0, 2) or not isinstance(findings, list):
+        raise RuntimeError(f"vulnix exited {result.returncode}: {result.stderr.strip()[-1500:]}")
+    return {"exit": result.returncode, "findings": findings, "stderr": result.stderr[-4000:],
+            "note": "matched by store path name and version only; patches are not considered"}
 
 
 def mods() -> dict[str, list[str]]:
@@ -98,18 +139,18 @@ def main() -> None:
     shutil.copyfile(exposed, out / ".exposed.tmp")
     (out / ".exposed.tmp").chmod(0o640)
     (out / ".exposed.tmp").rename(out / "exposed.json")
-    for name, collect in (("listening.json", listening), ("mods.json", mods), ("vulnix.json", vulnix)):
+    for name, collect in (("listening.json", listening), ("mods.json", mods), ("vulnix.json", lambda: vulnix(out))):
         try:
             write(out, name, collect())
         except Exception as error:  # one failed collector shouldn't stop the others
             problems.append(f"{name}: {error}")
             write(out, name, {"error": str(error)})
-    found = 0
     try:
-        found = len(json.loads((out / "vulnix.json").read_text()).get("findings", []))
-    except (OSError, ValueError, AttributeError):
-        pass
-    note = f"Inventory in {out}: system, exposed, listening, mods, vulnix ({found} vulnix findings)."
+        data = json.loads((out / "vulnix.json").read_text())
+        found = f"{len(data['findings'])} vulnix findings" if "findings" in data else "vulnix FAILED"
+    except (OSError, ValueError, KeyError, TypeError):
+        found = "vulnix FAILED"
+    note = f"Inventory in {out}: system, exposed, listening, mods, vulnix ({found})."
     if problems:
         note += " Collector problems: " + "; ".join(problems)
     account = pwd.getpwnam(user)
