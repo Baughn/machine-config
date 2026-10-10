@@ -7,7 +7,7 @@ let
   bridge = pkgs.callPackage ../tools/agent-bridge { };
   # Every agent can paint: the easel CLI and its skill come with each instance.
   easel = pkgs.callPackage ../tools/easel { };
-  skillsOf = i: { easel = ../tools/easel/skill; } // i.skills;
+  skillsOf = i: lib.optionalAttrs i.builtinTools { easel = ../tools/easel/skill; } // i.skills;
   # Throwaway directories, deletable without an approval for rm -r.
   scratch = pkgs.callPackage ../tools/agent-scratch { };
   toml = pkgs.formats.toml { };
@@ -20,7 +20,10 @@ let
     context_webhook_ids = roster.contextWebhookIds or [ ];
     agents_role_id = roster.agentsRoleId or null;
     humans = lib.mapAttrs (_: h: { discord_id = h.discordId; inherit (h) role; }) roster.humans;
-    agents = lib.mapAttrs (_: a: { discord_id = a.discordId; display_name = a.displayName; inherit (a) description; }) roster.agents;
+    agents = lib.mapAttrs (_: a: {
+      discord_id = a.discordId; display_name = a.displayName; inherit (a) description;
+      context_only = a.contextOnly or false;
+    }) roster.agents;
   };
 
   instanceModule = { name, ... }: {
@@ -173,6 +176,29 @@ let
           instruction. The note is shown as data. Other sources are rejected.
         '';
       };
+      builtinTools = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Give the agent easel and scratch (allow-listed shell commands) and the easel skill.";
+      };
+      sources = lib.mkOption {
+        type = lib.types.nullOr (lib.types.submodule {
+          options = {
+            dir = lib.mkOption { type = lib.types.str; description = "Where fetched sources go."; };
+            maxBytes = lib.mkOption { type = lib.types.int; default = 2 * 1024 * 1024 * 1024; };
+            nixpkgs = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = "A nixpkgs tree (with flake.nix) for package_source, e.g. pkgs.path.";
+            };
+          };
+        });
+        default = null;
+        description = ''
+          Enables fetch_source (git clone or archive over https), package_source (a nixpkgs
+          package's src) and sources: read-only source code for an agent without a shell.
+        '';
+      };
       path = lib.mkOption {
         type = lib.types.listOf (lib.types.either lib.types.package lib.types.str);
         default = [ ];
@@ -194,7 +220,7 @@ let
   configFile = name: i: toml.generate "agent-bridge-${name}.toml" (lib.filterAttrs (_: v: v != null) {
     id = name;
     inherit (i) workdir triggers approvers ask deny model fake limits;
-    allow = i.allow ++ [ "Bash(easel *)" "Bash(scratch *)" ];
+    allow = i.allow ++ lib.optionals i.builtinTools [ "Bash(easel *)" "Bash(scratch *)" ];
     channel_id = roster.channels.${i.channel};
     owner_only = i.ownerOnly;
     permission_mode = i.permissionMode;
@@ -215,6 +241,11 @@ let
     board = if i.board == null then null else lib.filterAttrs (_: v: v != null) {
       inherit (i.board) socket url;
       token = i.board.tokenFile != null;
+    };
+    sources = if i.sources == null then null else lib.filterAttrs (_: v: v != null) {
+      inherit (i.sources) dir nixpkgs;
+      max_bytes = i.sources.maxBytes;
+      system = pkgs.stdenv.hostPlatform.system;
     };
     roster = rosterToml;
   });
@@ -268,7 +299,8 @@ in
       after = [ "network-online.target" ];
       # The agent gets the system's tools, as in an interactive shell,
       # ImageMagick to shrink images the bridge won't let it Read, easel and scratch.
-      path = [ "/run/current-system/sw" pkgs.imagemagick easel scratch ] ++ i.path;
+      path = [ "/run/current-system/sw" pkgs.imagemagick ] ++ lib.optionals i.builtinTools [ easel scratch ]
+        ++ lib.optionals (i.sources != null) [ pkgs.git ] ++ i.path;
       environment = {
         AGENT_BRIDGE_CONFIG = "${configFile name i}";
         SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";

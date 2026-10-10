@@ -85,6 +85,7 @@ class Handlers(Protocol):
     async def tool_schedules(self, args: dict[str, Any]) -> str: ...
     async def tool_effort(self, args: dict[str, Any]) -> str: ...
     async def tool_board(self, tool: str, args: dict[str, Any]) -> str: ...
+    async def tool_sources(self, tool: str, args: dict[str, Any]) -> str: ...
     async def advisor_called(self) -> None: ...
 
 
@@ -188,8 +189,33 @@ SCHEDULES_SCHEMA: dict[str, Any] = {
 }
 
 
+SOURCE_TOOLS: dict[str, tuple[str, dict[str, Any]]] = {
+    "fetch_source": (
+        "Clone a git repository (shallow, hooks and submodules off) or download and unpack an archive "
+        "(.tar.*, .tgz, .zip) over https into your sources directory, to read with Read, Grep and Glob. "
+        "Nothing in it is run.",
+        {"type": "object", "properties": {
+            "url": {"type": "string", "description": "https:// URL of a git repository or an archive"},
+            "ref": {"type": "string", "description": "Branch or tag to clone (git only; default branch if omitted)"},
+            "name": {"type": "string", "description": "Directory name (lowercase); default from the URL"}},
+         "required": ["url"]}),
+    "package_source": (
+        "The source of a package exactly as the deployed nixpkgs builds it: realises <attr>.src and "
+        "unpacks it if it's an archive. Also names the nixpkgs tree, where the package's expression "
+        "and patches are.",
+        {"type": "object", "properties": {
+            "attr": {"type": "string", "description": "nixpkgs attribute path, e.g. openssh or python3Packages.aiohttp"}},
+         "required": ["attr"]}),
+    "sources": (
+        "List the directories in your sources directory, or drop one to free space.",
+        {"type": "object", "properties": {
+            "drop": {"type": "string", "description": "A directory name to delete"}}}),
+}
+SOURCE_TOOL_NAMES = [f"mcp__bridge__{name}" for name in SOURCE_TOOLS]
+
+
 def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = (), ship: bool = False,
-                  effort_levels: tuple[str, ...] = (), board: bool = False) -> Any:
+                  effort_levels: tuple[str, ...] = (), board: bool = False, sources: bool = False) -> Any:
     from claude_agent_sdk import create_sdk_mcp_server, tool
 
     def wrap(function: Any) -> Any:
@@ -245,6 +271,11 @@ def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = 
             async def call_board(args: dict[str, Any], name: str = name) -> str:
                 return await handlers.tool_board(name, args)
             tools.append(tool(name, description, schema)(wrap(call_board)))
+    if sources:
+        for name, (description, schema) in SOURCE_TOOLS.items():
+            async def call_sources(args: dict[str, Any], name: str = name) -> str:
+                return await handlers.tool_sources(name, args)
+            tools.append(tool(name, description, schema)(wrap(call_sources)))
     return create_sdk_mcp_server("bridge", tools=tools)
 
 
@@ -252,7 +283,7 @@ MCP_TOOL_TIMEOUT_MS = 65 * 60 * 1000
 RCON_TOOL = "mcp__bridge__rcon"
 BRIDGE_TOOLS = ["mcp__bridge__post", "mcp__bridge__history", "mcp__bridge__inbox", RCON_TOOL,
                 "mcp__bridge__ask_agent", "mcp__bridge__ship", "mcp__bridge__schedule",
-                "mcp__bridge__schedules", "mcp__bridge__effort", *BOARD_TOOL_NAMES]
+                "mcp__bridge__schedules", "mcp__bridge__effort", *BOARD_TOOL_NAMES, *SOURCE_TOOL_NAMES]
 # Whatever the subagent is for, the main agent does the talking.
 SUBAGENT_PROMPT = (
     "You are a subagent of {id}, working inside one of its turns. Report what you found or did in "
@@ -323,9 +354,10 @@ class SdkSession:
 
     def __init__(self, handlers: Handlers, rcon: bool = False, ask_agents: tuple[str, ...] = (),
                  ship: bool = False, effort_levels: tuple[str, ...] = (), board: bool = False,
-                 **kwargs: Any) -> None:
+                 sources: bool = False, **kwargs: Any) -> None:
         self.handlers = handlers
         self.board = board
+        self.sources = sources
         self.rcon = rcon
         self.ask_agents = ask_agents
         self.ship = ship
@@ -371,7 +403,7 @@ class SdkSession:
         options = ClaudeAgentOptions(
             **options_kwargs(**{**self.kwargs, "resume": resume}),
             mcp_servers={"bridge": bridge_server(handlers, self.rcon, self.ask_agents, self.ship,
-                                                 self.effort_levels, self.board)},
+                                                 self.effort_levels, self.board, self.sources)},
             can_use_tool=can_use_tool,
             hooks={"PreToolUse": [HookMatcher(hooks=[pre])],
                    "PostToolUse": [HookMatcher(hooks=[post])],

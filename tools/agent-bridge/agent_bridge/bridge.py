@@ -27,8 +27,13 @@ from .render import (MAIN, ChatError, File, Outgoing, PostError, Roots, Status, 
 from .schedule import Schedule, ScheduleError, Schedules, stamp
 from .session import AgentSession, Permission, ToolError, TurnResult
 from .shellfmt import format_shell
+from .sources import SourceError, Sources
 
 log = logging.getLogger(__name__)
+# One journal line per tool call, approval and outcome, for every agent (Baughn, 2026-10-10):
+# `journalctl -u agent-bridge-<id> | grep agent_bridge.tools`.
+tool_log = logging.getLogger("agent_bridge.tools")
+TOOL_LOG_INPUT = 500
 
 STATUS_INTERVAL = 3.0
 # Discord rate-limits edits to messages older than an hour so hard that a status
@@ -124,6 +129,7 @@ class Bridge:
                  board: BoardTools | None = None, unit_file: Path | None = None) -> None:
         self.config = config
         self.board = board
+        self.sources = Sources(config.sources) if config.sources is not None else None
         self.chat = chat
         self.session = session(self)
         self.clock = clock
@@ -711,6 +717,25 @@ class Bridge:
         except BoardError as error:
             raise ToolError(f"{error}{self.unread()}") from error
 
+    async def tool_sources(self, tool: str, args: dict[str, Any]) -> str:
+        self.refuse_during_handoff()
+        if self.sources is None:
+            raise ToolError("this agent has no source tools")
+        try:
+            if tool == "fetch_source":
+                text = await self.sources.fetch(str(args.get("url", "")), args.get("ref") or None,
+                                                args.get("name") or None)
+            elif tool == "package_source":
+                text = await self.sources.package(str(args.get("attr", "")))
+            elif args.get("drop"):
+                text = self.sources.drop(str(args["drop"]))
+            else:
+                text = self.sources.listing()
+        except SourceError as error:
+            raise ToolError(f"{error}{self.unread()}") from error
+        self.note(f"{tool}: {text.splitlines()[0][:200]}")
+        return text + self.unread()
+
     def read_handoff(self) -> str | None:
         try:
             data = (self.config.workdir / HANDOFF_FILE).read_bytes()
@@ -816,6 +841,8 @@ class Bridge:
     # --- session handlers --------------------------------------------------
 
     async def tool_started(self, name: str, tool_input: dict[str, Any], subagent: bool = False) -> None:
+        tool_log.info("call %s%s %s", "subagent " if subagent else "", name,
+                      json.dumps(tool_input, ensure_ascii=False)[:TOOL_LOG_INPUT])
         if self.status is not None:
             self.status.tools += 1
             who = "subagent: " if subagent else ""
@@ -855,6 +882,7 @@ class Bridge:
         return f"effort is {level} for the rest of this turn{self.unread()}"
 
     async def tool_finished(self, name: str, failed: bool, subagent: bool = False) -> str | None:
+        tool_log.info("%s %s%s", "failed" if failed else "done", "subagent " if subagent else "", name)
         self.note(f"← {name}{' (failed)' if failed else ''}")
         return None if subagent or self.status is None else self.news()
 
@@ -880,7 +908,14 @@ class Bridge:
     async def permission(self, name: str, tool_input: dict[str, Any], reason: str | None) -> Permission:
         if self.handoff:
             self.note(f"{name}: refused during the handoff")
+            tool_log.info("refused %s: during the handoff", name)
             return Permission(False, "No approvals during the handoff: write your notes and end the turn.")
+        if self.config.permission_mode == "dontAsk":
+            # The CLI shouldn't ask in this mode; if it does anyway, nobody is asked.
+            self.note(f"{name}: refused (dontAsk)")
+            tool_log.info("refused %s: dontAsk", name)
+            return Permission(False, "Not in your permissions, and nobody can be asked. "
+                                     "Note what you needed under setup requests in your report.")
         loop = asyncio.get_running_loop()
         reply_to = self.status_id
         if name == "AskUserQuestion":
@@ -929,6 +964,7 @@ class Bridge:
             if self.status is not None:
                 self.status.pending -= 1
         self.note(f"{name}: {footer}")
+        tool_log.info("approval %s: %s", name, footer)
         with contextlib.suppress(Exception):
             await self.chat.edit(message_id, settled(text, footer))
         return result

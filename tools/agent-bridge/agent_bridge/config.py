@@ -8,6 +8,8 @@ from pathlib import Path
 import tomllib
 from typing import Any
 
+from .sources import SourcesConfig
+
 ROLES = ("owner", "admin", "agent")
 MODES = ("default", "auto", "acceptEdits", "plan", "dontAsk")
 EFFORT_LEVELS = ("low", "medium", "high", "xhigh", "max")
@@ -31,6 +33,9 @@ class Agent:
     discord_id: str
     description: str
     display_name: str = ""  # the bot's Discord username; defaults to the id
+    # Its messages are context for every bridge, never triggers: an agent that reads hostile
+    # text all day (the security watch) can't make the others act.
+    context_only: bool = False
 
     @property
     def shown(self) -> str:
@@ -116,6 +121,7 @@ class Config:
     trigger_sources: dict[str, str] = field(default_factory=dict)
     idle_reset: float = 6 * 3600  # seconds without a turn before a handoff and new session; 0: never
     board: Board | None = None
+    sources: SourcesConfig | None = None  # the fetch_source/package_source tools
     limits: Limits = field(default_factory=Limits)
     fake: bool = False
 
@@ -143,7 +149,8 @@ def _strings(data: dict[str, Any], key: str) -> tuple[str, ...]:
 def parse_roster(data: dict[str, Any]) -> Roster:
     humans = tuple(Human(name, str(h["discord_id"]), h["role"])
                    for name, h in data.get("humans", {}).items())
-    agents = tuple(Agent(name, str(a["discord_id"]), a.get("description", ""), a.get("display_name", ""))
+    agents = tuple(Agent(name, str(a["discord_id"]), a.get("description", ""), a.get("display_name", ""),
+                         bool(a.get("context_only", False)))
                    for name, a in data.get("agents", {}).items())
     roster = Roster(
         guild_id=str(data["guild_id"]),
@@ -185,6 +192,16 @@ def _board(value: Any) -> Board | None:
     return board
 
 
+def _sources_tools(value: Any) -> SourcesConfig | None:
+    if not value:
+        return None
+    if not isinstance(value, dict) or not value.get("dir"):
+        raise ConfigError("sources needs a dir")
+    return SourcesConfig(dir=Path(value["dir"]), max_bytes=int(value.get("max_bytes", 2 * 1024**3)),
+                         timeout=float(value.get("timeout", 600)), nixpkgs=value.get("nixpkgs") or None,
+                         system=str(value.get("system", "x86_64-linux")))
+
+
 def parse(data: dict[str, Any], state: Path) -> Config:
     limits = Limits(**data.get("limits", {}))
     config = Config(
@@ -219,6 +236,7 @@ def parse(data: dict[str, Any], state: Path) -> Config:
         max_effort=data.get("max_effort", "medium"),
         trigger_sources=_sources(data.get("trigger_sources", {})),
         board=_board(data.get("board")),
+        sources=_sources_tools(data.get("sources")),
     )
     validate(config)
     return config

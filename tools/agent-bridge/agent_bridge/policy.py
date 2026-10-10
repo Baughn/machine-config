@@ -123,6 +123,8 @@ def route(config: Config, message: Incoming, *, bot_streak: int, paused: bool) -
         return Decision(Route.IGNORE, "human without the admin role")
     if author.kind is Kind.WATCHDOG:
         return Decision(Route.CONTEXT, "watchdog")
+    if author.kind is Kind.AGENT and (agent := config.roster.agent(author.id)) and agent.context_only:
+        return Decision(Route.CONTEXT, "context-only agent")
     if not mentioned(config, message):
         return Decision(Route.CONTEXT, "not mentioned")
     if config.owner_only and author.role != "owner":

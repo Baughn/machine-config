@@ -59,6 +59,7 @@ def run(config: Config) -> None:
                           rcon=config.rcon_root is not None, ask_agents=config.ask_agents,
                           ship=config.ship is not None, identity=config.id, advisor=config.advisor,
                           effort_levels=config.effort_levels, board=board is not None,
+                          sources=config.sources is not None,
                           auto_memory=board is None)
 
     unit_file = Path(f"/etc/systemd/system/agent-bridge-{config.id}.service")

@@ -317,6 +317,15 @@ async def test_malformed_question_is_denied(harness: Harness) -> None:
     assert not result.allow
 
 
+async def test_dont_ask_never_reaches_an_approver(tmp_path: Path) -> None:
+    h = Harness(tmp_path, permission_mode="dontAsk")
+    for name, tool_input in [("Bash", {"command": "id"}), ("AskUserQuestion", {"questions": QUESTIONS}),
+                             ("WebFetch", {"url": "https://example.org"})]:
+        result = await h.bridge.permission(name, tool_input, None)
+        assert not result.allow and "setup requests" in result.message
+    assert h.chat.approvals == [] and h.chat.sent == {}
+
+
 # --- stop, commands, limits ---------------------------------------------------
 
 

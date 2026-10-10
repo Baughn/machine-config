@@ -153,3 +153,13 @@ def test_exhaustive_routing_never_triggers_on_self_or_strangers():
                                                          [True, False], [0, 50], [True, False]):
         assert decide(config, who, mention=mention, streak=streak, paused=paused) is Route.IGNORE
     assert CHANNEL
+
+
+def test_context_only_agent_never_triggers():
+    data = config_data()["roster"]
+    lab = next(name for name, a in data["agents"].items() if a["discord_id"] == LAB)
+    agents = {**data["agents"], lab: {**data["agents"][lab], "context_only": True}}
+    config = make_config(roster={**data, "agents": agents})
+    assert decide(config, "agent") is Route.CONTEXT
+    assert decide(config, "agent", mention=False) is Route.CONTEXT
+    assert decide(config, "owner") is Route.TRIGGER
