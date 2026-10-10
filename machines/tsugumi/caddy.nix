@@ -14,6 +14,11 @@
     globalConfig = ''
       admin unix//run/caddy/admin.sock|0600
       persist_config off
+      # No HTTP/2 until Caddy ships golang.org/x/net >= 0.60 (GO-2026-6617 and friends:
+      # unauthenticated HTTP/2 crash/DoS). Garibaldi's review, 2026-10-10; Baughn asked.
+      servers {
+        protocols h1 h3
+      }
     '';
     extraConfig = ''
       (headers) {
@@ -205,28 +210,10 @@
         reverse_proxy unix//run/caddy-static/http.sock
       }
 
-      qbt.brage.info {
-        import headers
-        import password
-        reverse_proxy http://localhost:8080
-      }
-
       todo.brage.info {
         import headers
         import password
         reverse_proxy http://localhost:3000
-      }
-
-      sonarr.brage.info {
-        import headers
-        import password
-        reverse_proxy http://localhost:8989
-      }
-
-      radarr.brage.info {
-        import headers
-        import password
-        reverse_proxy http://localhost:7878
       }
 
       jellyfin.brage.info {

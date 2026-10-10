@@ -37,7 +37,6 @@ in
     ./secrets.nix
     ./lan.nix
     ./caddy.nix
-    ./sonarr.nix
     ./rolebot.nix
     ./irctool.nix
     ./aniwatch.nix
@@ -224,6 +223,9 @@ in
   time.timeZone = "Europe/Dublin";
 
   i18n.defaultLocale = "en_US.UTF-8";
+
+  # The *arr/qbittorrent stack is off (2026-10-10, sonarr.nix removed); its group may still own media.
+  users.groups.sonarr.gid = config.ids.gids.sonarr; # the gid the sonarr module gave it
 
   users.users.svein = {
     uid = 1000;

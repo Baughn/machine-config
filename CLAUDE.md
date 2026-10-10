@@ -108,7 +108,7 @@ machines/
   saya-installer/default.nix
   tsugumi/default.nix
   tsugumi/hardware-configuration.nix
-  tsugumi/<service>.nix    # caddy, minecraft, monitoring, redis, rendezvous, sonarr, ...
+  tsugumi/<service>.nix    # caddy, minecraft, monitoring, redis, rendezvous, ...
   tsugumi/agents.nix       # tsugumi agent-channel identities (prompts and skills in agents/)
   tsugumi/minecraft-lab.nix # the lab: mclab user, clone socket, pasta netns + nft fence, minecraft-lab@ units
   tsugumi/agent-board.nix  # the agents' message board: API socket (uid identity), HTML at agents.brage.info
