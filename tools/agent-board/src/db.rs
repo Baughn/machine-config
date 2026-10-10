@@ -117,6 +117,10 @@ CREATE TABLE web_sessions (
     last_used INTEGER NOT NULL
 );
 "#,
+    // Threads in a private agent's sector: visible only to that agent (and the web pages).
+    r#"
+ALTER TABLE threads ADD COLUMN private_to TEXT;
+"#,
 ];
 
 pub const MAX_TITLE: usize = 200;
@@ -175,6 +179,21 @@ pub struct Thread {
     pub summary_author: Option<String>,
     pub summary_updated: Option<i64>,
     pub summary_revisions: i64,
+    /// Set for a thread in a private agent's sector: only that agent sees it over the API.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub private_to: Option<String>,
+}
+
+impl Thread {
+    /// Whether `viewer` (an agent id) may see this thread over the API.
+    pub fn visible_to(&self, viewer: &str) -> bool {
+        visible(self.private_to.as_deref(), viewer)
+    }
+}
+
+/// Whether a thread private to `private_to` (if anyone) is visible to `viewer`.
+pub fn visible(private_to: Option<&str>, viewer: &str) -> bool {
+    private_to.is_none_or(|owner| owner == viewer)
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -251,6 +270,9 @@ pub struct Ask {
     pub asked: String,
     pub created: i64,
     pub first_line: String,
+    /// The thread's private owner, for filtering; never shown.
+    #[serde(skip)]
+    pub private_to: Option<String>,
 }
 
 /// What an agent should look at when a session starts, most urgent first.
@@ -333,6 +355,9 @@ pub struct SearchQuery {
     pub since: Option<i64>,
     pub until: Option<i64>,
     pub limit: Option<i64>,
+    /// Set by the API to the caller: hides other agents' private threads. Never from the query.
+    #[serde(skip)]
+    pub viewer: Option<String>,
 }
 
 pub struct Board {
@@ -400,7 +425,7 @@ const THREAD_COLUMNS: &str = "t.id, t.title, t.status, t.owner, t.created, t.upd
      (SELECT group_concat(tag, ' ') FROM (SELECT tag FROM thread_tags WHERE thread = t.id \
         ORDER BY tag)), \
      s.body, s.author, s.created, \
-     (SELECT count(*) FROM summaries WHERE thread = t.id)";
+     (SELECT count(*) FROM summaries WHERE thread = t.id), t.private_to";
 
 /// Joins each thread with its latest summary revision.
 const THREAD_FROM: &str = "threads t LEFT JOIN summaries s ON s.id = \
@@ -431,6 +456,7 @@ fn thread_from_row(row: &Row, full_summary: bool) -> rusqlite::Result<Thread> {
         summary_author: row.get(11)?,
         summary_updated: row.get(12)?,
         summary_revisions: row.get(13)?,
+        private_to: row.get(14)?,
     })
 }
 
@@ -519,6 +545,32 @@ impl Board {
             |row| thread_from_row(row, false),
         )?;
         Ok(rows.collect::<rusqlite::Result<_>>()?)
+    }
+
+    /// Who a thread is private to, if anyone.
+    ///
+    /// # Errors
+    ///
+    /// Returns `NotFound` for an unknown thread.
+    pub fn thread_private_to(&self, id: i64) -> Result<Option<String>, AppError> {
+        self.conn
+            .query_row("SELECT private_to FROM threads WHERE id = ?1", [id], |row| {
+                row.get(0)
+            })
+            .optional()?
+            .ok_or_else(|| AppError::NotFound(format!("thread {id}")))
+    }
+
+    /// The thread a post is in.
+    ///
+    /// # Errors
+    ///
+    /// Returns `NotFound` for an unknown post.
+    pub fn post_thread(&self, id: i64) -> Result<i64, AppError> {
+        self.conn
+            .query_row("SELECT thread FROM posts WHERE id = ?1", [id], |row| row.get(0))
+            .optional()?
+            .ok_or_else(|| AppError::NotFound(format!("post {id}")))
     }
 
     fn thread(&self, id: i64) -> Result<Thread, AppError> {
@@ -785,6 +837,7 @@ impl Board {
         &self,
         author: &str,
         new: &NewThread,
+        private: bool,
     ) -> Result<(i64, Option<i64>), AppError> {
         check_text("title", &new.title, MAX_TITLE)?;
         check_tags(&new.tags)?;
@@ -799,7 +852,7 @@ impl Board {
         let tx = self.conn.unchecked_transaction()?;
         tx.execute(
             "INSERT INTO threads (title, status, owner, created, updated, due, waiting_on, \
-             waiting_ref) VALUES (?1, 'open', ?2, ?3, ?3, ?4, ?5, ?6)",
+             waiting_ref, private_to) VALUES (?1, 'open', ?2, ?3, ?3, ?4, ?5, ?6, ?7)",
             params![
                 new.title.trim(),
                 author,
@@ -807,6 +860,7 @@ impl Board {
                 new.due.as_deref().and_then(non_empty),
                 new.waiting_on.as_deref().and_then(non_empty),
                 new.waiting_ref.as_deref().and_then(non_empty),
+                private.then_some(author),
             ],
         )?;
         let id = tx.last_insert_rowid();
@@ -970,6 +1024,7 @@ impl Board {
                AND (:author IS NULL OR s.author = :author) \
                AND (:since IS NULL OR s.created >= :since) \
                AND (:until IS NULL OR s.created < :until) \
+               AND (:viewer IS NULL OR t.private_to IS NULL OR t.private_to = :viewer) \
              ORDER BY bm25(search, 0, 0, 0, 0, 0, 3.0, 1.0) \
                       + (CASE WHEN p.superseded_by IS NULL THEN 0 ELSE 5 END) \
              LIMIT :limit",
@@ -982,6 +1037,7 @@ impl Board {
                 ":since": query.since,
                 ":until": query.until,
                 ":limit": query.limit.unwrap_or(20).clamp(1, 200),
+                ":viewer": query.viewer,
             },
             |row| {
                 Ok(SearchHit {
@@ -1060,7 +1116,7 @@ impl Board {
     /// Unanswered questions in open threads: those asked of `agent`, or all of them.
     pub(crate) fn open_asks(&self, agent: Option<&str>) -> Result<Vec<Ask>, AppError> {
         let mut statement = self.conn.prepare_cached(
-            "SELECT p.id, p.thread, t.title, p.author, p.ask, p.created, p.body \
+            "SELECT p.id, p.thread, t.title, p.author, p.ask, p.created, p.body, t.private_to \
              FROM posts p JOIN threads t ON t.id = p.thread \
              WHERE p.ask IS NOT NULL AND (?1 IS NULL OR p.ask = ?1) \
                AND t.status = 'open' AND p.superseded_by IS NULL \
@@ -1078,6 +1134,7 @@ impl Board {
                     asked: row.get(4)?,
                     created: row.get(5)?,
                     first_line: first_line(&body),
+                    private_to: row.get(7)?,
                 })
             })?
             .collect::<rusqlite::Result<_>>()?;

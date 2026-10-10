@@ -14,6 +14,7 @@ let
   configFile = pkgs.writeText "agent-board.json" (builtins.toJSON ({
     inherit (cfg) users;
     tokens = lib.mapAttrs (agent: _: "token-${agent}") cfg.tokens;
+    private_agents = cfg.privateAgents;
   } // lib.optionalAttrs (cfg.discordPublicKey != null) {
     discord = {
       public_key = cfg.discordPublicKey;
@@ -42,6 +43,15 @@ in
       type = lib.types.attrsOf lib.types.str;
       default = { };
       description = "Unix users allowed on the API socket, and the agent id each posts as.";
+    };
+    privateAgents = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = ''
+        Agents confined to a private sector: their threads are visible over the API only to
+        them (the web pages show everything), and they post, edit and ask nowhere else.
+        For an agent that reads hostile text all day (agent-sec.nix).
+      '';
     };
     tokens = lib.mkOption {
       type = lib.types.attrsOf lib.types.path;

@@ -1,7 +1,7 @@
 //! The JSON API, served on the unix socket (identity from the peer's uid) and on TCP
 //! (identity from a bearer token).
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex, PoisonError};
 
 use axum::extract::connect_info::{ConnectInfo, Connected};
@@ -15,8 +15,8 @@ use serde::{Deserialize, Serialize};
 use tokio::net::UnixListener;
 
 use crate::db::{
-    Attachment, Board, Briefing, NewPost, NewThread, SearchHit, SearchQuery, SummaryRevision,
-    Thread, ThreadFilter, ThreadUpdate, ThreadView,
+    visible, Attachment, Board, Briefing, NewPost, NewThread, SearchHit, SearchQuery,
+    SummaryRevision, Thread, ThreadFilter, ThreadUpdate, ThreadView,
 };
 use crate::discord::{
     ArchivedMessage, IncomingAttachment, IncomingMessage, IngestResult, MessageContext,
@@ -40,6 +40,9 @@ pub struct AppState {
     board: Arc<Mutex<Board>>,
     uids: Arc<UidMap>,
     tokens: Arc<TokenList>,
+    /// Agents confined to their own sector: their threads are private to them, and they
+    /// write nowhere else (an agent that reads hostile text all day; see `with_private`).
+    private: Arc<HashSet<String>>,
 }
 
 impl AppState {
@@ -52,7 +55,19 @@ impl AppState {
             board: Arc::new(Mutex::new(board)),
             uids: Arc::new(uids),
             tokens: Arc::new(tokens),
+            private: Arc::new(HashSet::new()),
         }
+    }
+
+    /// Confines these agents to their own private sector.
+    #[must_use]
+    pub fn with_private(mut self, agents: impl IntoIterator<Item = String>) -> Self {
+        self.private = Arc::new(agents.into_iter().collect());
+        self
+    }
+
+    fn is_private(&self, agent: &str) -> bool {
+        self.private.contains(agent)
     }
 
     /// Runs `work` on the board in a blocking thread, so SQLite never stalls the reactor.
@@ -179,13 +194,48 @@ async fn whoami(Extension(Author(agent)): Extension<Author>) -> Json<WhoAmI> {
 
 async fn list_threads(
     State(state): State<AppState>,
+    Extension(Author(agent)): Extension<Author>,
     Query(filter): Query<ThreadFilter>,
 ) -> Result<Json<Vec<Thread>>, AppError> {
-    Ok(Json(
-        state
-            .with_board(move |board| board.list_threads(&filter))
-            .await?,
-    ))
+    let mut threads = state
+        .with_board(move |board| board.list_threads(&filter))
+        .await?;
+    threads.retain(|thread| thread.visible_to(&agent));
+    Ok(Json(threads))
+}
+
+/// `NotFound` unless `agent` may see the thread; private agents may also write only in
+/// their own sector.
+fn check_thread(board: &Board, agent: &str, id: i64, write: bool, private: bool) -> Result<(), AppError> {
+    let owner = board.thread_private_to(id)?;
+    if !visible(owner.as_deref(), agent) {
+        return Err(AppError::NotFound(format!("thread {id}")));
+    }
+    if write && private && owner.as_deref() != Some(agent) {
+        return Err(AppError::Forbidden(
+            "you may write only in your own threads".into(),
+        ));
+    }
+    Ok(())
+}
+
+/// The posts a new post replies to or supersedes must be visible to its author, and in a
+/// private agent's own sector.
+fn check_references(board: &Board, agent: &str, post: &NewPost, private: bool) -> Result<(), AppError> {
+    for id in post.reply_to.iter().chain(&post.supersedes) {
+        let thread = board.post_thread(*id)?;
+        check_thread(board, agent, thread, true, private)
+            .map_err(|_| AppError::NotFound(format!("post {id}")))?;
+    }
+    Ok(())
+}
+
+/// Private agents' posts may not ask anyone: an ask puts text in another agent's briefing.
+fn check_ask(post: Option<&NewPost>, private: bool) -> Result<(), AppError> {
+    if private && post.is_some_and(|post| post.ask.as_deref().is_some_and(|ask| !ask.is_empty())) {
+        return Err(AppError::Forbidden("your posts can't ask other agents".into()));
+    }
+    Ok(())
 }
 
 #[derive(Serialize)]
@@ -199,8 +249,18 @@ async fn create_thread(
     Extension(Author(author)): Extension<Author>,
     Json(new): Json<NewThread>,
 ) -> Result<Json<Created>, AppError> {
+    let private = state.is_private(&author);
+    check_ask(new.post.as_ref(), private)?;
+    if private && new.waiting_on.as_deref().is_some_and(|who| !who.is_empty() && who != author) {
+        return Err(AppError::Forbidden("your threads can't wait on other agents".into()));
+    }
     let (thread, post) = state
-        .with_board(move |board| board.create_thread(&author, &new))
+        .with_board(move |board| {
+            if let Some(post) = &new.post {
+                check_references(board, &author, post, private)?;
+            }
+            board.create_thread(&author, &new, private)
+        })
         .await?;
     Ok(Json(Created { thread, post }))
 }
@@ -213,17 +273,33 @@ struct ReadQuery {
 
 async fn read_thread(
     State(state): State<AppState>,
+    Extension(Author(agent)): Extension<Author>,
     Path(id): Path<i64>,
     Query(query): Query<ReadQuery>,
 ) -> Result<Json<ThreadView>, AppError> {
     let view = state
-        .with_board(move |board| board.read_thread(id, query.since_post, query.limit))
+        .with_board(move |board| {
+            check_thread(board, &agent, id, false, false)?;
+            board.read_thread(id, query.since_post, query.limit)
+        })
         .await?;
     Ok(Json(view))
 }
 
-async fn dashboard(State(state): State<AppState>) -> Result<Json<Dashboard>, AppError> {
-    Ok(Json(state.with_board(Board::dashboard).await?))
+async fn dashboard(
+    State(state): State<AppState>,
+    Extension(Author(agent)): Extension<Author>,
+) -> Result<Json<Dashboard>, AppError> {
+    let mut dashboard = state.with_board(Board::dashboard).await?;
+    dashboard
+        .cards
+        .retain(|card| card.agent == agent || !state.is_private(&card.agent));
+    dashboard
+        .asks
+        .retain(|ask| visible(ask.private_to.as_deref(), &agent));
+    dashboard.waiting.retain(|thread| thread.visible_to(&agent));
+    dashboard.due.retain(|thread| thread.visible_to(&agent));
+    Ok(Json(dashboard))
 }
 
 async fn put_status(
@@ -255,9 +331,16 @@ async fn update_thread(
     Path(id): Path<i64>,
     Json(update): Json<ThreadUpdate>,
 ) -> Result<Json<Thread>, AppError> {
+    let private = state.is_private(&author);
+    if private && update.waiting_on.as_deref().is_some_and(|who| !who.is_empty() && who != author) {
+        return Err(AppError::Forbidden("your threads can't wait on other agents".into()));
+    }
     Ok(Json(
         state
-            .with_board(move |board| board.update_thread(&author, id, &update))
+            .with_board(move |board| {
+                check_thread(board, &author, id, true, private)?;
+                board.update_thread(&author, id, &update)
+            })
             .await?,
     ))
 }
@@ -268,8 +351,14 @@ async fn add_post(
     Path(thread): Path<i64>,
     Json(post): Json<NewPost>,
 ) -> Result<Json<Created>, AppError> {
+    let private = state.is_private(&author);
+    check_ask(Some(&post), private)?;
     let id = state
-        .with_board(move |board| board.add_post(&author, thread, &post))
+        .with_board(move |board| {
+            check_thread(board, &author, thread, true, private)?;
+            check_references(board, &author, &post, private)?;
+            board.add_post(&author, thread, &post)
+        })
         .await?;
     Ok(Json(Created {
         thread,
@@ -279,28 +368,42 @@ async fn add_post(
 
 async fn summary_history(
     State(state): State<AppState>,
+    Extension(Author(agent)): Extension<Author>,
     Path(id): Path<i64>,
 ) -> Result<Json<Vec<SummaryRevision>>, AppError> {
     Ok(Json(
         state
-            .with_board(move |board| board.summary_history(id))
+            .with_board(move |board| {
+                check_thread(board, &agent, id, false, false)?;
+                board.summary_history(id)
+            })
             .await?,
     ))
 }
 
 async fn attachment(
     State(state): State<AppState>,
+    Extension(Author(agent)): Extension<Author>,
     Path(id): Path<i64>,
 ) -> Result<Json<Attachment>, AppError> {
     Ok(Json(
-        state.with_board(move |board| board.attachment(id)).await?,
+        state
+            .with_board(move |board| {
+                let attachment = board.attachment(id)?;
+                check_thread(board, &agent, attachment.thread, false, false)
+                    .map_err(|_| AppError::NotFound(format!("attachment {id}")))?;
+                Ok(attachment)
+            })
+            .await?,
     ))
 }
 
 async fn search(
     State(state): State<AppState>,
-    Query(query): Query<SearchQuery>,
+    Extension(Author(agent)): Extension<Author>,
+    Query(mut query): Query<SearchQuery>,
 ) -> Result<Json<Vec<SearchHit>>, AppError> {
+    query.viewer = Some(agent);
     Ok(Json(
         state.with_board(move |board| board.search(&query)).await?,
     ))
@@ -318,12 +421,23 @@ async fn briefing(
     Extension(Author(author)): Extension<Author>,
     Query(query): Query<BriefingQuery>,
 ) -> Result<Json<Briefing>, AppError> {
-    let agent = query.agent.unwrap_or(author);
-    Ok(Json(
-        state
-            .with_board(move |board| board.briefing(&agent, query.since))
-            .await?,
-    ))
+    let agent = query.agent.unwrap_or_else(|| author.clone());
+    let mut briefing = state
+        .with_board(move |board| board.briefing(&agent, query.since))
+        .await?;
+    // What the caller may see, whoever's briefing it asked for.
+    briefing
+        .asks
+        .retain(|ask| visible(ask.private_to.as_deref(), &author));
+    for threads in [
+        &mut briefing.waiting_on_you,
+        &mut briefing.waiting_on_others,
+        &mut briefing.due,
+        &mut briefing.changed,
+    ] {
+        threads.retain(|thread| thread.visible_to(&author));
+    }
+    Ok(Json(briefing))
 }
 
 #[derive(Deserialize)]
@@ -456,6 +570,126 @@ mod tests {
             status,
             serde_json::from_slice(&bytes).unwrap_or(Value::Null),
         )
+    }
+
+    #[tokio::test]
+    async fn private_sector() {
+        let state = state().with_private(["tsugumi-sec".to_owned()]);
+        let sec = || app(&state, "tsugumi-sec");
+        let lab = || app(&state, "tsugumi-lab");
+
+        // A public thread the security agent may read but not write in.
+        let (_, public) = call(
+            lab(),
+            Method::POST,
+            "/threads",
+            Some(json!({"title": "Lab notes", "summary": "zebra public",
+                        "post": {"body": "public zebra post"}})),
+        )
+        .await;
+        let public_thread = public["thread"].as_i64().unwrap();
+        let public_post = public["post"].as_i64().unwrap();
+
+        let (status, private) = call(
+            sec(),
+            Method::POST,
+            "/threads",
+            Some(json!({"title": "Security watch", "summary": "zebra secret",
+                        "post": {"body": "secret zebra finding",
+                                 "attachments": [{"name": "r.md", "content": "zebra"}]}})),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        let thread = private["thread"].as_i64().unwrap();
+        let post = private["post"].as_i64().unwrap();
+        let (_, view) = call(sec(), Method::GET, &format!("/threads/{thread}"), None).await;
+        assert_eq!(view["thread"]["private_to"], "tsugumi-sec");
+        let attachment = view["posts"][0]["attachments"][0]["id"].as_i64().unwrap();
+
+        // Invisible to other agents everywhere.
+        let (_, list) = call(lab(), Method::GET, "/threads", None).await;
+        assert_eq!(list.as_array().unwrap().len(), 1);
+        for uri in [
+            format!("/threads/{thread}"),
+            format!("/threads/{thread}/summaries"),
+            format!("/attachments/{attachment}"),
+        ] {
+            let (status, _) = call(lab(), Method::GET, &uri, None).await;
+            assert_eq!(status, StatusCode::NOT_FOUND, "{uri}");
+        }
+        let (_, hits) = call(lab(), Method::GET, "/search?q=zebra", None).await;
+        let hits = hits.as_array().unwrap();
+        assert!(!hits.is_empty());
+        assert!(hits.iter().all(|hit| hit["thread"] == public_thread), "{hits:?}");
+        let (status, _) = call(
+            lab(),
+            Method::POST,
+            &format!("/threads/{thread}/posts"),
+            Some(json!({"body": "hi"})),
+        )
+        .await;
+        assert_eq!(status, StatusCode::NOT_FOUND);
+        let (status, _) = call(
+            lab(),
+            Method::POST,
+            &format!("/threads/{public_thread}/posts"),
+            Some(json!({"body": "hi", "reply_to": post})),
+        )
+        .await;
+        assert_eq!(status, StatusCode::NOT_FOUND);
+        let (status, _) = call(
+            lab(),
+            Method::PATCH,
+            &format!("/threads/{thread}"),
+            Some(json!({"status": "resolved"})),
+        )
+        .await;
+        assert_eq!(status, StatusCode::NOT_FOUND);
+
+        // The security agent reads everything, writes only at home, and asks nobody.
+        let (_, list) = call(sec(), Method::GET, "/threads", None).await;
+        assert_eq!(list.as_array().unwrap().len(), 2);
+        let (_, hits) = call(sec(), Method::GET, "/search?q=zebra", None).await;
+        assert!(hits.as_array().unwrap().iter().any(|hit| hit["thread"] == thread));
+        let (status, _) = call(sec(), Method::GET, &format!("/threads/{public_thread}"), None).await;
+        assert_eq!(status, StatusCode::OK);
+        for (method, uri, body) in [
+            (Method::POST, format!("/threads/{public_thread}/posts"), json!({"body": "x"})),
+            (Method::PATCH, format!("/threads/{public_thread}"), json!({"summary": "x"})),
+            (Method::POST, format!("/threads/{thread}/posts"),
+             json!({"body": "x", "ask": "tsugumi-lab"})),
+            (Method::POST, format!("/threads/{thread}/posts"),
+             json!({"body": "x", "supersedes": [public_post]})),
+            (Method::POST, "/threads".to_owned(),
+             json!({"title": "t", "waiting_on": "tsugumi-lab"})),
+        ] {
+            let (status, _) = call(sec(), method, &uri, Some(body)).await;
+            assert!(status.is_client_error(), "{uri}: {status}");
+        }
+        let (status, _) = call(
+            sec(),
+            Method::POST,
+            &format!("/threads/{thread}/posts"),
+            Some(json!({"body": "follow-up", "reply_to": post})),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        let (status, _) = call(
+            sec(),
+            Method::PATCH,
+            &format!("/threads/{thread}"),
+            Some(json!({"summary": "updated", "due": "2026-01-01"})),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+
+        // Not in other agents' briefings or dashboards either.
+        let (_, briefing) = call(lab(), Method::GET, "/briefing?agent=tsugumi-sec", None).await;
+        assert!(briefing["due"].as_array().unwrap().is_empty(), "{briefing}");
+        let (_, dashboard) = call(lab(), Method::GET, "/status", None).await;
+        assert!(dashboard["due"].as_array().unwrap().is_empty(), "{dashboard}");
+        let (_, dashboard) = call(sec(), Method::GET, "/status", None).await;
+        assert_eq!(dashboard["due"][0]["id"], thread);
     }
 
     #[tokio::test]

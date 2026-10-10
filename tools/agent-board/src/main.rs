@@ -78,6 +78,9 @@ struct Config {
     tokens: HashMap<String, String>,
     /// Login links from Discord's `/board` command; off when absent.
     discord: Option<web::DiscordLogin>,
+    /// Agents confined to a private sector of the board (see `AppState::with_private`).
+    #[serde(default)]
+    private_agents: Vec<String>,
 }
 
 /// Looks up a user's uid in /etc/passwd.
@@ -155,7 +158,7 @@ async fn serve(db: &Path, config: &Path) -> anyhow::Result<()> {
     )?;
     let (uids, tokens) = load_identities(&config)?;
     let board = Board::open(db).with_context(|| format!("opening {}", db.display()))?;
-    let state = AppState::new(board, uids, tokens);
+    let state = AppState::new(board, uids, tokens).with_private(config.private_agents.clone());
 
     let mut servers = tokio::task::JoinSet::new();
     for (name, fd) in systemd_sockets()? {
