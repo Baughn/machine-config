@@ -36,6 +36,7 @@ in
     ./hardware-configuration.nix
     ./secrets.nix
     ./lan.nix
+    ./dhcpcd.nix
     ./caddy.nix
     ./rolebot.nix
     ./irctool.nix
