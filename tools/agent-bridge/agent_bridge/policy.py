@@ -51,8 +51,6 @@ class Incoming:
     attachments: tuple[Attachment, ...] = field(default_factory=tuple)
     reply_to_id: str | None = None
     thread_name: str | None = None
-    # Whose thread it is: the author of the message it hangs off, else its creator.
-    thread_owner: str | None = None
     reply_to_name: str | None = None  # who wrote the message this replies to, for display
 
     @property
@@ -108,11 +106,10 @@ def classify(config: Config, author_id: str, name: str, *, is_bot: bool,
 
 
 def mentioned(config: Config, message: Incoming) -> bool:
-    """Addressed to us: a mention, a reply to us, or a human writing in our thread."""
+    """Addressed to us: a mention (of us or the agents role) or a reply to us."""
     me = config.me.discord_id
     return (me in message.mentions
             or message.reply_to_author == me
-            or (message.thread_owner == me and message.author.kind is Kind.HUMAN)
             or (config.roster.agents_role_id is not None
                 and config.roster.agents_role_id in message.role_mentions))
 

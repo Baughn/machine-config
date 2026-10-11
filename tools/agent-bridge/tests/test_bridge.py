@@ -1301,14 +1301,12 @@ async def test_history_reads_a_thread(harness: Harness) -> None:
         await harness.bridge.tool_history({"thread": "new: x"})
 
 
-def test_a_human_in_my_thread_addresses_me(harness: Harness) -> None:
+def test_a_thread_alone_does_not_address_me(harness: Harness) -> None:
     config = harness.config
-    mine = harness.msg(ALICE, "what about steel?", thread=THREAD, thread_owner=ME)
-    assert route(config, mine, bot_streak=0, paused=False).route is Route.TRIGGER
-    others = harness.msg(ALICE, "what about steel?", thread=THREAD, thread_owner=LAB)
-    assert route(config, others, bot_streak=0, paused=False).route is Route.CONTEXT
-    agent = harness.msg(LAB, "noted", thread=THREAD, thread_owner=ME)
-    assert route(config, agent, bot_streak=0, paused=False).route is Route.CONTEXT
+    plain = harness.msg(ALICE, "what about steel?", thread=THREAD)
+    assert route(config, plain, bot_streak=0, paused=False).route is Route.CONTEXT
+    named = harness.msg(ALICE, "what about steel?", thread=THREAD, mention=True)
+    assert route(config, named, bot_streak=0, paused=False).route is Route.TRIGGER
 
 
 async def test_a_gone_thread_moves_the_turn_to_the_main_channel(harness: Harness) -> None:

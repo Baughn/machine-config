@@ -62,8 +62,6 @@ class DiscordChat:
         self.channel: Any = None
         # Message id -> channel id, so replies to thread messages go to the thread.
         self.where: OrderedDict[int, int] = OrderedDict()
-        # Thread id -> the owner's user id (see `thread_owner`).
-        self.owners: dict[int, str | None] = {}
         # Message id -> the buttons on it, stopped when an edit or delete drops them.
         self.views: dict[int, discord.ui.View] = {}
         self.ready = False
@@ -96,20 +94,6 @@ class DiscordChat:
                         is_bot=bool(user.bot), webhook_id=str(webhook_id) if webhook_id else None,
                         is_admin=self.is_admin(user))
 
-    async def thread_owner(self, thread: Any) -> str | None:
-        """The author of the message a thread hangs off (its id is that message's), else
-        whoever created it. A human writing in an agent's thread addresses that agent."""
-        if thread.id not in self.owners:
-            owner = str(thread.owner_id) if thread.owner_id else None
-            parent = thread.parent
-            if parent is not None and hasattr(parent, "fetch_message"):
-                try:
-                    owner = str((await parent.fetch_message(thread.id)).author.id)
-                except discord.HTTPException:
-                    pass  # a standalone thread, or the message is gone
-            self.owners[thread.id] = owner
-        return self.owners[thread.id]
-
     async def convert(self, message: Any, channel: Any = None) -> Incoming:
         channel = channel or message.channel
         thread = isinstance(channel, discord.Thread)
@@ -141,7 +125,6 @@ class DiscordChat:
             reply_to_id=reply_to_id,
             reply_to_name=reply_to_name,
             thread_name=channel.name if thread else None,
-            thread_owner=await self.thread_owner(channel) if thread else None,
         )
 
     def remember(self, message_id: int, channel_id: int) -> None:
@@ -274,13 +257,12 @@ class DiscordChat:
                 view.message_id = str(sent.id)
         if message.new_thread is not None:
             try:
-                thread = await sent.create_thread(name=message.new_thread,
-                                                  auto_archive_duration=ARCHIVE_MINUTES)
+                await sent.create_thread(name=message.new_thread,
+                                         auto_archive_duration=ARCHIVE_MINUTES)
             except discord.HTTPException as error:
                 raise ChatError(f"posted message {sent.id} in the main channel, but couldn't start the "
                                 f"thread ({error.text}); the bot may lack {THREAD_PERMISSIONS}. "
                                 "Ask Baughn to grant it.") from error
-            self.owners[thread.id] = self.config.me.discord_id
         return str(sent.id)
 
     def url(self, message_id: str) -> str:

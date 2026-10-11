@@ -64,13 +64,13 @@ def message(config: Config, who: str, content: str = "hi", *, mention: bool = Fa
             admin: bool = True, channel: str = CHANNEL, reply_to_author: str | None = None,
             role_mentions: frozenset[str] = frozenset(),
             attachments: tuple[Attachment, ...] = (), thread: str | None = None,
-            thread_name: str | None = None, thread_owner: str | None = None) -> Incoming:
+            thread_name: str | None = None) -> Incoming:
     return Incoming(
         id=str(next(counter)), channel_id=channel, thread_id=thread,
         author=author(config, who, admin=admin), content=content,
         mentions=frozenset({ME}) if mention else frozenset(),
         role_mentions=role_mentions, reply_to_author=reply_to_author, attachments=attachments,
-        thread_name=thread_name, thread_owner=thread_owner)
+        thread_name=thread_name)
 
 
 class FakeChat:

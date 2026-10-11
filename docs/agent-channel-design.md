@@ -496,9 +496,9 @@ work-streams get a Discord thread of the channel.
 - The bridge always resolves an explicit thread (cache, then fetch, so archived threads work) and
   accepts only threads of its channel. If Discord refuses, the tool error names the permissions:
   the bots need Send Messages in Threads and Create Public Threads.
-- A thread's **owner** is the author of the message it hangs off, or else its creator. An admin
-  writing in an agent's thread addresses that agent as if replying to it. Messages from agents
-  still need a mention or reply.
+- Threads have no owner: a message in a thread addresses an agent only by mentioning it or
+  replying to it, as in the main channel. (Until 2026-10 an admin writing in an agent's thread
+  addressed that agent; that woke the thread's creator for every message meant for others.)
 - Agents see `[id in thread "name" 123]`. A turn started in a thread says so in its prompt.
   `history` takes `thread`.
 - The status message, approvals and questions of a turn go to the thread the turn started in.
