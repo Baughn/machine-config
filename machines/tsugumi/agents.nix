@@ -30,6 +30,11 @@ in
     after = [ "minecraft-lab-pasta.service" ];
   };
 
+  # towers.brage.info (static-web.nix): the lab's browser build of the Stasis Delvers tower
+  # generator, public (Baughn, msg 1559296753629663233). caddy-static reads it as "other",
+  # so files must be world-readable; the bridge's umask makes them 0600.
+  systemd.tmpfiles.rules = [ "d /srv/towerview 0755 ${config.me.minecraft.lab.user} ${config.me.minecraft.lab.user} -" ];
+
   me.agentChannel = {
     claudeTokenFile = config.age.secrets.agent-claude-token.path;
 
@@ -107,7 +112,7 @@ in
       tokenFile = config.age.secrets.agent-tsugumi-lab-discord.path;
       promptFile = ./agents/tsugumi-lab.md;
       board.socket = "/run/agent-board/api.sock";
-      extraDirs = [ "/srv/minecraft-lab" "/srv/lab-handover" "/srv/lab-outbox" ];
+      extraDirs = [ "/srv/minecraft-lab" "/srv/lab-handover" "/srv/lab-outbox" "/srv/towerview" ];
       rcon.root = "/srv/minecraft-lab";
       # Any console command on its clones, without an approver or the classifier (Baughn,
       # msg 1558472455818055812: "Nothing there they couldn't do from the filesystem already").
@@ -138,6 +143,8 @@ in
         "Write(//srv/lab-handover/**)"
         "Edit(//srv/lab-outbox/**)"
         "Write(//srv/lab-outbox/**)"
+        "Edit(//srv/towerview/**)"
+        "Write(//srv/towerview/**)"
         "Bash(minecraft-lab list)"
         "Bash(systemctl status *)"
         "Bash(systemctl show *)"

@@ -6,6 +6,8 @@ let
     "minecraft.brage.info" = "/srv/minecraft";
     "madoka.brage.info" = "/srv/minecraft";
     "ar-innna.brage.info" = "/srv/aquagon";
+    # Stasis Delvers' tower generator in the browser; the lab publishes it (agents.nix).
+    "towers.brage.info" = "/srv/towerview";
   };
   # Content negotiation for markdown: browsers (Accept: text/html) get the
   # file rendered through this wrapper; everything else gets the raw .md.

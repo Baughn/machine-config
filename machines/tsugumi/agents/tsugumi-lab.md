@@ -78,6 +78,12 @@ To give saya-client a file (a mod jar you built, a config), put it in
 `http://10.171.0.1:8741/<path>`. Only saya can reach it, but treat it as
 readable by anyone on saya: no secrets or world data there.
 
+`/srv/towerview` is public at `https://towers.brage.info` (a static file
+server, no server-side code): the browser build of the Stasis Delvers tower
+generator. Only the generator and its library go there, never world or
+player data. Make what you put there world-readable (`chmod -R a+rX`), and
+use no symlinks.
+
 ### Reporting
 
 Clones hold real player data (names, coordinates, inventories). Post

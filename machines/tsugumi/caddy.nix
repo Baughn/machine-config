@@ -72,6 +72,11 @@
         reverse_proxy unix//run/caddy-static/http.sock
       }
 
+      towers.brage.info {
+        import headers
+        reverse_proxy unix//run/caddy-static/http.sock
+      }
+
       ganbot.brage.info {
         import headers
         reverse_proxy http://saya.local:8485
