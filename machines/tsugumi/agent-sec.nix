@@ -1,4 +1,4 @@
-{ config, lib, pkgs, flakeSelf, ... }:
+{ config, lib, pkgs, flakeSelf, dessplay, ... }:
 # tsugumi-sec: a security watch over tsugumi's network-facing code (Baughn, Discord thread
 # 1558438110084341874; plan on board thread #13). Once a day a root oneshot collects what is
 # exposed and what runs behind it, plus vulnix's view, and starts the agent's turn.
@@ -124,7 +124,8 @@ lib.mkIf ready {
     ];
     # Deny wins over allow and over the CLI's own read-only defaults.
     deny = [
-      "Bash" "NotebookEdit" "AskUserQuestion" "mcp__bridge__schedule" "mcp__bridge__schedules"
+      # schedule is allowed (Baughn, msg 1559353262581489697): limits.turns_per_hour still caps it.
+      "Bash" "NotebookEdit" "AskUserQuestion"
       "Read(//run/**)" "Read(//proc/**)" "Read(//var/lib/agent-bridge/**)" "Read(//etc/**)"
       "Grep(//run/**)" "Grep(//proc/**)" "Grep(//var/lib/agent-bridge/**)"
       "Glob(//run/**)" "Glob(//proc/**)" "Glob(//var/lib/agent-bridge/**)"
@@ -167,6 +168,11 @@ lib.mkIf ready {
       MC_WORLDS = lib.concatStringsSep " " config.me.minecraft.autostart;
       NIXPKGS_PATH = nixpkgs;
       NIXPKGS_VERSION = lib.version;
+      # What this system was built from (Garibaldi's setup request; Baughn approved, msg
+      # 1559353262581489697). The system already depends on the rev (modules/nix-deploy.nix).
+      MACHINE_CONFIG_REV = toString config.system.configurationRevision;
+      FLAKE_INPUTS = builtins.toJSON (lib.mapAttrs (_: input: input.rev or null) flakeSelf.inputs);
+      BUILT = builtins.toJSON { dessplay = "${dessplay.packages.${pkgs.stdenv.hostPlatform.system}.default}"; };
       # The store is read-only here; root would otherwise open the database itself.
       NIX_REMOTE = "daemon";
     };

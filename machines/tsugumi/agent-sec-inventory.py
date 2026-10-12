@@ -4,7 +4,7 @@ the agent only reads the JSON it writes, and nothing the agent wrote is run here
 
 Usage: agent-sec-inventory OUT_DIR EXPOSED_JSON TRIGGER_DIR AGENT_USER
 Environment: VULNIX_WHITELIST, VULNIX_CACHE, MC_ROOT, MC_WORLDS (space-separated),
-NIXPKGS_PATH, NIXPKGS_VERSION.
+NIXPKGS_PATH, NIXPKGS_VERSION, MACHINE_CONFIG_REV, FLAKE_INPUTS and BUILT (JSON).
 """
 
 from __future__ import annotations
@@ -135,6 +135,9 @@ def main() -> None:
         "kernel": os.uname().release,
         "current_system": os.path.realpath("/run/current-system"),
         "booted_system": os.path.realpath("/run/booted-system"),
+        "machine_config_rev": os.environ.get("MACHINE_CONFIG_REV") or None,
+        "flake_inputs": json.loads(os.environ.get("FLAKE_INPUTS") or "{}"),
+        "built": json.loads(os.environ.get("BUILT") or "{}"),
     })
     shutil.copyfile(exposed, out / ".exposed.tmp")
     (out / ".exposed.tmp").chmod(0o640)
