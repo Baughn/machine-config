@@ -72,8 +72,14 @@
         reverse_proxy unix//run/caddy-static/http.sock
       }
 
+      # Asset URLs carry ?v=<content hash> (the lab's build), so they can be cached forever;
+      # everything else, the page above all, revalidates so Cloudflare can't mix versions.
       towers.brage.info {
         import headers
+        @versioned query v=*
+        header @versioned Cache-Control "public, max-age=31536000, immutable"
+        @unversioned not query v=*
+        header @unversioned Cache-Control "no-cache"
         reverse_proxy unix//run/caddy-static/http.sock
       }
 
