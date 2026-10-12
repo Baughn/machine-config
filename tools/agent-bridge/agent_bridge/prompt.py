@@ -53,6 +53,11 @@ def working_block(config: Config) -> str:
             "the plan for a larger project: one that spans several components, many files, or "
             "more than a day's work, or whose mistakes are costly to undo. A single small mod or "
             "config change is not that. The level and your reason are shown in the channel.")
+    # Baughn, msg 1559346966389985442.
+    lines.append(
+        "- Suggestions are welcome: improvements, cleanup or refactoring, better tools, anything "
+        "that would make the work easier or more fun. Mention them when you see them; whoever "
+        "owns the work decides whether to do them.")
     return "\n".join(lines)
 
 
