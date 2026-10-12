@@ -217,6 +217,14 @@ class ProtocolTests(unittest.TestCase):
                     with snapshot.connect(world):
                         self.fail("A refused connection must not yield an RCON client")
 
+    def test_emptied_world_counts_as_stopped(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(socket, "create_connection") as connect:
+                with self.assertRaises(ConnectionRefusedError):
+                    with snapshot.connect(Path(directory)):
+                        self.fail("A world without server.properties has no server")
+                connect.assert_not_called()
+
     def test_closed_filtered_port_does_not_attempt_connection(self):
         with tempfile.TemporaryDirectory() as directory:
             world = Path(directory)

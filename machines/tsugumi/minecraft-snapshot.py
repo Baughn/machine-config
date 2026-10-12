@@ -82,7 +82,12 @@ def port_listening(port):
 def connect(world, timeout=40):
     # Read as minecraft at runtime: credentials never enter the Nix store,
     # process arguments, shell interpolation, or hook logs.
-    with (world / "server.properties").open("rb") as handle:
+    try:
+        handle = (world / "server.properties").open("rb")
+    except FileNotFoundError:
+        # An emptied or not yet populated dataset: no server can be running.
+        raise ConnectionRefusedError("No server.properties") from None
+    with handle:
         properties = javaproperties.load(handle)
     password = properties.get("rcon.password", "")
     port = int(properties.get("rcon.port", "25575"))
