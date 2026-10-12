@@ -60,11 +60,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1791239082,
-        "narHash": "sha256-acLbvw5wRo4IVOeQyELIAW895flGhJZiNP6Lwp1qmmw=",
+        "lastModified": 1791839746,
+        "narHash": "sha256-j3q1gNS8HvFEJ5nbMohDrh2U/bZrYl0zlGRd/HgudjM=",
         "owner": "baughn",
         "repo": "dessplay",
-        "rev": "2ffe46df55f23cbb526836713acb1f2c4d053356",
+        "rev": "ae90af2831012f921c9448615930bde465ccd5b4",
         "type": "github"
       },
       "original": {
