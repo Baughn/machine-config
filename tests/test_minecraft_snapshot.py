@@ -73,6 +73,12 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual(self.commands()[-1], "save-on")
         self.assertFalse(self.hook.record.exists())
 
+    def test_trailing_newlines_are_ignored(self):
+        self.record()
+        self.client.command.return_value = "Saving is already turned on\n"
+        self.hook.run("recover")
+        self.assertFalse(self.hook.record.exists())
+
     def test_26x_failed_save_restores_saving_and_fails(self):
         for replies in ([UNABLE_26], [SAVE_ALL_26, UNABLE_26], [SAVE_ALL_26, "Unknown command"]):
             with self.subTest(replies=replies):

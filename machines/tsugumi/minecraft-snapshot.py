@@ -122,8 +122,8 @@ class SnapshotHook:
         try:
             with connect(self.world, timeout=10) as client:
                 reply = client.command("save-on", timeout=10)
-            if reply not in SAVE_ON:
-                raise ValueError("Minecraft did not confirm save-on")
+            if reply.strip() not in SAVE_ON:
+                raise ValueError(f"Minecraft did not confirm save-on: {reply[:200]!r}")
             print(f"{self.world.name}: automatic saving restored", flush=True)
         except ConnectionRefusedError:
             # A closed RCON port means the server is off. save-off does not
@@ -142,12 +142,12 @@ class SnapshotHook:
                 temporary.replace(self.record)
                 try:
                     reply = client.command("save-off")
-                    if reply == "Saving is already turned off":
+                    if reply.strip() == "Saving is already turned off":
                         # Do not take ownership of an administrator's save-off state.
                         self.record.unlink()
                         raise ValueError("Saving was already disabled; snapshot skipped")
-                    if reply not in SAVE_OFF:
-                        raise ValueError("Minecraft did not confirm save-off")
+                    if reply.strip() not in SAVE_OFF:
+                        raise ValueError(f"Minecraft did not confirm save-off: {reply[:200]!r}")
                     # Plain save-all takes the consistent cut on the server
                     # thread; save-wait (erisia-save-threading) then waits on
                     # the RCON thread for the queued chunks to reach disk,
