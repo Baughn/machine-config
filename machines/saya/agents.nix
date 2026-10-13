@@ -87,6 +87,11 @@ in
         "Bash(nix log *)"
         "Bash(rg *)"
         "Bash(agent-publish)"
+        # Reading tsugumi's journal and unit state is part of the job.
+        # The key is forced through saya-agent-gate.py
+        # there (journalctl, read-only systemctl; `restrict`: no forwarding/pty).
+        "Bash(ssh -o BatchMode=yes saya-agent@tsugumi.local journalctl *)"
+        "Bash(ssh -o BatchMode=yes saya-agent@tsugumi.local systemctl *)"
       ];
       # jj can run arbitrary programs; the OS user is the real boundary.
       deny = [ "Bash(sudo *)" "Bash(deploy *)" "Bash(nixos-rebuild *)" "Bash(jj util exec*)" "Bash(jj fix*)" ];
