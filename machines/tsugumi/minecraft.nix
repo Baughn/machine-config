@@ -9,7 +9,7 @@
     ./agents.nix
   ];
 
-  me.minecraft.autostart = [ "erisia" ];
+  me.minecraft.autostart = [ "erisia" "incognito" ];
   me.minecraft.watch.webhookFile = config.age.secrets.minecraft-watch-webhook.path;
 
   me.punch.groups.minecraft = {
