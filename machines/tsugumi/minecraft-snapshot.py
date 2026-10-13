@@ -23,6 +23,10 @@ RECOVERY_DELAY = 180
 # Server-side save-wait limit. Together with save-off, save-all and the
 # RCON read margin it must fit within zrepl's two-minute hook timeout.
 SAVE_WAIT = 90
+# Replies of 1.12 (erisia) and of 26.x (incognito), which reword them.
+SAVE_OFF = ("Turned off world auto-saving", "Automatic saving is now disabled")
+SAVE_ON = ("Turned on world auto-saving", "Automatic saving is now enabled",
+           "Saving is already turned on")
 
 
 class Rcon:
@@ -118,7 +122,7 @@ class SnapshotHook:
         try:
             with connect(self.world, timeout=10) as client:
                 reply = client.command("save-on", timeout=10)
-            if reply not in ("Turned on world auto-saving", "Saving is already turned on"):
+            if reply not in SAVE_ON:
                 raise ValueError("Minecraft did not confirm save-on")
             print(f"{self.world.name}: automatic saving restored", flush=True)
         except ConnectionRefusedError:
@@ -142,18 +146,25 @@ class SnapshotHook:
                         # Do not take ownership of an administrator's save-off state.
                         self.record.unlink()
                         raise ValueError("Saving was already disabled; snapshot skipped")
-                    if reply != "Turned off world auto-saving":
+                    if reply not in SAVE_OFF:
                         raise ValueError("Minecraft did not confirm save-off")
                     # Plain save-all takes the consistent cut on the server
                     # thread; save-wait (erisia-save-threading) then waits on
                     # the RCON thread for the queued chunks to reach disk,
                     # without the tick stall of save-all flush.
                     reply = client.command("save-all")
-                    if "Saved the world" not in reply or "Saving failed" in reply:
+                    if "Saved the game" in reply and "Unable to save" not in reply:
+                        # 26.x has no save-wait; flush writes the chunks out
+                        # on the server thread instead.
+                        reply = client.command("save-all flush", timeout=SAVE_WAIT + 10)
+                        if "Saved the game" not in reply or "Unable to save" in reply:
+                            raise ValueError("Minecraft did not confirm save-all flush")
+                    elif "Saved the world" not in reply or "Saving failed" in reply:
                         raise ValueError("Minecraft did not confirm save-all")
-                    reply = client.command(f"save-wait {SAVE_WAIT}", timeout=SAVE_WAIT + 10)
-                    if not reply.startswith("Save queue drained in "):
-                        raise ValueError(f"Minecraft did not confirm save-wait: {reply[:200]!r}")
+                    else:
+                        reply = client.command(f"save-wait {SAVE_WAIT}", timeout=SAVE_WAIT + 10)
+                        if not reply.startswith("Save queue drained in "):
+                            raise ValueError(f"Minecraft did not confirm save-wait: {reply[:200]!r}")
                     print(f"{self.world.name}: {reply}; ready for snapshot", flush=True)
                 except Exception:
                     if self.pending():

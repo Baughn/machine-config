@@ -20,6 +20,11 @@ SAVED = "Saving...Flushing all saves...Flushing completedSaved the world"
 SAVE_ALL = "Saving...Saved the world"
 DRAINED = "Save queue drained in 42 ms"
 SAVE_WAIT = f"save-wait {snapshot.SAVE_WAIT}"
+# Minecraft 26.x (incognito).
+OFF_26 = "Automatic saving is now disabled"
+ON_26 = "Automatic saving is now enabled"
+SAVE_ALL_26 = "Saving the game (this may take a moment!)Saved the game"
+UNABLE_26 = "Saving the game (this may take a moment!)Unable to save the game (is there enough disk space?)"
 
 
 class SnapshotTests(unittest.TestCase):
@@ -58,6 +63,24 @@ class SnapshotTests(unittest.TestCase):
         self.hook.run("post_snapshot", "test")
         self.assertEqual(self.commands(), ["save-off", "save-all", SAVE_WAIT, "save-on"])
         self.assertFalse(self.hook.record.exists())
+
+    def test_26x_uses_save_all_flush_then_resumes(self):
+        self.client.command.side_effect = [OFF_26, SAVE_ALL_26, SAVE_ALL_26, ON_26]
+        self.hook.run("pre_snapshot", "test")
+        self.assertEqual(self.commands(), ["save-off", "save-all", "save-all flush"])
+        self.assertEqual(self.client.command.call_args_list[2].kwargs["timeout"], snapshot.SAVE_WAIT + 10)
+        self.hook.run("post_snapshot", "test")
+        self.assertEqual(self.commands()[-1], "save-on")
+        self.assertFalse(self.hook.record.exists())
+
+    def test_26x_failed_save_restores_saving_and_fails(self):
+        for replies in ([UNABLE_26], [SAVE_ALL_26, UNABLE_26], [SAVE_ALL_26, "Unknown command"]):
+            with self.subTest(replies=replies):
+                self.client.command.side_effect = [OFF_26, *replies, ON_26]
+                with self.assertRaisesRegex(ValueError, "confirm save-all"):
+                    self.hook.run("pre_snapshot", "test")
+                self.assertEqual(self.commands()[-1], "save-on")
+                self.assertFalse(self.hook.record.exists())
 
     def test_closed_port_allows_snapshot(self):
         self.connection.side_effect = ConnectionRefusedError()
