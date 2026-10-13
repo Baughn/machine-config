@@ -132,7 +132,7 @@ in
         _prompt_warnings_install() {
           local git_prompt='$(git_prompt_info)' vcs_prompt='$(_vcs_prompt_info)'
           PROMPT="''${PROMPT//$git_prompt/$vcs_prompt}"
-          PROMPT='$(_root_indicator)$(_failed_units_warning)$(_flake_age_warning)'"$PROMPT"
+          PROMPT='%F{magenta}%m%f $(_root_indicator)$(_failed_units_warning)$(_flake_age_warning)'"$PROMPT"
           precmd_functions=(''${precmd_functions:#_prompt_warnings_install})
         }
         precmd_functions+=(_prompt_warnings_install)
