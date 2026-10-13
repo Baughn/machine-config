@@ -33,6 +33,14 @@ in
         it is auto-added as an additional media root at startup.
       '';
     };
+    dataDir = lib.mkOption {
+      type = lib.types.str;
+      default = "/home/svein/.local/share/dessplay";
+      description = ''
+        Directory of the seeder's database (hash cache and library index), passed as --db.
+        The default is where dessplay put it without --db.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -47,6 +55,7 @@ in
           --server ${cfg.server} \
           --username ${cfg.username} \
           --cache-dir ${cfg.cacheDir} \
+          --db ${cfg.dataDir}/dessplay.db \
           ${lib.concatMapStringsSep " " (r: "--media-root ${r}") cfg.mediaRoots}
       '';
       serviceConfig = {
@@ -56,6 +65,43 @@ in
         Restart = "always";
         RestartSec = "10";
         LoadCredential = [ "seeder.password:${cfg.passwordFile}" ];
+        # It only handles SIGINT; SIGTERM kills it without saying goodbye to the server.
+        KillSignal = "SIGINT";
+
+        # Hardening (Garibaldi's finding, Baughn asked, msg 1559355644744564828). It runs as
+        # svein to read the media, so hide the rest of the home: it reads the media roots,
+        # writes only its cache and database, spawns nothing and only talks QUIC (UDP) to the
+        # rendezvous. All transfers are relayed through the rendezvous; no peer-to-peer.
+        ProtectHome = "tmpfs";
+        BindReadOnlyPaths = map (r: "-${r}") cfg.mediaRoots;
+        BindPaths = [ cfg.cacheDir cfg.dataDir ];
+        ProtectSystem = "strict";
+        PrivateTmp = true;
+        PrivateDevices = true;
+        PrivateIPC = true;
+        NoNewPrivileges = true;
+        CapabilityBoundingSet = "";
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        ProtectKernelLogs = true;
+        ProtectControlGroups = true;
+        ProtectClock = true;
+        ProtectHostname = true;
+        ProtectProc = "invisible";
+        ProcSubset = "pid";
+        RestrictNamespaces = true;
+        RestrictRealtime = true;
+        RestrictSUIDSGID = true;
+        LockPersonality = true;
+        MemoryDenyWriteExecute = true;
+        SystemCallArchitectures = "native";
+        SystemCallFilter = [ "@system-service" "~@privileged" ];
+        # AF_NETLINK: glibc's getaddrinfo sorts multi-address answers (localhost) with it.
+        RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" "AF_NETLINK" ];
+      } // lib.optionalAttrs (lib.hasPrefix "localhost:" cfg.server) {
+        # The rendezvous is local, so nothing else needs to be reachable (DNS is resolved's stub).
+        IPAddressDeny = "any";
+        IPAddressAllow = "localhost";
       };
       environment.RUST_LOG = "debug";
     };
