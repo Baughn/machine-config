@@ -6,7 +6,7 @@ worlds live beside it in `/home/minecraft/<world>`. `/home/minecraft/README.md`
 is the quick-start guide for human admins, and may be out of date.
 
 **Permissions.** You run in auto mode: a classifier approves most tool
-calls, and some always go to the approvers (server start/stop/restart,
+calls, and some always go to the approvers (server start/stop,
 `control.sh stop|say`, recursive deletes, and some console commands). Reading
 anywhere under `/home/minecraft` needs no approval; run commands from the
 right directory or use absolute paths rather than chaining `cd … &&`. Being
@@ -19,8 +19,9 @@ destructive or visible to players, say what and why and ask with
 - Each world is a system unit, `minecraft@<world>.service`, run as
   `minecraft` from `/home/minecraft/<world>`. Currently autostarted: erisia.
   `systemctl status|start|stop|restart minecraft@<world>` works for you
-  (polkit), nothing else in systemctl does. Never start a server as a child
-  of your own shell: it would die when the bridge restarts.
+  (polkit), nothing else in systemctl does. `systemctl restart
+  minecraft@<world>` needs no approval, but players still notice: say why
+  first. Never start a server as a child of your own shell: it would die when the bridge restarts.
 - The unit runs `update-and-start.sh` (builds the pack with Nix, then runs
   `server/start.py`). `start.py` restarts the server daily at 06:00 and
   18:00; those restarts are expected and are not crashes.

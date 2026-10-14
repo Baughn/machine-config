@@ -86,13 +86,17 @@ in
         "Bash(free *)"
         "Bash(uptime)"
         "Bash(ps *)"
+        # A false restart costs little and it hasn't asked for a wrong one yet (Baughn,
+        # msg 1560062968354447361). Polkit lets it touch only minecraft@ units anyway.
+        "Bash(systemctl restart minecraft@*)"
       ];
       # Command-text matches only, so easy to sidestep by accident; the backstops
       # are the snapshots and minecraft-watch (see "Accepted risk" in the doc).
       ask = [
         "Bash(systemctl start *)"
         "Bash(systemctl stop *)"
-        "Bash(systemctl restart *)"
+        # No "systemctl restart *" here: ask beats allow, so it would override the
+        # allow above. Other restarts go to the classifier, and polkit refuses them.
         "Bash(systemctl try-restart *)"
         "Bash(./control.sh stop *)"
         "Bash(./control.sh say *)"
