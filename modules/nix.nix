@@ -1,6 +1,13 @@
-{ flakeSelf, config, lib, ... }:
+{ flakeSelf, config, lib, pkgs, ... }:
 
 {
+  # nix < 2.34.9 lets any local user become root through the daemon
+  # (GHSA-jwvx-xq5j-gc56). Take nix from the pinned nixpkgs-master input
+  # until our nixpkgs catches up; this falls back to pkgs.nix by itself then.
+  nix.package =
+    if lib.versionAtLeast pkgs.nix.version "2.34.9" then pkgs.nix
+    else flakeSelf.inputs.nixpkgs-master.legacyPackages.${pkgs.stdenv.hostPlatform.system}.nix;
+
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
     trusted-users = [ "@wheel" ];

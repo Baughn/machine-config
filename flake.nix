@@ -6,6 +6,10 @@
     # Tracks nixos-unstable directly, for packages where the weekly cooldown
     # is too slow (currently: google-chrome, security updates).
     nixpkgs-fast.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # Pinned master commit carrying nix 2.34.9 (GHSA-jwvx-xq5j-gc56, local
+    # root via the daemon) before it reaches nixos-unstable. See
+    # modules/nix.nix; drop this input once nixpkgs has nix >= 2.34.9.
+    nixpkgs-master.url = "github:NixOS/nixpkgs/eac8afcad4187d4af913f30eec6e274cb5d64138";
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
     nix-cachyos-kernel.inputs.nixpkgs.follows = "nixpkgs";
     home-manager.url = "github:nix-community/home-manager";
