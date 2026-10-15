@@ -33,12 +33,10 @@ lib.mkIf enabled {
   users.groups.${user} = { };
   users.groups.${clients}.members = [ agent.user ];
 
-  # Read-only access to the repositories: traverse the parents, read the tree. The default
-  # ACL covers files created later (if their mode has group read).
-  systemd.tmpfiles.rules = lib.concatMap (dir: [
-    "a+ ${dirOf dir} - - - - group:${user}:--x"
-    "A+ ${dir} - - - - group:${user}:r-X,default:group:${user}:r-X"
-  ]) dirs;
+  # Read access to the repositories; the default ACL covers files created later (if their
+  # mode has group read). The unit binds them into an empty /home, so the parents (the agent's
+  # 0700 workdir, which tmpfiles keeps at 0700 and so masks any ACL) needn't be traversable.
+  systemd.tmpfiles.rules = map (dir: "A+ ${dir} - - - - group:${user}:r-X,default:group:${user}:r-X") dirs;
 
   systemd.sockets.second-opinion = {
     description = "Second opinions from Gemini for the agents";
@@ -76,7 +74,8 @@ lib.mkIf enabled {
       StateDirectoryMode = "0700";
       RuntimeMaxSec = "11min";
       ProtectSystem = "strict";
-      ProtectHome = "read-only";
+      ProtectHome = "tmpfs";
+      BindReadOnlyPaths = dirs;
       PrivateTmp = true;
       PrivateDevices = true;
       NoNewPrivileges = true;

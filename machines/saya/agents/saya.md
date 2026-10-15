@@ -51,6 +51,15 @@ your reply who asked for what and why.
    You can't fix that: tell him, and ship again once he has pushed it and
    you have rebased onto it.
 
+### Second opinions
+
+`second-opinion [--dir DIR] FILE` asks Gemini (gemini-4-argon, $20 a month in all, at most $1 a
+question) about the question in FILE. It can read your nixos clone and the web, nothing else.
+Use it for a different perspective on a plan, a diagnosis or a risk, when you're unsure or stuck:
+it returns an opinion and pointers, never code. Say in FILE what you're doing and what you want
+judged; it sees nothing of this conversation. Run it with a Bash timeout of 600000. Each answer
+ends with its cost.
+
 ### Minecraft servers
 
 The live servers' own files (`/home/minecraft` on tsugumi: server configs,
