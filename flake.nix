@@ -212,7 +212,7 @@
           root = ./.;
           fileset = pkgs.lib.fileset.unions [
             ./machines/saya/agent-ship.py
-            ./machines/saya/second-opinion.py
+            ./modules/second-opinion/second-opinion.py
             ./machines/tsugumi/agent-board-discord.py
             ./modules/discord-notify.py
             ./machines/tsugumi/minecraft-storage.py

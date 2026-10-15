@@ -1,12 +1,14 @@
 import importlib.util
+import json
 import os
 from pathlib import Path
 import tempfile
 import time
 from types import SimpleNamespace as NS
 import unittest
+import unittest.mock
 
-source = Path(__file__).resolve().parents[1] / "machines/saya/second-opinion.py"
+source = Path(__file__).resolve().parents[1] / "modules/second-opinion/second-opinion.py"
 spec = importlib.util.spec_from_file_location("second_opinion", source)
 so = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(so)
@@ -55,17 +57,47 @@ class Cost(unittest.TestCase):
 
 
 class Budget(unittest.TestCase):
-    def test_ledger_and_refusal(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            env = {"SO_DIRS": tmp, "SO_LEDGER": f"{tmp}/state/ledger.json", "SO_MONTHLY_USD": "20",
-                   "SO_CALL_USD": "1"}
-            ledger = so.Ledger(Path(env["SO_LEDGER"]))
-            month = time.strftime("%Y-%m", time.gmtime())
-            self.assertEqual(ledger.add(month, 19.5), 19.5)
-            with self.assertRaisesRegex(so.Refused, "budget is used up"):
-                so.answer({"question": "hi"}, env)
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        base = self.tmp.name
+        os.makedirs(f"{base}/view/home/a/repo/sub")
+        os.makedirs(f"{base}/view/home/b/repo")
+        self.env = {"SO_VIEW": f"{base}/view", "SO_LEDGER": f"{base}/state/ledger.json",
+                    "SO_CLIENTS": json.dumps({"a": ["/home/a/repo"], "b": ["/home/b/repo"]}),
+                    "SO_MONTHLY_USD": "20", "SO_CALL_USD": "1"}
+        self.ledger = so.Ledger(Path(self.env["SO_LEDGER"]))
+        self.month = time.strftime("%Y-%m", time.gmtime())
+
+    def test_each_caller_only_its_dirs(self):
+        for caller, wanted in (("a", "/home/b/repo"), ("a", "/home/a/repo/../../b/repo"), ("b", "/etc")):
             with self.assertRaisesRegex(so.Refused, "dir must be inside"):
-                so.answer({"question": "hi", "dir": "/etc"}, env)
+                so.answer({"question": "hi", "dir": wanted}, caller, self.env)
+        with self.assertRaisesRegex(so.Refused, "no directories"):
+            so.answer({"question": "hi"}, "c", self.env)
+
+    def test_refuses_when_spent(self):
+        self.assertEqual(self.ledger.add(self.month, 19.5), 19.5)
+        with self.assertRaisesRegex(so.Refused, "budget is used up"):
+            so.answer({"question": "hi", "dir": "/home/a/repo/sub"}, "a", self.env)
+
+    def test_reservation_is_settled(self):
+        def fake(question, cwd, roots, model, call_usd, today, env, spent):
+            self.assertEqual(cwd, os.path.realpath(self.env["SO_VIEW"] + "/home/a/repo/sub"))
+            self.assertAlmostEqual(self.ledger.spent(self.month), 1.0)  # booked while it runs
+            spent[0] += 0.25
+            return "fine", 0.25
+        with unittest.mock.patch.object(so, "ask_gemini", fake):
+            text = so.answer({"question": "hi", "dir": "/home/a/repo/sub"}, "a", self.env)
+        self.assertIn("$0.250 for this question; $0.25 of $20.00", text)
+
+    def test_failure_keeps_what_was_spent(self):
+        def fake(question, cwd, roots, model, call_usd, today, env, spent):
+            spent[0] += 0.4
+            raise RuntimeError("API down")
+        with unittest.mock.patch.object(so, "ask_gemini", fake), self.assertRaises(RuntimeError):
+            so.answer({"question": "hi"}, "a", self.env)
+        self.assertAlmostEqual(self.ledger.spent(self.month), 0.4)
 
 
 class Loop(unittest.TestCase):

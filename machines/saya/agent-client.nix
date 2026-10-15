@@ -38,6 +38,12 @@ lib.mkIf ready {
   # Starting points from saya, read-only; the agent's own notes go in notes/ and tools/.
   systemd.tmpfiles.rules = [ "L+ ${workdir}/docs - - - - ${./agents/saya-client-docs}" ];
 
+  # Gemini second opinions (modules/second-opinion.nix); the paths are the ones it asked for
+  # (msg 1560358628039590021), except docs/, a store symlink.
+  me.secondOpinion.agents.${user}.dirs = map (d: "${workdir}/${d}") [
+    "tools" "mods/ctl26/src" "mods/ctlmod/src" "notes/reports"
+  ];
+
   me.agentChannel.instances.${user} = {
     inherit user workdir;
     channel = "main";

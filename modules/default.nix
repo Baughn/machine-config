@@ -19,6 +19,7 @@
     ./nix-deploy.nix
     ./punch.nix
     ./remote-builds.nix
+    ./second-opinion.nix
     ./security.nix
     ./shell.nix
     ./ssh-auth.nix

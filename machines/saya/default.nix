@@ -17,7 +17,6 @@
     ./agents.nix
     ./agent-client.nix
     ./agent-ship.nix
-    ./second-opinion.nix
   ];
 
   # Boot

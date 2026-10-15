@@ -1,21 +1,22 @@
-"""A second opinion from Gemini for the agents, over the Gemini API (second-opinion.nix).
+"""A second opinion from Gemini for the agents, over the Gemini API (modules/second-opinion.nix).
 
 An opinion, not an implementation (Baughn, msg 1560357318170775655): Gemini looks, offers a
 different perspective and pointers to approaches the agent may not have considered, and stops
 before getting into the weeds. It never writes code; it's billed by the token.
 
 The service runs as its own user, which holds the API key; the agents reach it only through
-the unit's socket. Gemini gets Google Search, URL context and three read-only file tools
-(list_dir, read_file, grep) inside the allowed repositories, and no shell. A monthly ledger
-stops calls at the budget (Baughn: $20 a month), and each call has its own ceiling; the
+the unit's socket, which tells it who is asking. Gemini gets Google Search, URL context and
+three read-only file tools (list_dir, read_file, grep) inside the asking agent's directories,
+which the unit binds read-only under SO_VIEW; there is no shell. A monthly ledger stops calls
+at the budget (Baughn: $20 a month per machine), and each call has its own ceiling; the
 project's spend cap in AI Studio is the backstop.
 
 Usage:
   second-opinion serve        one request on stdin (the socket), the answer on stdout
   second-opinion [--dir DIR] FILE
                               ask: the question is FILE's contents; Gemini starts in DIR
-Environment (serve): GEMINI_API_KEY_FILE, SO_MODEL, SO_DIRS (colon-separated), SO_LEDGER,
-SO_MONTHLY_USD, SO_CALL_USD, SO_TIMEOUT (seconds).
+Environment (serve): GEMINI_API_KEY_FILE, SO_MODEL, SO_CLIENTS (JSON: user -> directories),
+SO_VIEW, SO_LEDGER, SO_MONTHLY_USD, SO_CALL_USD, SO_TIMEOUT (seconds).
 """
 
 from __future__ import annotations
@@ -25,7 +26,9 @@ import fcntl
 import json
 import os
 from pathlib import Path
+import pwd
 import socket
+import struct
 import subprocess
 import sys
 import time
@@ -35,6 +38,7 @@ SOCKET = "/run/second-opinion/socket"
 MAX_REQUEST = 256 * 1024
 MAX_TOOL_OUTPUT = 60_000
 MAX_ROUNDS = 40
+MAX_OUTPUT_TOKENS = 16384
 # USD per million tokens: (input, cached input, output incl. thinking), with the date each
 # price starts (ai.google.dev/gemini-api/docs/pricing, 2026-10-15). Unknown models cost as
 # much as the dearest one here, so the ledger never undercounts.
@@ -104,18 +108,22 @@ class Ledger:
     def spent(self, month: str) -> float:
         return float(self._update(lambda data: data.get(month, {}).get("usd", 0.0)))
 
+    def reserve(self, month: str, usd: float, monthly: float) -> None:
+        """Book a call's ceiling up front, so calls running at once can't all pass the check."""
+        def change(data: dict[str, Any]) -> None:
+            entry = data.setdefault(month, {"usd": 0.0, "calls": 0})
+            if entry["usd"] + usd > monthly:
+                raise Refused(f"the monthly budget is used up: ${entry['usd']:.2f} of ${monthly:.2f} spent in {month}")
+            entry["usd"] = round(entry["usd"] + usd, 6)
+            entry["calls"] += 1
+        self._update(change)
+
     def add(self, month: str, usd: float) -> float:
         def change(data: dict[str, Any]) -> float:
             entry = data.setdefault(month, {"usd": 0.0, "calls": 0})
             entry["usd"] = round(entry["usd"] + usd, 6)
             return float(entry["usd"])
         return float(self._update(change))
-
-    def count_call(self, month: str) -> None:
-        def change(data: dict[str, Any]) -> None:
-            entry = data.setdefault(month, {"usd": 0.0, "calls": 0})
-            entry["calls"] += 1
-        self._update(change)
 
 
 def inside(path: str, roots: list[str]) -> str | None:
@@ -210,30 +218,44 @@ def converse(generate: Callable[[list[Any]], Any], results: Callable[[list[tuple
     return f"(stopped after {MAX_ROUNDS} rounds of tool calls)", spent
 
 
-def answer(request: dict[str, Any], env: dict[str, str]) -> str:
-    roots = [os.path.realpath(r) for r in env.get("SO_DIRS", "").split(":") if r]
+def answer(request: dict[str, Any], caller: str, env: dict[str, str]) -> str:
+    view = env.get("SO_VIEW", "")
+    dirs = json.loads(env.get("SO_CLIENTS", "{}")).get(caller, [])
+    if not dirs:
+        raise Refused(f"{caller} has no directories for second opinions")
+    roots = [os.path.realpath(view + d) for d in dirs]
     question = request.get("question")
     if not isinstance(question, str) or not question.strip():
         raise Refused("empty question")
-    cwd = inside(request.get("dir") or (roots[0] if roots else "/"), roots)
+    wanted = request.get("dir") or dirs[0]
+    cwd = inside(view + os.path.normpath("/" + str(wanted)), roots)
     if cwd is None or not os.path.isdir(cwd):
-        raise Refused(f"dir must be inside one of: {', '.join(roots)}")
+        raise Refused(f"dir must be inside one of: {', '.join(dirs)}")
     model = env.get("SO_MODEL", "gemini-4-argon")
     monthly, call_usd = float(env.get("SO_MONTHLY_USD", "20")), float(env.get("SO_CALL_USD", "1"))
     ledger = Ledger(Path(env["SO_LEDGER"]))
     now = datetime.datetime.now(datetime.timezone.utc)
     month, today = now.strftime("%Y-%m"), now.strftime("%Y-%m-%d")
-    already = ledger.spent(month)
-    if already + call_usd > monthly:
-        raise Refused(f"the monthly budget is used up: ${already:.2f} of ${monthly:.2f} spent in {month}")
-    ledger.count_call(month)
+    ledger.reserve(month, call_usd, monthly)
+    spent = [0.0]  # what the API has billed so far, also if a later round fails
+    try:
+        text, _ = ask_gemini(question, cwd, roots, model, call_usd, today, env, spent)
+    finally:
+        ledger.add(month, spent[0] - call_usd)  # settle the reservation
+    spent_now = spent[0]
+    total = ledger.spent(month)
+    return f"{text}\n\n[{model}: ${spent_now:.3f} for this question; ${total:.2f} of ${monthly:.2f} spent in {month}]"
 
+
+def ask_gemini(question: str, cwd: str, roots: list[str], model: str, call_usd: float, today: str,
+               env: dict[str, str], spent: list[float]) -> tuple[str, float]:
     from google import genai
     from google.genai import types
 
     client = genai.Client(api_key=Path(env["GEMINI_API_KEY_FILE"]).read_text().strip())
     config = types.GenerateContentConfig(
         system_instruction=SYSTEM,
+        max_output_tokens=MAX_OUTPUT_TOKENS,
         tools=[types.Tool(google_search=types.GoogleSearch(), url_context=types.UrlContext(),
                           function_declarations=FUNCTIONS)],  # type: ignore[arg-type]
         tool_config=types.ToolConfig(
@@ -248,7 +270,7 @@ def answer(request: dict[str, Any], env: dict[str, str]) -> str:
         meta = getattr(response.candidates[0], "grounding_metadata", None)
         searches = len(getattr(meta, "web_search_queries", None) or [])
         usd = call_cost(model, response.usage_metadata, searches, today)
-        ledger.add(month, usd)  # as it's spent, so a crash mid-loop still counts
+        spent[0] += usd
         return usd
 
     def results(done: list[tuple[str, str | None, str]]) -> Any:
@@ -258,9 +280,17 @@ def answer(request: dict[str, Any], env: dict[str, str]) -> str:
 
     first = types.Content(role="user", parts=[types.Part(text=question)])
     deadline = time.monotonic() + int(env.get("SO_TIMEOUT", "540"))
-    text, spent = converse(generate, results, first, Files(cwd, roots), cost, call_usd, deadline)
-    total = ledger.spent(month)
-    return f"{text}\n\n[{model}: ${spent:.3f} for this question; ${total:.2f} of ${monthly:.2f} spent in {month}]"
+    return converse(generate, results, first, Files(cwd, roots), cost, call_usd, deadline)
+
+
+def peer() -> str:
+    """The user on the other end of the socket (stdin, from systemd's Accept=yes)."""
+    conn = socket.socket(fileno=os.dup(0))
+    try:
+        _, uid, _ = struct.unpack("3i", conn.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, struct.calcsize("3i")))
+    finally:
+        conn.close()
+    return pwd.getpwuid(uid).pw_name
 
 
 def serve() -> None:
@@ -272,7 +302,7 @@ def serve() -> None:
             request = json.loads(raw)
         except ValueError as error:
             raise Refused(f"bad request: {error}") from error
-        print(answer(request, dict(os.environ)))
+        print(answer(request, peer(), dict(os.environ)))
     except Refused as error:
         print(f"refused: {error}")
     except Exception as error:  # the API's errors are many; the caller needs the message

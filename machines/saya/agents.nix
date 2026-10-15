@@ -40,6 +40,12 @@ in
 
   systemd.tmpfiles.rules = [ "d ${agent.outbox} 0755 ${agent.user} ${agent.user} -" ];
 
+  # Gemini second opinions (modules/second-opinion.nix).
+  me.secondOpinion = {
+    enable = true;
+    agents.saya.dirs = [ repo ];
+  };
+
   me.agentChannel = {
     claudeTokenFile = config.age.secrets.agent-claude-token.path;
 

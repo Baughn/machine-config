@@ -105,7 +105,6 @@ machines/
   saya/<feature>.nix       # ganbot, game-watcher, steam, restic, stationeers, nix-deploy
   saya/agents.nix          # the saya agent-channel identity (user in agent-user.nix, prompt in agents/)
   saya/agent-ship.{nix,py} # agent-ship@<commit>: push + deploy a saya-agent commit after Baughn's approval
-  saya/second-opinion.{nix,py} # Gemini API second opinion for the agents ($20/month), off until secrets/gemini-api-key.age exists
   saya-installer/default.nix
   tsugumi/default.nix
   tsugumi/hardware-configuration.nix
@@ -132,6 +131,7 @@ modules/
   nix-deploy.nix           # me.deploy.rebootPatterns: when deploy recommends boot over switch
   punch.nix                # Discord-authorized game access (see docs/punch-design.md)
   remote-builds.nix
+  second-opinion.nix       # me.secondOpinion: Gemini API second opinions for the agents (script + skill in second-opinion/)
   security.nix
   shell.nix
   ssh-auth.nix             # OTP-gated SSH password auth (currently unused)
