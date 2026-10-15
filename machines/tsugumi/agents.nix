@@ -36,10 +36,9 @@ in
   systemd.tmpfiles.rules = [ "d /srv/towerview 0755 ${config.me.minecraft.lab.user} ${config.me.minecraft.lab.user} -" ];
 
   # Gemini second opinions (modules/second-opinion.nix), with the paths each agent asked for
-  # (msgs 1560358441791520832, 1560358537203425363). Off until secrets/gemini-api-key.age is
-  # rekeyed for tsugumi.
+  # (msgs 1560358441791520832, 1560358537203425363).
   me.secondOpinion = {
-    enable = false;
+    enable = true;
     agents.tsugumi-lab.dirs = map (d: "/var/lib/${config.me.minecraft.lab.user}/agent/${d}") [
       "stasis" "notes/rifts" "notes/timestop" "notes/overnight" "eln/port26" "eln/notes"
     ];
