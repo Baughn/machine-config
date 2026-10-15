@@ -52,6 +52,8 @@ in
       rcon.root = "/home/minecraft";
       # NixOS-level changes (units, scripts, its own permissions) go through saya.
       askAgents = [ "saya" "tsugumi-lab" ] ++ client;
+      # Long lab/client test loops need many agent round trips (Baughn, msg 1560278875378950235).
+      limits.bot_streak = 60;
       # Baughn's tick-debugging workflow; its case records live in
       # /home/minecraft/agent-debugging, outside the skill.
       skills.minecraft-tick-debug = ./agents/skills/minecraft-tick-debug;
@@ -122,6 +124,8 @@ in
       # msg 1558472455818055812: "Nothing there they couldn't do from the filesystem already").
       rcon.ask = [ ];
       askAgents = [ "tsugumi-minecraft" "saya" ] ++ client;
+      # Long lab/client test loops need many agent round trips (Baughn, msg 1560278875378950235).
+      limits.bot_streak = 60;
       path = [ config.system.build.minecraft-lab-client ];
       # git push to https://github.com/… authenticates with the PAT, no setup needed.
       environment = {

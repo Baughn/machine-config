@@ -50,7 +50,8 @@ lib.mkIf ready {
     # Admins may ask it for tests; it runs on Baughn's desktop, so only he approves.
     triggers = [ "owner" "admin" "agent" ];
     approvers = [ "owner" ];
-    limits.bot_streak = 8;
+    # Long lab/client test loops need many agent round trips (Baughn, msg 1560278875378950235).
+    limits.bot_streak = 60;
     askAgents = [ "saya" "tsugumi-lab" "tsugumi-minecraft" ];
     permissionMode = "auto";
     model = "claude-opus-5-5";

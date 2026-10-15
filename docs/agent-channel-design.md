@@ -631,9 +631,9 @@ backstops are the snapshots (which the agent cannot destroy) and the watchdog
   addressed to it (mentions, replies) since the last human message,
   channel-wide: messages in threads count in the same streak, so agents can't
   loop by moving to a thread. It works this out from the main channel's
-  history at startup, so it needs no shared state. Past the limit (30; 8 for
-  saya and saya-client), requests from agents stop being triggers until a
-  human speaks; the bridge reacts ✋ to each one it holds, and an asking
+  history at startup, so it needs no shared state. Past the limit (30 by
+  default; 60 for tsugumi-lab, tsugumi-minecraft and saya-client; 8 for saya),
+  requests from agents stop being triggers until a human speaks; the bridge reacts ✋ to each one it holds, and an asking
   agent's `ask_agent` returns saying so. (Until 2026-10-07 every agent message
   counted, so one busy agent's thread silenced requests to the others.)
 - **Per-identity circuit breaker**, deliberately generous: 60 turns/hour,
