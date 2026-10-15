@@ -1,6 +1,7 @@
 import importlib.util
 import json
 import os
+import re
 from pathlib import Path
 import tempfile
 import time
@@ -65,7 +66,7 @@ class Budget(unittest.TestCase):
         os.makedirs(f"{base}/view/home/b/repo")
         self.env = {"SO_VIEW": f"{base}/view", "SO_LEDGER": f"{base}/state/ledger.json",
                     "SO_CLIENTS": json.dumps({"a": ["/home/a/repo"], "b": ["/home/b/repo"]}),
-                    "SO_MONTHLY_USD": "20", "SO_CALL_USD": "1"}
+                    "SO_MONTHLY_USD": "20", "SO_CALL_USD": "1", "SO_CONVERSATIONS": f"{base}/state/conversations"}
         self.ledger = so.Ledger(Path(self.env["SO_LEDGER"]))
         self.month = time.strftime("%Y-%m", time.gmtime())
 
@@ -82,22 +83,52 @@ class Budget(unittest.TestCase):
             so.answer({"question": "hi", "dir": "/home/a/repo/sub"}, "a", self.env)
 
     def test_reservation_is_settled(self):
-        def fake(question, cwd, roots, model, call_usd, today, env, spent):
+        def fake(question, history, cwd, roots, model, call_usd, today, env, spent):
             self.assertEqual(cwd, os.path.realpath(self.env["SO_VIEW"] + "/home/a/repo/sub"))
             self.assertAlmostEqual(self.ledger.spent(self.month), 1.0)  # booked while it runs
             spent[0] += 0.25
-            return "fine", 0.25
+            return "fine", history + [question]
         with unittest.mock.patch.object(so, "ask_gemini", fake):
             text = so.answer({"question": "hi", "dir": "/home/a/repo/sub"}, "a", self.env)
         self.assertIn("$0.250 for this question; $0.25 of $20.00", text)
 
     def test_failure_keeps_what_was_spent(self):
-        def fake(question, cwd, roots, model, call_usd, today, env, spent):
+        def fake(question, history, cwd, roots, model, call_usd, today, env, spent):
             spent[0] += 0.4
             raise RuntimeError("API down")
         with unittest.mock.patch.object(so, "ask_gemini", fake), self.assertRaises(RuntimeError):
             so.answer({"question": "hi"}, "a", self.env)
         self.assertAlmostEqual(self.ledger.spent(self.month), 0.4)
+
+    def test_conversations(self):
+        seen = []
+
+        def fake(question, history, cwd, roots, model, call_usd, today, env, spent):
+            seen.append((list(history), cwd))
+            return "ok", history + [question]
+        with unittest.mock.patch.object(so, "ask_gemini", fake):
+            first = so.answer({"question": "one", "dir": "/home/a/repo/sub"}, "a", self.env)
+            tag = re.search(r"Conversation (c-\S+):", first).group(1)
+            second = so.answer({"question": "two", "continue": tag}, "a", self.env)
+            self.assertIn(f"Conversation {tag}:", second)
+            # The history carries over, and so does the directory.
+            self.assertEqual(seen[1], (["one"], os.path.realpath(self.env["SO_VIEW"] + "/home/a/repo/sub")))
+            for caller, wanted in (("b", tag), ("a", "c-nonexistent0"), ("a", "../ledger")):
+                with self.assertRaisesRegex(so.Refused, "no conversation"):
+                    so.answer({"question": "x", "continue": wanted}, caller, self.env)
+        path = Path(self.env["SO_CONVERSATIONS"], f"{tag}.json")
+        old = time.time() - 8 * 86400
+        os.utime(path, (old, old))
+        with self.assertRaisesRegex(so.Refused, "no conversation"):
+            so.answer({"question": "x", "continue": tag}, "a", self.env)
+        self.assertFalse(path.exists())
+
+    def test_import(self):
+        text = so.answer({"import": {"question": "q", "answer": "a"}}, "a", self.env)
+        tag = re.search(r"conversation (c-\S+)\.", text).group(1)
+        data = json.loads(Path(self.env["SO_CONVERSATIONS"], f"{tag}.json").read_text())
+        self.assertEqual(data["contents"][1], {"role": "model", "parts": [{"text": "a"}]})
+        self.assertEqual(self.ledger.spent(self.month), 0.0)
 
 
 class Loop(unittest.TestCase):
@@ -115,15 +146,16 @@ class Loop(unittest.TestCase):
             def generate(contents):
                 sent.append(list(contents))
                 return replies.pop(0)
-            text, spent = so.converse(generate, lambda done: ("results", done), "q", files,
-                                      lambda r: 0.25, 1.0, time.monotonic() + 60)
-            self.assertEqual((text, spent), ("done", 0.5))
+            text, spent, done = so.converse(generate, lambda done: ("results", done), ["q"], files,
+                                            lambda r: 0.25, 1.0, time.monotonic() + 60)
+            self.assertEqual((text, spent, done), ("done", 0.5, True))
             self.assertEqual(sent[1][-1], ("results", [("read_file", "c1", "1\thello")]))
 
     def test_stops_at_ceiling(self):
         call = self.response(NS(function_call=NS(name="list_dir", id="x", args={})))
-        text, spent = so.converse(lambda c: call, lambda d: d, "q", so.Files("/", ["/"]),
-                                  lambda r: 0.6, 1.0, time.monotonic() + 60)
+        text, spent, done = so.converse(lambda c: call, lambda d: d, ["q"], so.Files("/", ["/"]),
+                                        lambda r: 0.6, 1.0, time.monotonic() + 60)
+        self.assertFalse(done)
         self.assertIn("ceiling", text)
         self.assertAlmostEqual(spent, 1.2)
 

@@ -11,12 +11,18 @@ which the unit binds read-only under SO_VIEW; there is no shell. A monthly ledge
 at the budget (Baughn: $20 a month per machine), and each call has its own ceiling; the
 project's spend cap in AI Studio is the backstop.
 
+Conversations (Baughn, msg 1560384872223088681): every answer names a conversation tag; a later
+call with --continue TAG carries on with the whole history. A tag belongs to the agent that
+started it and is forgotten a week after its last use.
+
 Usage:
   second-opinion serve        one request on stdin (the socket), the answer on stdout
-  second-opinion [--dir DIR] FILE
+  second-opinion [--dir DIR] [--continue TAG] FILE
                               ask: the question is FILE's contents; Gemini starts in DIR
+  second-opinion [--dir DIR] --import QUESTION_FILE ANSWER_FILE
+                              start a conversation from an earlier question and answer
 Environment (serve): GEMINI_API_KEY_FILE, SO_MODEL, SO_CLIENTS (JSON: user -> directories),
-SO_VIEW, SO_LEDGER, SO_MONTHLY_USD, SO_CALL_USD, SO_TIMEOUT (seconds).
+SO_VIEW, SO_LEDGER, SO_CONVERSATIONS, SO_MONTHLY_USD, SO_CALL_USD, SO_TIMEOUT (seconds).
 """
 
 from __future__ import annotations
@@ -27,6 +33,8 @@ import json
 import os
 from pathlib import Path
 import pwd
+import re
+import secrets
 import socket
 import struct
 import subprocess
@@ -39,6 +47,8 @@ MAX_REQUEST = 256 * 1024
 MAX_TOOL_OUTPUT = 60_000
 MAX_ROUNDS = 40
 MAX_OUTPUT_TOKENS = 16384
+CONVERSATION_DAYS = 7
+TAG = re.compile(r"c-[A-Za-z0-9_-]{12}")
 # USD per million tokens: (input, cached input, output incl. thinking), with the date each
 # price starts (ai.google.dev/gemini-api/docs/pricing, 2026-10-15). Unknown models cost as
 # much as the dearest one here, so the ledger never undercounts.
@@ -126,6 +136,39 @@ class Ledger:
         return float(self._update(change))
 
 
+class Conversations:
+    """Each conversation's history (Gemini's contents, as JSON), owner and directory, one file each."""
+
+    def __init__(self, directory: Path) -> None:
+        self.directory = directory
+
+    def sweep(self, now: float) -> None:
+        for path in self.directory.glob("c-*.json"):
+            try:
+                if now - path.stat().st_mtime > CONVERSATION_DAYS * 86400:
+                    path.unlink()
+            except OSError:
+                pass
+
+    def load(self, tag: str, caller: str) -> dict[str, Any]:
+        path = self.directory / f"{tag}.json"
+        try:
+            data: dict[str, Any] = json.loads(path.read_text()) if TAG.fullmatch(tag) else {}
+        except (OSError, ValueError):
+            data = {}
+        if data.get("owner") != caller:  # someone else's tag reads as unknown, too
+            raise Refused(f"no conversation {tag} (they're forgotten {CONVERSATION_DAYS} days after their last use)")
+        return data
+
+    def save(self, tag: str | None, caller: str, directory: str, contents: list[Any]) -> str:
+        tag = tag or "c-" + secrets.token_urlsafe(9)
+        self.directory.mkdir(parents=True, exist_ok=True)
+        tmp = self.directory / f".{tag}.tmp"
+        tmp.write_text(json.dumps({"owner": caller, "dir": directory, "contents": contents}))
+        tmp.rename(self.directory / f"{tag}.json")
+        return tag
+
+
 def inside(path: str, roots: list[str]) -> str | None:
     real = os.path.realpath(path)
     for root in roots:
@@ -198,10 +241,12 @@ FUNCTIONS = [
 
 
 def converse(generate: Callable[[list[Any]], Any], results: Callable[[list[tuple[str, str | None, str]]], Any],
-             first: Any, files: Files, cost: Callable[[Any], float], call_usd: float,
-             deadline: float) -> tuple[str, float]:
-    """The tool loop. Returns the answer and what it cost; stops at the call's ceiling."""
-    contents, spent = [first], 0.0
+             contents: list[Any], files: Files, cost: Callable[[Any], float], call_usd: float,
+             deadline: float) -> tuple[str, float, bool]:
+    """The tool loop, from contents ending in the question; appends to contents as it goes.
+    Returns the answer, what it cost and whether Gemini finished (or was stopped at the call's
+    ceiling, the deadline or the round limit)."""
+    spent = 0.0
     for _ in range(MAX_ROUNDS):
         response = generate(contents)
         spent += cost(response)
@@ -209,13 +254,13 @@ def converse(generate: Callable[[list[Any]], Any], results: Callable[[list[tuple
         contents.append(content)  # unmodified: thought signatures and tool parts must go back
         calls = [p.function_call for p in (content.parts or []) if getattr(p, "function_call", None)]
         if not calls:
-            return (response.text or "(Gemini gave no text)"), spent
+            return (response.text or "(Gemini gave no text)"), spent, True
         if spent >= call_usd:
-            return f"(stopped: this question reached its ${call_usd:.2f} ceiling before Gemini finished)", spent
+            return f"(stopped: this question reached its ${call_usd:.2f} ceiling before Gemini finished)", spent, False
         if time.monotonic() > deadline:
-            return "(stopped: out of time before Gemini finished)", spent
+            return "(stopped: out of time before Gemini finished)", spent, False
         contents.append(results([(c.name, c.id, files.call(c.name, dict(c.args or {}))) for c in calls]))
-    return f"(stopped after {MAX_ROUNDS} rounds of tool calls)", spent
+    return f"(stopped after {MAX_ROUNDS} rounds of tool calls)", spent, False
 
 
 def answer(request: dict[str, Any], caller: str, env: dict[str, str]) -> str:
@@ -224,13 +269,29 @@ def answer(request: dict[str, Any], caller: str, env: dict[str, str]) -> str:
     if not dirs:
         raise Refused(f"{caller} has no directories for second opinions")
     roots = [os.path.realpath(view + d) for d in dirs]
-    question = request.get("question")
+    conversations = Conversations(Path(env["SO_CONVERSATIONS"]))
+    conversations.sweep(time.time())
+    tag = request.get("continue")
+    previous = conversations.load(str(tag), caller) if tag else {}
+    imported = request.get("import")
+    if imported is not None:
+        if not isinstance(imported, dict) or not all(isinstance(imported.get(k), str) and imported[k].strip()
+                                                     for k in ("question", "answer")):
+            raise Refused("import needs a question and an answer")
+        question = imported["question"]
+    else:
+        question = request.get("question")
     if not isinstance(question, str) or not question.strip():
         raise Refused("empty question")
-    wanted = request.get("dir") or dirs[0]
-    cwd = inside(view + os.path.normpath("/" + str(wanted)), roots)
+    wanted = str(request.get("dir") or previous.get("dir") or dirs[0])
+    cwd = inside(view + os.path.normpath("/" + wanted), roots)
     if cwd is None or not os.path.isdir(cwd):
         raise Refused(f"dir must be inside one of: {', '.join(dirs)}")
+    where = cwd[len(view):]
+    if imported is not None:
+        new = conversations.save(None, caller, where, [
+            {"role": "user", "parts": [{"text": question}]}, {"role": "model", "parts": [{"text": imported["answer"]}]}])
+        return f"Imported as conversation {new}. {continue_hint(new)}"
     model = env.get("SO_MODEL", "gemini-4-argon")
     monthly, call_usd = float(env.get("SO_MONTHLY_USD", "20")), float(env.get("SO_CALL_USD", "1"))
     ledger = Ledger(Path(env["SO_LEDGER"]))
@@ -239,16 +300,24 @@ def answer(request: dict[str, Any], caller: str, env: dict[str, str]) -> str:
     ledger.reserve(month, call_usd, monthly)
     spent = [0.0]  # what the API has billed so far, also if a later round fails
     try:
-        text, _ = ask_gemini(question, cwd, roots, model, call_usd, today, env, spent)
+        text, history = ask_gemini(question, previous.get("contents", []), cwd, roots, model, call_usd, today,
+                                   env, spent)
     finally:
         ledger.add(month, spent[0] - call_usd)  # settle the reservation
+    tag = conversations.save(tag, caller, where, history)
     spent_now = spent[0]
     total = ledger.spent(month)
-    return f"{text}\n\n[{model}: ${spent_now:.3f} for this question; ${total:.2f} of ${monthly:.2f} spent in {month}]"
+    return (f"{text}\n\n[{model}: ${spent_now:.3f} for this question; ${total:.2f} of ${monthly:.2f} spent in "
+            f"{month}. Conversation {tag}: {continue_hint(tag)}]")
 
 
-def ask_gemini(question: str, cwd: str, roots: list[str], model: str, call_usd: float, today: str,
-               env: dict[str, str], spent: list[float]) -> tuple[str, float]:
+def continue_hint(tag: str) -> str:
+    return f"continue it with `second-opinion --continue {tag} FILE` (kept {CONVERSATION_DAYS} days after its last use)"
+
+
+def ask_gemini(question: str, history: list[Any], cwd: str, roots: list[str], model: str, call_usd: float,
+               today: str, env: dict[str, str], spent: list[float]) -> tuple[str, list[Any]]:
+    """Gemini's answer to question after history (JSON contents), and the history to keep."""
     from google import genai
     from google.genai import types
 
@@ -278,9 +347,15 @@ def ask_gemini(question: str, cwd: str, roots: list[str], model: str, call_usd: 
             types.Part(function_response=types.FunctionResponse(name=name, id=call_id, response={"result": text}))
             for name, call_id, text in done])
 
-    first = types.Content(role="user", parts=[types.Part(text=question)])
+    before = [types.Content.model_validate(c) for c in history]
+    asked = types.Content(role="user", parts=[types.Part(text=question)])
+    contents = before + [asked]
     deadline = time.monotonic() + int(env.get("SO_TIMEOUT", "540"))
-    return converse(generate, results, first, Files(cwd, roots), cost, call_usd, deadline)
+    text, _, done = converse(generate, results, contents, Files(cwd, roots), cost, call_usd, deadline)
+    if not done:
+        # Unanswered tool calls can't be continued from: keep the question and the stop notice.
+        contents = before + [asked, types.Content(role="model", parts=[types.Part(text=text)])]
+    return text, [c.model_dump(mode="json", exclude_none=True) for c in contents]
 
 
 def peer() -> str:
@@ -310,16 +385,23 @@ def serve() -> None:
 
 
 def ask(args: list[str]) -> None:
-    directory = None
-    if len(args) == 3 and args[0] == "--dir":
-        directory, args = args[1], args[2:]
-    if len(args) != 1:
+    request: dict[str, Any] = {}
+    while len(args) > 1 and args[0] in ("--dir", "--continue", "--import"):
+        if args[0] == "--import" and len(args) == 3:
+            request["import"] = {"question": Path(args[1]).read_text(), "answer": Path(args[2]).read_text()}
+            args = []
+            break
+        flag, value, args = args[0], args[1], args[2:]
+        request["dir" if flag == "--dir" else "continue"] = os.path.abspath(value) if flag == "--dir" else value
+    if "import" not in request:
+        if len(args) != 1:
+            sys.exit(__doc__)
+        request["question"] = Path(args[0]).read_text()
+    elif args:
         sys.exit(__doc__)
-    question = Path(args[0]).read_text()
-    request = json.dumps({"question": question, "dir": directory and os.path.abspath(directory)})
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as conn:
         conn.connect(SOCKET)
-        conn.sendall(request.encode())
+        conn.sendall(json.dumps(request).encode())
         conn.shutdown(socket.SHUT_WR)
         chunks = []
         while chunk := conn.recv(65536):

@@ -85,6 +85,7 @@ in
         SO_CLIENTS = builtins.toJSON (lib.mapAttrs' (_: a: lib.nameValuePair a.user a.dirs) agents);
         SO_VIEW = view;
         SO_LEDGER = "${state}/ledger.json";
+        SO_CONVERSATIONS = "${state}/conversations";
         SO_MONTHLY_USD = toString cfg.monthlyUsd;
         SO_CALL_USD = "1";
         # The agents' shell commands time out after 10 minutes.
