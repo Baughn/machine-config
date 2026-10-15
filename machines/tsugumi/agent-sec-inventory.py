@@ -3,7 +3,7 @@ behind it, and vulnix's view of the system closure. Runs as root before the agen
 the agent only reads the JSON it writes, and nothing the agent wrote is run here.
 
 Usage: agent-sec-inventory OUT_DIR EXPOSED_JSON TRIGGER_DIR AGENT_USER
-Environment: VULNIX_WHITELIST, VULNIX_CACHE, MC_ROOT, MC_WORLDS (space-separated),
+Environment: VULNIX_WHITELIST, VULNIX_CACHE, MC_ROOT, MC_USER, MC_WORLDS (space-separated),
 NIXPKGS_PATH, NIXPKGS_VERSION, MACHINE_CONFIG_REV, FLAKE_INPUTS and BUILT (JSON).
 """
 
@@ -117,6 +117,30 @@ def mods() -> dict[str, list[str]]:
     return found
 
 
+def jvms() -> list[dict[str, object]]:
+    """Every JVM running as the minecraft user, with its full command line (Baughn, msg
+    1560250720479870977: for checking flags like jdk.serialFilter)."""
+    uid = pwd.getpwnam(os.environ.get("MC_USER", "minecraft")).pw_uid
+    found = []
+    for proc in sorted(Path("/proc").iterdir(), key=lambda p: (len(p.name), p.name)):
+        if not proc.name.isdigit():
+            continue
+        try:
+            if proc.stat().st_uid != uid:
+                continue
+            argv = [arg.decode(errors="replace") for arg in (proc / "cmdline").read_bytes().split(b"\0")[:-1]]
+            exe = os.readlink(proc / "exe")
+            cwd = os.readlink(proc / "cwd")
+            unit = (proc / "cgroup").read_text().strip().rsplit("/", 1)[-1]
+        except OSError:
+            continue
+        if not argv or Path(exe).name != "java":
+            continue
+        found.append({"pid": int(proc.name), "exe": exe, "package": store_name(exe), "cwd": cwd,
+                      "unit": unit, "argv": argv})
+    return found
+
+
 def write(out: Path, name: str, data: object) -> None:
     tmp = out / f".{name}.tmp"
     tmp.write_text(json.dumps(data, indent=1, sort_keys=True) + "\n")
@@ -142,7 +166,8 @@ def main() -> None:
     shutil.copyfile(exposed, out / ".exposed.tmp")
     (out / ".exposed.tmp").chmod(0o640)
     (out / ".exposed.tmp").rename(out / "exposed.json")
-    for name, collect in (("listening.json", listening), ("mods.json", mods), ("vulnix.json", lambda: vulnix(out))):
+    for name, collect in (("listening.json", listening), ("mods.json", mods), ("jvms.json", jvms),
+                          ("vulnix.json", lambda: vulnix(out))):
         try:
             write(out, name, collect())
         except Exception as error:  # one failed collector shouldn't stop the others
@@ -153,7 +178,7 @@ def main() -> None:
         found = f"{len(data['findings'])} vulnix findings" if "findings" in data else "vulnix FAILED"
     except (OSError, ValueError, KeyError, TypeError):
         found = "vulnix FAILED"
-    note = f"Inventory in {out}: system, exposed, listening, mods, vulnix ({found})."
+    note = f"Inventory in {out}: system, exposed, listening, mods, jvms, vulnix ({found})."
     if problems:
         note += " Collector problems: " + "; ".join(problems)
     account = pwd.getpwnam(user)

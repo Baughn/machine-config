@@ -165,6 +165,7 @@ lib.mkIf ready {
       VULNIX_CACHE = "/var/cache/${id}-vulnix";
       VULNIX_WHITELIST = "${./agent-sec-vulnix-whitelist.toml}";
       MC_ROOT = "/home/minecraft";
+      MC_USER = "minecraft";
       MC_WORLDS = lib.concatStringsSep " " config.me.minecraft.autostart;
       NIXPKGS_PATH = nixpkgs;
       NIXPKGS_VERSION = lib.version;
@@ -186,7 +187,7 @@ lib.mkIf ready {
       CacheDirectory = "${id}-vulnix";
       Group = user;
       UMask = "0027";
-      # Root for ss -p, /proc/<pid>/exe, the mods directories and the agent's trigger directory.
+      # Root for ss -p, /proc/<pid>/{exe,cmdline,cwd}, the mods directories and the agent's trigger directory.
       CapabilityBoundingSet = [ "CAP_DAC_READ_SEARCH" "CAP_DAC_OVERRIDE" "CAP_SYS_PTRACE" "CAP_NET_ADMIN" "CAP_CHOWN" "CAP_FOWNER" ];
       ProtectSystem = "strict";
       ProtectHome = "read-only";
