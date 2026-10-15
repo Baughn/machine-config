@@ -212,6 +212,7 @@
           root = ./.;
           fileset = pkgs.lib.fileset.unions [
             ./machines/saya/agent-ship.py
+            ./machines/saya/second-opinion.py
             ./machines/tsugumi/agent-board-discord.py
             ./modules/discord-notify.py
             ./machines/tsugumi/minecraft-storage.py
@@ -219,6 +220,7 @@
             ./machines/tsugumi/minecraft-watch.py
             ./machines/tsugumi/starlink-prefixes.py
             ./tests/test_agent_ship.py
+            ./tests/test_second_opinion.py
             ./tests/test_agent_board_discord.py
             ./tests/test_discord_notify.py
             ./tests/test_minecraft_storage.py
