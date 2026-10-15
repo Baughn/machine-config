@@ -16,6 +16,7 @@
     ./baloo.nix
     ./agents.nix
     ./agent-client.nix
+    ./agent-printer.nix
     ./agent-ship.nix
   ];
 

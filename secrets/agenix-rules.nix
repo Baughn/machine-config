@@ -30,6 +30,8 @@ in
   "agent-tsugumi-lab-discord.age".publicKeys = [ svein tsugumi ];
   "agent-tsugumi-security-discord.age".publicKeys = [ svein tsugumi ];
   "agent-saya-discord.age".publicKeys = [ svein saya ];
+  "agent-saya-printer-discord.age".publicKeys = [ svein saya ];
+  "prusa-printer.env.age".publicKeys = [ svein saya ];
   "gemini-api-key.age".publicKeys = [ svein saya tsugumi ];
   "agent-saya-client-discord.age".publicKeys = [ svein saya ];
   # agent-board-discord's read-only bot (machines/tsugumi/agent-board-discord.nix).
