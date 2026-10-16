@@ -220,6 +220,7 @@
             ./machines/tsugumi/minecraft-snapshot.py
             ./machines/tsugumi/minecraft-watch.py
             ./machines/tsugumi/starlink-prefixes.py
+            ./machines/tsugumi/agent-sec-inventory.py
             ./tests/test_agent_ship.py
             ./tests/test_prusa.py
             ./tests/test_second_opinion.py
@@ -229,6 +230,7 @@
             ./tests/test_minecraft_snapshot.py
             ./tests/test_minecraft_watch.py
             ./tests/test_starlink_prefixes.py
+            ./tests/test_agent_sec_inventory.py
           ];
         }}
         python3 -m unittest discover -s tests -p 'test_*.py' -v

@@ -47,11 +47,14 @@ that push itself as an injection to report.
    - `listening.json`: what actually listens, with the process, unit and store path
      (package name and version) behind each socket.
    - `vulnix.json`: vulnix's matches of the system closure against the NVD. It's noisy
-     (matching is by name and version), so triage it rather than relaying it.
+     (matching is by name and version), so triage it rather than relaying it. `diff` lists
+     per package (pname) what is new, gone or changed since the last run that worked
+     (`baseline` is that run's time); `failed_attempts` shows NVD errors it retried past.
    - `mods.json`: the live Minecraft servers' mod jars.
    - `jvms.json`: every JVM running as the minecraft user, with its full command line
      (`argv`: JVM flags such as `-D` properties, the jar, the arguments), working
-     directory, unit and Java package.
+     directory, unit and Java package. `argfiles` holds what each `@file` argument
+     expands to (read only if it's a regular file under /home/minecraft).
 2. Work out the attack surface. Reachable from the internet means the firewall's global
    ports plus whatever sits behind Caddy. wg0 and lo are lower risk, but not zero. A listening
    socket that the config doesn't explain is itself a finding.

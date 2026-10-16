@@ -14,7 +14,9 @@ import os
 from pathlib import Path
 import pwd
 import re
+import shlex
 import shutil
+import stat
 import subprocess
 import sys
 import time
@@ -89,21 +91,85 @@ def packages(out: Path) -> Path:
     return target
 
 
-def vulnix(out: Path) -> dict[str, object]:
-    cache = os.environ["VULNIX_CACHE"]
-    argv = ["vulnix", "--json", "--cache-dir", cache, "--from-file", str(packages(out))]
-    if os.environ.get("VULNIX_WHITELIST"):
-        argv += ["--whitelist", os.environ["VULNIX_WHITELIST"]]
+def run_vulnix(argv: list[str]) -> tuple[subprocess.CompletedProcess[str], list[object]]:
     result = subprocess.run(argv, capture_output=True, text=True, timeout=3600)
-    # vulnix exits 2 when it found something, 1 on errors (e.g. no network for the NVD feed).
+    # vulnix exits 2 when it found something, 1 on errors (e.g. an NVD feed download timing out).
     try:
         findings = json.loads(result.stdout) if result.stdout.strip() else []
     except json.JSONDecodeError:
         findings = []
     if result.returncode not in (0, 2) or not isinstance(findings, list):
         raise RuntimeError(f"vulnix exited {result.returncode}: {result.stderr.strip()[-1500:]}")
-    return {"exit": result.returncode, "findings": findings, "stderr": result.stderr[-4000:],
+    return result, findings
+
+
+def by_package(findings: list[object]) -> dict[str, dict[str, set[str]]]:
+    """pname -> its versions and CVEs, so a version bump isn't a vanished and a new package."""
+    packages: dict[str, dict[str, set[str]]] = {}
+    for item in findings:
+        if not isinstance(item, dict):
+            continue
+        entry = packages.setdefault(str(item.get("pname") or item.get("name")), {"versions": set(), "cves": set()})
+        entry["versions"].add(str(item.get("version")))
+        entry["cves"].update(map(str, item.get("affected_by") or []))
+    return packages
+
+
+def vulnix_diff(previous: dict[str, object] | None, findings: list[object]) -> dict[str, object]:
+    """What changed per package since the last successful run (Garibaldi's ask, msg 1560596485752754207)."""
+    if previous is None:
+        return {"baseline": None}
+    old, new = by_package(previous.get("findings") or []), by_package(findings)  # type: ignore[arg-type]
+    changed = []
+    for pname in sorted(old.keys() & new.keys()):
+        added, removed = new[pname]["cves"] - old[pname]["cves"], old[pname]["cves"] - new[pname]["cves"]
+        if added or removed or old[pname]["versions"] != new[pname]["versions"]:
+            changed.append({"pname": pname, "versions": sorted(old[pname]["versions"]),
+                            "now": sorted(new[pname]["versions"]), "added": sorted(added), "removed": sorted(removed)})
+    return {
+        "baseline": previous.get("generated"),
+        "new": [{"pname": p, "versions": sorted(new[p]["versions"]), "cves": sorted(new[p]["cves"])}
+                for p in sorted(new.keys() - old.keys())],
+        "gone": [{"pname": p, "versions": sorted(old[p]["versions"]), "cves": sorted(old[p]["cves"])}
+                 for p in sorted(old.keys() - new.keys())],
+        "changed": changed,
+    }
+
+
+def vulnix(out: Path, retry_delays: tuple[int, ...] = (120, 600)) -> dict[str, object]:
+    cache = os.environ["VULNIX_CACHE"]
+    argv = ["vulnix", "--json", "--cache-dir", cache, "--from-file", str(packages(out))]
+    if os.environ.get("VULNIX_WHITELIST"):
+        argv += ["--whitelist", os.environ["VULNIX_WHITELIST"]]
+    # The NVD feeds time out now and then (16 Oct); two retries (Baughn, msg 1560596928151031839).
+    errors = []
+    for delay in (*retry_delays, None):
+        try:
+            result, findings = run_vulnix(argv)
+            break
+        except (RuntimeError, subprocess.TimeoutExpired) as error:
+            errors.append(str(error)[-1500:])
+            if delay is None:
+                raise RuntimeError(f"vulnix failed {len(errors)} times; last: {errors[-1]}") from error
+            time.sleep(delay)
+    # The baseline is the last run that worked, so a failed day doesn't hide what changed.
+    last_good = out / ".vulnix-last-good.json"
+    previous = None
+    # Before the first last-good copy, yesterday's vulnix.json serves, if it worked.
+    for candidate in (last_good, out / "vulnix.json"):
+        try:
+            previous = json.loads(candidate.read_text())
+        except (OSError, ValueError):
+            continue
+        if isinstance(previous, dict) and "findings" in previous:
+            break
+        previous = None
+    data = {"generated": int(time.time()), "exit": result.returncode, "findings": findings,
+            "diff": vulnix_diff(previous, findings),
+            "failed_attempts": errors, "stderr": result.stderr[-4000:],
             "note": "matched by store path name and version only; patches are not considered"}
+    write(out, last_good.name, data)
+    return data
 
 
 def mods() -> dict[str, list[str]]:
@@ -117,9 +183,42 @@ def mods() -> dict[str, list[str]]:
     return found
 
 
+def argfiles(argv: list[str], cwd: str, root: Path) -> dict[str, object]:
+    """The contents of the JVM's @argfiles (NeoForge's user_jvm_args.txt and unix_args.txt),
+    split roughly as java does (Garibaldi's ask, msg 1560596485752754207). We run as root and
+    the files belong to the minecraft user, so only regular files under MC_ROOT are read: a
+    symlink to /etc/shadow stays unread."""
+    found: dict[str, object] = {}
+    for arg in argv[1:]:
+        if not arg.startswith("@") or arg.startswith("@@") or arg in found:
+            continue
+        try:
+            fd = os.open(Path(cwd) / arg[1:], os.O_RDONLY | os.O_NONBLOCK | os.O_NOCTTY)
+        except OSError as error:
+            found[arg] = {"error": str(error)}
+            continue
+        with os.fdopen(fd, "rb") as file:
+            # Check what was opened, not the name, so swapping in a symlink after the check doesn't help.
+            path = Path(os.readlink(f"/proc/self/fd/{fd}"))
+            info = os.fstat(fd)
+            if not path.is_relative_to(root):
+                found[arg] = {"path": str(path), "error": f"outside {root}, not read"}
+                continue
+            if not stat.S_ISREG(info.st_mode) or info.st_size > 256 * 1024:
+                found[arg] = {"path": str(path), "error": "not a regular file of at most 256 KiB"}
+                continue
+            text = file.read(256 * 1024).decode(errors="replace")
+        try:
+            found[arg] = {"path": str(path), "args": shlex.split(text, comments=True)}
+        except ValueError as error:  # unbalanced quotes
+            found[arg] = {"path": str(path), "error": str(error), "text": text}
+    return found
+
+
 def jvms() -> list[dict[str, object]]:
     """Every JVM running as the minecraft user, with its full command line (Baughn, msg
     1560250720479870977: for checking flags like jdk.serialFilter)."""
+    root = Path(os.path.realpath(os.environ.get("MC_ROOT", "/home/minecraft")))
     uid = pwd.getpwnam(os.environ.get("MC_USER", "minecraft")).pw_uid
     found = []
     for proc in sorted(Path("/proc").iterdir(), key=lambda p: (len(p.name), p.name)):
@@ -137,7 +236,7 @@ def jvms() -> list[dict[str, object]]:
         if not argv or Path(exe).name != "java":
             continue
         found.append({"pid": int(proc.name), "exe": exe, "package": store_name(exe), "cwd": cwd,
-                      "unit": unit, "argv": argv})
+                      "unit": unit, "argv": argv, "argfiles": argfiles(argv, cwd, root)})
     return found
 
 
@@ -176,6 +275,9 @@ def main() -> None:
     try:
         data = json.loads((out / "vulnix.json").read_text())
         found = f"{len(data['findings'])} vulnix findings" if "findings" in data else "vulnix FAILED"
+        if data.get("diff", {}).get("baseline") is not None:
+            diff = data["diff"]
+            found += f"; {len(diff['new'])} new, {len(diff['gone'])} gone, {len(diff['changed'])} changed packages"
     except (OSError, ValueError, KeyError, TypeError):
         found = "vulnix FAILED"
     note = f"Inventory in {out}: system, exposed, listening, mods, jvms, vulnix ({found})."

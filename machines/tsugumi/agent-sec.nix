@@ -45,6 +45,14 @@ let
     note = "punch (modules/punch.nix) opens game ports per source IP at runtime, after Discord authorization.";
   });
 
+  # vulnix gives each NVD feed download 10 s, which the NVD doesn't always make (16 Oct);
+  # Baughn asked for a longer timeout (msg 1560596928151031839). The inventory retries too.
+  vulnix = pkgs.vulnix.overrideAttrs (old: {
+    postPatch = (old.postPatch or "") + ''
+      substituteInPlace src/vulnix/nvd.py --replace-fail "timeout=10)" "timeout=120)"
+    '';
+  });
+
   inventoryScript = pkgs.writers.writePython3 "${id}-inventory" { flakeIgnore = [ "E501" ]; }
     (builtins.readFile ./agent-sec-inventory.py);
   # The home ISP's whole range (Baughn: "deny the entire ISP"): 2001:bb6::/32 (NGA/eir, what
@@ -160,7 +168,7 @@ lib.mkIf ready {
 
   systemd.services."${id}-inventory" = {
     description = "Daily inventory for the security watch (${id})";
-    path = [ pkgs.iproute2 pkgs.vulnix config.nix.package config.systemd.package ];
+    path = [ pkgs.iproute2 vulnix config.nix.package config.systemd.package ];
     environment = {
       VULNIX_CACHE = "/var/cache/${id}-vulnix";
       VULNIX_WHITELIST = "${./agent-sec-vulnix-whitelist.toml}";
@@ -195,7 +203,8 @@ lib.mkIf ready {
       PrivateTmp = true;
       PrivateDevices = true;
       NoNewPrivileges = true;
-      TimeoutStartSec = "2h";
+      # vulnix may run three times (two retries).
+      TimeoutStartSec = "4h";
     };
   };
 
