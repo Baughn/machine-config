@@ -1382,3 +1382,55 @@ async def test_the_status_card_shows_turns_and_waiting_approvals(harness: Harnes
     after = bridge.card(harness.clock.now)
     assert after["state"] == "idle" and after["ttl"] > 300
     assert bridge.turn_trigger is None
+
+
+async def test_the_presence_shows_idle_schedules_and_a_topic(harness: Harness) -> None:
+    bridge = harness.bridge
+    assert bridge.presence(harness.clock.now) == "Idle"
+    await bridge.tool_schedule({"in_minutes": 90, "note": "check the deploy"})
+    assert bridge.presence_changed.is_set()
+    due = bridge.schedules.next_due()
+    assert due is not None
+    assert bridge.presence(harness.clock.now) == "Idle; next turn " + bridge_module.time.strftime(
+        "%H:%M UTC", bridge_module.time.gmtime(due))
+    seen: list[str] = []
+
+    async def script(session: FakeSession, prompt: str) -> TurnResult:
+        seen.append(bridge.presence(harness.clock.now))
+        await settle()
+        seen.append(bridge.presence(harness.clock.now))
+        return TurnResult("session-1")
+
+    harness.session.script = script
+    await harness.say(ALICE, "@me put something useful in your Discord status", mention=True)
+    await run_turn(harness)
+    assert seen == ["Busy: working for alice", "Busy: Discord presence for the bots"]
+    assert harness.session.topics == ["@me put something useful in your Discord status"]
+    assert bridge.topic is None and bridge.presence(harness.clock.now).startswith("Idle; next turn")
+
+
+async def test_an_agents_request_gets_no_model_topic(harness: Harness) -> None:
+    seen: list[str] = []
+
+    async def script(session: FakeSession, prompt: str) -> TurnResult:
+        await settle()
+        seen.append(harness.bridge.presence(harness.clock.now))
+        return TurnResult("session-1")
+
+    harness.session.script = script
+    await harness.say(LAB, "@me a question", mention=True)
+    await run_turn(harness)
+    assert harness.session.topics == [] and seen[0].startswith("Busy: working for")
+
+
+async def test_the_presence_loop_sends_only_changes(harness: Harness, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(bridge_module, "PRESENCE_DEBOUNCE", 0.0)
+    task = asyncio.create_task(harness.bridge.presence_loop())
+    await settle()
+    harness.bridge.changed()
+    await settle()
+    harness.bridge.paused = True
+    harness.bridge.changed()
+    await settle()
+    task.cancel()
+    assert harness.chat.presences == ["Idle", "Paused"]

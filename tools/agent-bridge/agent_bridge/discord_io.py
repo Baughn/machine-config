@@ -137,6 +137,10 @@ class DiscordChat:
     async def on_ready(self) -> None:
         log.info("connected to Discord as %s", self.client.user)
         if self.ready:
+            # A new gateway session starts with no presence: send it again.
+            if self.bridge is not None:
+                self.bridge.presence_shown = None
+                self.bridge.changed()
             return
         self.channel = self.client.get_channel(int(self.config.channel_id))
         if self.channel is None:
@@ -303,6 +307,10 @@ class DiscordChat:
         channel = self.channel if thread is None else await self.thread(thread)
         messages = [m async for m in channel.history(limit=limit)]
         return [await self.convert(m, channel) for m in reversed(messages)]
+
+    async def set_presence(self, text: str) -> None:
+        # Shown as the text alone (state = name). A new gateway session drops it; see on_ready.
+        await self.client.change_presence(activity=discord.CustomActivity(name=text))
 
     async def download(self, attachment: Attachment, path: Path) -> None:
         async with aiohttp.ClientSession() as session, session.get(attachment.url) as response:

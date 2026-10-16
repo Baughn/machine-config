@@ -87,6 +87,7 @@ class FakeChat:
         self.refuse: str | None = None  # a ChatError every send raises
         self.deleted: list[str] = []
         self.buttons_dropped: set[str] = set()
+        self.presences: list[str] = []
 
     def new_id(self) -> str:
         return f"m{next(self.ids)}"
@@ -130,6 +131,9 @@ class FakeChat:
         path.write_text(f"downloaded {attachment.url}")
         self.downloads.append(path)
 
+    async def set_presence(self, text: str) -> None:
+        self.presences.append(text)
+
     def texts(self) -> list[str]:
         return [m.content for m in self.sent.values()]
 
@@ -154,6 +158,8 @@ class FakeSession:
         self.disconnects = 0
         self.fail_resume = False
         self.efforts: list[str] = []
+        self.topics: list[str] = []
+        self.topic_answer: str | None = "Discord presence for the bots"
 
     async def connect(self, resume: str | None) -> None:
         self.connects.append(resume)
@@ -173,6 +179,10 @@ class FakeSession:
 
     async def set_effort(self, level: str) -> None:
         self.efforts.append(level)
+
+    async def topic(self, request: str) -> str | None:
+        self.topics.append(request)
+        return self.topic_answer
 
 
 class Clock:

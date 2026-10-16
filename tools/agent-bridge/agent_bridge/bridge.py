@@ -63,6 +63,12 @@ ACK_TIMEOUT = 120.0
 CARD_HEARTBEAT = 300.0
 CARD_TTL = 720
 CARD_DEBOUNCE = 2.0
+# The bot's Discord status (Baughn, msg 1560674790623412305): idle and when the next schedule
+# is due, or busy with a topic. A human's request gets its topic from a short model call.
+PRESENCE_HEARTBEAT = 60.0
+PRESENCE_DEBOUNCE = 5.0
+PRESENCE_MAX = 128  # Discord's limit on a custom status
+TOPIC_TIMEOUT = 60.0
 SHIP_TIMEOUT = 65 * 60.0
 SHIP_POLL = 10.0
 BOOKMARK = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}\Z")
@@ -87,6 +93,7 @@ class Chat(Protocol):
     async def history(self, limit: int, thread: str | None = None) -> list[Incoming]: ...
     def url(self, message_id: str) -> str: ...
     async def download(self, attachment: Attachment, path: Path) -> None: ...
+    async def set_presence(self, text: str) -> None: ...
 
 
 class Held(Exception):
@@ -148,6 +155,11 @@ class Bridge:
         self.waiting: dict[str, tuple[str, float]] = {}  # approval message id -> (what, since)
         self.card_changed = asyncio.Event()
         self.card_task: asyncio.Task[None] | None = None
+        self.presence_changed = asyncio.Event()
+        self.presence_task: asyncio.Task[None] | None = None
+        self.presence_shown: str | None = None
+        self.topic: str | None = None  # what the current turn is about, for the presence
+        self.topic_task: asyncio.Task[None] | None = None
         self.run_command = run_command
         self.status: Status | None = None
         self.status_id: str | None = None
@@ -223,6 +235,7 @@ class Bridge:
         self.streak = Streak.from_history([(m.author.kind, mentioned(self.config, m)) for m in history])
         if self.board is not None:
             self.card_task = asyncio.create_task(self.card_loop())
+        self.presence_task = asyncio.create_task(self.presence_loop())
 
     async def reconnect(self) -> None:
         """At start, or after the CLI died: a client on the same session, or a fresh one."""
@@ -560,8 +573,9 @@ class Bridge:
     # --- the status card ----------------------------------------------------
 
     def changed(self) -> None:
-        """Something the status card shows changed."""
+        """Something the status card or the presence shows changed."""
         self.card_changed.set()
+        self.presence_changed.set()
 
     def card(self, now: float) -> dict[str, Any]:
         """This bridge's card for the board's status page (see tools/agent-board, status.rs)."""
@@ -622,6 +636,66 @@ class Bridge:
                 log.exception("status card failed")
             await asyncio.sleep(CARD_DEBOUNCE)
 
+    # --- the Discord presence ------------------------------------------------
+
+    def presence(self, now: float) -> str:
+        """The bot's custom status in the member list."""
+        if self.breaker.tripped:
+            text = f"Paused: circuit breaker tripped ({self.breaker.tripped})"
+        elif self.status is not None:
+            text = f"Busy: {self.topic or f'working for {self.status.requester}'}"
+            if self.waiting:
+                text = f"Waiting for approval: {self.topic or self.status.requester}"
+        else:
+            text = "Paused" if self.paused else "Idle"
+            due = self.schedules.next_due()
+            if due is not None:
+                when = "%H:%M UTC" if due - now < 20 * 3600 else "%a %d %b %H:%M UTC"
+                text += f"; next turn {time.strftime(when, time.gmtime(due))}"
+        return text[:PRESENCE_MAX]
+
+    async def presence_loop(self) -> None:
+        while True:
+            with contextlib.suppress(TimeoutError):
+                await asyncio.wait_for(self.presence_changed.wait(), PRESENCE_HEARTBEAT)
+            self.presence_changed.clear()
+            text = self.presence(self.clock())
+            if text != self.presence_shown:
+                try:
+                    await self.chat.set_presence(text)
+                    self.presence_shown = text
+                except Exception:
+                    log.exception("presence failed")
+            # Discord allows about five presence updates a minute.
+            await asyncio.sleep(PRESENCE_DEBOUNCE)
+
+    def start_topic(self, entries: list[Entry], status: Status) -> None:
+        """The thread's name for now, and for a human's request a model's summary of it."""
+        last = [e for e in entries if e.trigger][-1]
+        self.topic = None if last.scheduled else last.message.thread_name
+        humans = [e.message for e in entries if e.trigger and e.message.author.kind is Kind.HUMAN]
+        if humans:
+            self.topic_task = asyncio.create_task(self.find_topic(humans[-1], status))
+
+    async def find_topic(self, message: Incoming, status: Status) -> None:
+        request = message.content
+        if message.thread_name:
+            request = f"(in the thread \"{message.thread_name}\")\n{request}"
+        try:
+            topic = await asyncio.wait_for(self.session.topic(request), TOPIC_TIMEOUT)
+        except Exception as error:
+            log.warning("topic for the presence: %s: %s", type(error).__name__, error)
+            return
+        topic = " ".join((topic or "").split()).strip("\"'`*. ")[:100]
+        if topic and self.status is status:
+            self.topic = topic
+            self.changed()
+
+    def end_topic(self) -> None:
+        if self.topic_task is not None:
+            self.topic_task.cancel()
+        self.topic, self.topic_task = None, None
+
     # --- turns -------------------------------------------------------------
 
     async def one_turn(self) -> None:
@@ -658,6 +732,7 @@ class Bridge:
                 self.omitted += omitted
                 raise
             self.write_turn_file(now, requester, resumed=trigger.id.startswith("resume-"))
+            self.start_topic(entries, status)
             prompt = turn_prompt(lines, None if self.turn_thread is None
                                  else (self.turn_thread, trigger.thread_name))
             if self.fresh:
@@ -696,6 +771,7 @@ class Bridge:
             self.write_turn_log(status, final, result)
             self.turn_file.unlink(missing_ok=True)
             self.status = None
+            self.end_topic()
             self.changed()
             with contextlib.suppress(Exception):
                 await self.chat.edit(self.status_id, status.render(self.clock(), final))
@@ -1269,6 +1345,7 @@ class Bridge:
         except ScheduleError as error:
             raise ToolError(f"{error}{self.unread()}") from error
         self.note(f"schedule {schedule.describe(now)}")
+        self.changed()
         return f"scheduled {schedule.describe(now)}\nnow: {stamp(now)}{self.unread()}"
 
     async def tool_schedules(self, args: dict[str, Any]) -> str:
@@ -1280,6 +1357,7 @@ class Bridge:
             except ScheduleError as error:
                 raise ToolError(f"{error}{self.unread()}") from error
             self.note(f"cancelled schedule {cancelled.id}")
+            self.changed()
             text = f"cancelled {cancelled.id}\n"
         return f"{text}now: {stamp(now)}\n{self.schedules.listing(now)}{self.unread()}"
 
