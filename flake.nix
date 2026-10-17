@@ -10,7 +10,7 @@
     # root via the daemon) before it reaches nixos-unstable. See
     # modules/nix.nix; drop this input once nixpkgs has nix >= 2.34.9.
     nixpkgs-master.url = "github:NixOS/nixpkgs/eac8afcad4187d4af913f30eec6e274cb5d64138";
-    nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
+    nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/master";
     nix-cachyos-kernel.inputs.nixpkgs.follows = "nixpkgs";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
