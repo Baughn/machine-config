@@ -1,4 +1,4 @@
-{ pkgs, ganbot, ... }:
+{ lib, pkgs, ganbot, ... }:
 
 let
   ganbotPackage = ganbot.packages.x86_64-linux.default.overrideAttrs (old: {
@@ -46,16 +46,34 @@ in
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
     wantedBy = [ "multi-user.target" ];
+    # ComfyUI-Manager imports GitPython, which needs git at startup.
+    path = [ pkgs.git ];
+    # Point the venv at this config's python313, so it matches the glibc of
+    # the LD_LIBRARY_PATH libs below and is GC-rooted by the system closure.
+    preStart = ''
+      ln -sfn ${pkgs.python313}/bin/python3 .venv/bin/python
+      sed -i -e 's|^home = .*|home = ${pkgs.python313}/bin|' \
+             -e 's|^version_info = .*|version_info = ${pkgs.python313.version}|' .venv/pyvenv.cfg
+    '';
     serviceConfig = {
       Type = "simple";
       User = "svein";
       WorkingDirectory = "/home/svein/ai/comfy";
-      ExecStart = "/home/svein/ai/comfy/.venv/bin/python main.py --extra-model-paths-config extra_model_paths.yaml";
+      ExecStart = "/home/svein/ai/comfy/.venv/bin/python main.py --extra-model-paths-config extra_model_paths.yaml --enable-manager";
       Environment = [
-        "LD_LIBRARY_PATH=/run/opengl-driver/lib:${pkgs.stdenv.cc.cc.lib}/lib"
+        # Runtime deps of the pip wheels: opencv (custom nodes) and ANGLE (nodes_glsl).
+        "LD_LIBRARY_PATH=/run/opengl-driver/lib:${lib.makeLibraryPath (with pkgs; [
+          stdenv.cc.cc.lib zlib glib libglvnd libx11 libxext libxcb
+        ])}"
+        # ComfyUI-Manager shells out to `python -m uv pip`; ~/.cache is
+        # read-only under ProtectHome. The cache is on another filesystem
+        # than the venv, so copy instead of hardlinking.
+        "UV_CACHE_DIR=/var/cache/comfyui/uv"
+        "UV_LINK_MODE=copy"
       ];
       Restart = "on-failure";
       RestartSec = "10s";
+      CacheDirectory = "comfyui";
 
       # Hardening
       ProtectSystem = "strict";
