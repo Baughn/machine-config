@@ -440,7 +440,9 @@ starts a turn for it; if the asked agent's bridge hasn't reacted (or answered)
 within 2 minutes, the call returns at once saying it is probably down,
 restarting or paused. Without that, a question to a dead bridge held the
 caller for the full timeout (2026-10-01, the lab after a reboot): a bridge
-doesn't catch up on messages it missed while down. This is how an `ownerOnly` identity gets answers
+doesn't catch up on messages it missed while down. It also returns early when
+the asked agent's turn ends without a reply, or when another agent asks the
+caller something meanwhile (see "Minecraft-side changes" below). This is how an `ownerOnly` identity gets answers
 from another agent without agents being able to trigger it: the reply is a
 tool result in a turn Baughn started. The alternative, letting agent
 messages trigger saya, would let anyone who can steer tsugumi-minecraft steer
@@ -971,9 +973,18 @@ and email (`JJ_USER`/`JJ_EMAIL`) with a `Co-Authored-By: saya agent` trailer.
 
 **Minecraft-side changes** go through tsugumi-minecraft with `ask_agent`
 (see Bridge tools): saya can't reach `/home/minecraft`, and shouldn't. In the
-other direction, tsugumi-minecraft asks saya. The bridge refuses to
-`ask_agent` the agent whose question started the current turn (it is blocked
-waiting for the reply), so two agents can't deadlock asking each other.
+other direction, tsugumi-minecraft asks saya. Until 2026-10-18 the bridge
+refused to `ask_agent` the agent whose question started the current turn, but
+that forbade clarifying questions and missed longer cycles. Now (Baughn, msgs
+1561180136290910260 and 1561181515147382795) two rules break wait cycles of
+any length:
+- At the end of a turn, the bridge reacts 🔚 on every agent request the turn
+  took and didn't reply to (via `reply_to`); the asker's `ask_agent` returns
+  "ended its turn without replying".
+- An agent request that arrives (as a trigger) while `ask_agent` waits ends the
+  wait, telling the agent to answer it first. The awaited reply still arrives
+  later, as a trigger (a reply to us counts as a mention). In any cycle the
+  closing request reaches an agent that is already waiting, so it breaks.
 
 ## The lab identity (tsugumi-lab)
 

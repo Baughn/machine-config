@@ -57,6 +57,9 @@ ASK_TIMEOUT_MAX = 60.0
 RECEIVED = "📨"
 # On an agent's request held back by the bot streak limit: tells an asking bridge why.
 HELD = "✋"
+# At the end of a turn, on each agent request the turn took and never replied to: tells
+# an asking bridge to stop waiting (Baughn, msg 1561180136290910260).
+ENDED = "🔚"
 ACK_TIMEOUT = 120.0
 # The bridge's card on the board's status page: sent on changes and at least
 # every CARD_HEARTBEAT seconds; the board shows it stale after CARD_TTL.
@@ -98,6 +101,18 @@ class Chat(Protocol):
 
 class Held(Exception):
     """The asked agent's bridge held the question back (bot streak limit)."""
+
+
+class Ended(Exception):
+    """The asked agent's turn ended without a reply to the question."""
+
+
+class Interrupted(Exception):
+    """Another agent asked us something while we waited: answering it may be what unblocks us."""
+
+    def __init__(self, message: Incoming) -> None:
+        super().__init__(message.id)
+        self.message = message
 
 
 @dataclass
@@ -147,7 +162,8 @@ class Bridge:
         self.streak = Streak()
         self.pending: dict[str, Pending] = {}
         self.waiters: dict[str, Waiter] = {}  # by question message id
-        self.asked_by: set[str] = set()  # agents whose questions started the current turn
+        self.agent_requests: set[str] = set()  # agents' questions the current turn has taken
+        self.replied: set[str] = set()  # messages the current turn's posts replied to
         # The Discord thread the current turn started in: posts default to it.
         self.turn_thread: str | None = None
         self.announced: set[str] = set()  # triggers already told to the agent mid-turn
@@ -348,6 +364,21 @@ class Bridge:
         return Entry(message, True, line, scheduled=True, origin=f"a local {source} trigger",
                      files=tuple(t.path for t in batch))
 
+    def taken(self, entries: list[Entry]) -> None:
+        """The current turn has these entries: note the agents' requests among them."""
+        for entry in entries:
+            if entry.trigger and entry.message.author.kind is Kind.AGENT:
+                self.agent_requests.add(entry.message.id)
+
+    async def mark_unanswered(self) -> None:
+        """Turn over: tell agents whose requests got no reply that they can stop waiting."""
+        for message_id in sorted(self.agent_requests - self.replied):
+            try:
+                await self.chat.react(message_id, ENDED)
+            except Exception:
+                log.exception("could not mark message %s unanswered", message_id)
+        self.agent_requests, self.replied = set(), set()
+
     def consumed(self, entries: list[Entry]) -> None:
         """The agent has seen these entries: their spool files are done."""
         for entry in entries:
@@ -398,6 +429,12 @@ class Bridge:
         paths = await self.fetch_attachments(message) if wanted else []
         self.buffer.append(Entry(message, trigger, context_line(message, trigger, paths)))
         self.trim()
+        if trigger and message.author.kind is Kind.AGENT:
+            # We can't answer while we wait, and the asker may (through others) be waiting
+            # for us: stop waiting, so no cycle of agents can deadlock.
+            for waiter in self.waiters.values():
+                if not waiter.future.done():
+                    waiter.future.set_exception(Interrupted(message))
         if trigger:
             self.wake.set()
 
@@ -438,12 +475,12 @@ class Bridge:
 
     async def on_reaction(self, message_id: str, message_is_ours: bool, reactor: Author, emoji: str) -> None:
         waiter = self.waiters.get(message_id)
-        if waiter is not None and emoji in (RECEIVED, HELD) and reactor.id == waiter.agent_id:
+        if waiter is not None and emoji in (RECEIVED, HELD, ENDED) and reactor.id == waiter.agent_id:
             waiter.received.set()
             if emoji == HELD:
                 waiter.held = True
-                if not waiter.future.done():
-                    waiter.future.set_exception(Held())
+            if emoji != RECEIVED and not waiter.future.done():
+                waiter.future.set_exception(Held() if emoji == HELD else Ended())
             return
         if not may_approve(self.config, reactor):
             return
@@ -708,8 +745,8 @@ class Bridge:
             entries, lines = self.take()
             last = [e for e in entries if e.trigger][-1]
             trigger = last.message
-            self.asked_by = {e.message.author.id for e in entries
-                             if e.trigger and e.message.author.kind is Kind.AGENT}
+            self.agent_requests, self.replied = set(), set()
+            self.taken(entries)
             requester = last.origin or (f"its schedule {trigger.id}" if last.scheduled else trigger.author.name)
             status = Status(self.config.id, requester, now)
             self.status, self.stopping = status, False
@@ -755,6 +792,7 @@ class Bridge:
             self.last_turn = self.clock()
             self.last_error = None if result.interrupted else result.error
             self.consumed(entries)
+            await self.mark_unanswered()
             self.save_session(result.session_id or self.session_id)
             if result.interrupted or self.stopping:
                 final = "stopped"
@@ -1073,6 +1111,8 @@ class Bridge:
             raise ToolError(f"{error}{self.unread()}") from error
         if self.status is not None:
             self.status.posts += 1
+        if outgoing.reply_to is not None:
+            self.replied.add(outgoing.reply_to)
         return message_id
 
     def placed(self, outgoing: Outgoing) -> Outgoing:
@@ -1103,9 +1143,6 @@ class Bridge:
         agent = next((a for a in self.config.roster.agents if a.name == name), None)
         if agent is None or name not in self.config.ask_agents:
             raise ToolError(f"you can ask: {', '.join(self.config.ask_agents) or 'nobody'}")
-        if agent.discord_id in self.asked_by:
-            raise ToolError(f"{name} asked you something this turn and is waiting for your reply, so it "
-                            "can't answer you now. Put your questions in that reply instead.")
         minutes = min(max(float(args.get("timeout_minutes") or ASK_TIMEOUT), 0.0), ASK_TIMEOUT_MAX)
         question = self.placed(self.render({**args, "kind": "question", "reply_to": None}))
         question = replace(question, content=f"<@{agent.discord_id}> {question.content}",
@@ -1130,6 +1167,19 @@ class Bridge:
                     "too many agent requests in a row since a human last wrote in the channel (its loop "
                     "guard), and any human message resets that. Don't ask again; tell the channel what "
                     f"you need from {name} and wait for a human.{self.unread()}")
+        except Ended:
+            self.note(f"{name}: ended its turn without replying")
+            return (f"{name} ended its turn without replying to your question (message {message_id}). "
+                    "It may have answered in another post or on the board: check the channel (history) "
+                    f"before asking again. A later reply will arrive as channel context.{self.unread()}")
+        except Interrupted as error:
+            asker = error.message.author.name
+            self.note(f"stopped waiting for {name}: {asker} asked something")
+            return (f"Stopped waiting for {name}: {asker} asked you something meanwhile (message "
+                    f"{error.message.id}, in your inbox), and you can't answer while you wait. It may be "
+                    f"what {name} is waiting on. Read it with `inbox` and answer it. {name}'s reply to your "
+                    f"question (message {message_id}) will still reach you as a channel message; don't "
+                    f"ask again.{self.unread()}")
         except TimeoutError:
             self.note(f"{name}: no answer within {minutes:g} min")
             return (f"No answer from {name} within {minutes:g} minutes (question {message_id}). "
@@ -1364,5 +1414,6 @@ class Bridge:
     async def tool_inbox(self, args: dict[str, Any]) -> str:
         self.refuse_during_handoff()
         entries, lines = self.take()
+        self.taken(entries)
         self.consumed(entries)
         return ("\n".join(lines) if lines else "(no new messages)") + self.unread()

@@ -1023,18 +1023,122 @@ async def test_an_owner_only_agent_asks_another_and_gets_the_answer(tmp_path: Pa
     assert not any(e.trigger for e in lab.buffer)
 
 
-async def test_ask_agent_refuses_the_agent_that_is_waiting_on_us(tmp_path: Path) -> None:
+async def test_an_agent_may_ask_back_the_agent_that_asked_it(tmp_path: Path) -> None:
+    # Baughn, msg 1561181515147382795: clarifying questions are fine; the asker's wait
+    # ends when our question arrives (test_an_agent_request_ends_the_wait).
     h = Harness(tmp_path, ask_agents=["tsugumi-lab"])
+    results: list[str] = []
 
     async def script(session: FakeSession, prompt: str) -> TurnResult:
-        with pytest.raises(ToolError, match="waiting for your reply"):
-            await session.bridge.tool_ask_agent({"agent": "tsugumi-lab", "headline": "and you?"})
+        results.append(await session.bridge.tool_ask_agent(
+            {"agent": "tsugumi-lab", "headline": "which world?", "timeout_minutes": 0.0001}))
         return TurnResult("s")
 
     h.session.script = script
     await h.say(LAB, "a question for you", mention=True)
     await run_turn(h)
-    assert len(h.session.prompts) == 1
+    assert results[0].startswith("No answer from tsugumi-lab")
+
+
+async def test_ask_agent_returns_when_the_turn_ends_unanswered(tmp_path: Path) -> None:
+    h = Harness(tmp_path, ask_agents=["tsugumi-lab"])
+    task = asyncio.create_task(h.bridge.tool_ask_agent({"agent": "tsugumi-lab", "headline": "well?"}))
+    await settle()
+    question_id = list(h.chat.sent)[-1]
+    await h.bridge.on_reaction(question_id, True, h.author(ALICE), bridge_module.ENDED)
+    await settle()
+    assert not task.done()
+    await h.bridge.on_reaction(question_id, True, h.author(LAB), bridge_module.ENDED)
+    result = await asyncio.wait_for(task, 1)
+    assert result.startswith("tsugumi-lab ended its turn without replying")
+    assert h.bridge.waiters == {}
+
+
+async def test_a_turn_marks_the_agent_requests_it_did_not_answer(tmp_path: Path) -> None:
+    h = Harness(tmp_path)
+    answered = await h.say(LAB, "first", mention=True)
+    ignored = await h.say(LAB, "second", mention=True)
+    later: list[Incoming] = []
+
+    async def script(session: FakeSession, prompt: str) -> TurnResult:
+        await session.bridge.tool_post({"kind": "report", "headline": "done", "reply_to": answered.id})
+        later.append(await h.say(LAB, "third, from the inbox", mention=True))
+        await session.bridge.tool_inbox({})
+        await h.say(LAB, "fourth, never read", mention=True)
+        return TurnResult("s")
+
+    h.session.script = script
+    await h.say(OWNER, "and me", mention=True)
+    await run_turn(h)
+    ended = [m for m, emoji in h.chat.reactions if emoji == bridge_module.ENDED]
+    assert sorted(ended) == sorted([ignored.id, later[0].id])
+    assert h.bridge.agent_requests == set()
+
+
+async def test_an_agent_request_ends_the_wait(tmp_path: Path) -> None:
+    h = Harness(tmp_path, ask_agents=["tsugumi-lab"])
+    task = asyncio.create_task(h.bridge.tool_ask_agent({"agent": "tsugumi-lab", "headline": "well?"}))
+    await settle()
+    await h.say(OWNER, "not a request from an agent")
+    await h.say(LAB, "chatter, no mention")
+    await settle()
+    assert not task.done()
+    asked = await h.say(LAB, "but first, tell me this", mention=True)
+    result = await asyncio.wait_for(task, 1)
+    assert result.startswith("Stopped waiting for tsugumi-lab") and asked.id in result
+    assert h.bridge.buffer[-1].message is asked and h.bridge.buffer[-1].trigger
+    assert h.bridge.waiters == {}
+
+
+@pytest.mark.parametrize("both_busy", [True, False])
+async def test_two_agents_asking_each_other_do_not_deadlock(tmp_path: Path, both_busy: bool) -> None:
+    channel = Channel()
+    results: dict[str, list[str]] = {"tsugumi-lab": [], "tsugumi-minecraft": []}
+    busy: list[str] = []
+
+    def script(me: str, other: str) -> Any:
+        async def run(session: FakeSession, prompt: str) -> TurnResult:
+            if "baughn" in prompt:
+                busy.append(me)
+                while both_busy and len(busy) < 2:  # both mid-turn before either asks
+                    await asyncio.sleep(0)
+                results[me].append(await session.bridge.tool_ask_agent({"agent": other, "headline": f"{me} asks"}))
+            if question := re.search(r"\[(c\d+)\][^\n]*may ask you to act[^\n]*{other} asks".format(other=other),
+                                     prompt):
+                await session.bridge.tool_post({"kind": "report", "headline": f"{me} answers",
+                                                "reply_to": question[1]})
+            return TurnResult("s")
+        return run
+
+    identities = (("tsugumi-lab", LAB), ("tsugumi-minecraft", ME))
+    for identity, discord_id in identities:
+        (tmp_path / identity / "work").mkdir(parents=True)
+        (tmp_path / identity / "state").mkdir()
+        other = "tsugumi-minecraft" if identity == "tsugumi-lab" else "tsugumi-lab"
+        config = parse(config_data(id=identity, workdir=str(tmp_path / identity / "work"), triggers=["owner", "agent"],
+                                   approvers=["owner"], ask_agents=[other]), tmp_path / identity / "state")
+        bridge = Bridge(config, channel.chat(discord_id), FakeSession)
+        assert isinstance(bridge.session, FakeSession)
+        bridge.session.script = script(identity, other)
+        channel.bridges[identity] = bridge
+    runners = [asyncio.create_task(b.run()) for b in channel.bridges.values()]
+    for bridge in channel.bridges.values():
+        owner = classify(bridge.config, OWNER, "baughn", is_bot=False, webhook_id=None, is_admin=True)
+        await bridge.on_message(Incoming(f"h-{bridge.config.id}", CHANNEL, None, owner, "ask the other",
+                                         mentions=frozenset({bridge.config.me.discord_id})))
+    for _ in range(100):
+        await settle()
+    for runner in runners:
+        runner.cancel()
+    # Whoever was waiting when the other's question arrived stopped waiting; the other
+    # then got its answer from the first one's next turn. Nobody waited out the timeout.
+    assert [len(r) for r in results.values()] == [1, 1]
+    assert any(r[0].startswith("Stopped waiting for") for r in results.values()), results
+    for identity, bridge in channel.bridges.items():
+        assert isinstance(bridge.session, FakeSession) and bridge.waiters == {}
+        other = "tsugumi-minecraft" if identity == "tsugumi-lab" else "tsugumi-lab"
+        assert (f"{other} answers" in results[identity][0]
+                or any(f"{other} answers" in p for p in bridge.session.prompts)), (results, bridge.session.prompts)
 
 
 def test_agents_but_not_admins_trigger_a_saya_like_identity(tmp_path: Path) -> None:
