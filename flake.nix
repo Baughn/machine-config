@@ -122,12 +122,16 @@
           ./machines/saya
           ({ pkgs, ... }: {
             nixpkgs.overlays = [
-              (final: prev: {
+              (final: prev: let
+                  npf = (import nixpkgs-fast {
+                    inherit (prev.stdenv.hostPlatform) system;
+                    inherit (prev) config;
+                  });
+                in {
                 # Browser security updates can't wait for the weekly cooldown.
-                google-chrome = (import nixpkgs-fast {
-                  inherit (prev.stdenv.hostPlatform) system;
-                  inherit (prev) config;
-                }).google-chrome;
+                google-chrome = npf.google-chrome;
+                # Discord has this annoying habit of updating.
+                discord = npf.discord;
                 inherit (claudeCodeOverlay final prev) claude-code;
                 kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {
                   kwin = kprev.kwin.overrideAttrs (old: {
