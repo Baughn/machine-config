@@ -74,6 +74,8 @@ in
       type = lib.types.attrsOf (lib.types.listOf lib.types.str);
       default = {
         "config/Discord-Integration.toml" = [ "botToken" ];
+        # Incognito's Discord bridge, [General] token (a lab clone joined Discord with it, 10-21).
+        "config/mc2discord.toml" = [ "token" ];
         "config/thump/services/irc.cfg" = [ "NickservPassword" "SASLPassword" "ServerPassword" ];
       };
       description = ''

@@ -273,6 +273,9 @@ class LabTests(unittest.TestCase):
         cfg = "irc {\n    S:NickservPassword=hunter2\n    S:ServerPassword=\n}\n"
         self.assertEqual(storage.scrub(cfg, ["NickservPassword", "ServerPassword"]),
                          "irc {\n    S:NickservPassword=\n    S:ServerPassword=\n}\n")
+        mc2discord = '[General]\n\ttoken = "abc.def"\n\n[[Channels.Channel]]\n\tid = 123\n'
+        self.assertEqual(storage.scrub(mc2discord, ["token"]),
+                         '[General]\n\ttoken = ""\n\n[[Channels.Channel]]\n\tid = 123\n')
 
     def lab_zfs(self, lines):
         return patch.multiple(storage, filesystems=lambda: {storage.LAB_ROOT},
