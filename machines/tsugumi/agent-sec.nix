@@ -82,6 +82,11 @@ lib.mkIf ready {
     "d ${workdir}/notes 0700 ${user} ${user} -"
     "d ${sourcesDir} 0700 ${user} ${user} -"
     "d ${inventory} 0750 root ${user} -"
+    # Attachments people send it (Garibaldi's setup request; Baughn approved, msg
+    # 1562496082364342414): the bridge's inbox, bind-mounted read-only into the workdir,
+    # because the rest of the bridge's state (the CLI's home) stays denied.
+    "d /var/lib/agent-bridge/${id}/inbox 0700 ${user} ${user} -"
+    "d ${workdir}/inbox 0700 ${user} ${user} -"
   ];
 
   me.agentChannel.instances.${id} = {
@@ -148,6 +153,7 @@ lib.mkIf ready {
       # the workdir, .claude/ included, is read-only, so it can't hot-load settings or hooks.
       ReadWritePaths = [ "${workdir}/notes" sourcesDir ];
       ReadOnlyPaths = [ "-${inventory}" ];
+      BindReadOnlyPaths = [ "/var/lib/agent-bridge/${id}/inbox:${workdir}/inbox" ];
       PrivateTmp = true;
       PrivateDevices = true;
       PrivateIPC = true;
