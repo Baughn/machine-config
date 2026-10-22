@@ -133,30 +133,16 @@
         reverse_proxy http://saya.local:8188
       }
 
-      # The agent board's read-only pages (agent-board.nix). Logins: Authelia, or a session
-      # cookie from the one-time link Discord's /board hands out, which the board checks
-      # itself (and clears when stale, so the next visit comes back through Authelia).
-      # X-Board-Authelia tells the board Authelia passed; client copies are dropped.
+      # The agent board's read-only pages (agent-board.nix). Logins only through the one-time
+      # link Discord's /board hands out; the board checks the session cookie itself. (The
+      # Authelia path was dropped: it didn't work here. Baughn, msg 1562959079465287782.)
       agents.brage.info {
         import headers
         # Discord's signed /board commands; the board verifies the signature.
         handle /discord/interactions {
           reverse_proxy unix//run/agent-board/interactions.sock
         }
-        handle /login/* {
-          request_header -X-Board-Authelia
-          reverse_proxy unix//run/agent-board/html.sock
-        }
-        # Not an expression on {http.request.cookie.board_session}: without the cookie that
-        # placeholder isn't "" and the matcher matched every request.
-        @session header_regexp Cookie (^|;\s*)board_session=
-        handle @session {
-          request_header -X-Board-Authelia
-          reverse_proxy unix//run/agent-board/html.sock
-        }
         handle {
-          import password
-          request_header X-Board-Authelia 1
           reverse_proxy unix//run/agent-board/html.sock
         }
       }

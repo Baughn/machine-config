@@ -3,9 +3,7 @@
 //! An admin runs `/board` in Discord; Discord POSTs the interaction to the `interactions`
 //! socket, which checks its Ed25519 signature and the member's roles and answers, visible
 //! only to that member, with a one-time link. Opening the link and pressing its button
-//! trades it for a session cookie. Pages pass with a valid session cookie, or with the
-//! header the reverse proxy sets after its own login (Authelia); the proxy strips any
-//! copy a client sends.
+//! trades it for a session cookie. Pages pass only with a valid session cookie.
 //!
 //! Only SHA-256 hashes of links and sessions are stored.
 
@@ -34,8 +32,6 @@ use crate::error::AppError;
 pub const LOGIN_TTL: i64 = 600;
 /// How long a browser stays logged in.
 pub const SESSION_TTL: i64 = 30 * 86_400;
-/// Set by the reverse proxy once Authelia has let the request through.
-pub const PROXY_AUTH_HEADER: &str = "x-board-authelia";
 pub const SESSION_COOKIE: &str = "board_session";
 /// Discord's signed timestamps must be this fresh, in seconds.
 const MAX_SKEW: i64 = 300;
@@ -233,16 +229,13 @@ fn notice(status: StatusCode, title: &str, body: Markup) -> Response {
     (status, crate::html::page(title, "", body)).into_response()
 }
 
-/// Middleware for the HTML pages: let through the proxy's Authelia logins and valid
-/// sessions; anyone else is told how to get a link.
+/// Middleware for the HTML pages: let through valid sessions; anyone else is told how to
+/// get a link.
 pub async fn require_login(
     State(state): State<AppState>,
     request: Request,
     next: Next,
 ) -> Response {
-    if request.headers().contains_key(PROXY_AUTH_HEADER) {
-        return next.run(request).await;
-    }
     let cookie = session_cookie(request.headers());
     if let Some(token) = cookie.clone() {
         match state
@@ -264,7 +257,7 @@ pub async fn require_login(
         },
     );
     if cookie.is_some() {
-        // Without the stale cookie, the proxy sends the next visit through Authelia.
+        // Drop the stale cookie, so the browser stops sending it.
         response.headers_mut().insert(SET_COOKIE, clear_cookie());
     }
     response
@@ -558,11 +551,7 @@ mod tests {
         let response = send("GET", "/status", None).await.unwrap();
         assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
         assert!(response.headers().get(SET_COOKIE).is_none());
-        let response = send("GET", "/status", Some((PROXY_AUTH_HEADER, "1".into())))
-            .await
-            .unwrap();
-        assert_eq!(response.status(), StatusCode::OK);
-        // A stale cookie is cleared, so the proxy falls back to Authelia.
+        // A stale cookie is cleared.
         let stale = Some(("cookie", format!("{SESSION_COOKIE}={link}")));
         let response = send("GET", "/status", stale).await.unwrap();
         assert_eq!(response.status(), StatusCode::UNAUTHORIZED);

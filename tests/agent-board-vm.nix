@@ -33,7 +33,7 @@ pkgs.testers.runNixOSTest {
       # The public half of the test key below (seed 0x07 * 32).
       discordPublicKey = "ea4a6c63e29c520abef5507b132ec5f9954776aebebe7b92421eea691446d22c";
     };
-    environment.systemPackages = [ pkgs.curl pkgs.jq pkgs.openssl ];
+    environment.systemPackages = [ pkgs.curl pkgs.jq pkgs.openssl pkgs.sqlite ];
     environment.etc."discord-test-key.pem".text = ''
       -----BEGIN PRIVATE KEY-----
       MC4CAQAwBQYDK2VwBCIEIAcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcH
@@ -41,11 +41,12 @@ pkgs.testers.runNixOSTest {
     '';
   };
   testScript = { nodes, ... }: ''
-    import json, shlex
+    import hashlib, json, shlex
 
     API = "--unix-socket /run/agent-board/api.sock http://board"
-    # Caddy adds the header once Authelia has passed the request.
-    HTML = "--unix-socket /run/agent-board/html.sock -H 'X-Board-Authelia: 1' http://board"
+    # A browser session, put straight into the database (the /board subtest makes a real one).
+    SESSION = "ab" * 32
+    HTML = f"--unix-socket /run/agent-board/html.sock -H 'Cookie: board_session={SESSION}' http://board"
     BARE_HTML = "--unix-socket /run/agent-board/html.sock http://board"
     INTERACTIONS = "--unix-socket /run/agent-board/interactions.sock http://board/discord/interactions"
     TOKEN = "test-token-0123456789abcdef0123456789"
@@ -65,6 +66,10 @@ pkgs.testers.runNixOSTest {
     start_all()
     machine.wait_for_unit("sockets.target")
     machine.wait_for_unit("agent-board.service")
+    machine.succeed("sqlite3 /var/lib/agent-board/board.db \"INSERT INTO web_sessions "
+                    "(hash, who, discord_id, created, expires, last_used) VALUES (X'"
+                    + hashlib.sha256(SESSION.encode()).hexdigest() + "', 'test', '1', unixepoch(), "
+                    "unixepoch() + 86400, unixepoch())\"")
 
     with subtest("callers are identified by uid; others are refused"):
         assert json.loads(curl("minecraft", API + "/whoami"))["agent"] == "tsugumi-minecraft"

@@ -741,10 +741,12 @@ mod tests {
             ..NewTodo::default()
         };
         board.create_todo("tsugumi-lab", "baughn", &new, false).unwrap();
+        let link = board.create_login("vindex", "5").unwrap();
+        let cookie = format!("{}={}", web::SESSION_COOKIE, board.consume_login(&link).unwrap().unwrap());
         let app = router(AppState::new(board, Default::default(), Vec::new()));
         let get = |uri: String| {
             let request = Request::get(uri)
-                .header(web::PROXY_AUTH_HEADER, "1")
+                .header("cookie", cookie.as_str())
                 .body(Body::empty())
                 .unwrap();
             let app = app.clone();
