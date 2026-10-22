@@ -15,6 +15,9 @@
   ];
   humans = {
     baughn = { discordId = "236112302590394368"; role = "owner"; };
+    # λ-Nero (Discord nero918), so todos can be assigned to him. Admin, as the guild role already
+    # makes him; this changes only his label and the roster in prompts.
+    nero = { discordId = "178310000484024320"; role = "admin"; };
   };
   agents = {
     tsugumi-minecraft = {
