@@ -227,11 +227,22 @@ class DiscordChat:
         return thread
 
     async def destination(self, message: Outgoing) -> Any:
-        if message.new_thread is not None or message.thread == MAIN:
+        if message.new_thread is not None:
             return self.channel
-        if message.thread is not None:
-            return await self.thread(message.thread)
-        return self.target(message.reply_to)
+        if message.thread is None:
+            return self.target(message.reply_to)
+        channel = self.channel if message.thread == MAIN else await self.thread(message.thread)
+        if message.reply_to is not None:
+            # Discord silently drops a reply link to a message in another channel or
+            # thread, so an agent waiting in ask_agent would never see the answer.
+            origin = self.where.get(int(message.reply_to))
+            if origin is not None and origin != channel.id:
+                place = "the main channel" if origin == self.channel.id else f"thread {origin}"
+                raise ChatError(f"message {message.reply_to} is in {place}, and a reply can't link to it "
+                                "from elsewhere: Discord drops the link, so an agent waiting for your "
+                                "answer never sees it. Post the reply there (drop `thread`), or drop "
+                                "`reply_to` and post a separate message.")
+        return channel
 
     async def send(self, message: Outgoing, view: Any = None) -> str:
         channel = await self.destination(message)

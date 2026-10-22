@@ -59,6 +59,19 @@ def test_posts_go_where_they_are_sent() -> None:
     assert run(c.destination(Outgoing("x", reply_to="99"))) is live
 
 
+def test_a_reply_must_go_where_its_message_is() -> None:
+    live = thread(60)
+    c = chat({60: live})
+    run = asyncio.run
+    c.where[99], c.where[98] = CHANNEL_ID, 60
+    assert run(c.destination(Outgoing("x", reply_to="99", thread="main"))) is c.channel
+    assert run(c.destination(Outgoing("x", reply_to="98", thread="60"))) is live
+    assert run(c.destination(Outgoing("x", reply_to="97", thread="60"))) is live  # unknown: let it through
+    for reply_to, where in (("99", "60"), ("98", "main")):
+        with pytest.raises(ChatError, match="drop `thread`"):
+            run(c.destination(Outgoing("x", reply_to=reply_to, thread=where)))
+
+
 def test_only_this_channels_threads() -> None:
     c = chat({62: thread(62, parent=51), 63: SimpleNamespace(id=63)})
     for target in ("62", "63", "64"):
