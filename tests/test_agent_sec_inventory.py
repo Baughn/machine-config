@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
+import time
 import unittest
 from unittest import mock
 
@@ -99,6 +100,19 @@ class VulnixRetries(unittest.TestCase):
         self.assertEqual(run.call_count, 3)
         self.assertIn("3 times", str(error))
         self.assertFalse((self.out / ".vulnix-last-good.json").exists())
+
+
+class Daily(unittest.TestCase):
+    def test_first_run_after_five_is_daily(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            at = lambda hour, day=22: time.strptime(f"2026-10-{day} {hour:02}:30", "%Y-%m-%d %H:%M")
+            self.assertFalse(inventory.is_daily(out, at(1)))
+            self.assertTrue(inventory.is_daily(out, at(5)))
+            (out / ".last-daily").write_text("2026-10-22\n")
+            self.assertFalse(inventory.is_daily(out, at(9)))
+            self.assertFalse(inventory.is_daily(out, at(1, 23)))
+            self.assertTrue(inventory.is_daily(out, at(9, 23)))  # 05:30 missed: the next run catches up
 
 
 if __name__ == "__main__":

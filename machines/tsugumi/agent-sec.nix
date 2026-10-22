@@ -1,8 +1,8 @@
 { config, lib, pkgs, flakeSelf, dessplay, ... }:
 # tsugumi-sec: a security watch over tsugumi's network-facing code (Baughn, Discord thread
 # 1558438110084341874; plan on board thread #13). Every four hours a root oneshot collects what
-# is exposed and what runs behind it, plus vulnix's view, and starts the agent's turn: the 05:30
-# run is the full daily review, the others are change checks (Baughn, msg 1562834074505056381).
+# is exposed and what runs behind it, and starts the agent's turn: the first run after 05:00 is
+# the full daily review, with vulnix; the others are change checks (Baughn, msg 1562834074505056381).
 #
 # It reads hostile text all day, so it is fenced in on the assumption that it gets injected:
 # no shell, no permission prompts (dontAsk: unlisted calls are refused), read access only to its
@@ -117,8 +117,8 @@ lib.mkIf ready {
       nixpkgs = nixpkgs;
     };
     extraDirs = [ inventory sourcesDir ];
-    # A fresh session most days: whatever it read yesterday doesn't ride along.
-    idleReset = 4 * 3600;
+    # A fresh session for most runs (every 4 h): whatever it read earlier doesn't ride along.
+    idleReset = 2 * 3600;
     limits = { posts_per_minute = 3; posts_per_hour = 12; turns_per_hour = 6; };
     permissionMode = "dontAsk";
     model = "claude-opus-5-5";

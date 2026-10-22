@@ -1,4 +1,4 @@
-"""Daily inventory for the security watch (agent-sec.nix): what tsugumi exposes, what runs
+"""Inventory for the security watch (agent-sec.nix): what tsugumi exposes, what runs
 behind it, and vulnix's view of the system closure. Runs as root before the agent's turn;
 the agent only reads the JSON it writes, and nothing the agent wrote is run here.
 
@@ -247,9 +247,22 @@ def write(out: Path, name: str, data: object) -> None:
     tmp.rename(out / name)
 
 
+def is_daily(out: Path, now: time.struct_time) -> bool:
+    """The first run on or after 05:00 each day is the full daily review; the others (every four
+    hours, Baughn msg 1562834074505056381) are change checks. Decided before the slow collectors,
+    so a slow vulnix doesn't push the 05:30 run past the hour."""
+    try:
+        last = (out / ".last-daily").read_text().strip()
+    except OSError:
+        last = ""
+    return now.tm_hour >= 5 and last != time.strftime("%Y-%m-%d", now)
+
+
 def main() -> None:
     out, exposed, triggers, user = Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3]), sys.argv[4]
     out.mkdir(parents=True, exist_ok=True)
+    now = time.localtime()
+    daily = is_daily(out, now)
     problems = []
     write(out, "system.json", {
         "generated": int(time.time()),
@@ -265,8 +278,11 @@ def main() -> None:
     shutil.copyfile(exposed, out / ".exposed.tmp")
     (out / ".exposed.tmp").chmod(0o640)
     (out / ".exposed.tmp").rename(out / "exposed.json")
-    for name, collect in (("listening.json", listening), ("mods.json", mods), ("jvms.json", jvms),
-                          ("vulnix.json", lambda: vulnix(out))):
+    collectors = [("listening.json", listening), ("mods.json", mods), ("jvms.json", jvms)]
+    # The NVD is slow: vulnix runs once a day, or when there is no result yet.
+    if daily or not (out / "vulnix.json").exists():
+        collectors.append(("vulnix.json", lambda: vulnix(out)))
+    for name, collect in collectors:
         try:
             write(out, name, collect())
         except Exception as error:  # one failed collector shouldn't stop the others
@@ -275,6 +291,8 @@ def main() -> None:
     try:
         data = json.loads((out / "vulnix.json").read_text())
         found = f"{len(data['findings'])} vulnix findings" if "findings" in data else "vulnix FAILED"
+        if not daily:
+            found += ", from " + time.strftime("%Y-%m-%d %H:%M", time.localtime(data["generated"]))
         if data.get("diff", {}).get("baseline") is not None:
             diff = data["diff"]
             found += f"; {len(diff['new'])} new, {len(diff['gone'])} gone, {len(diff['changed'])} changed packages"
@@ -283,15 +301,15 @@ def main() -> None:
     note = f"Inventory in {out}: system, exposed, listening, mods, jvms, vulnix ({found})."
     if problems:
         note += " Collector problems: " + "; ".join(problems)
-    # The timer runs every four hours (Baughn, msg 1562834074505056381); the 05:xx run (a late
-    # catch-up aside) is the full daily review, the others are change checks.
-    source = "daily" if time.localtime().tm_hour == 5 else "check"
+    source = "daily" if daily else "check"
     account = pwd.getpwnam(user)
     stamp = time.strftime("%Y%m%dT%H%M%S")
     tmp = triggers / f"{source}-{stamp}.tmp"
     tmp.write_text(json.dumps({"source": source, "note": note[:1900]}))
     os.chown(tmp, account.pw_uid, account.pw_gid)
     tmp.rename(triggers / f"{source}-{stamp}.json")
+    if daily:
+        (out / ".last-daily").write_text(time.strftime("%Y-%m-%d", now) + "\n")
 
 
 if __name__ == "__main__":
