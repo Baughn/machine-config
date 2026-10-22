@@ -1,7 +1,8 @@
 { config, lib, pkgs, flakeSelf, dessplay, ... }:
 # tsugumi-sec: a security watch over tsugumi's network-facing code (Baughn, Discord thread
-# 1558438110084341874; plan on board thread #13). Once a day a root oneshot collects what is
-# exposed and what runs behind it, plus vulnix's view, and starts the agent's turn.
+# 1558438110084341874; plan on board thread #13). Every four hours a root oneshot collects what
+# is exposed and what runs behind it, plus vulnix's view, and starts the agent's turn: the 05:30
+# run is the full daily review, the others are change checks (Baughn, msg 1562834074505056381).
 #
 # It reads hostile text all day, so it is fenced in on the assumption that it gets injected:
 # no shell, no permission prompts (dontAsk: unlisted calls are refused), read access only to its
@@ -95,13 +96,17 @@ lib.mkIf ready {
     tokenFile = config.age.secrets.agent-tsugumi-security-discord.path;
     promptFile = ./agents/tsugumi-sec.md;
     board.socket = "/run/agent-board/api.sock";
-    # Baughn talks to it; nothing else starts its turns but the daily timer.
+    # Baughn talks to it; nothing else starts its turns but the inventory timer.
     ownerOnly = true;
     triggers = [ "owner" ];
     approvers = [ "owner" ];
     triggerSources.daily = ''
       The daily inventory is ready (paths in the note). Do your daily security review as your
       prompt describes, and write it up.
+    '';
+    triggerSources.check = ''
+      A fresh inventory is ready (paths in the note). Do your four-hourly check as your prompt
+      describes.
     '';
     builtinTools = false;
     # Its home is read-only (ProtectSystem below); the CLI and nix get the state directory.
@@ -173,7 +178,7 @@ lib.mkIf ready {
   };
 
   systemd.services."${id}-inventory" = {
-    description = "Daily inventory for the security watch (${id})";
+    description = "Inventory for the security watch (${id})";
     path = [ pkgs.iproute2 vulnix config.nix.package config.systemd.package ];
     environment = {
       VULNIX_CACHE = "/var/cache/${id}-vulnix";
@@ -217,7 +222,7 @@ lib.mkIf ready {
   systemd.timers."${id}-inventory" = {
     wantedBy = [ "timers.target" ];
     timerConfig = {
-      OnCalendar = "*-*-* 05:30:00";
+      OnCalendar = "*-*-* 01,05,09,13,17,21:30:00";
       RandomizedDelaySec = "15min";
       Persistent = true;
     };

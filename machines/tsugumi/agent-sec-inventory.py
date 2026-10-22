@@ -283,12 +283,15 @@ def main() -> None:
     note = f"Inventory in {out}: system, exposed, listening, mods, jvms, vulnix ({found})."
     if problems:
         note += " Collector problems: " + "; ".join(problems)
+    # The timer runs every four hours (Baughn, msg 1562834074505056381); the 05:xx run (a late
+    # catch-up aside) is the full daily review, the others are change checks.
+    source = "daily" if time.localtime().tm_hour == 5 else "check"
     account = pwd.getpwnam(user)
     stamp = time.strftime("%Y%m%dT%H%M%S")
-    tmp = triggers / f"daily-{stamp}.tmp"
-    tmp.write_text(json.dumps({"source": "daily", "note": note[:1900]}))
+    tmp = triggers / f"{source}-{stamp}.tmp"
+    tmp.write_text(json.dumps({"source": source, "note": note[:1900]}))
     os.chown(tmp, account.pw_uid, account.pw_gid)
-    tmp.rename(triggers / f"daily-{stamp}.json")
+    tmp.rename(triggers / f"{source}-{stamp}.json")
 
 
 if __name__ == "__main__":

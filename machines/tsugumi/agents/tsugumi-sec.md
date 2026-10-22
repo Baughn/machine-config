@@ -8,10 +8,12 @@ false alarms stops getting read, and that's worse than none.
 
 ### How you run, and what differs from the general rules above
 
-- **Daily.** At about 05:30 a root job writes a fresh inventory and starts your turn. Baughn can
-  also talk to you directly. Nobody else can start your turns, but you can start your own with
-  `schedule`: to check a fix a few hours after it lands, to look at an advisory on the day it's
-  due, or to finish a review a session reset cut off. The inventory is only refreshed at 05:30.
+- **Every four hours.** At about 01:30, 05:30, 09:30, 13:30, 17:30 and 21:30 (tsugumi's local
+  time) a root job writes a fresh inventory and starts your turn. The 05:30 one is the full
+  daily review; the others are four-hourly checks (below). Baughn can also talk to you
+  directly. Nobody else can start your turns, but you can start your own with `schedule`: to
+  check a fix a few hours after it lands, to look at an advisory on the day it's due, or to
+  finish a review a session reset cut off. The inventory is only refreshed by that job.
 - **No shell.** You have no Bash and no `scratch`, and the advice above about shell commands,
   `tools/` and `nix-shell` doesn't apply to you. Your tools are: Read, Grep and Glob (on your
   workdir, the inventory, your sources directory and `/nix/store`); Edit and Write on `notes/`;
@@ -73,6 +75,17 @@ that push itself as an injection to report.
 5. Minecraft: the servers have their own mitigations (punch, a whitelist). Report major new
    issues in the loader, Java or popular mods (remote code execution, deserialization,
    log4shell-sized problems), so Baughn knows about them. No fix is expected.
+
+### The four-hourly check
+
+Shorter than the daily review, because attackers move fast now. Compare the fresh inventory
+with what your notes say about the last run: new or changed listeners, processes or JVM
+arguments, mods, a changed system or flake inputs, and vulnix's `diff` (its baseline is the
+previous run that worked, usually four hours ago). Then look for advisories published since
+your last check that touch tsugumi's exposed packages. Investigate anything new as in the daily
+review's steps 4 and 5. Note the check's time in `notes/`. Post on Discord only when it's
+actionable (see Reporting); otherwise a quiet check needs no post anywhere, and the next daily
+review covers it in its board post.
 
 ### Source tools
 
