@@ -9,6 +9,8 @@ NIXPKGS_PATH, NIXPKGS_VERSION, MACHINE_CONFIG_REV, FLAKE_INPUTS and BUILT (JSON)
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import ipaddress
 import json
 import os
@@ -286,9 +288,15 @@ def read_state(out: Path, name: str) -> dict[str, object]:
 
 
 def split_address(address: str) -> tuple[str, str]:
-    """ss's host:port, [v6]:port or host%iface:port -> (host, port)."""
+    """ss's host:port, [v6]:port or host%iface:port -> (host, port); ::ffff:a.b.c.d -> a.b.c.d."""
     host, _, port = address.rpartition(":")
     host = host.strip("[]").split("%", 1)[0]
+    try:
+        mapped = ipaddress.ip_address(host)
+        if mapped.version == 6 and mapped.ipv4_mapped is not None:
+            host = str(mapped.ipv4_mapped)
+    except ValueError:
+        pass
     return host, port
 
 
@@ -600,6 +608,222 @@ def load(out: Path) -> dict[str, object]:
     return report
 
 
+# --- Slice B: logins and persistence (same plan). Accepted ssh sources are Baughn's own addresses,
+# so they appear as keyed hashes; the key is readable by root only, not by the agent.
+
+SSH_ACCEPTED = re.compile(r"^Accepted (\S+) for (\S+) from (\S+) port \d+")
+SSH_FAILED = re.compile(r"^Failed (\S+) for (?:invalid user )?(\S+) from (\S+) port \d+")
+SSH_INVALID = re.compile(r"^Invalid user (\S*) from (\S+)")
+SUDO = re.compile(r"^\s*(\S+) : .*?USER=(\S+) ; COMMAND=(.*)$")
+LOGIND = re.compile(r"^New session \S+ of user (\S+)\.")
+
+
+def source_key(out: Path) -> bytes:
+    path = out / ".source-key"
+    try:
+        return path.read_bytes()
+    except FileNotFoundError:
+        key = os.urandom(32)
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, "wb") as file:
+            file.write(key)
+        return key
+
+
+def hashed(key: bytes, host: str) -> str:
+    return "src-" + hmac.new(key, host.encode(), hashlib.sha256).hexdigest()[:12]
+
+
+def parse_auth(entries: list[dict[str, object]], key: bytes) -> dict[str, object]:
+    """Journal entries (sshd, sudo, su, logind) -> who logged in, failures, sudo use."""
+    accepted: dict[tuple[str, str, str], int] = {}
+    failed_users: dict[str, int] = {}
+    failed_sources: dict[str, int] = {}
+    sudo, su, sessions = [], [], {}
+    for entry in entries:
+        message = str(entry.get("MESSAGE") or "")
+        ident = str(entry.get("SYSLOG_IDENTIFIER") or "")
+        if ident.startswith("sshd"):
+            match = SSH_ACCEPTED.match(message)
+            if match:
+                k = (match.group(2), match.group(1), hashed(key, match.group(3)))
+                accepted[k] = accepted.get(k, 0) + 1
+                continue
+            match = SSH_FAILED.match(message) or SSH_INVALID.match(message)
+            if match:
+                user, host = match.groups()[-2:]
+                failed_users[user] = failed_users.get(user, 0) + 1
+                failed_sources[prefix(host)] = failed_sources.get(prefix(host), 0) + 1
+        elif ident == "sudo":
+            match = SUDO.match(message)
+            if match:
+                command = SECRET_ARG.sub(r"\1<redacted>", match.group(3))
+                sudo.append({"user": match.group(1), "as": match.group(2), "command": command[:300],
+                             "time": int(int(str(entry.get("__REALTIME_TIMESTAMP") or 0)) / 1e6)})
+        elif ident == "su":
+            su.append(message[:200])
+        elif ident == "systemd-logind":
+            match = LOGIND.match(message)
+            if match:
+                sessions[match.group(1)] = sessions.get(match.group(1), 0) + 1
+    return {
+        "ssh_accepted": [{"user": k[0], "method": k[1], "source": k[2], "count": n} for k, n in sorted(accepted.items())],
+        "ssh_failed": {"total": sum(failed_users.values()),
+                       "users": dict(sorted(failed_users.items(), key=lambda i: -i[1])[:20]),
+                       "top_prefixes": dict(sorted(failed_sources.items(), key=lambda i: -i[1])[:20])},
+        "sudo": sudo[-100:], "su": su[-50:], "new_sessions": sessions,
+    }
+
+
+def watched_files() -> list[Path]:
+    """Account and key files whose changes matter."""
+    files = [Path(p) for p in ("/etc/passwd", "/etc/group", "/etc/shadow", "/etc/sudoers", "/etc/ld.so.preload")]
+    files += sorted(Path("/etc/ssh/authorized_keys.d").glob("*"))
+    for account in pwd.getpwall():
+        for name in ("authorized_keys", "authorized_keys2"):
+            files.append(Path(account.pw_dir) / ".ssh" / name)
+    return files
+
+
+def file_hashes(paths: list[Path]) -> dict[str, str]:
+    found = {}
+    for path in paths:
+        try:
+            found[str(path)] = hashlib.sha256(path.read_bytes()).hexdigest()[:16]
+        except (FileNotFoundError, NotADirectoryError):
+            continue
+        except OSError as error:
+            found[str(path)] = f"unreadable: {error.strerror}"
+    return found
+
+
+def compare(previous: dict[str, object], current: dict[str, str]) -> dict[str, list[str]]:
+    return {"added": sorted(current.keys() - previous.keys()), "removed": sorted(previous.keys() - current.keys()),
+            "changed": sorted(k for k in current.keys() & previous.keys() if current[k] != previous[k])}
+
+
+def auth(out: Path) -> dict[str, object]:
+    state = read_state(out, ".auth-state.json")
+    argv = ["journalctl", "-o", "json", "--no-pager"]
+    argv += ["--after-cursor", str(state["cursor"])] if state.get("cursor") else ["--since", "-4h"]
+    argv += ["SYSLOG_IDENTIFIER=sshd", "+", "SYSLOG_IDENTIFIER=sshd-session", "+", "SYSLOG_IDENTIFIER=sudo",
+             "+", "SYSLOG_IDENTIFIER=su", "+", "SYSLOG_IDENTIFIER=systemd-logind"]
+    result = subprocess.run(argv, capture_output=True, text=True)
+    if result.returncode != 0 and state.get("cursor"):  # the cursor's journal file was rotated away
+        argv[argv.index("--after-cursor"):argv.index("--after-cursor") + 2] = ["--since", "-4h"]
+        result = subprocess.run(argv, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"journalctl exited {result.returncode}: {result.stderr.strip()[-300:]}")
+    entries = []
+    for line in result.stdout.splitlines():
+        try:
+            entries.append(json.loads(line))
+        except ValueError:
+            continue
+    data = parse_auth(entries, source_key(out))
+    data["new_ssh_sources"] = mark_new(out, ".ssh-sources-seen.json",
+                                       [a["source"] for a in data["ssh_accepted"]], time.time())  # type: ignore[index]
+    hashes = file_hashes(watched_files())
+    data["files"] = hashes
+    data["files_since_last_run"] = compare(state.get("files") or {}, hashes)  # type: ignore[arg-type]
+    data["generated"] = int(time.time())
+    data["note"] = ("Since the previous run. ssh sources are keyed hashes (same address, same hash); "
+                    "new_ssh_sources: not seen in 30 days. Failed logins are counted by /24 or /48. "
+                    "files: sha256 prefixes of account and key files; files_since_last_run: what changed.")
+    cursor = next((e.get("__CURSOR") for e in reversed(entries) if e.get("__CURSOR")), state.get("cursor"))
+    write(out, ".auth-state.json", {"cursor": cursor, "files": hashes})
+    return data
+
+
+def unit_sources(names: list[str]) -> list[dict[str, str]]:
+    """systemctl show for many units at once -> Id, FragmentPath, DropInPaths, Transient."""
+    found = []
+    for start in range(0, len(names), 200):
+        output = subprocess.run(["systemctl", "show", "--no-pager", "-p", "Id,FragmentPath,DropInPaths,Transient",
+                                 "--", *names[start:start + 200]], capture_output=True, text=True).stdout
+        for block in output.strip().split("\n\n"):
+            found.append(dict(line.split("=", 1) for line in block.splitlines() if "=" in line))
+    return found
+
+
+def outside_store(path: str) -> bool:
+    """Not from the NixOS config: neither in the store nor made by a generator (fstab, ZFS mounts)."""
+    return bool(path) and not path.startswith("/run/systemd/generator") \
+        and not os.path.realpath(path).startswith("/nix/store/")
+
+
+def foreign_units(units: list[dict[str, str]]) -> dict[str, object]:
+    """Units whose definition or drop-ins don't come from the store, i.e. not from the NixOS config."""
+    foreign, transient, masked = [], [], []
+    for unit in units:
+        name = unit.get("Id", "")
+        if unit.get("FragmentPath") and os.path.realpath(unit["FragmentPath"]) == "/dev/null":
+            masked.append(name)
+            continue
+        if unit.get("Transient") == "yes":
+            if not name.endswith(".scope"):  # session and app scopes are routine
+                transient.append(name)
+            continue
+        reasons = []
+        if outside_store(unit.get("FragmentPath", "")):
+            reasons.append(f"defined in {unit['FragmentPath']}")
+        for dropin in unit.get("DropInPaths", "").split():
+            if outside_store(dropin):
+                reasons.append(f"drop-in {dropin}")
+        if reasons:
+            foreign.append({"unit": name, "why": reasons})
+    return {"foreign": foreign, "transient": sorted(transient), "masked": sorted(masked)}
+
+
+def listing(roots: list[Path], limit: int = 200) -> list[dict[str, object]]:
+    """Regular files under roots, with size and hash prefix."""
+    found: list[dict[str, object]] = []
+    for root in roots:
+        if not root.exists():
+            continue
+        for path in sorted(root.rglob("*")) if root.is_dir() else [root]:
+            if len(found) >= limit:
+                return found
+            try:
+                if path.is_file():
+                    found.append({"path": str(path), "bytes": path.stat().st_size,
+                                  "sha256": hashlib.sha256(path.read_bytes()).hexdigest()[:16]})
+            except OSError:
+                continue
+    return found
+
+
+def setid_files() -> list[str]:
+    """setuid/setgid files where none should be (the store and /run/wrappers are expected)."""
+    result = subprocess.run(["find", "/etc", "/root", "/tmp", "/var/tmp", "/dev/shm", "/usr", "/bin", "/sbin",
+                             "/opt", "/srv", "-xdev", "-type", "f", "(", "-perm", "-4000", "-o", "-perm", "-2000",
+                             ")"], capture_output=True, text=True)
+    return sorted(result.stdout.split())[:100]
+
+
+def persistence(out: Path) -> dict[str, object]:
+    listed = json.loads(subprocess.run(["systemctl", "list-units", "--all", "-o", "json", "--no-pager"],
+                                       capture_output=True, text=True, check=True).stdout)
+    names = sorted(u["unit"] for u in listed if u.get("load") != "not-found")
+    data = foreign_units(unit_sources(names))
+    timers = json.loads(subprocess.run(["systemctl", "list-timers", "--all", "-o", "json", "--no-pager"],
+                                       capture_output=True, text=True, check=True).stdout)
+    data["timers"] = sorted(f"{t.get('unit')} -> {t.get('activates')}" for t in timers)
+    now = time.time()
+    data["new_units"] = mark_new(out, ".units-seen.json", names, now)
+    data["new_timers"] = mark_new(out, ".timers-seen.json", data["timers"], now)  # type: ignore[arg-type]
+    homes = {Path(a.pw_dir) for a in pwd.getpwall() if a.pw_dir not in ("", "/", "/var/empty", "/nonexistent")}
+    data["user_units"] = listing([home / ".config" / "systemd" / "user" for home in sorted(homes)])
+    data["lingering"] = sorted(p.name for p in Path("/var/lib/systemd/linger").glob("*"))
+    data["cron"] = listing([Path("/var/spool/cron"), Path("/etc/crontab"), Path("/etc/cron.d")])
+    data["setid_outside_store"] = setid_files()
+    data["generated"] = int(now)
+    data["note"] = ("foreign: loaded units defined or overridden outside /nix/store (not from the NixOS config). "
+                    "transient: non-scope units made at runtime (systemd-run). new_units/new_timers: not seen in "
+                    "30 days, so expect some after a deploy.")
+    return data
+
+
 def write(out: Path, name: str, data: object) -> None:
     tmp = out / f".{name}.tmp"
     tmp.write_text(json.dumps(data, indent=1, sort_keys=True) + "\n")
@@ -640,7 +864,8 @@ def main() -> None:
     (out / ".exposed.tmp").rename(out / "exposed.json")
     collectors = [("listening.json", listening), ("mods.json", mods), ("jvms.json", jvms),
                   ("flows.json", lambda: flows(out)), ("processes.json", lambda: processes(out)),
-                  ("load.json", lambda: load(out))]
+                  ("load.json", lambda: load(out)), ("auth.json", lambda: auth(out)),
+                  ("persistence.json", lambda: persistence(out))]
     # The NVD is slow: vulnix runs once a day, or when there is no result yet.
     if daily or not (out / "vulnix.json").exists():
         collectors.append(("vulnix.json", lambda: vulnix(out)))
@@ -661,7 +886,7 @@ def main() -> None:
     except (OSError, ValueError, KeyError, TypeError):
         found = "vulnix FAILED"
     note = (f"Inventory in {out}: system, exposed, listening, mods, jvms, flows, processes, load, "
-            f"vulnix ({found}).")
+            f"auth, persistence, vulnix ({found}).")
     if problems:
         note += " Collector problems: " + "; ".join(problems)
     source = "daily" if daily else "check"

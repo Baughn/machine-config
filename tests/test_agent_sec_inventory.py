@@ -225,5 +225,55 @@ class Load(unittest.TestCase):
         self.assertNotIn("cpu_cores", report["units"]["a.service"])
 
 
+class Auth(unittest.TestCase):
+    def test_parse(self):
+        entries = [
+            {"SYSLOG_IDENTIFIER": "sshd-session", "MESSAGE": "Accepted publickey for svein from 81.2.69.7 port 5000 ssh2: ED25519"},
+            {"SYSLOG_IDENTIFIER": "sshd", "MESSAGE": "Failed password for invalid user admin from 81.2.69.9 port 1 ssh2"},
+            {"SYSLOG_IDENTIFIER": "sshd", "MESSAGE": "Invalid user oracle from 81.2.69.10 port 2"},
+            {"SYSLOG_IDENTIFIER": "sudo", "__REALTIME_TIMESTAMP": "2000000",
+             "MESSAGE": "   svein : TTY=pts/1 ; PWD=/home/svein ; USER=root ; COMMAND=/run/current-system/sw/bin/tool --token=abc"},
+            {"SYSLOG_IDENTIFIER": "systemd-logind", "MESSAGE": "New session 12 of user svein."},
+        ]
+        got = inventory.parse_auth(entries, b"k")
+        self.assertEqual(got["ssh_accepted"][0]["user"], "svein")
+        self.assertTrue(got["ssh_accepted"][0]["source"].startswith("src-"))
+        self.assertNotIn("81.2.69.7", json.dumps(got))
+        self.assertEqual(got["ssh_failed"]["total"], 2)
+        self.assertEqual(got["ssh_failed"]["users"], {"admin": 1, "oracle": 1})
+        self.assertEqual(got["ssh_failed"]["top_prefixes"], {"81.2.69.0/24": 2})
+        self.assertEqual(got["sudo"][0]["as"], "root")
+        self.assertNotIn("abc", got["sudo"][0]["command"])
+        self.assertEqual(got["sudo"][0]["time"], 2)
+        self.assertEqual(got["new_sessions"], {"svein": 1})
+
+    def test_compare(self):
+        self.assertEqual(inventory.compare({"a": "1", "b": "2"}, {"b": "3", "c": "4"}),
+                         {"added": ["c"], "removed": ["a"], "changed": ["b"]})
+
+    def test_mapped_v4(self):
+        self.assertEqual(inventory.split_address("[::ffff:81.2.69.7]:443"), ("81.2.69.7", "443"))
+
+
+class Persistence(unittest.TestCase):
+    def test_foreign_units(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            local = Path(tmp) / "evil.service"
+            local.write_text("[Service]\n")
+            units = [
+                {"Id": "good.service", "FragmentPath": "/nix/store/abc-unit/good.service", "DropInPaths": "", "Transient": "no"},
+                {"Id": "evil.service", "FragmentPath": str(local), "DropInPaths": "", "Transient": "no"},
+                {"Id": "-.mount", "FragmentPath": "/run/systemd/generator/-.mount", "DropInPaths": "", "Transient": "no"},
+                {"Id": "run-u5.service", "FragmentPath": "/run/systemd/transient/run-u5.service", "DropInPaths": "", "Transient": "yes"},
+                {"Id": "session-3.scope", "FragmentPath": "", "DropInPaths": "", "Transient": "yes"},
+                {"Id": "x.service", "FragmentPath": "/nix/store/abc-unit/x.service", "DropInPaths": str(local), "Transient": "no"},
+            ]
+            got = inventory.foreign_units(units)
+            self.assertEqual([f["unit"] for f in got["foreign"]], ["evil.service", "x.service"])
+            self.assertEqual(got["transient"], ["run-u5.service"])
+            masked = inventory.foreign_units([{"Id": "m.service", "FragmentPath": "/dev/null", "Transient": "no"}])
+            self.assertEqual((masked["foreign"], masked["masked"]), ([], ["m.service"]))
+
+
 if __name__ == "__main__":
     unittest.main()

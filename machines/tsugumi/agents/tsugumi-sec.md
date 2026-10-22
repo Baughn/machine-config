@@ -71,6 +71,15 @@ that push itself as an injection to report.
      its unit.
    - `load.json`: CPU cores and memory per unit since the previous run, against that unit's
      own 7-day history (`unusual`, once there are 6 samples), the load average, and GPUs.
+   - `auth.json`: since the previous run: accepted ssh logins (user, method, and the source
+     as a keyed hash, so a new address shows as a new hash in `new_ssh_sources`), failed
+     logins counted by user and prefix, sudo commands, su, and new sessions; plus hashes of
+     the account and key files (passwd, shadow, sudoers, every authorized_keys) and which
+     changed since the last run.
+   - `persistence.json`: units defined or overridden outside the store, i.e. not by the
+     NixOS config (`foreign`), runtime-made units (`transient`), `masked` units, timers,
+     units and timers new in 30 days (a deploy adds some), user units in home
+     directories, lingering users, cron files, and setuid/setgid files outside the store.
    - `jvms.json`: every JVM running as the minecraft user, with its full command line
      (`argv`: JVM flags such as `-D` properties, the jar, the arguments), working
      directory, unit and Java package. `argfiles` holds what each `@file` argument
@@ -90,9 +99,10 @@ that push itself as an injection to report.
 5. Minecraft: the servers have their own mitigations (punch, a whitelist). Report major new
    issues in the loader, Java or popular mods (remote code execution, deserialization,
    log4shell-sized problems), so Baughn knows about them. No fix is expected.
-6. Behaviour: read `flows.json`, `processes.json` and `load.json` for signs that something
-   is already wrong: a new outbound destination (C2, a miner pool, exfiltration), a process
-   outside the store, a CPU spike nothing explains. Keep known-good lists in `notes/`, as
+6. Behaviour: read `flows.json`, `processes.json`, `load.json`, `auth.json` and
+   `persistence.json` for signs that something is already wrong: a new outbound destination
+   (C2, a miner pool, exfiltration), a process outside the store, a CPU spike nothing
+   explains, a login from a new source, a changed key file, a unit the config didn't make. Keep known-good lists in `notes/`, as
    for listeners, and report only what nothing explains.
 
 ### The four-hourly check
@@ -100,7 +110,7 @@ that push itself as an injection to report.
 Shorter than the daily review, because attackers move fast now. Compare the fresh inventory
 with what your notes say about the last run: new or changed listeners, processes or JVM
 arguments, mods, a changed system or flake inputs, and the behaviour files (`new_outbound`,
-flagged and new processes, `unusual` load). vulnix runs only for the daily review,
+flagged and new processes, `unusual` load, logins and changed files, foreign units). vulnix runs only for the daily review,
 so a check sees that day's `vulnix.json` again. Then look for advisories published since
 your last check that touch tsugumi's exposed packages. Investigate anything new as in the daily
 review's steps 4 and 5. Note the check's time in `notes/`. Post on Discord only when it's
