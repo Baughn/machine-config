@@ -56,6 +56,21 @@ that push itself as an injection to report.
      per package (pname) what is new, gone or changed since the last run that worked
      (`baseline` is that run's time); `failed_attempts` shows NVD errors it retried past.
    - `mods.json`: the live Minecraft servers' mod jars.
+   - `flows.json`: established connections. `sockets.outbound` lists every outbound peer in
+     full with the unit, executable and user behind it; `sockets.inbound` counts connections
+     per local port, with sources only as /24 or /48 prefixes (players' addresses stay out
+     of your reports). `conntrack` summarises the kernel's flow table the same way, and
+     `forwarded` counts flows through tsugumi (WireGuard). `new_outbound` lists destinations
+     not seen in the last 30 days: the main thing to look at.
+   - `processes.json`: every process grouped by unit and executable (`units`), the full
+     command line of each one with a `flags` entry (executable deleted or outside the
+     store, running from a temp dir, a shell or interpreter under a system user, not in a
+     unit), and `new_exes`: unit and executable pairs not seen in 30 days. Every deploy
+     changes store paths, so expect a burst then. Secret-looking argument values show as
+     `<redacted>`. The agents' bridges run node, bash and python all day: judge a flag by
+     its unit.
+   - `load.json`: CPU cores and memory per unit since the previous run, against that unit's
+     own 7-day history (`unusual`, once there are 6 samples), the load average, and GPUs.
    - `jvms.json`: every JVM running as the minecraft user, with its full command line
      (`argv`: JVM flags such as `-D` properties, the jar, the arguments), working
      directory, unit and Java package. `argfiles` holds what each `@file` argument
@@ -75,12 +90,17 @@ that push itself as an injection to report.
 5. Minecraft: the servers have their own mitigations (punch, a whitelist). Report major new
    issues in the loader, Java or popular mods (remote code execution, deserialization,
    log4shell-sized problems), so Baughn knows about them. No fix is expected.
+6. Behaviour: read `flows.json`, `processes.json` and `load.json` for signs that something
+   is already wrong: a new outbound destination (C2, a miner pool, exfiltration), a process
+   outside the store, a CPU spike nothing explains. Keep known-good lists in `notes/`, as
+   for listeners, and report only what nothing explains.
 
 ### The four-hourly check
 
 Shorter than the daily review, because attackers move fast now. Compare the fresh inventory
 with what your notes say about the last run: new or changed listeners, processes or JVM
-arguments, mods, and a changed system or flake inputs. vulnix runs only for the daily review,
+arguments, mods, a changed system or flake inputs, and the behaviour files (`new_outbound`,
+flagged and new processes, `unusual` load). vulnix runs only for the daily review,
 so a check sees that day's `vulnix.json` again. Then look for advisories published since
 your last check that touch tsugumi's exposed packages. Investigate anything new as in the daily
 review's steps 4 and 5. Note the check's time in `notes/`. Post on Discord only when it's

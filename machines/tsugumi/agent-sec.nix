@@ -179,7 +179,7 @@ lib.mkIf ready {
 
   systemd.services."${id}-inventory" = {
     description = "Inventory for the security watch (${id})";
-    path = [ pkgs.iproute2 vulnix config.nix.package config.systemd.package ];
+    path = [ pkgs.iproute2 pkgs.conntrack-tools vulnix config.nix.package config.systemd.package ];
     environment = {
       VULNIX_CACHE = "/var/cache/${id}-vulnix";
       VULNIX_WHITELIST = "${./agent-sec-vulnix-whitelist.toml}";
