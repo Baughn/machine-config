@@ -19,6 +19,8 @@ let
     assignees = {
       agents = builtins.attrNames roster.agents;
       humans = builtins.attrNames roster.humans;
+      # For the daily digest's pings.
+      discord_ids = lib.mapAttrs (_: who: who.discordId) roster.humans;
     };
   } // lib.optionalAttrs (cfg.discordPublicKey != null) {
     discord = {
@@ -36,6 +38,24 @@ let
   # For Baughn: list or revoke the browser sessions made from login links.
   sessionsTool = pkgs.writeShellScriptBin "agent-board-sessions" ''
     exec /run/wrappers/bin/sudo -u agent-board ${board}/bin/agent-board sessions --db ${stateDir}/board.db "$@"
+  '';
+  # The daily todo digest (plan: notes/plan-todo.md): humans' open todos and agents' overdue
+  # ones, through the watchdog webhook (context for the agents, never a trigger), pinging
+  # the humans who have items. Nothing is posted when there is nothing to report.
+  digest = "${board}/bin/agent-board todo-digest --db ${stateDir}/board.db --config ${configFile}";
+  todoDigestScript = pkgs.writeShellScript "agent-board-todo-digest" ''
+    set -euo pipefail
+    text=$(${digest})
+    if [ -z "$text" ]; then
+      exit 0
+    fi
+    # Discord ids are digits only, so splitting on whitespace is safe.
+    ids=$(${digest} --mentions)
+    mentions=()
+    for id in $ids; do
+      mentions+=(--mention "$id")
+    done
+    printf '%s\n' "$text" | ${config.me.discordNotify.package}/bin/discord-notify --name Board "''${mentions[@]}"
   '';
   # The sockets outlive service restarts, so callers queue instead of failing.
   socketDefaults = {
@@ -218,6 +238,35 @@ in
       wantedBy = [ "timers.target" ];
       timerConfig = {
         OnCalendar = "*-*-* 04:30:00";
+        Persistent = true;
+      };
+    };
+
+    # Once a day at 10:00 in the system's time zone (Europe/Dublin on tsugumi).
+    systemd.services.agent-board-todo-digest = {
+      description = "Agent board: daily todo digest to Discord";
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = todoDigestScript;
+        User = "agent-board";
+        Group = "agent-board";
+        # Reads the webhook (modules/discord-notify.nix); agent-board isn't an agent's user.
+        SupplementaryGroups = [ "discord-notify" ];
+        StateDirectory = [ "agent-board" "agent-board/backup" ];
+        StateDirectoryMode = "0700";
+        # No PrivateNetwork: discord-notify posts to Discord.
+        RestrictAddressFamilies = [ "AF_UNIX" "AF_INET" "AF_INET6" ];
+        ProtectSystem = "strict";
+        ProtectHome = true;
+        PrivateTmp = true;
+        NoNewPrivileges = true;
+        UMask = "0077";
+      };
+    };
+    systemd.timers.agent-board-todo-digest = {
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnCalendar = "*-*-* 10:00:00";
         Persistent = true;
       };
     };

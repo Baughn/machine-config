@@ -1,11 +1,22 @@
 { pkgs }:
 # The agent board (machines/tsugumi/agent-board.nix): uid identity on the API socket, bearer
 # tokens on TCP, a read-only HTML socket only the proxy can open, persistence across
-# restarts, the nightly copy, and login links from Discord's /board. The lab sandbox's access is in minecraft-lab-vm.
+# restarts, the nightly copy, login links from Discord's /board, and the daily todo digest. The lab sandbox's access is in minecraft-lab-vm.
 pkgs.testers.runNixOSTest {
   name = "agent-board";
   nodes.machine = { pkgs, ... }: {
-    imports = [ ../machines/tsugumi/agent-board.nix ];
+    imports = [
+      ../machines/tsugumi/agent-board.nix
+      # Stands in for modules/discord-notify.nix (which needs agenix): records what it's asked to post.
+      {
+        options.me.discordNotify.package = pkgs.lib.mkOption {
+          default = pkgs.writeShellScriptBin "discord-notify" ''
+            { echo "args: $*"; cat; } > /var/lib/agent-board/notified
+          '';
+        };
+      }
+    ];
+    users.groups.discord-notify = { };
     users.users.minecraft = { isNormalUser = true; };
     users.users.mclab = { isSystemUser = true; group = "mclab"; };
     users.groups.mclab = { };
@@ -29,7 +40,7 @@ pkgs.testers.runNixOSTest {
       -----END PRIVATE KEY-----
     '';
   };
-  testScript = ''
+  testScript = { nodes, ... }: ''
     import json, shlex
 
     API = "--unix-socket /run/agent-board/api.sock http://board"
@@ -38,6 +49,10 @@ pkgs.testers.runNixOSTest {
     BARE_HTML = "--unix-socket /run/agent-board/html.sock http://board"
     INTERACTIONS = "--unix-socket /run/agent-board/interactions.sock http://board/discord/interactions"
     TOKEN = "test-token-0123456789abcdef0123456789"
+    # The digest command, as the digest timer runs it.
+    SERVE = "${nodes.machine.systemd.services.agent-board.serviceConfig.ExecStart}".split()
+    DIGEST = ("sudo -u agent-board " + SERVE[0] + " todo-digest --db /var/lib/agent-board/board.db"
+              + " --config " + SERVE[SERVE.index("--config") + 1])
 
     def curl(user, args, success=True):
         command = "sudo -u " + user + " curl -s --fail-with-body " + args
@@ -74,9 +89,24 @@ pkgs.testers.runNixOSTest {
         def send(user, method, path, body):
             return curl(user, "-X " + method + " -H 'content-type: application/json' -d "
                         + shlex.quote(json.dumps(body)) + " " + API + path, success=False)
+        assert machine.succeed(DIGEST) == "" and machine.succeed(DIGEST + " --mentions") == ""
+        machine.succeed("systemctl start agent-board-todo-digest.service")
+        machine.fail("test -e /var/lib/agent-board/notified")
         todo = post("mclab", "/todos", {"title": "Check the spike", "thread": thread})
+        # An agent's todo without a due date isn't in the digest.
+        assert machine.succeed(DIGEST) == ""
         assert todo["assignee"] == "tsugumi-lab" and todo["status"] == "open", todo
         post("minecraft", "/todos", {"title": "Approve the fix", "assignee": "baughn"})
+        digest = machine.succeed(DIGEST)
+        assert "**Open todos for baughn** (1)" in digest and "Approve the fix" in digest, digest
+        assert "Check the spike" not in digest and digest.endswith("<https://agents.brage.info/todos>\n"), digest
+        assert machine.succeed(DIGEST + " --mentions") == "236112302590394368\n"
+        machine.succeed("systemctl start agent-board-todo-digest.service")
+        notified = machine.succeed("cat /var/lib/agent-board/notified")
+        assert notified.startswith("args: --name Board --mention 236112302590394368\n"), notified
+        assert "Approve the fix" in notified, notified
+        page = curl("proxy", HTML + "/todos")
+        assert "Approve the fix" in page and 'id="for-baughn"' in page, page
         brief = json.loads(curl("mclab", API + "/briefing"))
         assert [t["id"] for t in brief["todos"]] == [todo["id"]], brief
         assert "baughn" in send("mclab", "POST", "/todos", {"title": "x", "assignee": "bob"})

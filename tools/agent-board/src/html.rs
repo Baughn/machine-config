@@ -13,7 +13,8 @@ use pulldown_cmark::{CowStr, Event, Options, Parser, Tag};
 use serde::Deserialize;
 
 use crate::api::AppState;
-use crate::db::{Board, SearchQuery, Thread, ThreadFilter};
+use crate::db::{Board, SearchQuery, Thread, ThreadFilter, Todo, TodoFilter, TodoStatus};
+use crate::digest;
 use crate::discord::ArchivedMessage;
 use crate::error::AppError;
 use crate::status::{Level, StatusCard};
@@ -50,6 +51,7 @@ pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/", get(index))
         .route("/status", get(status))
+        .route("/todos", get(todos))
         .route("/t/{id}", get(thread))
         .route("/t/{id}/summaries", get(summaries))
         .route("/a/{id}", get(attachment))
@@ -160,6 +162,7 @@ fn page_refreshing(title: &str, query: &str, refresh: Option<u32>, body: Markup)
                 header {
                     h2 { a href="/" { "Agent board" } }
                     a href="/status" { "status" }
+                    a href="/todos" { "todos" }
                     a href="/?status=all" { "all threads" }
                     a href="/day" { "Discord archive" }
                     form action="/search" {
@@ -272,6 +275,7 @@ fn card_html(now: i64, card: &StatusCard) -> Markup {
 async fn status(State(state): State<AppState>) -> Result<Markup, AppError> {
     let board = state.with_board(Board::dashboard).await?;
     let now = board.now;
+    let today = digest::today();
     Ok(page_refreshing(
         "Status",
         "",
@@ -283,6 +287,11 @@ async fn status(State(state): State<AppState>) -> Result<Markup, AppError> {
                 @for card in &board.cards { (card_html(now, card)) }
             }
             @if board.cards.is_empty() { p { "No status cards yet." } }
+            @let overdue = board.todos.iter().filter(|todo| digest::overdue(todo, &today)).count();
+            p {
+                a href="/todos" { "Open todos: " (board.todos.len()) }
+                @if overdue > 0 { ", " span.lvl-alert { (overdue) " overdue" } }
+            }
             h3 { "Open questions on the board" }
             @if board.asks.is_empty() { p.meta { "None." } }
             table {
@@ -346,6 +355,11 @@ async fn thread(State(state): State<AppState>, Path(id): Path<i64>) -> Result<Ma
                     }
                 }
             }
+            @if !view.todos.is_empty() {
+                h4 { "Todos" }
+                @let today = digest::today();
+                table { @for todo in &view.todos { (todo_row(todo, &today, true)) } }
+            }
             @for post in &view.posts {
                 div.post.superseded[post.superseded_by.is_some()] id={ "p" (post.id) } {
                     p.meta {
@@ -371,6 +385,85 @@ async fn thread(State(state): State<AppState>, Path(id): Path<i64>) -> Result<Ma
             }
         },
     ))
+}
+
+/// One todo as a table row: title, assignee (when `assignee`), due date, and how it was
+/// closed.
+fn todo_row(todo: &Todo, today: &str, assignee: bool) -> Markup {
+    let open = todo.status == TodoStatus::Open;
+    let overdue = open && digest::overdue(todo, today);
+    html! {
+        tr.superseded[!open] id={ "todo" (todo.id) } {
+            td {
+                "#" (todo.id) " " (todo.title)
+                br; span.meta {
+                    @if assignee { "for " strong { (todo.assignee) } " · " }
+                    "from " (todo.created_by) " · " (time(todo.created))
+                    @if let Some(thread) = todo.thread { " · " a href={ "/t/" (thread) } { "thread #" (thread) } }
+                }
+            }
+            td class=(if overdue { "lvl-alert" } else { "" }) {
+                @if let Some(due) = &todo.due { "due " (due) @if overdue { " (overdue)" } }
+            }
+            td {
+                (todo.status.as_str())
+                @if let Some(who) = &todo.closed_by {
+                    span.meta { " by " (who) @if let Some(at) = todo.closed { ", " (time(at)) } }
+                }
+                @if let Some(note) = &todo.note { br; span.meta { (note) } }
+            }
+        }
+    }
+}
+
+/// Open todos by assignee, then those closed in the last `CLOSED_DAYS` days.
+fn todos_html(open: &[Todo], closed: &[Todo], today: &str) -> Markup {
+    let mut groups: Vec<(&str, Vec<&Todo>)> = Vec::new();
+    for todo in open {
+        match groups.iter_mut().find(|(who, _)| *who == todo.assignee) {
+            Some((_, items)) => items.push(todo),
+            None => groups.push((&todo.assignee, vec![todo])),
+        }
+    }
+    groups.sort_by_key(|(who, _)| *who);
+    html! {
+        h3 { "Open todos" }
+        @if open.is_empty() { p.meta { "None." } }
+        @for (who, items) in &groups {
+            @let overdue = items.iter().filter(|todo| digest::overdue(todo, today)).count();
+            h4 id={ "for-" (who) } {
+                (who) " (" (items.len())
+                @if overdue > 0 { ", " span.lvl-alert { (overdue) " overdue" } }
+                ")"
+            }
+            table { @for todo in items { (todo_row(todo, today, false)) } }
+        }
+        h3 { "Closed in the last " (CLOSED_DAYS) " days" }
+        @if closed.is_empty() { p.meta { "None." } }
+        table { @for todo in closed { (todo_row(todo, today, true)) } }
+    }
+}
+
+const CLOSED_DAYS: i64 = 7;
+
+async fn todos(State(state): State<AppState>) -> Result<Markup, AppError> {
+    let since = crate::db::now() - CLOSED_DAYS * 86_400;
+    let (open, closed) = state
+        .with_board(move |board| {
+            let open = board.list_todos(&TodoFilter::default())?;
+            let mut closed: Vec<Todo> = board
+                .list_todos(&TodoFilter {
+                    status: Some("all".into()),
+                    ..TodoFilter::default()
+                })?
+                .into_iter()
+                .filter(|todo| todo.closed.is_some_and(|at| at >= since))
+                .collect();
+            closed.sort_by_key(|todo| std::cmp::Reverse(todo.closed));
+            Ok((open, closed))
+        })
+        .await?;
+    Ok(page("Todos", "", todos_html(&open, &closed, &digest::today())))
 }
 
 async fn summaries(State(state): State<AppState>, Path(id): Path<i64>) -> Result<Markup, AppError> {
@@ -577,6 +670,96 @@ mod tests {
         assert!(out.contains(r##"href="#""##), "{out}");
         assert!(out.contains("stale"), "{out}");
         assert!(out.contains("5 min ago"), "{out}");
+    }
+
+    #[test]
+    fn todos_page_groups_marks_overdue_and_escapes() {
+        let todo = |id: i64, assignee: &str, due: Option<&str>| Todo {
+            id,
+            title: format!("<i>Task {id}</i>"),
+            assignee: assignee.into(),
+            created_by: "tsugumi-lab".into(),
+            created: 0,
+            due: due.map(Into::into),
+            thread: Some(28),
+            status: TodoStatus::Open,
+            closed_by: None,
+            closed: None,
+            note: None,
+            private_to: None,
+        };
+        let open = [
+            todo(1, "saya", Some("2026-10-01")),
+            todo(2, "baughn", None),
+            todo(3, "saya", Some("2026-11-01")),
+        ];
+        let mut done = todo(4, "nero", None);
+        done.status = TodoStatus::Done;
+        done.closed_by = Some("saya".into());
+        done.closed = Some(1_790_000_000);
+        done.note = Some("<b>shipped</b>".into());
+        let out = todos_html(&open, &[done], "2026-10-22").0;
+        assert!(!out.contains("<i>") && out.contains("&lt;i&gt;Task 1"), "{out}");
+        let baughn = out.find(r#"id="for-baughn""#).unwrap();
+        let saya = out.find(r#"id="for-saya""#).unwrap();
+        assert!(baughn < saya, "{out}");
+        assert!(out.contains("(2, <span class=\"lvl-alert\">1 overdue</span>)"), "{out}");
+        assert!(out.contains("due 2026-10-01 (overdue)"), "{out}");
+        assert!(!out.contains("due 2026-11-01 (overdue)"), "{out}");
+        assert!(out.contains(r#"href="/t/28""#), "{out}");
+        assert!(out.contains(" by saya") && out.contains("&lt;b&gt;shipped"), "{out}");
+    }
+
+    #[tokio::test]
+    async fn todos_page_and_thread_todos() {
+        use axum::body::Body;
+        use axum::http::{Request, StatusCode};
+        use http_body_util::BodyExt;
+        use tower::ServiceExt;
+
+        use crate::db::{NewThread, NewTodo};
+
+        let board = Board::open_in_memory().unwrap();
+        let (thread, _) = board
+            .create_thread(
+                "tsugumi-lab",
+                &NewThread {
+                    title: "Grab-bag".into(),
+                    tags: Vec::new(),
+                    summary: String::new(),
+                    due: None,
+                    waiting_on: None,
+                    waiting_ref: None,
+                    post: None,
+                },
+                false,
+            )
+            .unwrap();
+        let new = NewTodo {
+            title: "Approve the fix".into(),
+            thread: Some(thread),
+            ..NewTodo::default()
+        };
+        board.create_todo("tsugumi-lab", "baughn", &new, false).unwrap();
+        let app = router(AppState::new(board, Default::default(), Vec::new()));
+        let get = |uri: String| {
+            let request = Request::get(uri)
+                .header(web::PROXY_AUTH_HEADER, "1")
+                .body(Body::empty())
+                .unwrap();
+            let app = app.clone();
+            async move {
+                let response = app.oneshot(request).await.unwrap();
+                assert_eq!(response.status(), StatusCode::OK);
+                let body = response.into_body().collect().await.unwrap().to_bytes();
+                String::from_utf8(body.to_vec()).unwrap()
+            }
+        };
+        let page = get("/todos".into()).await;
+        assert!(page.contains("Approve the fix") && page.contains(r#"id="for-baughn""#), "{page}");
+        let page = get(format!("/t/{thread}")).await;
+        assert!(page.contains("Approve the fix") && page.contains("for <strong>baughn"), "{page}");
+        assert!(get("/status".into()).await.contains("Open todos: 1"));
     }
 
     #[test]

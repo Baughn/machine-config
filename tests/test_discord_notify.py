@@ -1,3 +1,4 @@
+import argparse
 import importlib.util
 import io
 import json
@@ -38,6 +39,22 @@ class Payload(unittest.TestCase):
     def test_mention_owner(self):
         body = notify.payload("storm", "weather", True)
         self.assertEqual(body["allowed_mentions"]["users"], [notify.OWNER])
+
+    def test_mentions(self):
+        body = notify.payload("2 todos", "Board", True, ["178", notify.OWNER, "178"])
+        self.assertEqual(body["content"], "<@178> <@236112302590394368> 2 todos")
+        self.assertEqual(body["allowed_mentions"], {"parse": [], "users": [notify.OWNER, "178"]})
+
+    def test_mentions_survive_truncation(self):
+        body = notify.payload("x" * 5000, "n", False, ["178"])
+        self.assertEqual(len(body["content"]), notify.LIMIT)
+        self.assertTrue(body["content"].startswith("<@178> x"))
+
+    def test_mention_must_be_an_id(self):
+        for bad in ["everyone", "<@1>", "", "١٢"]:
+            with self.assertRaises(argparse.ArgumentTypeError):
+                notify.user_id(bad)
+        self.assertEqual(notify.user_id("178310000484024320"), "178310000484024320")
 
     def test_truncates(self):
         body = notify.payload("x" * 5000, "n", False)

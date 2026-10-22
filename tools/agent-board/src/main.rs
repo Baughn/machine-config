@@ -7,6 +7,7 @@
 
 mod api;
 mod db;
+mod digest;
 mod discord;
 mod error;
 mod html;
@@ -22,7 +23,7 @@ use clap::{Parser, Subcommand};
 use serde::Deserialize;
 
 use crate::api::{AppState, Assignees, PeerUid, TokenList, UidMap};
-use crate::db::Board;
+use crate::db::{Board, TodoFilter};
 
 #[derive(Parser)]
 #[command(about = "Message board for the agent channel")]
@@ -56,6 +57,18 @@ enum Command {
         db: PathBuf,
         #[command(subcommand)]
         action: SessionAction,
+    },
+    /// Print the daily todo digest for Discord: open todos assigned to humans, and agents'
+    /// overdue ones. Prints nothing when there is nothing to report.
+    TodoDigest {
+        #[arg(long)]
+        db: PathBuf,
+        /// The service config, for who is human and their Discord ids.
+        #[arg(long)]
+        config: PathBuf,
+        /// Print the Discord ids of the humans with open todos instead, one per line.
+        #[arg(long)]
+        mentions: bool,
     },
 }
 
@@ -154,11 +167,14 @@ fn systemd_sockets() -> anyhow::Result<HashMap<String, RawFd>> {
         .collect())
 }
 
+fn read_config(path: &Path) -> anyhow::Result<Config> {
+    let text =
+        std::fs::read_to_string(path).with_context(|| format!("reading {}", path.display()))?;
+    serde_json::from_str(&text).with_context(|| format!("parsing {}", path.display()))
+}
+
 async fn serve(db: &Path, config: &Path) -> anyhow::Result<()> {
-    let config: Config = serde_json::from_str(
-        &std::fs::read_to_string(config)
-            .with_context(|| format!("reading {}", config.display()))?,
-    )?;
+    let config = read_config(config)?;
     let (uids, tokens) = load_identities(&config)?;
     let board = Board::open(db).with_context(|| format!("opening {}", db.display()))?;
     let state = AppState::new(board, uids, tokens)
@@ -296,6 +312,33 @@ fn sessions(db: &Path, action: SessionAction) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// The site the digest links to when the config has no Discord login (which names it).
+const DEFAULT_BASE_URL: &str = "https://agents.brage.info";
+
+fn todo_digest(db: &Path, config: &Path, mentions: bool) -> anyhow::Result<()> {
+    let config = read_config(config)?;
+    let board = Board::open(db)?;
+    // Every open todo, private agents' too: the digest is the humans' view.
+    let todos = board
+        .list_todos(&TodoFilter::default())
+        .map_err(error::AppError::into_anyhow)?;
+    let humans = &config.assignees.humans;
+    if mentions {
+        for id in digest::mentions(&todos, humans, &config.assignees.discord_ids) {
+            println!("{id}");
+        }
+    } else {
+        let base = config
+            .discord
+            .as_ref()
+            .map_or(DEFAULT_BASE_URL, |discord| discord.base_url.as_str());
+        // In <>, so Discord doesn't embed a preview of the login page.
+        let link = format!("<{}/todos>", base.trim_end_matches('/'));
+        print!("{}", digest::digest(&todos, humans, &digest::today(), &link));
+    }
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
@@ -303,6 +346,8 @@ async fn main() -> anyhow::Result<()> {
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
         )
         .without_time()
+        // Stdout is for command output: the digest is piped to Discord.
+        .with_writer(std::io::stderr)
         .init();
     match Cli::parse().command {
         Command::Serve { db, config } => serve(&db, &config).await,
@@ -310,6 +355,11 @@ async fn main() -> anyhow::Result<()> {
             tokio::task::spawn_blocking(move || backup(&db, &dir, keep)).await?
         }
         Command::Sessions { db, action } => sessions(&db, action),
+        Command::TodoDigest {
+            db,
+            config,
+            mentions,
+        } => todo_digest(&db, &config, mentions),
     }
 }
 

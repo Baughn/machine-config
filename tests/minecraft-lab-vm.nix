@@ -22,7 +22,11 @@ pkgs.testers.runNixOSTest {
     };
     machine = { lib, pkgs, ... }: {
       imports = [ ../machines/tsugumi/minecraft-storage.nix ../machines/tsugumi/minecraft-lab.nix
-                  ../machines/tsugumi/agent-board.nix ];
+                  ../machines/tsugumi/agent-board.nix
+                  # Stands in for modules/discord-notify.nix, which needs agenix.
+                  { options.me.discordNotify.package = lib.mkOption {
+                      default = pkgs.writeShellScriptBin "discord-notify" "cat > /dev/null"; }; } ];
+      users.groups.discord-notify = { };
       users.groups.caddy = { };
       virtualisation.vlans = [ 1 2 ];
       # vlan 1 stands in for the LAN (private), vlan 2 for the internet.

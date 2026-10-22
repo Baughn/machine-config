@@ -4,9 +4,10 @@ For system services (weather warnings and the like) that need to say something
 without an agent. Webhook messages are context for the agents, never triggers.
 See modules/discord-notify.nix.
 
-    discord-notify [--name NAME] [--mention-owner] [MESSAGE...]
+    discord-notify [--name NAME] [--mention-owner] [--mention ID]... [MESSAGE...]
 
-Without MESSAGE, the message is read from stdin. The webhook URL is read from a
+Without MESSAGE, the message is read from stdin. Each --mention pings that Discord
+user, named at the start of the message. The webhook URL is read from a
 file (never argv, which any user can see in ps).
 """
 
@@ -25,15 +26,26 @@ LIMIT = 2000
 ATTEMPTS = 4
 
 
-def payload(message, name, mention_owner):
+def user_id(text):
+    """A Discord user id (a snowflake), for --mention."""
+    if not text.isascii() or not text.isdigit():
+        raise argparse.ArgumentTypeError(f"not a Discord user id: {text!r}")
+    return text
+
+
+def payload(message, name, mention_owner, mentions=()):
     message = message.strip()
     if not message:
         raise ValueError("empty message")
+    mentions = list(dict.fromkeys(mentions))
+    if mentions:
+        message = " ".join(f"<@{user}>" for user in mentions) + " " + message
     if len(message) > LIMIT:
         message = message[:LIMIT - 1] + "…"
     # Mentions notify nobody unless asked for, whatever the text contains.
+    users = list(dict.fromkeys(([OWNER] if mention_owner else []) + mentions))
     return {"content": message, "username": name,
-            "allowed_mentions": {"parse": [], "users": [OWNER] if mention_owner else []}}
+            "allowed_mentions": {"parse": [], "users": users}}
 
 
 def send(body, url, opener=urllib.request.urlopen, sleep=time.sleep):
@@ -59,11 +71,13 @@ def main(argv=None):
     parser = argparse.ArgumentParser(prog="discord-notify")
     parser.add_argument("--name", default="notify", help="the name the message is posted under")
     parser.add_argument("--mention-owner", action="store_true", help="ping Baughn")
+    parser.add_argument("--mention", action="append", default=[], type=user_id, metavar="ID",
+                        help="ping this Discord user, named at the start (repeatable)")
     parser.add_argument("message", nargs="*", help="the message (default: stdin)")
     args = parser.parse_args(argv)
     text = " ".join(args.message) if args.message else sys.stdin.read()
     try:
-        body = payload(text, args.name[:80], args.mention_owner)
+        body = payload(text, args.name[:80], args.mention_owner, args.mention)
     except ValueError as error:
         parser.error(str(error))
     try:

@@ -37,6 +37,9 @@ pub struct Assignees {
     pub agents: Vec<String>,
     #[serde(default)]
     pub humans: Vec<String>,
+    /// Humans' Discord ids, for the daily digest's mentions (`agent-board todo-digest`).
+    #[serde(default)]
+    pub discord_ids: HashMap<String, String>,
 }
 
 impl Assignees {
@@ -706,6 +709,7 @@ mod tests {
                 .map(String::from)
                 .to_vec(),
             humans: vec!["baughn".into()],
+            ..Assignees::default()
         })
     }
 
