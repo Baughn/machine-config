@@ -47,11 +47,11 @@ let
   });
 
   # vulnix gives each NVD feed download 10 s, which the NVD doesn't always make (16 Oct);
-  # Baughn asked for a longer timeout (msg 1560596928151031839). The inventory retries too.
+  # Baughn asked for a longer timeout (msg 1560596928151031839). The NVD also drops feeds
+  # partway (IncompleteRead, 10-22), which failed whole runs: the patch retries each feed
+  # (Baughn, msg 1562841624059449436). The inventory retries the whole run too.
   vulnix = pkgs.vulnix.overrideAttrs (old: {
-    postPatch = (old.postPatch or "") + ''
-      substituteInPlace src/vulnix/nvd.py --replace-fail "timeout=10)" "timeout=120)"
-    '';
+    patches = (old.patches or [ ]) ++ [ ./agent-sec-vulnix-retry.patch ];
   });
 
   inventoryScript = pkgs.writers.writePython3 "${id}-inventory" { flakeIgnore = [ "E501" ]; }
