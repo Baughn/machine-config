@@ -21,7 +21,7 @@ use anyhow::{bail, Context};
 use clap::{Parser, Subcommand};
 use serde::Deserialize;
 
-use crate::api::{AppState, PeerUid, TokenList, UidMap};
+use crate::api::{AppState, Assignees, PeerUid, TokenList, UidMap};
 use crate::db::Board;
 
 #[derive(Parser)]
@@ -81,6 +81,9 @@ struct Config {
     /// Agents confined to a private sector of the board (see `AppState::with_private`).
     #[serde(default)]
     private_agents: Vec<String>,
+    /// Who todos may be assigned to: the roster's agents and humans.
+    #[serde(default)]
+    assignees: Assignees,
 }
 
 /// Looks up a user's uid in /etc/passwd.
@@ -158,7 +161,9 @@ async fn serve(db: &Path, config: &Path) -> anyhow::Result<()> {
     )?;
     let (uids, tokens) = load_identities(&config)?;
     let board = Board::open(db).with_context(|| format!("opening {}", db.display()))?;
-    let state = AppState::new(board, uids, tokens).with_private(config.private_agents.clone());
+    let state = AppState::new(board, uids, tokens)
+        .with_private(config.private_agents.clone())
+        .with_assignees(config.assignees.clone());
 
     let mut servers = tokio::task::JoinSet::new();
     for (name, fd) in systemd_sockets()? {

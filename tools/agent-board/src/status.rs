@@ -5,7 +5,7 @@
 use rusqlite::params;
 use serde::{Deserialize, Serialize};
 
-use crate::db::{now, Ask, Board, Thread};
+use crate::db::{now, Ask, Board, Thread, Todo, TodoFilter};
 use crate::discord::INGEST_IDENTITY;
 use crate::error::AppError;
 
@@ -67,6 +67,8 @@ pub struct Dashboard {
     pub asks: Vec<Ask>,
     pub waiting: Vec<Thread>,
     pub due: Vec<Thread>,
+    /// Open todos, soonest due first.
+    pub todos: Vec<Todo>,
 }
 
 fn bad(message: impl Into<String>) -> AppError {
@@ -182,7 +184,7 @@ impl Board {
         Ok(cards)
     }
 
-    /// The dashboard: status cards, unanswered asks, waiting and due threads.
+    /// The dashboard: status cards, unanswered asks, waiting and due threads, open todos.
     ///
     /// # Errors
     ///
@@ -195,6 +197,7 @@ impl Board {
             asks: self.open_asks(None)?,
             waiting,
             due,
+            todos: self.list_todos(&TodoFilter::default())?,
         })
     }
 }

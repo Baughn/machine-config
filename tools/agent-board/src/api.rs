@@ -15,8 +15,8 @@ use serde::{Deserialize, Serialize};
 use tokio::net::UnixListener;
 
 use crate::db::{
-    visible, Attachment, Board, Briefing, NewPost, NewThread, SearchHit, SearchQuery,
-    SummaryRevision, Thread, ThreadFilter, ThreadUpdate, ThreadView,
+    visible, Attachment, Board, Briefing, NewPost, NewThread, NewTodo, SearchHit, SearchQuery,
+    SummaryRevision, Thread, ThreadFilter, ThreadUpdate, ThreadView, Todo, TodoFilter, TodoUpdate,
 };
 use crate::discord::{
     ArchivedMessage, IncomingAttachment, IncomingMessage, IngestResult, MessageContext,
@@ -29,6 +29,34 @@ use crate::status::{Dashboard, NewStatus};
 pub type UidMap = HashMap<u32, String>;
 /// TCP callers: (token, agent id).
 pub type TokenList = Vec<(String, String)>;
+
+/// Who todos may be assigned to: the roster's agents and humans (from the config).
+#[derive(Clone, Debug, Default, Deserialize)]
+pub struct Assignees {
+    #[serde(default)]
+    pub agents: Vec<String>,
+    #[serde(default)]
+    pub humans: Vec<String>,
+}
+
+impl Assignees {
+    fn is_human(&self, name: &str) -> bool {
+        self.humans.iter().any(|human| human == name)
+    }
+
+    /// `BadRequest` listing the valid names unless `name` is one.
+    fn check(&self, name: &str) -> Result<(), AppError> {
+        if self.is_human(name) || self.agents.iter().any(|agent| agent == name) {
+            return Ok(());
+        }
+        let mut valid: Vec<&str> = self.agents.iter().chain(&self.humans).map(String::as_str).collect();
+        valid.sort_unstable();
+        Err(AppError::BadRequest(format!(
+            "unknown assignee {name:?}: use one of {}",
+            valid.join(", ")
+        )))
+    }
+}
 
 /// Who is calling: an agent id from the config.
 #[derive(Clone, Debug)]
@@ -43,6 +71,7 @@ pub struct AppState {
     /// Agents confined to their own sector: their threads are private to them, and they
     /// write nowhere else (an agent that reads hostile text all day; see `with_private`).
     private: Arc<HashSet<String>>,
+    assignees: Arc<Assignees>,
 }
 
 impl AppState {
@@ -56,7 +85,15 @@ impl AppState {
             uids: Arc::new(uids),
             tokens: Arc::new(tokens),
             private: Arc::new(HashSet::new()),
+            assignees: Arc::new(Assignees::default()),
         }
+    }
+
+    /// Who todos may be assigned to.
+    #[must_use]
+    pub fn with_assignees(mut self, assignees: Assignees) -> Self {
+        self.assignees = Arc::new(assignees);
+        self
     }
 
     /// Confines these agents to their own private sector.
@@ -153,6 +190,8 @@ pub fn routes() -> Router<AppState> {
         .route("/attachments/{id}", get(attachment))
         .route("/search", get(search))
         .route("/briefing", get(briefing))
+        .route("/todos", get(list_todos).post(create_todo))
+        .route("/todos/{id}", axum::routing::patch(update_todo))
         .route("/discord", get(discord_day).post(ingest_discord))
         .route("/discord/cursor", get(discord_cursor))
         .route("/discord/{id}", get(discord_context))
@@ -277,12 +316,14 @@ async fn read_thread(
     Path(id): Path<i64>,
     Query(query): Query<ReadQuery>,
 ) -> Result<Json<ThreadView>, AppError> {
-    let view = state
+    let viewer = agent.clone();
+    let mut view = state
         .with_board(move |board| {
-            check_thread(board, &agent, id, false, false)?;
+            check_thread(board, &viewer, id, false, false)?;
             board.read_thread(id, query.since_post, query.limit)
         })
         .await?;
+    view.todos.retain(|todo| todo.visible_to(&agent));
     Ok(Json(view))
 }
 
@@ -299,6 +340,7 @@ async fn dashboard(
         .retain(|ask| visible(ask.private_to.as_deref(), &agent));
     dashboard.waiting.retain(|thread| thread.visible_to(&agent));
     dashboard.due.retain(|thread| thread.visible_to(&agent));
+    dashboard.todos.retain(|todo| todo.visible_to(&agent));
     Ok(Json(dashboard))
 }
 
@@ -437,7 +479,117 @@ async fn briefing(
     ] {
         threads.retain(|thread| thread.visible_to(&author));
     }
+    briefing.todos.retain(|todo| todo.visible_to(&author));
     Ok(Json(briefing))
+}
+
+#[derive(Serialize)]
+struct TodoList {
+    todos: Vec<Todo>,
+}
+
+async fn list_todos(
+    State(state): State<AppState>,
+    Extension(Author(agent)): Extension<Author>,
+    Query(mut filter): Query<TodoFilter>,
+) -> Result<Json<TodoList>, AppError> {
+    // `assignee=` means everyone's, as an absent one does.
+    filter.assignee = filter.assignee.filter(|assignee| !assignee.is_empty());
+    if let Some(assignee) = &filter.assignee {
+        state.assignees.check(assignee)?;
+    }
+    let viewer = agent.clone();
+    let mut todos = state
+        .with_board(move |board| {
+            if let Some(thread) = filter.thread {
+                check_thread(board, &viewer, thread, false, false)?;
+            }
+            board.list_todos(&filter)
+        })
+        .await?;
+    todos.retain(|todo| todo.visible_to(&agent));
+    Ok(Json(TodoList { todos }))
+}
+
+/// Private agents may assign todos only to themselves or a human: a todo puts its title in
+/// the assignee's briefing, like an ask.
+fn check_assignee(state: &AppState, author: &str, assignee: &str) -> Result<(), AppError> {
+    state.assignees.check(assignee)?;
+    if state.is_private(author) && assignee != author && !state.assignees.is_human(assignee) {
+        return Err(AppError::Forbidden(
+            "your todos can be assigned only to yourself or a human".into(),
+        ));
+    }
+    Ok(())
+}
+
+async fn create_todo(
+    State(state): State<AppState>,
+    Extension(Author(author)): Extension<Author>,
+    Json(new): Json<NewTodo>,
+) -> Result<Json<Todo>, AppError> {
+    let private = state.is_private(&author);
+    let assignee = new
+        .assignee
+        .clone()
+        .filter(|assignee| !assignee.is_empty())
+        .unwrap_or_else(|| author.clone());
+    check_assignee(&state, &author, &assignee)?;
+    Ok(Json(
+        state
+            .with_board(move |board| {
+                // A private agent's (private) todos stay in its own threads, so they can't
+                // show up in, or block resolving, anyone else's.
+                if let Some(thread) = new.thread.filter(|id| *id != 0) {
+                    check_thread(board, &author, thread, true, private)?;
+                }
+                board.create_todo(&author, &assignee, &new, private)
+            })
+            .await?,
+    ))
+}
+
+async fn update_todo(
+    State(state): State<AppState>,
+    Extension(Author(author)): Extension<Author>,
+    Path(id): Path<i64>,
+    Json(update): Json<TodoUpdate>,
+) -> Result<Json<Todo>, AppError> {
+    let private = state.is_private(&author);
+    if let Some(assignee) = &update.assignee {
+        check_assignee(&state, &author, assignee)?;
+    }
+    let assignees = Arc::clone(&state.assignees);
+    Ok(Json(
+        state
+            .with_board(move |board| {
+                let todo = board.todo(id)?;
+                if !todo.visible_to(&author) {
+                    return Err(AppError::NotFound(format!("todo {id}")));
+                }
+                // Humans don't use the API, so anyone may act on their todos for them.
+                if author != todo.assignee
+                    && author != todo.created_by
+                    && !assignees.is_human(&todo.assignee)
+                {
+                    return Err(AppError::Forbidden(format!(
+                        "todo #{id} is assigned to {} and was made by {}: only they may \
+                         change it (anyone may when it is assigned to a human)",
+                        todo.assignee, todo.created_by
+                    )));
+                }
+                if private && todo.private_to.as_deref() != Some(author.as_str()) {
+                    return Err(AppError::Forbidden(
+                        "you may change only your own todos".into(),
+                    ));
+                }
+                if let Some(thread) = update.linked_thread() {
+                    check_thread(board, &author, thread, true, private)?;
+                }
+                board.update_todo(&author, id, &update)
+            })
+            .await?,
+    ))
 }
 
 #[derive(Deserialize)]
@@ -549,6 +701,12 @@ mod tests {
             HashMap::new(),
             vec![("secret-token".into(), "saya".into())],
         )
+        .with_assignees(Assignees {
+            agents: ["tsugumi-minecraft", "tsugumi-lab", "tsugumi-sec", "saya"]
+                .map(String::from)
+                .to_vec(),
+            humans: vec!["baughn".into()],
+        })
     }
 
     async fn call(
@@ -1002,6 +1160,308 @@ mod tests {
         )
         .await;
         assert_eq!(cursor["last"], 1555567596084924429_i64);
+    }
+
+    #[tokio::test]
+    async fn todos_create_list_and_validate() {
+        let state = state();
+        let lab = || app(&state, "tsugumi-lab");
+        let todo = |body: Value| call(lab(), Method::POST, "/todos", Some(body));
+
+        let (status, later) = todo(json!({"title": "  Write the report  "})).await;
+        assert_eq!(status, StatusCode::OK, "{later}");
+        assert_eq!(
+            later,
+            json!({"id": later["id"], "title": "Write the report", "assignee": "tsugumi-lab",
+                   "created_by": "tsugumi-lab", "created": later["created"], "due": null,
+                   "thread": null, "status": "open", "closed_by": null, "closed": null,
+                   "note": null})
+        );
+        assert!(later["created"].as_i64().unwrap() > 0);
+        let (_, soon) = todo(json!({"title": "Approve", "assignee": "baughn",
+                                    "due": "2026-11-01"})).await;
+        let (_, sooner) = todo(json!({"title": "Restart", "assignee": "tsugumi-minecraft",
+                                      "due": "2026-10-25"})).await;
+        assert_eq!(soon["created_by"], "tsugumi-lab");
+
+        // Soonest due first, undated last.
+        let (status, list) = call(lab(), Method::GET, "/todos", None).await;
+        assert_eq!(status, StatusCode::OK, "{list}");
+        let ids: Vec<&Value> = list["todos"].as_array().unwrap().iter().map(|t| &t["id"]).collect();
+        assert_eq!(ids, [&sooner["id"], &soon["id"], &later["id"]]);
+        let (_, list) = call(lab(), Method::GET, "/todos?assignee=baughn", None).await;
+        assert_eq!(list["todos"].as_array().unwrap().len(), 1);
+        assert_eq!(list["todos"][0]["id"], soon["id"]);
+        let (_, list) = call(lab(), Method::GET, "/todos?status=done", None).await;
+        assert_eq!(list, json!({"todos": []}));
+        let (_, list) = call(lab(), Method::GET, "/todos?status=all&assignee=", None).await;
+        assert_eq!(list["todos"].as_array().unwrap().len(), 3);
+
+        // The caller's open todos in its briefing; all open todos on the dashboard.
+        let (_, brief) = call(lab(), Method::GET, "/briefing", None).await;
+        assert_eq!(brief["todos"].as_array().unwrap().len(), 1, "{brief}");
+        assert_eq!(brief["todos"][0]["id"], later["id"]);
+        let (_, brief) = call(lab(), Method::GET, "/briefing?agent=baughn", None).await;
+        assert_eq!(brief["todos"][0]["id"], soon["id"]);
+        let (_, dashboard) = call(lab(), Method::GET, "/status", None).await;
+        assert_eq!(dashboard["todos"].as_array().unwrap().len(), 3);
+
+        // Unknown assignees are refused with the valid names, also as a filter.
+        let (status, error) = todo(json!({"title": "x", "assignee": "bob"})).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        let message = error["error"].as_str().unwrap();
+        assert!(message.contains("baughn") && message.contains("tsugumi-lab"), "{message}");
+        let (status, _) = call(lab(), Method::GET, "/todos?assignee=bob", None).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        // Neither is a caller outside the roster a default assignee.
+        let (status, _) = call(app(&state, "discord"), Method::POST, "/todos",
+                               Some(json!({"title": "x"}))).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+
+        for bad in [
+            json!({"title": " "}),
+            json!({"title": "two\nlines"}),
+            json!({"title": "é".repeat(201)}),
+            json!({"title": "x", "due": "tomorrow"}),
+            json!({"title": "x", "due": "2026-13-01"}),
+        ] {
+            let (status, _) = todo(bad.clone()).await;
+            assert_eq!(status, StatusCode::BAD_REQUEST, "{bad}");
+        }
+        let (status, _) = todo(json!({"title": "é".repeat(200)})).await;
+        assert_eq!(status, StatusCode::OK);
+        let (status, _) = todo(json!({"title": "x", "thread": 99})).await;
+        assert_eq!(status, StatusCode::NOT_FOUND);
+        let (status, _) = call(lab(), Method::GET, "/todos?status=bogus", None).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn todo_permissions_and_closing() {
+        let state = state();
+        let lab = || app(&state, "tsugumi-lab");
+        let erisi = || app(&state, "tsugumi-minecraft");
+        let saya = || app(&state, "saya");
+        let patch = |router: Router, id: &Value, body: Value| {
+            let uri = format!("/todos/{id}");
+            async move { call(router, Method::PATCH, &uri, Some(body)).await }
+        };
+        let (_, todo) = call(
+            lab(),
+            Method::POST,
+            "/todos",
+            Some(json!({"title": "Restart the server", "assignee": "tsugumi-minecraft",
+                        "due": "2026-10-30"})),
+        )
+        .await;
+        let id = &todo["id"];
+
+        // Neither assignee nor creator.
+        let (status, error) = patch(saya(), id, json!({"status": "done"})).await;
+        assert_eq!(status, StatusCode::FORBIDDEN);
+        assert!(error["error"].as_str().unwrap().contains("tsugumi-minecraft"), "{error}");
+
+        // The assignee closes it; the creator reopens it.
+        let (status, done) = patch(erisi(), id, json!({"status": "done"})).await;
+        assert_eq!(status, StatusCode::OK, "{done}");
+        assert_eq!(done["status"], "done");
+        assert_eq!(done["closed_by"], "tsugumi-minecraft");
+        assert!(done["closed"].as_i64().is_some());
+        let (_, open) = patch(lab(), id, json!({"status": "open"})).await;
+        assert_eq!(open["status"], "open");
+        assert_eq!(open["closed_by"], Value::Null);
+        assert_eq!(open["closed"], Value::Null);
+
+        // Dropping needs a note, given now or earlier; clearing it doesn't count.
+        let (status, error) = patch(lab(), id, json!({"status": "dropped"})).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        assert!(error["error"].as_str().unwrap().contains("note"), "{error}");
+        let (status, _) = patch(lab(), id, json!({"status": "dropped", "note": " "})).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        let (_, noted) = patch(lab(), id, json!({"note": "superseded by #9"})).await;
+        assert_eq!(noted["note"], "superseded by #9");
+        assert_eq!(noted["status"], "open");
+        let (status, dropped) = patch(lab(), id, json!({"status": "dropped"})).await;
+        assert_eq!(status, StatusCode::OK, "{dropped}");
+        assert_eq!(dropped["closed_by"], "tsugumi-lab");
+        let (status, _) = patch(lab(), id, json!({"note": ""})).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        patch(lab(), id, json!({"status": "open"})).await;
+
+        // Reassigned: the old assignee loses its say, the new one gains it.
+        let (_, moved) = patch(lab(), id, json!({"assignee": "saya", "due": ""})).await;
+        assert_eq!(moved["assignee"], "saya");
+        assert_eq!(moved["created_by"], "tsugumi-lab");
+        assert_eq!(moved["due"], Value::Null);
+        let (status, _) = patch(erisi(), id, json!({"title": "x"})).await;
+        assert_eq!(status, StatusCode::FORBIDDEN);
+        let (status, _) = patch(saya(), id, json!({"assignee": "nobody"})).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        let (status, renamed) = patch(saya(), id, json!({"title": "Restart both servers"})).await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(renamed["title"], "Restart both servers");
+
+        // Anyone may act on a human's todo.
+        let (_, human) = call(
+            lab(),
+            Method::POST,
+            "/todos",
+            Some(json!({"title": "Approve the deploy", "assignee": "baughn"})),
+        )
+        .await;
+        let (status, done) = patch(erisi(), &human["id"], json!({"status": "done",
+                                                                  "note": "approved on Discord"})).await;
+        assert_eq!(status, StatusCode::OK, "{done}");
+        assert_eq!(done["closed_by"], "tsugumi-minecraft");
+        assert_eq!(done["note"], "approved on Discord");
+
+        // Threads link and unlink; an unknown thread is refused.
+        let (_, created) = call(lab(), Method::POST, "/threads", Some(json!({"title": "T"}))).await;
+        let thread = created["thread"].as_i64().unwrap();
+        let (_, linked) = patch(saya(), id, json!({"thread": thread})).await;
+        assert_eq!(linked["thread"], thread);
+        let (_, unlinked) = patch(saya(), id, json!({"thread": null})).await;
+        assert_eq!(unlinked["thread"], Value::Null);
+        patch(saya(), id, json!({"thread": thread})).await;
+        let (_, unlinked) = patch(saya(), id, json!({"thread": 0})).await;
+        assert_eq!(unlinked["thread"], Value::Null);
+        let (status, _) = patch(saya(), id, json!({"thread": 99})).await;
+        assert_eq!(status, StatusCode::NOT_FOUND);
+        let (status, _) = patch(saya(), &json!(99), json!({"status": "done"})).await;
+        assert_eq!(status, StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn open_todos_block_resolving() {
+        let state = state();
+        let lab = || app(&state, "tsugumi-lab");
+        let (_, created) = call(
+            lab(),
+            Method::POST,
+            "/threads",
+            Some(json!({"title": "Bug grab-bag", "summary": "Several bugs."})),
+        )
+        .await;
+        let thread = created["thread"].as_i64().unwrap();
+        let (_, fix) = call(lab(), Method::POST, "/todos",
+                            Some(json!({"title": "fix X", "thread": thread}))).await;
+        let (_, approve) = call(
+            lab(),
+            Method::POST,
+            "/todos",
+            Some(json!({"title": "approve Y", "thread": thread, "assignee": "baughn"})),
+        )
+        .await;
+        let (_, list) = call(lab(), Method::GET, &format!("/todos?thread={thread}"), None).await;
+        assert_eq!(list["todos"].as_array().unwrap().len(), 2);
+
+        let thread_uri = format!("/threads/{thread}");
+        let resolve = |body: Value| call(lab(), Method::PATCH, &thread_uri, Some(body));
+        let (status, error) = resolve(json!({"status": "resolved", "summary": "All fixed."})).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        assert_eq!(
+            error["error"],
+            format!(
+                "thread #{thread} still has open todos: #{} \"fix X\" (tsugumi-lab), \
+                 #{} \"approve Y\" (baughn); close or drop them first",
+                fix["id"], approve["id"]
+            )
+        );
+        // Refused as a whole: the summary didn't change either.
+        let (_, view) = call(lab(), Method::GET, &format!("/threads/{thread}"), None).await;
+        assert_eq!(view["thread"]["summary"], "Several bugs.");
+        assert_eq!(view["thread"]["status"], "open");
+        assert_eq!(view["todos"].as_array().unwrap().len(), 2);
+
+        // Other changes still go through.
+        let (status, _) = resolve(json!({"status": "parked"})).await;
+        assert_eq!(status, StatusCode::OK);
+
+        call(lab(), Method::PATCH, &format!("/todos/{}", fix["id"]),
+             Some(json!({"status": "done"}))).await;
+        let (status, _) = resolve(json!({"status": "resolved"})).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        call(lab(), Method::PATCH, &format!("/todos/{}", approve["id"]),
+             Some(json!({"status": "dropped", "note": "not needed"}))).await;
+        let (status, resolved) = resolve(json!({"status": "resolved"})).await;
+        assert_eq!(status, StatusCode::OK, "{resolved}");
+        // The thread still lists its closed todos.
+        let (_, view) = call(lab(), Method::GET, &format!("/threads/{thread}"), None).await;
+        let statuses: Vec<&Value> = view["todos"].as_array().unwrap().iter().map(|t| &t["status"]).collect();
+        assert_eq!(statuses, [&json!("done"), &json!("dropped")]);
+    }
+
+    #[tokio::test]
+    async fn private_agents_todos() {
+        let state = state().with_private(["tsugumi-sec".to_owned()]);
+        let sec = || app(&state, "tsugumi-sec");
+        let lab = || app(&state, "tsugumi-lab");
+        let (_, public) = call(lab(), Method::POST, "/threads", Some(json!({"title": "Lab"}))).await;
+        let public_thread = public["thread"].as_i64().unwrap();
+        let (_, own) = call(sec(), Method::POST, "/threads", Some(json!({"title": "Watch"}))).await;
+        let own_thread = own["thread"].as_i64().unwrap();
+        let (_, public_todo) = call(lab(), Method::POST, "/todos",
+                                    Some(json!({"title": "Lab work", "assignee": "baughn"}))).await;
+
+        // Only to itself or a human, and only in its own threads.
+        let (status, mine) = call(sec(), Method::POST, "/todos",
+                                  Some(json!({"title": "Rescan", "thread": own_thread}))).await;
+        assert_eq!(status, StatusCode::OK, "{mine}");
+        let (status, for_baughn) = call(
+            sec(),
+            Method::POST,
+            "/todos",
+            Some(json!({"title": "Rotate the key", "assignee": "baughn", "due": "2026-10-30"})),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK, "{for_baughn}");
+        for body in [
+            json!({"title": "x", "assignee": "tsugumi-lab"}),
+            json!({"title": "x", "thread": public_thread}),
+        ] {
+            let (status, _) = call(sec(), Method::POST, "/todos", Some(body.clone())).await;
+            assert_eq!(status, StatusCode::FORBIDDEN, "{body}");
+        }
+        let mine_uri = format!("/todos/{}", mine["id"]);
+        let (status, _) = call(sec(), Method::PATCH, &mine_uri,
+                               Some(json!({"assignee": "tsugumi-lab"}))).await;
+        assert_eq!(status, StatusCode::FORBIDDEN);
+        let (status, _) = call(sec(), Method::PATCH, &mine_uri,
+                               Some(json!({"thread": public_thread}))).await;
+        assert_eq!(status, StatusCode::FORBIDDEN);
+        // Nor does it change other agents' todos, even a human's.
+        let (status, _) = call(sec(), Method::PATCH, &format!("/todos/{}", public_todo["id"]),
+                               Some(json!({"status": "done"}))).await;
+        assert_eq!(status, StatusCode::FORBIDDEN);
+        let (status, _) = call(sec(), Method::PATCH, &mine_uri,
+                               Some(json!({"status": "done"}))).await;
+        assert_eq!(status, StatusCode::OK);
+
+        // Invisible to other agents.
+        let (_, list) = call(lab(), Method::GET, "/todos?assignee=baughn&status=all", None).await;
+        assert_eq!(list["todos"].as_array().unwrap().len(), 1, "{list}");
+        assert_eq!(list["todos"][0]["id"], public_todo["id"]);
+        let (status, _) = call(lab(), Method::PATCH, &format!("/todos/{}", for_baughn["id"]),
+                               Some(json!({"status": "done"}))).await;
+        assert_eq!(status, StatusCode::NOT_FOUND);
+        let (_, dashboard) = call(lab(), Method::GET, "/status", None).await;
+        assert_eq!(dashboard["todos"].as_array().unwrap().len(), 1);
+        let (_, brief) = call(lab(), Method::GET, "/briefing?agent=baughn", None).await;
+        assert_eq!(brief["todos"].as_array().unwrap().len(), 1);
+        let (status, _) = call(lab(), Method::GET, &format!("/todos?thread={own_thread}"), None).await;
+        assert_eq!(status, StatusCode::NOT_FOUND);
+
+        // The private agent sees its own and the public ones.
+        let (_, list) = call(sec(), Method::GET, "/todos?status=all", None).await;
+        assert_eq!(list["todos"].as_array().unwrap().len(), 3);
+        let (_, view) = call(sec(), Method::GET, &format!("/threads/{own_thread}"), None).await;
+        assert_eq!(view["todos"][0]["id"], mine["id"]);
+        assert!(view["todos"][0].get("private_to").is_none());
+
+        // Others may still assign it work.
+        let (status, _) = call(lab(), Method::POST, "/todos",
+                               Some(json!({"title": "Audit", "assignee": "tsugumi-sec"}))).await;
+        assert_eq!(status, StatusCode::OK);
     }
 
     #[tokio::test]

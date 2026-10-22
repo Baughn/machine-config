@@ -21,7 +21,7 @@ from .config import BASE_EFFORT, Config
 from .limits import Breaker, Streak
 from .policy import (Attachment, Author, Command, Incoming, Kind, Route, command_applies,
                      STREAK_LIMIT, may_approve, mentioned, parse_command, route)
-from .prompt import HANDOFF_FILE, handoff_prompt, new_session_preamble, turn_prompt
+from .prompt import HANDOFF_FILE, handoff_prompt, new_session_preamble, report_nudge, todos_line, turn_prompt
 from .render import (MAIN, ChatError, File, Outgoing, PostError, Roots, Status, answer_footer, approval_request, context_line,
                      is_status, question_text, render_post, settled, summarize_tool)
 from .schedule import Schedule, ScheduleError, Schedules, stamp
@@ -74,6 +74,9 @@ PRESENCE_MAX = 128  # Discord's limit on a custom status
 TOPIC_TIMEOUT = 60.0
 SHIP_TIMEOUT = 65 * 60.0
 SHIP_POLL = 10.0
+# Each turn's prompt lists the agent's open todos, and a report's tool result nudges about
+# them; a slow or absent board leaves both out rather than holding up the turn.
+TODO_TIMEOUT = 3.0
 BOOKMARK = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}\Z")
 
 
@@ -204,6 +207,7 @@ class Bridge:
         self.unit_file = unit_file
         self.unit_version = self.read_unit()
         self.restart_requested = False
+        self.todos_failing = False  # the last open-todos fetch failed: logged once per streak
 
     # --- lifecycle ---------------------------------------------------------
 
@@ -771,7 +775,8 @@ class Bridge:
             self.write_turn_file(now, requester, resumed=trigger.id.startswith("resume-"))
             self.start_topic(entries, status)
             prompt = turn_prompt(lines, None if self.turn_thread is None
-                                 else (self.turn_thread, trigger.thread_name))
+                                 else (self.turn_thread, trigger.thread_name),
+                                 todos_line(await self.open_todos() or []))
             if self.fresh:
                 prompt = new_session_preamble(self.read_handoff(), await self.board_briefing()) + prompt
                 self.fresh = False
@@ -822,6 +827,22 @@ class Bridge:
         except BoardError as error:
             log.warning("board briefing: %s", error)
             return f"(No board briefing: {error})"
+
+    async def open_todos(self) -> list[dict[str, Any]] | None:
+        """The agent's open todos, or None without a board or when it doesn't answer in time."""
+        if self.board is None:
+            return None
+        try:
+            todos = await self.board.open_todos(TODO_TIMEOUT)
+        except Exception as error:
+            if not self.todos_failing:
+                log.warning("open todos: %s: %s", type(error).__name__, error)
+            self.todos_failing = True
+            return None
+        if self.todos_failing:
+            log.info("open todos: the board answers again")
+        self.todos_failing = False
+        return todos
 
     async def tool_board(self, tool: str, args: dict[str, Any]) -> str:
         if self.board is None:
@@ -1135,7 +1156,8 @@ class Bridge:
         outgoing = self.placed(self.render(args))
         message_id = await self.send_post(outgoing)
         self.note(f"posted {args.get('kind')}: {args.get('headline')}")
-        return f"{self.where(outgoing, message_id)}{self.unread()}"
+        nudge = report_nudge(await self.open_todos() or []) if args.get("kind") == "report" else ""
+        return f"{self.where(outgoing, message_id)}{nudge}{self.unread()}"
 
     async def tool_ask_agent(self, args: dict[str, Any]) -> str:
         self.refuse_during_handoff()

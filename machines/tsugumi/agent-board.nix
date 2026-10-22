@@ -15,6 +15,11 @@ let
     inherit (cfg) users;
     tokens = lib.mapAttrs (agent: _: "token-${agent}") cfg.tokens;
     private_agents = cfg.privateAgents;
+    # Todos are assigned to a roster agent or human; agents act on humans' todos for them.
+    assignees = {
+      agents = builtins.attrNames roster.agents;
+      humans = builtins.attrNames roster.humans;
+    };
   } // lib.optionalAttrs (cfg.discordPublicKey != null) {
     discord = {
       public_key = cfg.discordPublicKey;

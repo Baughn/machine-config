@@ -121,6 +121,25 @@ CREATE TABLE web_sessions (
     r#"
 ALTER TABLE threads ADD COLUMN private_to TEXT;
 "#,
+    // Todo items: small assigned tasks, optionally tied to a thread. Closing is recorded.
+    r#"
+CREATE TABLE todos (
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    assignee TEXT NOT NULL,
+    created_by TEXT NOT NULL,
+    created INTEGER NOT NULL,
+    due TEXT,
+    thread INTEGER REFERENCES threads(id),
+    status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'done', 'dropped')),
+    closed_by TEXT,
+    closed INTEGER,
+    note TEXT,
+    private_to TEXT
+);
+CREATE INDEX todos_assignee ON todos(assignee, status);
+CREATE INDEX todos_thread ON todos(thread);
+"#,
 ];
 
 pub const MAX_TITLE: usize = 200;
@@ -128,6 +147,9 @@ pub const MAX_BODY: usize = 256 * 1024;
 pub const MAX_ATTACHMENT: usize = 1024 * 1024;
 pub const MAX_ATTACHMENTS: usize = 10;
 pub const MAX_TAGS: usize = 10;
+/// Todo titles are counted in characters, not bytes.
+pub const MAX_TODO_TITLE: usize = 200;
+pub const MAX_TODO_NOTE: usize = 4000;
 
 /// Thread status. Threads are never deleted, only resolved or parked.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -196,6 +218,64 @@ pub fn visible(private_to: Option<&str>, viewer: &str) -> bool {
     private_to.is_none_or(|owner| owner == viewer)
 }
 
+/// Todo status. A closed todo (done or dropped) records who closed it and when.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TodoStatus {
+    Open,
+    Done,
+    Dropped,
+}
+
+impl TodoStatus {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            TodoStatus::Open => "open",
+            TodoStatus::Done => "done",
+            TodoStatus::Dropped => "dropped",
+        }
+    }
+
+    fn parse(text: &str) -> rusqlite::Result<Self> {
+        match text {
+            "open" => Ok(TodoStatus::Open),
+            "done" => Ok(TodoStatus::Done),
+            "dropped" => Ok(TodoStatus::Dropped),
+            other => Err(rusqlite::Error::InvalidColumnType(
+                0,
+                format!("todo status {other}"),
+                rusqlite::types::Type::Text,
+            )),
+        }
+    }
+}
+
+/// A todo item: assigned to an agent or a human, optionally tied to a thread.
+#[derive(Clone, Debug, Serialize)]
+pub struct Todo {
+    pub id: i64,
+    pub title: String,
+    pub assignee: String,
+    pub created_by: String,
+    pub created: i64,
+    pub due: Option<String>,
+    pub thread: Option<i64>,
+    pub status: TodoStatus,
+    pub closed_by: Option<String>,
+    pub closed: Option<i64>,
+    pub note: Option<String>,
+    /// Set for a private agent's todo: only that agent sees it over the API. Never shown.
+    #[serde(skip)]
+    pub private_to: Option<String>,
+}
+
+impl Todo {
+    /// Whether `viewer` (an agent id) may see this todo over the API.
+    pub fn visible_to(&self, viewer: &str) -> bool {
+        visible(self.private_to.as_deref(), viewer)
+    }
+}
+
 #[derive(Clone, Debug, Serialize)]
 pub struct AttachmentInfo {
     pub id: i64,
@@ -225,6 +305,8 @@ pub struct ThreadView {
     pub posts: Vec<Post>,
     /// Posts in the thread older than the ones returned.
     pub earlier_posts: i64,
+    /// The thread's todos, all statuses.
+    pub todos: Vec<Todo>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -285,6 +367,8 @@ pub struct Briefing {
     pub waiting_on_others: Vec<Thread>,
     pub due: Vec<Thread>,
     pub changed: Vec<Thread>,
+    /// Open todos assigned to the agent, soonest due first.
+    pub todos: Vec<Todo>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
@@ -358,6 +442,54 @@ pub struct SearchQuery {
     /// Set by the API to the caller: hides other agents' private threads. Never from the query.
     #[serde(skip)]
     pub viewer: Option<String>,
+}
+
+#[derive(Clone, Debug, Default, Deserialize)]
+pub struct TodoFilter {
+    pub assignee: Option<String>,
+    /// `open` (default), `done`, `dropped` or `all`.
+    pub status: Option<String>,
+    pub thread: Option<i64>,
+}
+
+#[derive(Clone, Debug, Default, Deserialize)]
+pub struct NewTodo {
+    pub title: String,
+    /// Defaults to the caller.
+    pub assignee: Option<String>,
+    /// 0 counts as none.
+    pub thread: Option<i64>,
+    pub due: Option<String>,
+}
+
+/// A change to a todo. Absent fields are left alone; `""` clears `due` and `note`, and
+/// `null` or 0 clears `thread`.
+#[derive(Clone, Debug, Default, Deserialize)]
+pub struct TodoUpdate {
+    pub title: Option<String>,
+    pub assignee: Option<String>,
+    pub due: Option<String>,
+    /// Absent: unchanged; `Some(None)` (JSON null) or `Some(Some(0))`: cleared.
+    #[serde(default, deserialize_with = "present")]
+    pub thread: Option<Option<i64>>,
+    pub status: Option<TodoStatus>,
+    pub note: Option<String>,
+}
+
+impl TodoUpdate {
+    /// The thread to link, if the update sets one (not clears it).
+    pub fn linked_thread(&self) -> Option<i64> {
+        self.thread.flatten().filter(|id| *id != 0)
+    }
+}
+
+/// Tells a field that is present (even as `null`) from an absent one, which `default` makes `None`.
+fn present<'de, D, T>(deserializer: D) -> Result<Option<Option<T>>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    Option::<T>::deserialize(deserializer).map(Some)
 }
 
 pub struct Board {
@@ -459,6 +591,46 @@ fn thread_from_row(row: &Row, full_summary: bool) -> rusqlite::Result<Thread> {
         private_to: row.get(14)?,
     })
 }
+
+/// A todo title: one non-empty line of at most `MAX_TODO_TITLE` characters.
+fn check_todo_title(title: &str) -> Result<(), AppError> {
+    let title = title.trim();
+    if title.is_empty() {
+        return Err(bad("title is empty"));
+    }
+    if title.contains(['\n', '\r']) {
+        return Err(bad("title must be a single line"));
+    }
+    if title.chars().count() > MAX_TODO_TITLE {
+        return Err(bad(format!(
+            "title is longer than {MAX_TODO_TITLE} characters"
+        )));
+    }
+    Ok(())
+}
+
+const TODO_COLUMNS: &str = "id, title, assignee, created_by, created, due, thread, status, \
+     closed_by, closed, note, private_to";
+
+fn todo_from_row(row: &Row) -> rusqlite::Result<Todo> {
+    Ok(Todo {
+        id: row.get(0)?,
+        title: row.get(1)?,
+        assignee: row.get(2)?,
+        created_by: row.get(3)?,
+        created: row.get(4)?,
+        due: row.get(5)?,
+        thread: row.get(6)?,
+        status: TodoStatus::parse(&row.get::<_, String>(7)?)?,
+        closed_by: row.get(8)?,
+        closed: row.get(9)?,
+        note: row.get(10)?,
+        private_to: row.get(11)?,
+    })
+}
+
+/// Soonest due first, undated last, then oldest first.
+const TODO_ORDER: &str = "due IS NULL, due, id";
 
 /// SQL condition: `?agent` owns thread `t` or has posted in it.
 const INVOLVED: &str =
@@ -655,10 +827,16 @@ impl Board {
             )?,
             None => 0,
         };
+        let todos = self.list_todos(&TodoFilter {
+            status: Some("all".into()),
+            thread: Some(id),
+            ..TodoFilter::default()
+        })?;
         Ok(ThreadView {
             thread,
             posts,
             earlier_posts,
+            todos,
         })
     }
 
@@ -936,6 +1114,9 @@ impl Board {
             )?;
         }
         if let Some(status) = update.status {
+            if status == Status::Resolved && current.status != Status::Resolved {
+                self.check_no_open_todos(id)?;
+            }
             tx.execute(
                 "UPDATE threads SET status = ?1 WHERE id = ?2",
                 params![status.as_str(), id],
@@ -1110,6 +1291,10 @@ impl Board {
                 ),
                 "s.created DESC",
             )?,
+            todos: self.list_todos(&TodoFilter {
+                assignee: Some(agent.to_owned()),
+                ..TodoFilter::default()
+            })?,
         })
     }
 
@@ -1156,5 +1341,184 @@ impl Board {
             threads("t.waiting_on IS NOT NULL", "t.updated DESC")?,
             threads("t.due IS NOT NULL", "t.due, t.id")?,
         ))
+    }
+
+    /// Lists todos matching `filter`, soonest due first (undated last), then oldest first.
+    ///
+    /// # Errors
+    ///
+    /// Returns `BadRequest` for an unknown status.
+    pub fn list_todos(&self, filter: &TodoFilter) -> Result<Vec<Todo>, AppError> {
+        let status = filter.status.as_deref().unwrap_or("open");
+        if !matches!(status, "open" | "done" | "dropped" | "all") {
+            return Err(bad(format!(
+                "status {status:?}: use open, done, dropped or all"
+            )));
+        }
+        let sql = format!(
+            "SELECT {TODO_COLUMNS} FROM todos WHERE \
+             (:status = 'all' OR status = :status) \
+             AND (:assignee IS NULL OR assignee = :assignee) \
+             AND (:thread IS NULL OR thread = :thread) \
+             ORDER BY {TODO_ORDER}"
+        );
+        let mut statement = self.conn.prepare_cached(&sql)?;
+        let rows = statement.query_map(
+            rusqlite::named_params! {
+                ":status": status,
+                ":assignee": filter.assignee,
+                ":thread": filter.thread,
+            },
+            todo_from_row,
+        )?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
+    }
+
+    /// One todo.
+    ///
+    /// # Errors
+    ///
+    /// Returns `NotFound` for an unknown todo.
+    pub fn todo(&self, id: i64) -> Result<Todo, AppError> {
+        let sql = format!("SELECT {TODO_COLUMNS} FROM todos WHERE id = ?1");
+        self.conn
+            .query_row(&sql, [id], todo_from_row)
+            .optional()?
+            .ok_or_else(|| AppError::NotFound(format!("todo {id}")))
+    }
+
+    /// Creates an open todo made by `author` for `assignee` (already checked by the caller).
+    /// A private agent's todo is private to it.
+    ///
+    /// # Errors
+    ///
+    /// Returns `BadRequest` for invalid fields, `NotFound` for an unknown thread.
+    pub fn create_todo(
+        &self,
+        author: &str,
+        assignee: &str,
+        new: &NewTodo,
+        private: bool,
+    ) -> Result<Todo, AppError> {
+        check_todo_title(&new.title)?;
+        check_text("assignee", assignee, 64)?;
+        if let Some(due) = &new.due {
+            check_due(due)?;
+        }
+        let thread = new.thread.filter(|id| *id != 0);
+        if let Some(thread) = thread {
+            self.thread_private_to(thread)?;
+        }
+        self.conn.execute(
+            "INSERT INTO todos (title, assignee, created_by, created, due, thread, private_to) \
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            params![
+                new.title.trim(),
+                assignee,
+                author,
+                now(),
+                new.due.as_deref().and_then(non_empty),
+                thread,
+                private.then_some(author),
+            ],
+        )?;
+        self.todo(self.conn.last_insert_rowid())
+    }
+
+    /// Applies `update` to a todo; permissions are the caller's business.
+    ///
+    /// Closing (done or dropped) records `author` and the time; reopening clears them. A
+    /// dropped todo needs a note.
+    ///
+    /// # Errors
+    ///
+    /// Returns `NotFound` for an unknown todo or thread, `BadRequest` for invalid fields.
+    pub fn update_todo(&self, author: &str, id: i64, update: &TodoUpdate) -> Result<Todo, AppError> {
+        // The mutex around the board makes this connection ours alone.
+        let tx = self.conn.unchecked_transaction()?;
+        let current = self.todo(id)?;
+        let note = match &update.note {
+            Some(note) => non_empty(note.trim()).map(str::to_owned),
+            None => current.note.clone(),
+        };
+        let status = update.status.unwrap_or(current.status);
+        if status == TodoStatus::Dropped && note.is_none() {
+            return Err(bad(format!(
+                "todo #{id}: dropping needs a note saying why"
+            )));
+        }
+        if let Some(title) = &update.title {
+            check_todo_title(title)?;
+            tx.execute(
+                "UPDATE todos SET title = ?1 WHERE id = ?2",
+                params![title.trim(), id],
+            )?;
+        }
+        if let Some(assignee) = &update.assignee {
+            check_text("assignee", assignee, 64)?;
+            tx.execute(
+                "UPDATE todos SET assignee = ?1 WHERE id = ?2",
+                params![assignee, id],
+            )?;
+        }
+        if let Some(due) = &update.due {
+            check_due(due)?;
+            tx.execute(
+                "UPDATE todos SET due = ?1 WHERE id = ?2",
+                params![non_empty(due), id],
+            )?;
+        }
+        if update.thread.is_some() {
+            let thread = update.linked_thread();
+            if let Some(thread) = thread {
+                self.thread_private_to(thread)?;
+            }
+            tx.execute(
+                "UPDATE todos SET thread = ?1 WHERE id = ?2",
+                params![thread, id],
+            )?;
+        }
+        if let Some(text) = &update.note {
+            if text.len() > MAX_TODO_NOTE {
+                return Err(bad(format!("note is longer than {MAX_TODO_NOTE} bytes")));
+            }
+            tx.execute(
+                "UPDATE todos SET note = ?1 WHERE id = ?2",
+                params![note, id],
+            )?;
+        }
+        if status != current.status {
+            let (closed_by, closed) = match status {
+                TodoStatus::Open => (None, None),
+                TodoStatus::Done | TodoStatus::Dropped => (Some(author), Some(now())),
+            };
+            tx.execute(
+                "UPDATE todos SET status = ?1, closed_by = ?2, closed = ?3 WHERE id = ?4",
+                params![status.as_str(), closed_by, closed, id],
+            )?;
+        }
+        let todo = self.todo(id)?;
+        tx.commit()?;
+        Ok(todo)
+    }
+
+    /// `BadRequest` naming the thread's open todos, if it has any: a thread isn't resolved
+    /// while work tied to it is still open.
+    fn check_no_open_todos(&self, thread: i64) -> Result<(), AppError> {
+        let open = self.list_todos(&TodoFilter {
+            thread: Some(thread),
+            ..TodoFilter::default()
+        })?;
+        if open.is_empty() {
+            return Ok(());
+        }
+        let names = open
+            .iter()
+            .map(|todo| format!("#{} \"{}\" ({})", todo.id, todo.title, todo.assignee))
+            .collect::<Vec<_>>()
+            .join(", ");
+        Err(bad(format!(
+            "thread #{thread} still has open todos: {names}; close or drop them first"
+        )))
     }
 }

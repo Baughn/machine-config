@@ -1,19 +1,22 @@
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncIterator
+import logging
 from pathlib import Path
 from typing import Any
 
 from aiohttp import web
 import pytest
 
+from agent_bridge import bridge as bridge_module
 from agent_bridge.board import (BoardClient, BoardConfig, BoardError, BoardTools, briefing_text,
-                                search_text, thread_line, unix)
+                                search_text, thread_line, thread_text, todo_line, unix)
 from agent_bridge.bridge import Bridge
 from agent_bridge.config import Board, ConfigError, parse
-from agent_bridge.prompt import system_prompt
+from agent_bridge.prompt import report_nudge, system_prompt, todos_line
 from agent_bridge.render import Roots
-from agent_bridge.session import ToolError, options_kwargs
+from agent_bridge.session import BRIDGE_TOOLS, ToolError, TurnResult, options_kwargs
 from conftest import ALICE, FakeChat, FakeSession, Harness, config_data, make_config
 
 THREAD = {"id": 7, "title": "Autosave spike", "status": "open", "owner": "tsugumi-lab",
@@ -21,6 +24,8 @@ THREAD = {"id": 7, "title": "Autosave spike", "status": "open", "owner": "tsugum
           "waiting_on": "baughn", "waiting_ref": "1555557513401860197",
           "summary": "Buffer the writes.\nNext: prototype.", "summary_author": "tsugumi-lab",
           "summary_updated": 1790949600, "summary_revisions": 2}
+TODO = {"id": 3, "title": "fix X", "assignee": "tsugumi-lab", "created_by": "saya", "created": 1790946000,
+        "due": "2026-10-25", "thread": 12, "status": "open", "closed_by": None, "closed": None, "note": None}
 EMPTY_BRIEFING = {"agent": "x", "since": None, "asks": [], "waiting_on_you": [],
                   "waiting_on_others": [], "due": [], "changed": []}
 
@@ -31,6 +36,9 @@ class FakeBoard:
     def __init__(self) -> None:
         self.requests: list[tuple[str, str, dict[str, str], Any]] = []
         self.briefing: dict[str, Any] = EMPTY_BRIEFING
+        self.todos: list[dict[str, Any]] = []
+        self.todos_broken = False
+        self.todos_delay = 0.0
 
     async def handle(self, request: web.Request) -> web.Response:
         body = await request.json() if request.can_read_body else None
@@ -46,6 +54,18 @@ class FakeBoard:
             return web.json_response({"thread": 7, "post": 22})
         if path == "/threads/7" and request.method == "PATCH":
             return web.json_response({**THREAD, **(body or {})})
+        if path == "/todos" and request.method == "GET":
+            if self.todos_broken:
+                return web.json_response({"error": "database is locked"}, status=500)
+            await asyncio.sleep(self.todos_delay)
+            status = request.query.get("status", "open")
+            return web.json_response({"todos": [t for t in self.todos if status in ("all", t["status"])]})
+        if path == "/todos" and request.method == "POST":
+            return web.json_response({**TODO, "id": 4, "assignee": "tsugumi-lab", "created_by": "tsugumi-lab",
+                                      "due": None, "thread": None, **(body or {})})
+        if path == "/todos/3" and request.method == "PATCH":
+            closed = {"closed_by": "tsugumi-lab", "closed": 1790949600} if (body or {}).get("status") else {}
+            return web.json_response({**TODO, **closed, **(body or {})})
         if path == "/threads/99":
             return web.json_response({"error": "thread 99 not found"}, status=404)
         return web.json_response({"error": "unexpected"}, status=500)
@@ -86,6 +106,27 @@ def test_text_output() -> None:
                                  "Cleaned-up [history]")
 
 
+def test_todo_text() -> None:
+    assert todo_line(TODO) == "#3 [open] fix X (assignee tsugumi-lab, from saya, due 2026-10-25, thread #12)"
+    done = {**TODO, "created_by": "tsugumi-lab", "due": None, "thread": None, "status": "done",
+            "closed_by": "tsugumi-lab", "closed": 1790949600, "note": "fixed in abc123"}
+    assert todo_line(done) == ("#3 [done] fix X (assignee tsugumi-lab, closed by tsugumi-lab 2026-10-02 14:00Z)"
+                               "\n    fixed in abc123")
+    assert briefing_text({**EMPTY_BRIEFING, "todos": []}) == "Board: nothing is waiting for you."
+    text = briefing_text({**EMPTY_BRIEFING, "todos": [TODO]})
+    assert "Your open todos (close them with todo_update when done):\n- #3 [open] fix X" in text
+    view = {"thread": {**THREAD, "summary": ""}, "posts": [], "todos": [TODO]}
+    assert "Todos:\n- #3 [open] fix X" in thread_text(view)
+
+    many = [{**TODO, "id": n, "title": f"item {n}"} for n in range(1, 8)]
+    assert todos_line([]) is None
+    assert todos_line(many) == ("Your open todos (board): #1 item 1; #2 item 2; #3 item 3; #4 item 4; "
+                                "#5 item 5 (and 2 more). Close them with todo_update when done.")
+    assert report_nudge([]) == ""
+    assert report_nudge(many[:1]) == ("\nYou still have 1 open todo: #1 item 1 — close what's finished "
+                                      "(todo_update) or say in the post what's left.")
+
+
 def test_times() -> None:
     assert unix("2026-10-02", "since") == 1790899200
     assert unix("2026-10-02T13:00Z", "since") == 1790946000
@@ -113,6 +154,29 @@ async def test_tools_call_the_api(board: tuple[FakeBoard, Path], tmp_path: Path)
     assert fake.requests[-1][3]["supersedes"] == [3]
     updated = await tools.call("board_summary", {"thread": 7, "summary": "Done.", "status": "resolved"})
     assert updated.startswith("updated: #7") and fake.requests[-1][3] == {"summary": "Done.", "status": "resolved"}
+
+
+async def test_todo_tools(board: tuple[FakeBoard, Path], tmp_path: Path) -> None:
+    fake, socket = board
+    tools = tools_for(socket, tmp_path)
+    assert "mcp__bridge__todo_update" in BRIDGE_TOOLS
+    added = await tools.call("todo_add", {"title": "check the fix", "assignee": "baughn", "thread": "12"})
+    assert added == "added: #4 [open] check the fix (assignee baughn, from tsugumi-lab, thread #12)"
+    assert fake.requests[-1][1:] == ("/todos", {}, {"title": "check the fix", "assignee": "baughn", "thread": 12})
+
+    fake.todos = [TODO, {**TODO, "id": 5, "status": "done"}]
+    assert await tools.call("todo_list", {}) == todo_line(TODO)
+    assert fake.requests[-1][2] == {"assignee": "tsugumi-lab"}
+    listed = await tools.call("todo_list", {"assignee": "all", "status": "all", "thread": 12})
+    assert listed.count("\n") == 1 and fake.requests[-1][2] == {"status": "all", "thread": "12"}
+    assert await tools.call("todo_list", {"status": "dropped"}) == "no todos"
+
+    updated = await tools.call("todo_update", {"id": 3, "status": "done", "note": "fixed", "thread": None})
+    assert updated.startswith("updated: #3 [done] fix X (assignee tsugumi-lab, from saya, due 2026-10-25, "
+                              "closed by tsugumi-lab")
+    assert fake.requests[-1][3] == {"status": "done", "note": "fixed", "thread": None}
+    with pytest.raises(BoardError, match="nothing to change"):
+        await tools.call("todo_update", {"id": 3})
 
 
 async def test_tools_report_errors(board: tuple[FakeBoard, Path], tmp_path: Path) -> None:
@@ -154,6 +218,63 @@ async def test_an_unreachable_board_doesnt_stop_the_turn(tmp_path: Path) -> None
     await h.say(ALICE, "@me hi", mention=True)
     await h.bridge.one_turn()
     assert "(No board briefing: the board is unreachable" in h.session.prompts[-1]
+
+
+async def test_each_turn_lists_open_todos(board: tuple[FakeBoard, Path], tmp_path: Path,
+                                          monkeypatch: pytest.MonkeyPatch,
+                                          caplog: pytest.LogCaptureFixture) -> None:
+    fake, socket = board
+    h = Harness(tmp_path)
+    h.bridge.board = tools_for(socket, tmp_path)
+
+    async def turn() -> str:
+        await h.say(ALICE, "@me go", mention=True)
+        await h.bridge.one_turn()
+        return h.session.prompts[-1]
+
+    assert "open todos" not in await turn()
+    fake.todos = [{**TODO, "id": n, "title": f"item {n}"} for n in range(1, 8)]
+    assert ("\n\nYour open todos (board): #1 item 1; #2 item 2; #3 item 3; #4 item 4; #5 item 5 "
+            "(and 2 more). Close them with todo_update when done.") in await turn()
+    assert ("GET", "/todos", {"assignee": "tsugumi-lab", "status": "open"}, None) in fake.requests
+
+    fake.todos_broken = True
+    with caplog.at_level(logging.WARNING, logger="agent_bridge.bridge"):
+        assert "open todos" not in await turn()
+        assert "open todos" not in await turn()
+    assert sum("open todos" in r.message for r in caplog.records) == 1
+    fake.todos_broken = False
+    fake.todos_delay = 1.0
+    monkeypatch.setattr(bridge_module, "TODO_TIMEOUT", 0.05)
+    assert "open todos" not in await turn()
+    fake.todos_delay = 0.0
+    assert "Your open todos (board): #1 item 1" in await turn()
+
+
+async def test_a_report_mentions_open_todos(board: tuple[FakeBoard, Path], tmp_path: Path) -> None:
+    fake, socket = board
+    h = Harness(tmp_path)
+    h.bridge.board = tools_for(socket, tmp_path)
+    results: list[str] = []
+
+    async def script(session: FakeSession, prompt: str) -> TurnResult:
+        results.append(await session.bridge.tool_post({"kind": "report", "headline": "All done"}))
+        results.append(await session.bridge.tool_post({"kind": "status", "headline": "Still here"}))
+        return TurnResult("session-1")
+
+    h.session.script = script
+    fake.todos = [TODO, {**TODO, "id": 5, "title": "write it up"}]
+    await h.say(ALICE, "@me go", mention=True)
+    await h.bridge.one_turn()
+    assert results[0].endswith("\nYou still have 2 open todos: #3 fix X, #5 write it up — close what's "
+                               "finished (todo_update) or say in the post what's left.\nunread: 0")
+    assert "open todo" not in results[1]
+
+    for broken in (False, True):
+        fake.todos, fake.todos_broken = ([], False) if not broken else ([TODO], True)
+        await h.say(ALICE, "@me again", mention=True)
+        await h.bridge.one_turn()
+        assert "open todo" not in results[-2] and results[-2].endswith("unread: 0")
 
 
 async def test_schedules_name_their_thread(harness: Harness) -> None:

@@ -51,14 +51,14 @@ class BoardClient:
         self.config = config
 
     async def request(self, method: str, path: str, params: dict[str, Any] | None = None,
-                      body: Any = None) -> Any:
+                      body: Any = None, timeout: aiohttp.ClientTimeout = TIMEOUT) -> Any:
         query = {k: str(v).lower() if isinstance(v, bool) else str(v)
                  for k, v in (params or {}).items() if v is not None}
         headers = {"Authorization": f"Bearer {self.config.token}"} if self.config.token else {}
         connector = aiohttp.UnixConnector(path=str(self.config.socket)) if self.config.socket else None
         base = "http://board" if self.config.socket else (self.config.url or "").rstrip("/")
         try:
-            async with aiohttp.ClientSession(connector=connector, timeout=TIMEOUT) as session:
+            async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
                 async with session.request(method, base + path, params=query, json=body,
                                            headers=headers) as response:
                     status = response.status
@@ -88,6 +88,24 @@ def thread_line(thread: dict[str, Any]) -> str:
     return line + (f"\n    {first[0]}" if first else "")
 
 
+def todo_line(todo: dict[str, Any]) -> str:
+    about = [f"assignee {todo['assignee']}"]
+    if todo.get("created_by") and todo["created_by"] != todo["assignee"]:
+        about.append(f"from {todo['created_by']}")
+    if todo.get("due"):
+        about.append(f"due {todo['due']}")
+    if todo.get("thread") is not None:
+        about.append(f"thread #{todo['thread']}")
+    if todo.get("closed_by"):
+        about.append(f"closed by {todo['closed_by']} {when(todo.get('closed'))}")
+    line = f"#{todo['id']} [{todo['status']}] {todo['title']} ({', '.join(about)})"
+    return line + (f"\n    {todo['note']}" if todo.get("note") else "")
+
+
+def todos_text(todos: list[dict[str, Any]]) -> str:
+    return "\n".join(todo_line(t) for t in todos) if todos else "no todos"
+
+
 def post_text(post: dict[str, Any]) -> str:
     head = f"--- post #{post['id']} by {post['author']}, {when(post['created'])}"
     if post.get("reply_to"):
@@ -113,6 +131,8 @@ def thread_text(view: dict[str, Any]) -> str:
         lines += ["", "Summary" + by + ":", thread["summary"]]
     else:
         lines += ["", "No summary yet."]
+    if view.get("todos"):
+        lines += ["", "Todos:"] + ["- " + todo_line(t) for t in view["todos"]]
     if view.get("earlier_posts"):
         lines += ["", f"({view['earlier_posts']} earlier posts not shown)"]
     lines += [""] + [post_text(post) for post in view["posts"]]
@@ -158,6 +178,9 @@ def briefing_text(briefing: dict[str, Any]) -> str:
         sections.append("Questions addressed to you, unanswered (reply with board_post reply_to):\n" + "\n".join(
             f"- post #{a['post']} in #{a['thread']} {a['thread_title']!r}, from {a['author']}, "
             f"{when(a['created'])}: {a['first_line']}" for a in briefing["asks"]))
+    if briefing.get("todos"):
+        sections.append("Your open todos (close them with todo_update when done):\n" + "\n".join(
+            "- " + todo_line(t) for t in briefing["todos"]))
     for key, title in (("waiting_on_you", "Threads waiting on you"),
                        ("waiting_on_others", "Your threads waiting on someone else (don't re-ask)"),
                        ("due", "Open threads with a due date"),
@@ -262,6 +285,34 @@ TOOLS: dict[str, tuple[str, dict[str, Any]]] = {
             "message_id": {"type": "string"},
             "context": {"type": "integer", "minimum": 0, "maximum": 50, "description": "Default 5 each side"},
         }, "required": ["message_id"]}),
+    "todo_add": (
+        "Add a todo: one concrete item of work. Make one per item when you are handed several things.",
+        {"type": "object", "properties": {
+            "title": {"type": "string"},
+            "assignee": {"type": "string", "description": "An agent id or a human (e.g. baughn); default "
+                         "yourself. Assign it to a human when the next step is theirs."},
+            "thread": {"type": "integer", "description": "The board thread it belongs to"},
+            "due": {"type": "string", "description": "YYYY-MM-DD"},
+        }, "required": ["title"]}),
+    "todo_list": (
+        "List todos: by default your open ones.",
+        {"type": "object", "properties": {
+            "assignee": {"type": "string", "description": "An agent id or a human, or all; default yourself"},
+            "status": {"type": "string", "enum": ["open", "done", "dropped", "all"], "description": "Default open"},
+            "thread": {"type": "integer"},
+        }}),
+    "todo_update": (
+        "Change or close a todo; other fields change only if given. Close it with status done and a short "
+        "note on what was done; dropped needs a note saying why. An empty due clears it.",
+        {"type": "object", "properties": {
+            "id": {"type": "integer"},
+            "status": {"type": "string", "enum": ["open", "done", "dropped"]},
+            "note": {"type": "string"},
+            "assignee": {"type": "string", "description": "An agent id or a human (e.g. baughn)"},
+            "due": {"type": "string", "description": "YYYY-MM-DD"},
+            "title": {"type": "string"},
+            "thread": {"type": ["integer", "null"], "description": "A board thread; null or 0 detaches it"},
+        }, "required": ["id"]}),
 }
 TOOL_NAMES = tuple(f"mcp__bridge__{name}" for name in TOOLS)
 
@@ -290,6 +341,13 @@ class BoardTools:
 
     async def briefing(self) -> str:
         return briefing_text(await self.client.request("GET", "/briefing"))
+
+    async def open_todos(self, timeout: float) -> list[dict[str, Any]]:
+        """This agent's open todos, for the bridge's reminders."""
+        params = {"assignee": self.agent, "status": "open"}
+        data = await self.client.request("GET", "/todos", params, timeout=aiohttp.ClientTimeout(total=timeout))
+        todos: list[dict[str, Any]] = data["todos"]
+        return todos
 
     async def board_list(self, args: dict[str, Any]) -> str:
         params = {"status": args.get("status"), "tag": args.get("tag"), "owner": args.get("owner"),
@@ -365,3 +423,25 @@ class BoardTools:
         message = _id(args.get("message_id"), "message_id")
         context = await self.client.request("GET", f"/discord/{message}", {"context": args.get("context", 5)})
         return discord_text(context)
+
+    async def todo_add(self, args: dict[str, Any]) -> str:
+        todo = {key: args[key] for key in ("title", "assignee", "due") if args.get(key) is not None}
+        if args.get("thread") is not None:
+            todo["thread"] = _id(args["thread"], "thread")
+        return "added: " + todo_line(await self.client.request("POST", "/todos", body=todo))
+
+    async def todo_list(self, args: dict[str, Any]) -> str:
+        assignee = args.get("assignee") or self.agent
+        params = {"assignee": None if assignee == "all" else assignee, "status": args.get("status"),
+                  "thread": _id(args["thread"], "thread") if args.get("thread") is not None else None}
+        return todos_text((await self.client.request("GET", "/todos", params))["todos"])
+
+    async def todo_update(self, args: dict[str, Any]) -> str:
+        todo = _id(args.get("id"), "id")
+        fields = ("status", "note", "assignee", "due", "title")
+        update = {key: args[key] for key in fields if key in args}
+        if "thread" in args:
+            update["thread"] = None if args["thread"] is None else _id(args["thread"], "thread")
+        if not update:
+            raise BoardError("nothing to change")
+        return "updated: " + todo_line(await self.client.request("PATCH", f"/todos/{todo}", body=update))

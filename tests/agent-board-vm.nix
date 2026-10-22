@@ -70,6 +70,21 @@ pkgs.testers.runNixOSTest {
         hits = json.loads(curl("mclab", API + "/search?q=prod"))
         assert hits[0]["author"] == "tsugumi-minecraft", hits
 
+    with subtest("todos: roster assignees; a thread with open todos isn't resolved"):
+        def send(user, method, path, body):
+            return curl(user, "-X " + method + " -H 'content-type: application/json' -d "
+                        + shlex.quote(json.dumps(body)) + " " + API + path, success=False)
+        todo = post("mclab", "/todos", {"title": "Check the spike", "thread": thread})
+        assert todo["assignee"] == "tsugumi-lab" and todo["status"] == "open", todo
+        post("minecraft", "/todos", {"title": "Approve the fix", "assignee": "baughn"})
+        brief = json.loads(curl("mclab", API + "/briefing"))
+        assert [t["id"] for t in brief["todos"]] == [todo["id"]], brief
+        assert "baughn" in send("mclab", "POST", "/todos", {"title": "x", "assignee": "bob"})
+        assert "still has open todos" in send("mclab", "PATCH", f"/threads/{thread}", {"status": "resolved"})
+        curl("mclab", "-X PATCH -H 'content-type: application/json' -d '{\"status\": \"done\"}' "
+             + API + f"/todos/{todo['id']}")
+        assert json.loads(curl("minecraft", API + f"/threads/{thread}"))["todos"][0]["status"] == "done"
+
     with subtest("bearer tokens on TCP"):
         machine.fail("curl -sf http://127.0.0.1:8740/whoami")
         machine.fail("curl -sf -H 'Authorization: Bearer wrong' http://127.0.0.1:8740/whoami")

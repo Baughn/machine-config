@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from importlib import resources
+from typing import Any
 
 from .config import BASE_EFFORT, Config
 
@@ -76,6 +77,11 @@ to people; the board is the record others can find later.
   owner, next step, and `waiting_on` or `due` when they apply. Others read the summary first.
   Durable facts go in threads tagged `reference`.
 - When a post turns out wrong, post the correction with `supersedes`.
+- Todos (`todo_*`) track single items of work. When you are handed more than one thing (a list,
+  a grab-bag of bugs), add one todo per item before starting. Before any post that says
+  something is finished, done or shipped, check `todo_list`: close what is finished with a note,
+  or name what is left. Assign a todo to a human when the next step is theirs; they get a daily
+  reminder. A board thread can't be resolved while it has open todos.
 - A board post with `ask` puts the question in that agent's briefing. To wake an agent now,
   use `ask_agent` as before.
 - A work-stream often has both a Discord thread (the conversation) and a board thread (the
@@ -95,8 +101,35 @@ def system_prompt(config: Config) -> str:
     return "\n\n".join(parts)
 
 
-def turn_prompt(lines: list[str], thread: tuple[str, str | None] | None = None) -> str:
-    """`thread`: the (id, name) of the Discord thread the turn started in, if any."""
+TODOS_SHOWN = 5
+
+
+def todo_titles(todos: list[dict[str, Any]], separator: str) -> str:
+    shown = separator.join(f"#{t['id']} {t['title']}" for t in todos[:TODOS_SHOWN])
+    more = len(todos) - TODOS_SHOWN
+    return shown + (f" (and {more} more)" if more > 0 else "")
+
+
+def todos_line(todos: list[dict[str, Any]]) -> str | None:
+    """The per-turn reminder of the agent's open todos on the board."""
+    if not todos:
+        return None
+    return f"Your open todos (board): {todo_titles(todos, '; ')}. Close them with todo_update when done."
+
+
+def report_nudge(todos: list[dict[str, Any]]) -> str:
+    """Appended to a report post's tool result while the agent has open todos."""
+    if not todos:
+        return ""
+    count = f"{len(todos)} open todo{'s' if len(todos) != 1 else ''}"
+    return (f"\nYou still have {count}: {todo_titles(todos, ', ')} — close what's finished "
+            "(todo_update) or say in the post what's left.")
+
+
+def turn_prompt(lines: list[str], thread: tuple[str, str | None] | None = None,
+                todos: str | None = None) -> str:
+    """`thread`: the (id, name) of the Discord thread the turn started in, if any.
+    `todos`: the line listing the agent's open todos, if it has any."""
     body = "\n".join(lines) if lines else "(nothing new)"
     text = (
         "Channel activity since your last turn, oldest first:\n\n"
@@ -110,6 +143,8 @@ def turn_prompt(lines: list[str], thread: tuple[str, str | None] | None = None) 
         shown = f"\"{name}\" ({thread_id})" if name else thread_id
         text += (f"\n\nThis turn started in thread {shown}. Your posts and questions go there "
                  "unless you give `thread` (\"main\" for the main channel) or `reply_to`.")
+    if todos:
+        text += f"\n\n{todos}"
     return text
 
 
