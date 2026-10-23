@@ -171,6 +171,14 @@ class Grants:
         lines.append(
             "chain input { type filter hook input priority -10; policy accept;"
         )
+        # Traffic on these interfaces (e.g. WireGuard) skips the guard entirely.
+        exempt = self.config.get("exemptInterfaces", [])
+        if any(not re.fullmatch(r"[A-Za-z0-9_.-]{1,15}", name) for name in exempt):
+            raise ValueError("Invalid exempt interface")
+        if exempt:
+            lines.append(
+                "iifname { " + ", ".join(f'"{name}"' for name in exempt) + " } return"
+            )
         for protocol in ("tcp", "udp"):
             all_ports = set()
             for index, group in enumerate(groups):

@@ -15,10 +15,7 @@
   # WireGuard peers (Baughn's own machines) skip Punch: joining over the router's public
   # address hairpins, and voice chat's UDP doesn't survive that (Baughn, msg 1562977732667768978).
   # Join via 10.171.0.1 from a WireGuard peer.
-  networking.firewall.interfaces.wg0 = {
-    allowedTCPPorts = config.me.punch.groups.minecraft.ports.tcp;
-    allowedUDPPorts = config.me.punch.groups.minecraft.ports.udp;
-  };
+  me.punch.exemptInterfaces = [ "wg0" ];
 
   me.punch.groups.minecraft = {
     label = "Minecraft";

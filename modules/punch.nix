@@ -35,6 +35,7 @@ let
     builtins.toJSON {
       groups = localGroups;
       inherit (access)
+        exemptInterfaces
         leaseSeconds
         listenAddress
         listenPort
@@ -167,6 +168,11 @@ in
     clientSecretFile = lib.mkOption {
       type = lib.types.str;
       default = "";
+    };
+    exemptInterfaces = lib.mkOption {
+      type = lib.types.listOf (lib.types.strMatching "[A-Za-z0-9_.-]{1,15}");
+      default = [ ];
+      description = "Interfaces whose traffic skips the guard on every local group (e.g. wg0).";
     };
     leaseSeconds = lib.mkOption {
       type = lib.types.ints.between 1 (14 * 24 * 60 * 60);

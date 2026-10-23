@@ -74,6 +74,17 @@ class GrantTests(unittest.TestCase):
         self.grants.run(now=300 + CONFIG["leaseSeconds"])
         self.assertNotIn("elements", self.nft.call_args.kwargs["input"])
 
+    def test_exempt_interfaces(self):
+        self.grants.run(now=100)
+        self.assertNotIn("iifname", self.nft.call_args.kwargs["input"])
+        self.grants.config = CONFIG | {"exemptInterfaces": ["wg0"]}
+        self.grants.run(now=100)
+        rules = self.nft.call_args.kwargs["input"]
+        self.assertLess(rules.index('iifname { "wg0" } return'), rules.index("drop"))
+        self.grants.config = CONFIG | {"exemptInterfaces": ['wg0" } accept; drop']}
+        with self.assertRaises(ValueError):
+            self.grants.run(now=100)
+
     def test_limit_and_no_extension_on_failed_update(self):
         self.grants.config = CONFIG | {"maxAddresses": 1}
         self.grants.run("1", "192.0.2.1", groups=["minecraft"], now=100)
