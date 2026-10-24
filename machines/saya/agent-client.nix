@@ -61,7 +61,7 @@ lib.mkIf ready {
     limits.bot_streak = 60;
     askAgents = [ "saya" "tsugumi-lab" "tsugumi-minecraft" ];
     triggerSources.free-research = freeResearch.instruction;
-    triggerTimers.free-research = freeResearch.calendar;
+    triggerTimers.free-research = freeResearch.calendar.saya-client;
     triggerThreads.free-research = freeResearch.thread;
     unattendedTriggers = [ "free-research" ];
     permissionMode = "auto";

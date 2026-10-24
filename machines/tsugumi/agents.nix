@@ -151,7 +151,7 @@ in
       skills.crash-analysis = ./agents/skills/crash-analysis;
       triggerSources.crash-analysis = crashTrigger;
       triggerSources.free-research = freeResearch.instruction;
-      triggerTimers.free-research = freeResearch.calendar;
+      triggerTimers.free-research = freeResearch.calendar.tsugumi-lab;
       triggerThreads.free-research = freeResearch.thread;
       unattendedTriggers = [ "free-research" ];
       permissionMode = "auto";

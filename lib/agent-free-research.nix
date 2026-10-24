@@ -1,8 +1,13 @@
-# Baughn's daily free-research turn for the lab and client agents (msg 1563527893106163786:
+# Baughn's free-research turn for the lab and client agents (msg 1563527893106163786:
 # "mostly it's an experiment"). It fires at night, so the turn is unattended
 # (unattendedTriggers): the bridge refuses every approval request in it.
 {
-  calendar = "*-*-* 04:00:00";
+  # On alternate days, so the two never run at once (Baughn, msg 1563543799173619733): the client
+  # tests against the lab's servers, which the lab may restart. Sunday is the lab's.
+  calendar = {
+    tsugumi-lab = "Mon,Wed,Fri,Sun *-*-* 04:00:00";
+    saya-client = "Tue,Thu,Sat *-*-* 04:00:00";
+  };
   thread = "Free research";
   instruction = ''
     Free research time, from Baughn: work on whatever research, experimentation, tooling or
