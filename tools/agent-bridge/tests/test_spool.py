@@ -13,7 +13,8 @@ from agent_bridge.spool import FILE_LIMIT, PER_HOUR, scan
 
 import pytest
 
-from conftest import OWNER, Harness, config_data, make_config, message
+from agent_bridge.session import TurnResult
+from conftest import OWNER, FakeSession, Harness, config_data, make_config, message
 
 SOURCES = {"crash-analysis": "A server crashed. Use the crash-analysis skill."}
 
@@ -122,3 +123,55 @@ def test_context_webhooks_are_context() -> None:
     incoming = dataclasses.replace(message(config, OWNER, "hi"), author=crash)
     decision = route(config, incoming, bot_streak=0, paused=False)
     assert decision.route is Route.CONTEXT
+
+
+UNATTENDED = {**SOURCES, "free-research": "Work on whatever you like."}
+
+
+def test_unattended_sources_must_be_trigger_sources() -> None:
+    make_config(trigger_sources=UNATTENDED, unattended_sources=["free-research"])
+    with pytest.raises(ConfigError):
+        make_config(trigger_sources=SOURCES, unattended_sources=["free-research"])
+
+
+async def test_unattended_turns_refuse_approvals(tmp_path: Path) -> None:
+    h = Harness(tmp_path, trigger_sources=UNATTENDED, unattended_sources=["free-research"],
+                thread_sources={"free-research": "Free research"})
+    d = h.config.state / "triggers"
+    seen: list[bool] = []
+
+    async def asks(session: FakeSession, prompt: str) -> TurnResult:
+        seen.append(session.bridge.unattended)
+        if session.bridge.unattended:
+            for name, tool_input in (("Bash", {"command": "git push"}),
+                                     ("AskUserQuestion", {"questions": []})):
+                result = await session.bridge.permission(name, tool_input, None)
+                assert not result.allow and "ask him later" in result.message
+        return TurnResult("session-1")
+
+    h.session.script = asks
+    drop(d, "r.json", {"source": "free-research", "note": "2026-10-25"})
+    h.bridge.poll_spool()
+    await h.bridge.one_turn()
+    assert "Nobody can approve anything during this turn" in h.session.prompts[0]
+    assert h.chat.approvals == [] and not h.bridge.unattended
+    # It got a thread of its own, opened by the bridge; the status message and posts go there.
+    [(opener_id, opener)] = [(i, m) for i, m in h.chat.sent.items() if m.new_thread]
+    assert opener.new_thread is not None and opener.new_thread == "Free research 1970-01-12"
+    status = next(m for m in h.chat.sent.values() if "working for" in m.content)
+    assert status.thread == opener_id and f"({opener_id}). Your posts" in h.session.prompts[0]
+    # An ordinary trigger, or someone's message in the same batch, makes an ordinary turn.
+    drop(d, "c.json", {"source": "crash-analysis"})
+    h.bridge.poll_spool()
+    await h.bridge.one_turn()
+    drop(d, "r2.json", {"source": "free-research"})
+    h.bridge.poll_spool()
+    await h.say(OWNER, "also, a question", mention=True)
+    await h.bridge.one_turn()
+    assert seen == [True, False, False]
+    assert len([m for m in h.chat.sent.values() if m.new_thread]) == 1
+
+
+def test_thread_sources_must_be_trigger_sources() -> None:
+    with pytest.raises(ConfigError):
+        make_config(trigger_sources=SOURCES, thread_sources={"free-research": "Free research"})

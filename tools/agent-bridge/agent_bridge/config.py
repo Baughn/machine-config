@@ -119,6 +119,10 @@ class Config:
     max_effort: str = "medium"  # the effort tool may raise effort up to this; medium: no tool
     # Local trigger sources (spool.py): name -> what the agent is asked to do when one fires.
     trigger_sources: dict[str, str] = field(default_factory=dict)
+    # Sources whose turns run while nobody can approve: permission requests are refused.
+    unattended_sources: tuple[str, ...] = ()
+    # Sources whose turns get a Discord thread of their own: name -> title (the date is added).
+    thread_sources: dict[str, str] = field(default_factory=dict)
     idle_reset: float = 6 * 3600  # seconds without a turn before a handoff and new session; 0: never
     board: Board | None = None
     sources: SourcesConfig | None = None  # the fetch_source/package_source tools
@@ -169,6 +173,13 @@ def parse_roster(data: dict[str, Any]) -> Roster:
     if len(ids) != len(set(ids)):
         raise ConfigError("duplicate Discord IDs in the roster")
     return roster
+
+
+def _titles(value: Any) -> dict[str, str]:
+    if not isinstance(value, dict) or not all(isinstance(k, str) and isinstance(v, str) and v.strip()
+                                              for k, v in value.items()):
+        raise ConfigError("thread_sources must map names to non-empty thread titles")
+    return {k: " ".join(v.split()) for k, v in value.items()}
 
 
 def _sources(value: Any) -> dict[str, str]:
@@ -235,6 +246,8 @@ def parse(data: dict[str, Any], state: Path) -> Config:
         advisor=data.get("advisor") or None,
         max_effort=data.get("max_effort", "medium"),
         trigger_sources=_sources(data.get("trigger_sources", {})),
+        unattended_sources=_strings(data, "unattended_sources"),
+        thread_sources=_titles(data.get("thread_sources", {})),
         board=_board(data.get("board")),
         sources=_sources_tools(data.get("sources")),
     )
@@ -257,6 +270,10 @@ def validate(config: Config) -> None:
             raise ConfigError(f"ask_agents: {name} is not another agent in the roster")
     if config.max_effort not in EFFORT_LEVELS[EFFORT_LEVELS.index(BASE_EFFORT):]:
         raise ConfigError(f"max_effort must be one of {EFFORT_LEVELS[EFFORT_LEVELS.index(BASE_EFFORT):]}")
+    if not set(config.unattended_sources) <= set(config.trigger_sources):
+        raise ConfigError("unattended_sources must name trigger_sources")
+    if not set(config.thread_sources) <= set(config.trigger_sources):
+        raise ConfigError("thread_sources must name trigger_sources")
     if config.owner_only and (config.triggers != {"owner"} or config.approvers != {"owner"}):
         raise ConfigError("owner_only requires triggers = approvers = [owner]")
     workdir = config.workdir.resolve()

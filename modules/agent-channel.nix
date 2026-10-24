@@ -176,6 +176,34 @@ let
           instruction. The note is shown as data. Other sources are rejected.
         '';
       };
+      unattendedTriggers = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        example = [ "free-research" ];
+        description = ''
+          triggerSources whose turns run while nobody can approve (e.g. at night): the bridge
+          refuses every permission request and question in them, telling the agent to ask later.
+          A turn that also answers someone's message is an ordinary one.
+        '';
+      };
+      triggerThreads = lib.mkOption {
+        type = lib.types.attrsOf lib.types.str;
+        default = { };
+        example = { free-research = "Free research"; };
+        description = ''
+          triggerSources whose turns open a Discord thread of their own (source -> title; the
+          date is appended). The turn's status message and default posts go there.
+        '';
+      };
+      triggerTimers = lib.mkOption {
+        type = lib.types.attrsOf lib.types.str;
+        default = { };
+        example = { free-research = "*-*-* 03:00:00"; };
+        description = ''
+          Fire triggerSources on a systemd calendar (source -> OnCalendar). The note is the date.
+          Persistent, so a run missed while the machine was off fires at boot.
+        '';
+      };
       builtinTools = lib.mkOption {
         type = lib.types.bool;
         default = true;
@@ -238,6 +266,8 @@ let
     inherit (i) advisor;
     max_effort = i.maxEffort;
     trigger_sources = i.triggerSources;
+    unattended_sources = i.unattendedTriggers;
+    thread_sources = i.triggerThreads;
     board = if i.board == null then null else lib.filterAttrs (_: v: v != null) {
       inherit (i.board) socket url;
       token = i.board.tokenFile != null;
@@ -249,6 +279,29 @@ let
     };
     roster = rosterToml;
   });
+  # triggerTimers: one oneshot + timer per (instance, source), writing the spool file.
+  timers = lib.listToAttrs (lib.concatLists (lib.mapAttrsToList (name: i:
+    lib.mapAttrsToList (source: calendar: lib.nameValuePair "agent-trigger-${name}-${source}" {
+      inherit name i source calendar;
+    }) i.triggerTimers) cfg.instances));
+  timerServices = lib.mapAttrs (_: t: {
+    description = "Fire the ${t.source} trigger for ${t.name}";
+    path = [ pkgs.coreutils ];
+    script = ''
+      dir=/var/lib/agent-bridge/${t.name}/triggers
+      printf '{"source": "%s", "note": "%s"}' ${t.source} "$(date -I)" > "$dir/${t.source}.json.tmp"
+      mv "$dir/${t.source}.json.tmp" "$dir/${t.source}.json"
+    '';
+    serviceConfig = {
+      Type = "oneshot";
+      User = t.i.user;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      ReadWritePaths = [ "/var/lib/agent-bridge/${t.name}/triggers" ];
+      PrivateTmp = true;
+      NoNewPrivileges = true;
+    };
+  }) timers;
 in
 {
   options.me.agentChannel = {
@@ -274,6 +327,14 @@ in
         message = "agent-channel: ${name} is ownerOnly, so triggers and approvers must be [ \"owner\" ]";
       }
       {
+        assertion = lib.all (s: lib.hasAttr s i.triggerSources) i.unattendedTriggers;
+        message = "agent-channel: ${name}'s unattendedTriggers must name triggerSources";
+      }
+      {
+        assertion = lib.all (s: lib.hasAttr s i.triggerSources) (lib.attrNames (i.triggerTimers // i.triggerThreads));
+        message = "agent-channel: ${name}'s triggerTimers and triggerThreads must name triggerSources";
+      }
+      {
         assertion = !(lib.elem "agent" i.approvers);
         message = "agent-channel: agents can never approve (${name})";
       }
@@ -292,7 +353,7 @@ in
       }
     ]) cfg.instances);
 
-    systemd.services = lib.mapAttrs' (name: i: lib.nameValuePair "agent-bridge-${name}" {
+    systemd.services = timerServices // lib.mapAttrs' (name: i: lib.nameValuePair "agent-bridge-${name}" {
       description = "Discord agent bridge for ${name}";
       wantedBy = [ "multi-user.target" ];
       wants = [ "network-online.target" ];
@@ -333,6 +394,11 @@ in
       # restarts itself between turns (agent_bridge/bridge.py, update_ready).
       restartIfChanged = false;
     }) cfg.instances;
+
+    systemd.timers = lib.mapAttrs (_: t: {
+      wantedBy = [ "timers.target" ];
+      timerConfig = { OnCalendar = t.calendar; Persistent = true; };
+    }) timers;
 
     systemd.tmpfiles.rules = lib.concatLists (lib.mapAttrsToList (name: i:
       [

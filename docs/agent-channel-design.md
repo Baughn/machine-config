@@ -259,6 +259,15 @@ only after the turn that saw them, so a bridge restart in between repeats
 the trigger rather than losing it. Pause and the breaker hold them like
 schedules, and at most 6 spool batches start per hour; the rest wait.
 
+`triggerTimers` fires a source on a systemd calendar (a oneshot as the agent's
+user writes the file; the note is the date). `unattendedTriggers` (2026-10-24,
+for the nightly free-research turn) marks sources whose turns run while nobody
+can approve: the bridge refuses every permission request and question in such
+a turn, telling the agent to ask Baughn later. A batch that also holds someone's
+message is an ordinary turn. `triggerThreads` gives a source's turns a
+Discord thread of their own ("<title> <date>"), opened by the bridge before the
+status message, which goes there.
+
 **Web search.** Claude Code's `WebSearch` (run on Anthropic's side) is in
 every identity's `allow` list; `WebFetch` is left to the permission mode.
 The base prompt treats both as data, like text from Minecraft.
