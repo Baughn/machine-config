@@ -12,6 +12,7 @@ let
   user = "saya-client";
   home = "/home/saya-client";
   workdir = "${home}/agent";
+  freeResearch = import ../../lib/agent-free-research.nix;
   discordToken = ../../secrets/agent-saya-client-discord.age;
   boardToken = ../../secrets/agent-board-saya-client-token.age;
   ready = roster.agents ? ${user} && builtins.pathExists discordToken;
@@ -59,6 +60,10 @@ lib.mkIf ready {
     # Long lab/client test loops need many agent round trips (Baughn, msg 1560278875378950235).
     limits.bot_streak = 60;
     askAgents = [ "saya" "tsugumi-lab" "tsugumi-minecraft" ];
+    triggerSources.free-research = freeResearch.instruction;
+    triggerTimers.free-research = freeResearch.calendar;
+    triggerThreads.free-research = freeResearch.thread;
+    unattendedTriggers = [ "free-research" ];
     permissionMode = "auto";
     model = "claude-opus-5-5";
     path = with pkgs; [

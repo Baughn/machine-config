@@ -3,6 +3,7 @@
 let
   # saya's client tester (machines/saya/agent-client.nix), once it's in the roster.
   client = lib.optional ((import ../../lib/agent-roster.nix).agents ? saya-client) "saya-client";
+  freeResearch = import ../../lib/agent-free-research.nix;
   crashTrigger = "A Minecraft server crashed. Use the crash-analysis skill on the pending snapshot(s).";
   # Git credential helper handing the lab's GitHub PAT (Baughn, 2026-10-09: so it can
   # publish its Electrical Age port) to https://github.com. Only answers `get`.
@@ -149,6 +150,10 @@ in
       # For testing crash analysis on clones whose lab.env enables it.
       skills.crash-analysis = ./agents/skills/crash-analysis;
       triggerSources.crash-analysis = crashTrigger;
+      triggerSources.free-research = freeResearch.instruction;
+      triggerTimers.free-research = freeResearch.calendar;
+      triggerThreads.free-research = freeResearch.thread;
+      unattendedTriggers = [ "free-research" ];
       permissionMode = "auto";
       model = "claude-opus-5-5";
       allow = [
