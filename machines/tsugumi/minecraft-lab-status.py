@@ -1,9 +1,12 @@
 """Posts the lab's status card to the agent board: clones and running lab servers.
 
-Runs as the lab user from a timer; the board knows that uid as tsugumi-lab and shows
-the card on agents.brage.info/status. Usage: minecraft-lab-status BOARD_SOCKET
+Runs as the lab user from a timer; the board knows that uid as the lab's agent and shows
+the card on agents.brage.info/status. One instance per lab.
+Usage: minecraft-lab-status BOARD_SOCKET [--unit PREFIX] [--slice SLICE]
+(defaults: minecraft-lab, i.e. servers minecraft-lab@*, and mclab.slice)
 """
 
+import argparse
 import http.client
 import json
 import socket
@@ -65,14 +68,14 @@ def memory(value):
     return int(value) / GIB if value.isdigit() else None
 
 
-def servers(now):
+def servers(now, prefix):
     units = run("systemctl", "list-units", "--all", "--plain", "--no-legend", "--type=service",
-                "minecraft-lab@*").split()
-    units = [unit for unit in units if unit.startswith("minecraft-lab@") and unit.endswith(".service")]
+                f"{prefix}@*").split()
+    units = [unit for unit in units if unit.startswith(f"{prefix}@") and unit.endswith(".service")]
     lines, running = [], 0
     for unit in show(units, ["Id", "ActiveState", "SubState", "ActiveEnterTimestamp", "MemoryCurrent"]):
         state = unit.get("ActiveState", "?")
-        name = unit.get("Id", "?").removeprefix("minecraft-lab@").removesuffix(".service")
+        name = unit.get("Id", "?").removeprefix(f"{prefix}@").removesuffix(".service")
         if state == "inactive":
             continue
         if state == "failed":
@@ -92,11 +95,16 @@ def servers(now):
 
 
 def main():
+    parser = argparse.ArgumentParser(prog="minecraft-lab-status")
+    parser.add_argument("board_socket")
+    parser.add_argument("--unit", default="minecraft-lab")
+    parser.add_argument("--slice", default="mclab.slice")
+    args = parser.parse_args()
     now = int(time.time())
-    server_lines, running = servers(now)
+    server_lines, running = servers(now, args.unit)
     clone_lines, count = clones()
     lines = server_lines + clone_lines
-    slice_ = show(["mclab.slice"], ["MemoryCurrent", "MemoryMax"])
+    slice_ = show([args.slice], ["MemoryCurrent", "MemoryMax"])
     if running and slice_:
         used, cap = memory(slice_[0].get("MemoryCurrent", "")), memory(slice_[0].get("MemoryMax", ""))
         if used is not None and cap:
@@ -111,7 +119,7 @@ def main():
         "lines": lines[:50],
         "ttl": TTL,
     }
-    connection = UnixConnection(sys.argv[1])
+    connection = UnixConnection(args.board_socket)
     connection.request("PUT", "/status/lab", json.dumps(card), {"Content-Type": "application/json"})
     response = connection.getresponse()
     body = response.read().decode(errors="replace")

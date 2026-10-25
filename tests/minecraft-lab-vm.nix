@@ -1,8 +1,9 @@
 { pkgs }:
-# The lab's network fence and units (machines/tsugumi/minecraft-lab.nix): the
+# The labs' network fences and units (machines/tsugumi/minecraft-lab.nix): each
 # namespace reaches the "internet" node's public address, never the host or a
 # private range; the login port reaches a lab server; polkit and the sandbox
-# hold. The clone helper itself is covered by minecraft-storage-vm.
+# hold, and neither lab's user reaches the other lab. The clone helper itself
+# is covered by minecraft-storage-vm.
 let
   listener = port: "${pkgs.python3}/bin/python3 -m http.server ${toString port} --bind 0.0.0.0";
 in
@@ -27,6 +28,8 @@ pkgs.testers.runNixOSTest {
                   { options.me.discordNotify.package = lib.mkOption {
                       default = pkgs.writeShellScriptBin "discord-notify" "cat > /dev/null"; }; } ];
       users.groups.discord-notify = { };
+      me.minecraft.labs.main.agent = "tsugumi-lab";
+      me.minecraft.labs.bugs.loginPort = 25667;
       users.groups.caddy = { };
       virtualisation.vlans = [ 1 2 ];
       # vlan 1 stands in for the LAN (private), vlan 2 for the internet.
@@ -60,24 +63,30 @@ pkgs.testers.runNixOSTest {
   };
   testScript = { nodes, ... }:
     let
-      sandbox = nodes.machine.me.minecraft.lab.serviceConfig;
-      props = pkgs.lib.concatStringsSep " " ([
-        "-p User=mclab" "-p NetworkNamespacePath=${sandbox.NetworkNamespacePath}"
-        "-p ProtectHome=yes" "-p NoNewPrivileges=yes" "-p PrivateTmp=yes"
-      ] ++ map (bind: "-p BindReadOnlyPaths=${bind}") sandbox.BindReadOnlyPaths);
+      props = lab: let sandbox = nodes.machine.me.minecraft.labs.${lab}.serviceConfig; in
+        pkgs.lib.concatStringsSep " " ([
+          "-p User=${nodes.machine.me.minecraft.labs.${lab}.user}"
+          "-p NetworkNamespacePath=${sandbox.NetworkNamespacePath}"
+          "-p ProtectHome=yes" "-p NoNewPrivileges=yes" "-p PrivateTmp=yes"
+        ] ++ map (bind: "-p BindReadOnlyPaths=${bind}") sandbox.BindReadOnlyPaths);
     in ''
       import shlex
 
       start_all()
       internet.wait_for_unit("web.service")
       machine.wait_for_unit("minecraft-lab-pasta.service")
+      machine.wait_for_unit("minecraft-lab-bugs-pasta.service")
       machine.wait_for_unit("fake-rcon.service")
       machine.wait_for_open_port(35565)
 
-      def lab(command, success=True):
+      def lab(command, success=True, props=${builtins.toJSON (props "main")}):
           """Run a command as the lab's units do: as mclab, in the namespace and sandbox."""
-          run = "systemd-run --quiet --wait --pipe --collect ${props} -p Environment=PATH=/run/current-system/sw/bin -- bash -c " + shlex.quote(command)
+          run = "systemd-run --quiet --wait --pipe --collect " + props + " -p Environment=PATH=/run/current-system/sw/bin -- bash -c " + shlex.quote(command)
           return (machine.succeed if success else machine.fail)(run)
+
+      def bugs(command, success=True):
+          """The same in the bugs lab, as mclab-bugs."""
+          return lab(command, success, props=${builtins.toJSON (props "bugs")})
 
       def reach(address, port):
           return f"curl -sf --max-time 5 -o /dev/null http://{address}:{port}/"
@@ -142,5 +151,36 @@ pkgs.testers.runNixOSTest {
           machine.succeed("systemctl start minecraft-lab-status")
           status = machine.succeed("sudo -u mclab curl -sf --unix-socket /run/agent-board/api.sock http://board/status")
           assert "0 servers running" in status, status
+
+      with subtest("a second lab has its own namespace, fence, helper and units"):
+          main_ns = lab("readlink /proc/self/ns/net").strip()
+          bugs_ns = bugs("readlink /proc/self/ns/net").strip()
+          assert bugs_ns not in (main_ns, host), (main_ns, bugs_ns)
+          bugs(reach("198.51.100.1", 8000))
+          bugs(reach("192.168.1.1", 8000), success=False)
+          for address in ("127.0.0.1", "198.51.100.2", "192.168.1.2", "10.0.2.15"):
+              bugs(reach(address, 35565), success=False)
+          machine.fail("sudo -u mclab-bugs " + reach("127.0.0.1", 35565))
+          assert "mclab-bugs" in machine.succeed("${pkgs.nftables}/bin/nft list table inet mclab-bugs-fence")
+          # The same client, each user's own lab; neither reaches the other's socket.
+          assert "0 of 3 lab clones" in bugs("minecraft-lab list")
+          machine.fail("sudo -u mclab-bugs ${pkgs.python3}/bin/python3 -c 'import socket; socket.socket(socket.AF_UNIX).connect(\"/run/minecraft-lab.sock\")'")
+          machine.fail("sudo -u mclab ${pkgs.python3}/bin/python3 -c 'import socket; socket.socket(socket.AF_UNIX).connect(\"/run/minecraft-lab-bugs.sock\")'")
+
+      with subtest("each lab's user manages only its own lab's servers"):
+          machine.succeed("mkdir -p /srv/minecraft-lab-bugs/y/server",
+                          "cp /srv/minecraft-lab/x/server/start.py /srv/minecraft-lab-bugs/y/server/",
+                          "cp /srv/minecraft-lab/x/control.sh /srv/minecraft-lab-bugs/y/",
+                          "chown -R mclab-bugs:mclab-bugs /srv/minecraft-lab-bugs/y")
+          machine.fail("sudo -u mclab systemctl start minecraft-lab-bugs@y")
+          machine.fail("sudo -u mclab-bugs systemctl start minecraft-lab@x")
+          machine.fail("sudo -u mclab-bugs systemctl stop minecraft-lab-pasta")
+          machine.succeed("sudo -u mclab-bugs systemctl start minecraft-lab-bugs@y")
+          machine.wait_until_succeeds(reach("127.0.0.1", 25667))
+          bugs(reach("127.0.0.1", 25565))
+          assert "mclab-bugs.slice" in machine.succeed("systemctl show -p Slice minecraft-lab-bugs@y")
+          # The main lab's port isn't the bugs lab's server (main's x is stopped).
+          machine.fail(reach("127.0.0.1", 25665))
+          machine.succeed("sudo -u mclab-bugs systemctl stop minecraft-lab-bugs@y")
     '';
 }

@@ -20,10 +20,13 @@ in
     agent-tsugumi-lab-discord.file = ../../secrets/agent-tsugumi-lab-discord.age;
     agent-ea-pat = {
       file = ../../secrets/agent-ea-pat.age;
-      owner = config.me.minecraft.lab.user;
+      owner = config.me.minecraft.labs.main.user;
       mode = "0400";
     };
   };
+
+  # Crash triggers, netcheck and the lab's status card go to the lab's agent.
+  me.minecraft.labs.main.agent = "tsugumi-lab";
 
   # The lab agent lives in the lab's network namespace, beside its servers.
   systemd.services.agent-bridge-tsugumi-lab = {
@@ -34,13 +37,13 @@ in
   # towers.brage.info (static-web.nix): the lab's browser build of the Stasis Delvers tower
   # generator, public (Baughn, msg 1559296753629663233). caddy-static reads it as "other",
   # so files must be world-readable; the bridge's umask makes them 0600.
-  systemd.tmpfiles.rules = [ "d /srv/towerview 0755 ${config.me.minecraft.lab.user} ${config.me.minecraft.lab.user} -" ];
+  systemd.tmpfiles.rules = [ "d /srv/towerview 0755 ${config.me.minecraft.labs.main.user} ${config.me.minecraft.labs.main.user} -" ];
 
   # Gemini second opinions (modules/second-opinion.nix), with the paths each agent asked for
   # (msgs 1560358441791520832, 1560358537203425363).
   me.secondOpinion = {
     enable = true;
-    agents.tsugumi-lab.dirs = map (d: "/var/lib/${config.me.minecraft.lab.user}/agent/${d}") [
+    agents.tsugumi-lab.dirs = map (d: "/var/lib/${config.me.minecraft.labs.main.user}/agent/${d}") [
       "stasis" "notes/rifts" "notes/timestop" "notes/overnight" "eln/port26" "eln/notes"
     ];
     agents.tsugumi-minecraft = {
@@ -125,7 +128,7 @@ in
     };
 
     # Experiments on ZFS clones of the worlds; see minecraft-lab.nix.
-    instances.tsugumi-lab = let lab = config.me.minecraft.lab; in {
+    instances.tsugumi-lab = let lab = config.me.minecraft.labs.main; in {
       user = lab.user;
       workdir = "/var/lib/${lab.user}/agent";
       channel = "main";

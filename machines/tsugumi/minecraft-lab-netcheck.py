@@ -7,11 +7,15 @@ It probes from inside the namespace with a raw DNS query (as c-ares/aiodns do; g
 would go through the host's nscd and hide the problem) and a TCP connect. After two
 failures in a row it logs diagnostics, restarts pasta (which takes the lab agent's
 bridge with it) unless a lab server is running, and tells the channel through
-discord-notify. See minecraft-lab.nix.
+discord-notify. One instance per lab; see minecraft-lab.nix.
 
-    minecraft-lab-netcheck NETNS STATE_DIR
+    minecraft-lab-netcheck NETNS STATE_DIR [--unit PREFIX] [--fence TABLE] [--bridge UNIT]
+
+PREFIX is the lab's unit prefix (default minecraft-lab: minecraft-lab-pasta, minecraft-lab@*),
+TABLE its nft fence table, UNIT the agent bridge to start again after a pasta restart.
 """
 
+import argparse
 import json
 import os
 from pathlib import Path
@@ -79,15 +83,15 @@ def healthy(result):
     return bool(result.get("dns")) and bool(result.get("tcp"))
 
 
-def diagnostics(netns):
+def diagnostics(netns, pasta, fence):
     """What might explain it, for the journal (Baughn wants to know why this happens)."""
-    pid = run("systemctl", "show", "-P", "MainPID", "minecraft-lab-pasta.service")
+    pid = run("systemctl", "show", "-P", "MainPID", pasta)
     lines = [
         "ns addr: " + run("nsenter", f"--net={netns}", "ip", "-4", "-o", "addr"),
         "ns route: " + run("nsenter", f"--net={netns}", "ip", "-4", "route"),
         "host route: " + run("ip", "-4", "route", "show", "default"),
         "pasta: " + run("systemctl", "show", "-p", "ActiveEnterTimestamp,MemoryCurrent,NRestarts",
-                        "minecraft-lab-pasta.service").replace("\n", " "),
+                        pasta).replace("\n", " "),
     ]
     if pid.isdigit() and pid != "0":
         try:
@@ -96,7 +100,7 @@ def diagnostics(netns):
             lines.append(f"pasta fds: {error}")
         sockets = run("ss", "-H", "-tuanp").count(f"pid={pid},")
         lines.append(f"pasta sockets: {sockets}")
-    lines.append("fence: " + run("nft", "list", "table", "inet", "mclab-fence").replace("\n", " ")[:400])
+    lines.append("fence: " + run("nft", "list", "table", "inet", fence).replace("\n", " ")[:400])
     return lines
 
 
@@ -104,13 +108,21 @@ def notify(message):
     run("discord-notify", "--name", "Lab network", message)
 
 
-def lab_servers():
-    out = run("systemctl", "list-units", "--plain", "--no-legend", "--state=active", "minecraft-lab@*")
+def lab_servers(unit):
+    out = run("systemctl", "list-units", "--plain", "--no-legend", "--state=active", f"{unit}@*")
     return [line.split()[0] for line in out.splitlines() if line.strip()]
 
 
 def main():
-    netns, state_dir = sys.argv[1], Path(sys.argv[2])
+    parser = argparse.ArgumentParser(prog="minecraft-lab-netcheck")
+    parser.add_argument("netns")
+    parser.add_argument("state_dir", type=Path)
+    parser.add_argument("--unit", default="minecraft-lab")
+    parser.add_argument("--fence", default="mclab-fence")
+    parser.add_argument("--bridge")
+    args = parser.parse_args()
+    netns, state_dir = args.netns, args.state_dir
+    pasta, journal = f"{args.unit}-pasta.service", f"`journalctl -u {args.unit}-netcheck`"
     state_file = state_dir / "state.json"
     try:
         state = json.loads(state_file.read_text())
@@ -139,9 +151,9 @@ def main():
         state_file.write_text(json.dumps(state))
         return
 
-    for line in diagnostics(netns):
+    for line in diagnostics(netns, pasta, args.fence):
         print(line)
-    servers = lab_servers()
+    servers = lab_servers(args.unit)
     since_restart = time.time() - state.get("last_restart", 0)
     if servers:
         if failures == FAILURES_BEFORE_ACTION:
@@ -151,23 +163,23 @@ def main():
     elif since_restart < RESTART_BACKOFF:
         if failures == FAILURES_BEFORE_ACTION:
             notify("The lab's network is down again within 30 minutes of a pasta restart; "
-                   "not restarting again until then. Diagnostics are in "
-                   "`journalctl -u minecraft-lab-netcheck`.")
+                   f"not restarting again until then. Diagnostics are in {journal}.")
     else:
-        print("restarting minecraft-lab-pasta")
-        run("systemctl", "restart", "minecraft-lab-pasta.service", timeout=120)
-        run("systemctl", "start", "agent-bridge-tsugumi-lab.service", timeout=60)
+        print(f"restarting {pasta}")
+        run("systemctl", "restart", pasta, timeout=120)
+        if args.bridge:
+            run("systemctl", "start", args.bridge, timeout=60)
         time.sleep(5)
         after = probe(netns)
         state["last_restart"] = time.time()
         if healthy(after):
             state["failures"] = 0
             notify(f"The lab's network namespace had lost the internet ({json.dumps(result)}). "
-                   "I restarted pasta, and it works again. LabAgent's bridge restarted with it. "
-                   "Diagnostics: `journalctl -u minecraft-lab-netcheck`.")
+                   "I restarted pasta, and it works again. The lab agent's bridge restarted with it. "
+                   f"Diagnostics: {journal}.")
         else:
             notify(f"The lab's network namespace has lost the internet; restarting pasta didn't "
-                   f"help ({json.dumps(after)}). Diagnostics: `journalctl -u minecraft-lab-netcheck`.")
+                   f"help ({json.dumps(after)}). Diagnostics: {journal}.")
     state_file.write_text(json.dumps(state))
 
 

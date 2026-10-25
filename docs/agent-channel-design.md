@@ -1002,17 +1002,44 @@ shell, not in `users`), and works on writable ZFS clones of the worlds'
 snapshots. Everything lives in `machines/tsugumi/minecraft-lab.nix`, apart
 from the clone helper, which is `minecraft-storage lab …`.
 
+### Several labs
+
+The labs are `me.minecraft.labs.<name>` (2026-10-25, for a second lab agent;
+Baughn, msg 1563890697965404163). This section describes `main`, tsugumi-lab's,
+which keeps the names it had as the only lab. Another lab `NAME` is a copy with
+`-NAME` in every name: user `mclab-NAME`, units `minecraft-lab-NAME@`,
+`-pasta`, `-fence`, `-control`, `-netcheck`, `-status`, namespace
+`/run/netns/mclab-NAME`, nft table `mclab-NAME-fence`, socket
+`/run/minecraft-lab-NAME.sock`, dataset `rpool/minecraft-lab-NAME` with its
+own quota, mounts `/srv/minecraft-lab-NAME`, slice `mclab-NAME.slice`,
+handover `/srv/lab-handover-NAME`, outbox `/srv/lab-outbox-NAME`. It needs its
+own `loginPort` (and `remoteLogin`/`outbox` ports if it has them).
+
+- Each lab's user reaches only its own control socket, and the socket acts on
+  its own lab only (`--lab` is refused there). The `minecraft-lab` client is
+  the same for every lab user: the caller's uid picks the socket.
+- polkit lets each lab user manage only its own `…@` units.
+- `lab boot` and `lab expire` (`minecraft-lab-setup`, `minecraft-lab-expire`)
+  cover every lab. Root picks a lab with `lab --lab NAME list|clone|destroy`
+  (default `main`).
+- A lab's `agent` option names its agent instance: crash triggers go to its
+  bridge, netcheck restarts that bridge after pasta, and the status card
+  (posted as the lab user, so the board needs `me.agentBoard.users` for it)
+  runs only when it is set.
+- zrepl skips every lab's dataset. Rollback treats every lab's clones as
+  disposable.
+
 ### Clones
 
 `minecraft-storage lab` subcommands, run by root under the helper's lock
 and refused while a rollback is pending:
 
 ```
-minecraft-storage lab list
-minecraft-storage lab clone WORLD|rpool/minecraft/WORLD@SNAPSHOT NAME   # WORLD: its newest snapshot
-minecraft-storage lab destroy NAME
-minecraft-storage lab expire     # the hourly timer
-minecraft-storage lab boot       # at boot: create rpool/minecraft-lab, remount clones
+minecraft-storage lab [--lab LAB] list
+minecraft-storage lab [--lab LAB] clone WORLD|rpool/minecraft/WORLD@SNAPSHOT NAME   # WORLD: its newest snapshot
+minecraft-storage lab [--lab LAB] destroy NAME
+minecraft-storage lab expire     # the hourly timer, every lab
+minecraft-storage lab boot       # at boot: create each lab's dataset, remount clones
 ```
 
 **How mclab reaches it: a socket, not sudo.** `minecraft-lab-control.socket`
@@ -1044,7 +1071,7 @@ whole helper covers `lab` too.
    `minecraft`, who could otherwise swap in symlinks while root works on
    them. Preparation:
    - re-randomize `rcon.password` (mode 0600);
-   - blank the scrub list's credentials (`me.minecraft.lab.scrub`: the
+   - blank the scrub list's credentials (`me.minecraft.labs.<name>.scrub`: the
      Discord integration's `botToken`, thump's IRC passwords), which keeps
      the lines;
    - chown the tree to mclab without following symlinks;
@@ -1087,7 +1114,7 @@ Lab servers are `minecraft-lab@NAME.service`, shaped like `minecraft@`:
   production runs `-Xmx8G` with `AlwaysPreTouch`; `CPUQuota=800%`).
 - `Restart=no`, no autostart, never restarted by a deploy. start.py's daily
   restart thread therefore just stops a lab server.
-- The lab sandbox, shared with the bridge unit (`me.minecraft.lab.serviceConfig`):
+- The lab sandbox, shared with the bridge unit (`me.minecraft.labs.<name>.serviceConfig`):
   `NetworkNamespacePath=/run/netns/mclab`, `ProtectHome=true`,
   `PrivateTmp`, `NoNewPrivileges`, and a `resolv.conf` bind.
 

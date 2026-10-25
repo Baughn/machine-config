@@ -105,12 +105,12 @@ in
   };
 
   # saya's client-tester agent joins lab servers over wg0 (Baughn, msg 1555925717873594463).
-  me.minecraft.lab.remoteLogin = {
+  me.minecraft.labs.main.remoteLogin = {
     address = "10.171.0.1:25666";
     allow = [ "10.171.0.6" ];
   };
   # Builds for it to test (EA port jars etc.) at http://10.171.0.1:8741/ (AdventurAgent, 2026-10-05).
-  me.minecraft.lab.outbox = {
+  me.minecraft.labs.main.outbox = {
     port = 8741;
     allow = [ "10.171.0.6" ];
   };
@@ -201,11 +201,12 @@ in
             "rpool/minecraft/erisia/dynmap" = false;
             "rpool/minecraft/incognito/dynmap" = false;
             "rpool/minecraft/testing/dynmap" = false;
-            # Lab clones are disposable, and each would be sent in full.
-            "rpool/minecraft-lab<" = false;
             "rpool/root/nix<" = false;
             "rpool<" = true;
-          };
+          }
+          # Lab clones are disposable, and each would be sent in full.
+          // builtins.listToAttrs (map (lab: { name = "${lab.dataset}<"; value = false; })
+            (builtins.attrValues config.me.minecraft.labs));
           pruning = {
             keep_sender = [
               { type = "last_n"; count = 4; }

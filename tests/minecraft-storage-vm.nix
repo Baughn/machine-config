@@ -4,9 +4,15 @@ let
 in
 pkgs.testers.runNixOSTest {
   name = "minecraft-storage";
-  nodes.machine = { pkgs, ... }: {
-    imports = [ ../machines/tsugumi/minecraft-storage.nix ../machines/tsugumi/minecraft-lab.nix ];
-    me.minecraft.lab.quota = "64M";
+  nodes.machine = { lib, pkgs, ... }: {
+    imports = [ ../machines/tsugumi/minecraft-storage.nix ../machines/tsugumi/minecraft-lab.nix
+                # Stands in for modules/discord-notify.nix (the labs' netcheck), which needs agenix.
+                { options.me.discordNotify.package = lib.mkOption {
+                    default = pkgs.writeShellScriptBin "discord-notify" "cat > /dev/null"; }; } ];
+    users.groups.discord-notify = { };
+    me.minecraft.labs.main.quota = "64M";
+    me.minecraft.labs.bugs = { quota = "64M"; loginPort = 25667; maxClones = 1; };
+    systemd.services.minecraft-lab-bugs-pasta.wantedBy = pkgs.lib.mkForce [ ];
     virtualisation.emptyDiskImages = [ 4096 4096 ];
     virtualisation.memorySize = 2048;
     boot.supportedFilesystems = [ "zfs" ];
@@ -293,9 +299,33 @@ pkgs.testers.runNixOSTest {
         # Legacy mounts come back at boot.
         machine.succeed(f"umount {clone}", "systemctl restart minecraft-lab-setup", f"test -e {clone}/new")
 
+    with subtest("a second lab: its own clones, user, quota and limit"):
+        assert machine.succeed("zfs get -H -o value quota rpool/minecraft-lab-bugs").strip() == "64M"
+        out = lab("clone labworld one", user="mclab-bugs")
+        assert "1 of 1 lab clones" in out, out
+        bugs_clone = "/srv/minecraft-lab-bugs/one"
+        assert machine.succeed(f"stat -c %U {bugs_clone}/data").strip() == "mclab-bugs"
+        assert "rcon.password=production" not in machine.succeed(f"cat {bugs_clone}/server.properties")
+        machine.succeed("test -L /nix/var/nix/gcroots/minecraft-lab-bugs/one-server")
+        lab("clone labworld two", success=False, user="mclab-bugs")
+        # Each user sees and destroys only its own lab's clones.
+        assert "/srv/minecraft-lab/one" in lab("list") and bugs_clone not in lab("list")
+        assert bugs_clone in lab("list", user="mclab-bugs")
+        machine.fail(f"sudo -u mclab touch {bugs_clone}/x")
+        machine.fail(f"sudo -u mclab-bugs touch {clone}/x")
+        bugs_request = request.replace("/run/minecraft-lab.sock", "/run/minecraft-lab-bugs.sock")
+        machine.fail("sudo -u mclab-bugs python3 -c " + shlex.quote(bugs_request) + " lab --lab main list")
+        machine.fail("sudo -u mclab-bugs python3 -c " + shlex.quote(request) + " lab list")
+        machine.fail("sudo -u mclab python3 -c " + shlex.quote(bugs_request) + " lab list")
+        # Root names the lab.
+        assert bugs_clone in storage("lab --lab bugs list")
+        machine.succeed("zfs list rpool/minecraft-lab/one")
+
     with subtest("rollback destroys lab clones pinning removed snapshots"):
         storage("rollback " + live + "@middle")
         machine.fail("zfs list rpool/minecraft-lab/one")
+        machine.fail("zfs list rpool/minecraft-lab-bugs/one")
+        machine.succeed(f"test ! -e {bugs_clone}")
         machine.succeed(f"test ! -e {clone}", "test ! -e /nix/var/nix/gcroots/minecraft-lab/one-server")
         assert machine.succeed(f"cat {path}/data").strip() == "middle"
 

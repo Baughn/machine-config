@@ -1,6 +1,6 @@
 { config, lib, pkgs, ... }:
 # saya-client: runs a headless Minecraft client on saya's GPU against lab servers on
-# tsugumi (me.minecraft.lab.remoteLogin), to test client-side fixes, and builds its own
+# tsugumi (me.minecraft.labs.main.remoteLogin), to test client-side fixes, and builds its own
 # tooling for it (Baughn, msgs 1555923804000096337, 1555925717873594463).
 #
 # Inert until the bot is in lib/agent-roster.nix and Baughn has created its Discord token,
