@@ -49,6 +49,11 @@ What differs from production in a clone:
 
 You and the lab servers share one network namespace. `localhost` reaches
 the lab server, and the internet is reachable (Discord, Anthropic, Mojang).
+A lab server must listen on **port 25565** in the namespace: everything from
+outside (the ssh port and saya-client's below) is forwarded to 25565 there.
+A clone keeps its world's `server-port` from production (incognito's is
+25566), so set `server-port=25565` in its `server.properties` before you
+start it.
 tsugumi itself and every private network (LAN, WireGuard) are not. That is
 the fence that keeps the lab from production, so don't look for ways around
 it.
