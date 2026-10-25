@@ -423,6 +423,12 @@ post {
   overview is refused with an explanation (use `ask_agent`, or `alert`).
   Before that, saya "pinged" the lab in a post; it rendered as a mention but
   reached the lab as context (2026-10-01).
+- A bare `@Name` in a post's headline or overview (outside code), where Name is
+  the display name or id of an agent in the poster's `askAgents`, becomes a
+  real mention of it: that agent gets a turn, and the poster doesn't wait.
+  Agents kept writing "@AdventurAgent, retry now" and reaching nobody (Baughn,
+  msg 1563905193526038559). Other `@words` stay text. The bot streak limit
+  still holds.
 - `path` attachments must resolve inside the workdir or `$STATE`. The size cap
   is the unboosted guild upload limit (check the current value; enforce 8 MiB
   to be safe).

@@ -115,9 +115,42 @@ def parse_thread(value: Any) -> tuple[str | None, str | None]:
     return text, None
 
 
+# A bare @Name in a post, not inside code: `@` after a space, bracket or line start.
+AT_NAME = re.compile(r"(?<![\w@<`/])@([A-Za-z][\w-]*)")
+CODE = re.compile(r"```.*?```|`[^`\n]*`", re.DOTALL)
+
+
+def link_mentions(text: str, agents: dict[str, str]) -> tuple[str, tuple[str, ...]]:
+    """Turn bare @Name (an agent's display name or id, any case) into a real mention.
+
+    Agents kept writing "@AdventurAgent, retry now" in posts, which reached nobody (Baughn,
+    msg 1563905193526038559). `agents` maps lowercased names to Discord ids: only the agents
+    this one may ask. Code spans and unknown names are left alone. Returns the text and the
+    ids it mentions."""
+    found: list[str] = []
+
+    def replace(match: re.Match[str]) -> str:
+        discord_id = agents.get(match[1].lower())
+        if discord_id is None:
+            return match[0]
+        if discord_id not in found:
+            found.append(discord_id)
+        return f"<@{discord_id}>"
+
+    parts, last = [], 0
+    for code in CODE.finditer(text):
+        parts.append(AT_NAME.sub(replace, text[last:code.start()]))
+        parts.append(code[0])
+        last = code.end()
+    parts.append(AT_NAME.sub(replace, text[last:]))
+    return "".join(parts), tuple(found)
+
+
 def render_post(args: dict[str, Any], *, owner_id: str, roots: Roots,
-                tokens: tuple[str, ...] = ()) -> Outgoing:
-    """Validate the `post` tool's arguments and render the message. Never truncates."""
+                tokens: tuple[str, ...] = (), agents: dict[str, str] | None = None) -> Outgoing:
+    """Validate the `post` tool's arguments and render the message. Never truncates.
+
+    `agents` (lowercased name or id -> Discord id) are those a bare @Name may mention."""
     kind = args.get("kind")
     if kind not in KINDS:
         raise PostError(f"kind must be one of {', '.join(KINDS)}")
@@ -134,9 +167,10 @@ def render_post(args: dict[str, Any], *, owner_id: str, roots: Roots,
                         "a busy admin needs")
     if MENTION.search(f"{headline}\n{overview}"):
         raise PostError("refused: the post contains a Discord mention (<@…>). Posts are sent with "
-                        "mentions disabled, so it would neither ping nor trigger anyone. To get an "
-                        "agent to act, use ask_agent; to reach Baughn urgently, use kind alert. "
-                        "To refer to someone, write their name.")
+                        "mentions disabled, so it would neither ping nor trigger anyone. To address "
+                        "an agent you may ask, write @ and its name (e.g. @Saya): that becomes a "
+                        "mention and starts its turn. To wait for its answer, use ask_agent; to "
+                        "reach Baughn urgently, use kind alert.")
     entries = args.get("attachments") or []
     if not isinstance(entries, list) or len(entries) > MAX_ATTACHMENTS:
         raise PostError(f"attachments must be a list of at most {MAX_ATTACHMENTS}")
@@ -145,6 +179,9 @@ def render_post(args: dict[str, Any], *, owner_id: str, roots: Roots,
         raise PostError("a plan needs at least one attachment holding the plan itself")
     if len({f.name for f in files}) != len(files):
         raise PostError("attachment names must be unique")
+    headline, in_headline = link_mentions(headline, agents or {})
+    overview, in_overview = link_mentions(overview, agents or {})
+    mentioned = tuple(dict.fromkeys(in_headline + in_overview))
     mention = f"<@{owner_id}> " if kind == "alert" else ""
     content = f"{mention}{KINDS[kind]} **{headline}**" + (f"\n{overview}" if overview else "")
     if len(content) > MESSAGE_LIMIT:
@@ -158,7 +195,8 @@ def render_post(args: dict[str, Any], *, owner_id: str, roots: Roots,
         if secret is not None:
             raise PostError(f"refused: the post appears to contain a secret ({secret})")
     return Outgoing(content, files, str(reply_to) if reply_to else None,
-                    (owner_id,) if kind == "alert" else (), thread, new_thread)
+                    tuple(dict.fromkeys(((owner_id,) if kind == "alert" else ()) + mentioned)),
+                    thread, new_thread)
 
 
 STATUS_LINE = re.compile(r"[⚙✓✗⏹💤] \S+ · working for ")

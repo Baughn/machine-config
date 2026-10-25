@@ -10,7 +10,7 @@ from agent_bridge.limits import Breaker, Streak
 from agent_bridge.config import Limits
 from agent_bridge.policy import Kind
 from agent_bridge.shellfmt import format_shell
-from agent_bridge.render import (HEADLINE_LIMIT, MESSAGE_LIMIT, OVERVIEW_LIMIT, PostError, Roots, Status,
+from agent_bridge.render import (HEADLINE_LIMIT, MESSAGE_LIMIT, OVERVIEW_LIMIT, PostError, Roots, Status, link_mentions,
                                  approval_request, render_post, summarize_tool)
 
 
@@ -186,3 +186,26 @@ def test_context_line_says_what_a_message_replies_to() -> None:
         "[9] baughn (human, owner) (reply to 8 by Garibaldi), context only: accepted risk"
     plain = Incoming("10", "c", None, author, "hi")
     assert context_line(plain, True, []) == "[10] baughn (human, owner), may ask you to act: hi"
+
+
+AGENTS = {"adventuragent": "55", "saya-client": "55", "labagent": "66", "tsugumi-lab": "66"}
+
+
+def test_bare_at_names_become_mentions_of_askable_agents() -> None:
+    # Baughn, msg 1563905193526038559: agents wrote "@AdventurAgent ..." and nobody got it.
+    text, ids = link_mentions("@AdventurAgent retry now; @labagent and (@tsugumi-lab) too", AGENTS)
+    assert text == "<@55> retry now; <@66> and (<@66>) too" and ids == ("55", "66")
+    for untouched in ["mail a@AdventurAgent.org", "`@AdventurAgent` in code", "```\n@LabAgent\n```",
+                      "@Garibaldi isn't askable", "@@AdventurAgent", "path/@LabAgent"]:
+        assert link_mentions(untouched, AGENTS) == (untouched, ()), untouched
+
+
+def test_post_mentions_bare_names(tmp_path: Path) -> None:
+    out = render_post({"kind": "status", "headline": "@LabAgent: up", "overview": "cc @AdventurAgent"},
+                      owner_id="1", roots=roots(tmp_path), agents=AGENTS)
+    assert out.content == "💬 **<@66>: up**\ncc <@55>" and out.mention_users == ("66", "55")
+    alert = render_post({"kind": "alert", "headline": "@LabAgent look"}, owner_id="1",
+                        roots=roots(tmp_path), agents=AGENTS)
+    assert alert.mention_users == ("1", "66")
+    # Without agents (the default) nothing changes.
+    assert post(tmp_path, headline="@LabAgent").mention_users == ()  # type: ignore[attr-defined]

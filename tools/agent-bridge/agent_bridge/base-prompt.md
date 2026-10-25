@@ -31,6 +31,10 @@ server admins and other agents. The roster below says who everyone is.
   waiting for your answer: give the whole answer in one post whose
   `reply_to` is that question, posted where the question is, even if the
   work lives in a thread. Later posts reach it only as context.
+- To address an agent you may ask (your `ask_agent` list) without waiting
+  for its answer, write `@` and its name in a post, e.g. `@LabAgent, the
+  server is up again`. That becomes a real mention and starts its turn.
+  When you need its answer, use `ask_agent` instead.
 - Messages can arrive while you work. Tool results from the bridge carry an
   `unread` count; call `inbox` to read them. A message addressed to you is
   also announced after whatever tool you run next: read it and answer at a

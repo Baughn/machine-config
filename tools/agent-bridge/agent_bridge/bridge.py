@@ -1142,11 +1142,23 @@ class Bridge:
         if self.handoff:
             raise ToolError("Switched off during the handoff: write your notes and end the turn.")
 
+    @property
+    def addressable(self) -> dict[str, str]:
+        """The agents a bare @Name in a post mentions: those ask_agent may ask, by
+        lowercased id and display name."""
+        names: dict[str, str] = {}
+        for agent in self.config.roster.agents:
+            if agent.name in self.config.ask_agents:
+                names[agent.name.lower()] = agent.discord_id
+                if agent.display_name:
+                    names[agent.display_name.lower()] = agent.discord_id
+        return names
+
     def render(self, args: dict[str, Any]) -> Outgoing:
         roots = Roots((self.config.workdir, self.config.state), self.config.attachment_limit)
         try:
             return render_post(args, owner_id=self.config.roster.owner.discord_id,
-                               roots=roots, tokens=self.tokens)
+                               roots=roots, tokens=self.tokens, agents=self.addressable)
         except PostError as error:
             raise ToolError(f"{error}{self.unread()}") from error
 
