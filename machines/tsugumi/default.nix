@@ -114,6 +114,22 @@ in
     port = 8741;
     allow = [ "10.171.0.6" ];
   };
+  # LabAssistant's lab (agents.nix), for interruptions while LabAgent does long work
+  # (Baughn, msgs 1563890365226950749, 1563890697965404163). Quota and memory are
+  # Saya's defaults, smaller than main's.
+  me.minecraft.labs.assistant = {
+    loginPort = 25667;
+    remoteLogin = {
+      address = "10.171.0.1:25668";
+      allow = [ "10.171.0.6" ];
+    };
+    outbox = {
+      port = 8742;
+      allow = [ "10.171.0.6" ];
+    };
+    quota = "100G";
+    memoryMax = "8G";
+  };
 
   ## DessPlay Rendezvous
   services.rendezvous = {

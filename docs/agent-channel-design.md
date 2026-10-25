@@ -1029,6 +1029,15 @@ own `loginPort` (and `remoteLogin`/`outbox` ports if it has them).
 - zrepl skips every lab's dataset. Rollback treats every lab's clones as
   disposable.
 
+`labs.assistant` is LabAssistant's (tsugumi-lab-assistant): bug reports and
+other interruptions while tsugumi-lab does long work (Baughn, msg
+1563890365226950749). Ports 25667 (ssh), 10.171.0.1:25668 (saya-client) and
+outbox 8742; 100 GB and 8 GB. Both lab agents' instances come from one
+function in `machines/tsugumi/agents.nix` (`labInstance`), and their prompts
+from `agents/lab-common.md` with the lab's names filled in. The agents share
+code through bare repos in `/srv/lab-git` (group `lab-agents`, which also
+reads the GitHub PAT), never each other's homes.
+
 ### Clones
 
 `minecraft-storage lab` subcommands, run by root under the helper's lock

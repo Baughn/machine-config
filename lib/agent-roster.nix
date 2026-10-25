@@ -30,6 +30,12 @@
       displayName = "LabAgent";
       description = "Runs as `mclab` on tsugumi; experiments on ZFS clones of worlds.";
     };
+    # The application ID Baughn gave (msg 1563896783871017045); a bot's user ID is the same.
+    tsugumi-lab-assistant = {
+      discordId = "1563895881659322389";
+      displayName = "LabAssistant";
+      description = "Runs as `mclab-assistant` on tsugumi, with its own lab; takes bug reports and other interruptions while LabAgent does long work.";
+    };
     saya = {
       discordId = "1553406970164281525";
       displayName = "Saya";

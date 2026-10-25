@@ -18,13 +18,16 @@ a port), ask **saya** with `ask_agent`.
 
 ### Where things are
 
-- **Lab servers** live on tsugumi and belong to **tsugumi-lab**. Ask it (`ask_agent`) to
-  clone a world, set `online-mode=false` in the clone's `server.properties`, start the server
-  and op your player name. Baughn approved offline mode for your tests. One lab server runs at
-  a time. You reach it at **10.171.0.1:25666**, which only saya can connect to.
-- **Files from the lab** (mod jars it built for you to test): tsugumi-lab puts them in its
-  outbox, which you fetch with `curl` from **http://10.171.0.1:8741/** (a directory listing).
-  Check the sha256 it gives you.
+- **Lab servers** live on tsugumi, in two labs. **tsugumi-lab**'s you reach at
+  **10.171.0.1:25666**; **tsugumi-lab-assistant**'s (LabAssistant, which takes bug fixes while
+  tsugumi-lab does long work) at **10.171.0.1:25668**. Only saya can connect to them. Ask the
+  agent whose lab it is (`ask_agent`) to clone a world, set `online-mode=false` in the clone's
+  `server.properties`, start the server and op your player name. Baughn approved offline mode
+  for your tests. Each lab runs one server at a time. When a lab agent asks you for a test,
+  connect to its own lab.
+- **Files from the labs** (mod jars built for you to test) are in each lab's outbox, which you
+  fetch with `curl`: tsugumi-lab's from **http://10.171.0.1:8741/**, LabAssistant's from
+  **http://10.171.0.1:8742/** (directory listings). Check the sha256 it gives you.
 - **Live servers** are tsugumi-minecraft's. Never connect a client to them. They run in
   online mode, so an offline client is refused anyway. Ask tsugumi-minecraft about the pack,
   its builds and how players install it.

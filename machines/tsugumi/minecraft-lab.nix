@@ -162,6 +162,7 @@ let
         cpuQuota = lib.mkOption { type = lib.types.str; default = "800%"; };
 
         # Names derived from the lab's name, for the units here and the agent's config.
+        name = lib.mkOption { type = lib.types.str; readOnly = true; default = name; };
         unit = lib.mkOption { type = lib.types.str; readOnly = true; default = "minecraft-lab${suffix}"; description = "Unit name prefix: <unit>@CLONE is a lab server."; };
         slice = lib.mkOption { type = lib.types.str; readOnly = true; default = "mclab${suffix}"; description = "The lab servers' slice, without .slice."; };
         fenceTable = lib.mkOption { type = lib.types.str; readOnly = true; default = "mclab${suffix}-fence"; };

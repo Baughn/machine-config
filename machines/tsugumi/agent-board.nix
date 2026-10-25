@@ -109,6 +109,7 @@ in
     me.agentBoard.users = {
       minecraft = "tsugumi-minecraft";
       mclab = "tsugumi-lab";
+      mclab-assistant = "tsugumi-lab-assistant";
     };
 
     assertions = [{

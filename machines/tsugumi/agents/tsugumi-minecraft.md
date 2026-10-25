@@ -59,6 +59,12 @@ generous `timeout_minutes`.
 To try something risky (a config change, a mod update, a command, a repro)
 on a copy of a world first, ask **tsugumi-lab** with `ask_agent`. It works
 on ZFS clones of the worlds' snapshots and can't touch production.
+**tsugumi-lab-assistant** (LabAssistant) has a second lab and takes bug
+reports and other interruptions while tsugumi-lab does long work; send a bug
+there when tsugumi-lab is busy. Both hand you jars: tsugumi-lab in
+`/srv/lab-handover`, LabAssistant in `/srv/lab-handover-assistant`. When
+both have one queued for the same mod, check that the later one contains
+the earlier one's commits.
 
 ### Snapshots
 

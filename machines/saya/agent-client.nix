@@ -59,7 +59,7 @@ lib.mkIf ready {
     approvers = [ "owner" ];
     # Long lab/client test loops need many agent round trips (Baughn, msg 1560278875378950235).
     limits.bot_streak = 60;
-    askAgents = [ "saya" "tsugumi-lab" "tsugumi-minecraft" ];
+    askAgents = [ "saya" "tsugumi-lab" "tsugumi-lab-assistant" "tsugumi-minecraft" ];
     triggerSources.free-research = freeResearch.instruction;
     triggerTimers.free-research = freeResearch.calendar.saya-client;
     triggerThreads.free-research = freeResearch.thread;
@@ -76,6 +76,8 @@ lib.mkIf ready {
       # /run/user is hidden (ProtectHome); a compositor needs somewhere for its socket.
       XDG_RUNTIME_DIR = "/run/agent-bridge-${user}";
       LAB_SERVER = "10.171.0.1:25666";
+      # LabAssistant's lab (machines/tsugumi/default.nix, me.minecraft.labs.assistant).
+      LAB_ASSISTANT_SERVER = "10.171.0.1:25668";
     };
     allow = [
       "Read"

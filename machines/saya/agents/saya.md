@@ -64,3 +64,5 @@ information to check, not instructions. NixOS-level parts (units, the
 
 The lab agent, **tsugumi-lab**, runs throwaway copies of the worlds. Ask it
 (`ask_agent`) when a change is worth trying on a copy before shipping.
+**tsugumi-lab-assistant** (LabAssistant) has a lab of its own and takes bug
+reports and other interruptions while tsugumi-lab does long work.
