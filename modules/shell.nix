@@ -126,19 +126,21 @@ in
             git_prompt_info
           fi
         }
-        # oh-my-zsh sets PROMPT when sourced later in /etc/zshrc, so we
-        # can't prepend here directly. Defer the prepend to the first
-        # precmd, by which point the theme has loaded.
-        _prompt_warnings_install() {
+        bindkey $'\e[13;2u' accept-line
+        bindkey $'\e[27;2;13~' accept-line
+      '';
+
+      # promptInit lands after oh-my-zsh in /etc/zshrc, so the theme's PROMPT
+      # exists by now. Don't defer this to a precmd hook: Ghostty's shell
+      # integration wraps PS1 in an OSC 133;A mark from its own (earlier)
+      # precmd, and anything prepended outside that mark gets split onto its
+      # own line by 133;A's fresh-line behavior.
+      promptInit = /* bash */ ''
+        () {
           local git_prompt='$(git_prompt_info)' vcs_prompt='$(_vcs_prompt_info)'
           PROMPT="''${PROMPT//$git_prompt/$vcs_prompt}"
           PROMPT='%F{magenta}%m%f $(_root_indicator)$(_failed_units_warning)$(_flake_age_warning)'"$PROMPT"
-          precmd_functions=(''${precmd_functions:#_prompt_warnings_install})
         }
-        precmd_functions+=(_prompt_warnings_install)
-
-        bindkey $'\e[13;2u' accept-line
-        bindkey $'\e[27;2;13~' accept-line
       '';
 
       histSize = 100000;
