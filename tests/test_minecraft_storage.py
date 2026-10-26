@@ -284,6 +284,16 @@ class LabTests(unittest.TestCase):
             with self.subTest(line=line), self.assertRaises(ValueError):
                 storage.lab_request(line, "bugs")
 
+    def test_set_property_replaces_or_appends(self):
+        self.assertEqual(storage.set_property("motd=hi\nonline-mode=true\n", "online-mode", "false"),
+                         "motd=hi\nonline-mode=false\n")
+        self.assertEqual(storage.set_property("motd=hi", "server-port", "25565"),
+                         "motd=hi\nserver-port=25565\n")
+        self.assertEqual(storage.set_property("", "online-mode", "false"), "online-mode=false\n")
+        # Only whole keys: a longer key with the same prefix is left alone.
+        self.assertEqual(storage.set_property("server-port-extra=1\n", "server-port", "25565"),
+                         "server-port-extra=1\nserver-port=25565\n")
+
     def test_scrub_blanks_values_and_keeps_lines(self):
         toml = '[general]\n  botToken = "abc.def"\n  botTokenHint = "keep"\n  webhookName = "x"\n'
         self.assertEqual(storage.scrub(toml, ["botToken"]),

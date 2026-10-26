@@ -237,7 +237,7 @@ pkgs.testers.runNixOSTest {
 
     with subtest("lab clones"):
         live, backup, path = seed("labworld")
-        machine.succeed(f"printf 'motd=hi\\nrcon.password=production\\n' > {path}/server.properties",
+        machine.succeed(f"printf 'motd=hi\\nrcon.password=production\\nserver-port=25566\\nonline-mode=true\\n' > {path}/server.properties",
                         f"chmod 600 {path}/server.properties", f"mkdir -p {path}/config",
                         f"printf '[general]\\n  botToken = \"secret\"\\n' > {path}/config/Discord-Integration.toml",
                         f"ln -s /etc/shadow {path}/evil", f"ln -s /nix/store/00000000000000000000000000000000-server {path}/server",
@@ -256,6 +256,8 @@ pkgs.testers.runNixOSTest {
         properties = machine.succeed(f"cat {clone}/server.properties")
         assert "motd=hi" in properties and "rcon.password=production" not in properties, properties
         assert "rcon.password=" in properties
+        assert "server-port=25565\n" in properties and "online-mode=false\n" in properties, properties
+        assert "25566" not in properties and "online-mode=true" not in properties, properties
         assert machine.succeed(f"cat {clone}/config/Discord-Integration.toml").strip().endswith('botToken = ""')
         assert machine.succeed("stat -c %U /etc/shadow").strip() == "root"
         machine.succeed("test -L /nix/var/nix/gcroots/minecraft-lab/one-server")

@@ -40,6 +40,9 @@ SNAPSHOT = re.compile(
 
 
 LAB_EXPIRES = "lab:expires"
+# Set in every clone's server.properties: lab servers listen on 25565 inside their namespace
+# (everything from outside is forwarded there), and saya-client logs in with an offline account.
+LAB_PROPERTIES = {"server-port": "25565", "online-mode": "false"}
 # The labs by name ("main" is tsugumi-lab's): each {user, root (dataset), mounts, gcroots,
 # unit (unit name prefix), maxClones, lifetime (s), quota, scrub {path: [keys]}}.
 try:
@@ -493,6 +496,10 @@ def prepare_clone(lab, root, name):
         text = properties.read_text()
         text = re.sub(r"(?m)^(rcon\.password=).*$",
                       lambda m: m[1] + secrets.token_urlsafe(24), text)
+        # Ready for saya-client's offline account, on the port the namespace forwards to
+        # (Baughn, msg 1564337776982368339: the lab agents set these by hand every time).
+        for key, value in LAB_PROPERTIES.items():
+            text = set_property(text, key, value)
         replace_file(properties, text, 0o600)
     for relative, keys in LABS[lab]["scrub"].items():
         path = root / relative
@@ -511,6 +518,15 @@ def prepare_clone(lab, root, name):
             gcroot = gcroots / f"{name}-{link}"
             gcroot.unlink(missing_ok=True)
             gcroot.symlink_to(target)
+
+
+def set_property(text, key, value):
+    """Set `key=value` in server.properties text, replacing the line or appending one."""
+    line = f"{key}={value}"
+    text, count = re.subn(rf"(?m)^{re.escape(key)}=.*$", lambda _: line, text)
+    if count:
+        return text
+    return text + ("" if text.endswith("\n") or not text else "\n") + line + "\n"
 
 
 def regular(path):

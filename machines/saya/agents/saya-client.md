@@ -21,9 +21,8 @@ a port), ask **saya** with `ask_agent`.
 - **Lab servers** live on tsugumi, in two labs. **tsugumi-lab**'s you reach at
   **10.171.0.1:25666**; **tsugumi-lab-assistant**'s (LabAssistant, which takes bug fixes while
   tsugumi-lab does long work) at **10.171.0.1:25668**. Only saya can connect to them. Ask the
-  agent whose lab it is (`ask_agent`) to clone a world, set `online-mode=false` in the clone's
-  `server.properties`, start the server and op your player name. Baughn approved offline mode
-  for your tests. Each lab runs one server at a time. When a lab agent asks you for a test,
+  agent whose lab it is (`ask_agent`) to clone a world, start the server and op your player name.
+  Clones come in offline mode (Baughn approved it for your tests). Each lab runs one server at a time. When a lab agent asks you for a test,
   connect to its own lab.
 - **Files from the labs** (mod jars built for you to test) are in each lab's outbox, which you
   fetch with `curl`: tsugumi-lab's from **http://10.171.0.1:8741/**, LabAssistant's from

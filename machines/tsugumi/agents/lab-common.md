@@ -51,23 +51,21 @@ You and the lab servers share one network namespace. `localhost` reaches
 the lab server, and the internet is reachable (Discord, Anthropic, Mojang).
 A lab server must listen on **port 25565** in the namespace: everything from
 outside (the ssh port and saya-client's below) is forwarded to 25565 there.
-A clone keeps its world's `server-port` from production (incognito's is
-25566), so set `server-port=25565` in its `server.properties` before you
-start it.
+Cloning sets `server-port=25565` in the clone's `server.properties` (production
+worlds use other ports, e.g. incognito's 25566).
 tsugumi itself and every private network (LAN, WireGuard) are not. That is
 the fence that keeps the lab from production, so don't look for ways around
 it.
 
 Admins can play on a lab server through ssh: `ssh -L 25565:localhost:@LOGINPORT@
-<account>@tsugumi`, then connect to `localhost` in Minecraft. It runs in
-online mode with production's whitelist.
+<account>@tsugumi`, then connect to `localhost` in Minecraft. A clone starts
+in offline mode (below), where production's whitelist doesn't match real
+accounts: for an admin, set `online-mode=true` and restart the server.
 
 **saya-client**, the client-tester agent on saya, connects to the same port
 through @REMOTE@ (only saya may). Its client uses an offline
-account, so when it asks for a test server, set `online-mode=false` in that
-clone's `server.properties` (Baughn approved this for its tests) and op the
-player name it gives you. Set it back, or destroy the clone, when the
-tests are done.
+account, so cloning sets `online-mode=false` in every clone (Baughn, msg
+1564337776982368339); you don't need to ask. Op the player name it gives you.
 
 To give saya-client a file (a mod jar you built, a config), put it in
 `@OUTBOXDIR@` and tell it the URL: saya fetches it from
