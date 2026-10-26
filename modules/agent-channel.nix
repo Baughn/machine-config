@@ -150,7 +150,7 @@ let
           };
         });
         default = null;
-        description = "Gives the agent the board_* tools and a board briefing at session start (tools/agent-board).";
+        description = "Gives the agent the board_*, todo_* and wiki_* tools and a board briefing at session start (tools/agent-board).";
       };
       environment = lib.mkOption {
         type = lib.types.attrsOf lib.types.str;

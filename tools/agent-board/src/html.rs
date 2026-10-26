@@ -1,6 +1,8 @@
 //! The read-only HTML view. Its router has GET routes only, so the web side can't write,
 //! except for the login routes (web.rs), which turn a link from Discord into a session.
 
+use std::collections::BTreeMap;
+
 use axum::extract::{Path, Query, Request, State};
 use axum::http::header::{CONTENT_SECURITY_POLICY, CONTENT_TYPE, X_CONTENT_TYPE_OPTIONS};
 use axum::http::HeaderValue;
@@ -17,6 +19,7 @@ use crate::db::{Board, SearchQuery, Thread, ThreadFilter, Todo, TodoFilter, Todo
 use crate::digest;
 use crate::discord::ArchivedMessage;
 use crate::error::AppError;
+use crate::pages::{PageFilter, PageInfo};
 use crate::status::{Level, StatusCard};
 use crate::web;
 
@@ -60,6 +63,9 @@ pub fn router(state: AppState) -> Router {
         .route("/d/{id}/a/{index}", get(discord_attachment))
         .route("/day", get(discord_today))
         .route("/day/{day}", get(discord_day))
+        .route("/w", get(wiki_index))
+        // The slug's segments are the rest of the path.
+        .route("/w/{*slug}", get(wiki_page))
         .route_layer(axum::middleware::from_fn_with_state(
             state.clone(),
             web::require_login,
@@ -163,6 +169,7 @@ fn page_refreshing(title: &str, query: &str, refresh: Option<u32>, body: Markup)
                     h2 { a href="/" { "Agent board" } }
                     a href="/status" { "status" }
                     a href="/todos" { "todos" }
+                    a href="/w" { "Wiki" }
                     a href="/?status=all" { "all threads" }
                     a href="/day" { "Discord archive" }
                     form action="/search" {
@@ -537,11 +544,135 @@ async fn search(
                             "post" => { a href={ "/t/" (thread) "#p" (hit.id) } { (title) " #" (hit.id) } }
                             "attachment" => { a href={ "/a/" (hit.id) } { "attachment" } " in " a href={ "/t/" (thread) } { (title) } }
                             "discord" => { a href={ "/d/" (hit.id) } { "Discord message" } }
+                            "page" => {
+                                a href={ "/w/" (hit.slug.as_deref().unwrap_or_default()) } { (title) }
+                                " (wiki)"
+                            }
                             _ => { a href={ "/t/" (thread) } { (title) } " (summary)" }
                         }
                         " · " (hit.author) " · " (time(hit.created))
                     }
                     p { (hit.snippet) }
+                }
+            }
+        },
+    ))
+}
+
+/// The pages grouped by their slug's first segment (`mod` for `mod/ea`), in slug order.
+fn wiki_index_html(pages: &[PageInfo]) -> Markup {
+    let mut groups: BTreeMap<&str, Vec<&PageInfo>> = BTreeMap::new();
+    for page in pages {
+        let namespace = page.slug.split('/').next().unwrap_or_default();
+        groups.entry(namespace).or_default().push(page);
+    }
+    html! {
+        @for (namespace, pages) in &groups {
+            h4 id={ "ns-" (namespace) } { (namespace) }
+            table {
+                @for page in pages {
+                    tr {
+                        td {
+                            a href={ "/w/" (page.slug) } { (page.slug) } " " strong { (page.title) }
+                            @if !page.description.is_empty() { br; span.meta { (page.description) } }
+                        }
+                        td.meta {
+                            "owner " (page.owner) br;
+                            "rev " (page.rev) " by " (page.updated_by) ", " (time(page.updated))
+                        }
+                    }
+                }
+            }
+        }
+        @if pages.is_empty() { p { "No pages." } }
+    }
+}
+
+async fn wiki_index(
+    State(state): State<AppState>,
+    Query(filter): Query<PageFilter>,
+) -> Result<Markup, AppError> {
+    let heading = match &filter.tag {
+        Some(tag) => format!("Wiki pages tagged {tag}"),
+        None => "Wiki".to_owned(),
+    };
+    let pages = state
+        .with_board(move |board| board.list_pages(&filter))
+        .await?;
+    Ok(page(
+        &heading,
+        "",
+        html! {
+            h3 { (heading) }
+            (wiki_index_html(&pages))
+        },
+    ))
+}
+
+/// A page source as a link where it names something linkable: `#123` is a board thread, a
+/// 17-20 digit number a Discord message, and an http(s) URL itself. Anything else is text.
+fn source_html(source: &str) -> Markup {
+    let digits = |text: &str| !text.is_empty() && text.bytes().all(|b| b.is_ascii_digit());
+    let lower = source.to_ascii_lowercase();
+    html! {
+        @if let Some(thread) = source.strip_prefix('#').filter(|id| digits(id)) {
+            a href={ "/t/" (thread) } { (source) }
+        } @else if digits(source) && (17..=20).contains(&source.len()) {
+            a href={ "/d/" (source) } { "Discord " (source) }
+        } @else if lower.starts_with("http://") || lower.starts_with("https://") {
+            a href=(source) { (source) }
+        } @else {
+            (source)
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct RevQuery {
+    rev: Option<i64>,
+}
+
+async fn wiki_page(
+    State(state): State<AppState>,
+    Path(slug): Path<String>,
+    Query(query): Query<RevQuery>,
+) -> Result<Markup, AppError> {
+    let (wiki, revisions) = state
+        .with_board(move |board| {
+            Ok((board.page(&slug, query.rev)?, board.page_revisions(&slug)?))
+        })
+        .await?;
+    let info = &wiki.info;
+    let link = format!("/w/{}", info.slug);
+    Ok(page(
+        &info.title,
+        "",
+        html! {
+            h3 { (info.title) " " @for tag in &info.tags { a.tag href={ "/w?tag=" (tag) } { (tag) } } }
+            @if !info.description.is_empty() { p { (info.description) } }
+            p.meta {
+                code { (info.slug) } " · owner " (info.owner)
+                " · rev " (info.rev) " of " (wiki.current_rev)
+                " · by " (info.updated_by) ", " (time(info.updated))
+                @if !wiki.note.is_empty() { " · " (wiki.note) }
+                @if info.rev != wiki.current_rev {
+                    " · " strong { "an old revision" } "; " a href=(link) { "the current one" }
+                }
+            }
+            (markdown(&wiki.body))
+            @if !wiki.sources.is_empty() {
+                h4 { "Sources" }
+                ul { @for source in &wiki.sources { li { (source_html(source)) } } }
+            }
+            h4 { "Revisions" }
+            table {
+                @for revision in &revisions {
+                    tr.focus[revision.rev == info.rev] {
+                        td { a href={ (link) "?rev=" (revision.rev) } { "rev " (revision.rev) } }
+                        td { (revision.author) }
+                        td.meta { (time(revision.created)) }
+                        td { (revision.note) }
+                    }
                 }
             }
         },
@@ -762,6 +893,95 @@ mod tests {
         let page = get(format!("/t/{thread}")).await;
         assert!(page.contains("Approve the fix") && page.contains("for <strong>baughn"), "{page}");
         assert!(get("/status".into()).await.contains("Open todos: 1"));
+    }
+
+    #[test]
+    fn page_sources_link_threads_messages_and_urls() {
+        let render = |source: &str| source_html(source).0;
+        assert_eq!(render("#35"), r##"<a href="/t/35">#35</a>"##);
+        assert_eq!(
+            render("1564239183692959820"),
+            r#"<a href="/d/1564239183692959820">Discord 1564239183692959820</a>"#
+        );
+        assert_eq!(render("https://x.org/a?b=1&c"), r#"<a href="https://x.org/a?b=1&amp;c">https://x.org/a?b=1&amp;c</a>"#);
+        for text in ["#", "#3a", "123", "ea@6041cd2f", "javascript:alert(1)", "<b>"] {
+            assert!(!render(text).contains("<a"), "{text}");
+        }
+        assert_eq!(render("<b>"), "&lt;b&gt;");
+    }
+
+    #[tokio::test]
+    async fn wiki_index_page_and_search() {
+        use axum::body::Body;
+        use axum::http::{Request, StatusCode};
+        use http_body_util::BodyExt;
+        use tower::ServiceExt;
+
+        use crate::pages::PageWrite;
+
+        let board = Board::open_in_memory().unwrap();
+        let write = |slug: &str, body: &str, base_rev: Option<i64>| PageWrite {
+            slug: slug.into(),
+            body: body.into(),
+            base_rev,
+            title: base_rev.is_none().then(|| format!("<i>{slug}</i>")),
+            description: Some(format!("about {slug}")),
+            note: format!("note for {body}"),
+            sources: vec!["#35".into(), "1564239183692959820".into()],
+            tags: Some(vec!["lab".into()]),
+            ..PageWrite::default()
+        };
+        for slug in ["mod/stasis", "mod/ea", "server/incognito"] {
+            board.write_page("tsugumi-lab", &write(slug, "First **zebra**.", None), false).unwrap();
+        }
+        board.write_page("saya", &write("mod/ea", "Second zebra.", Some(1)), false).unwrap();
+        // The web shows private pages too.
+        board.write_page("tsugumi-sec", &write("sec/watch", "zebra", None), true).unwrap();
+        let link = board.create_login("vindex", "5").unwrap();
+        let cookie = format!("{}={}", web::SESSION_COOKIE, board.consume_login(&link).unwrap().unwrap());
+        let app = router(AppState::new(board, Default::default(), Vec::new()));
+        let get = |uri: &str| {
+            let request = Request::get(uri)
+                .header("cookie", cookie.as_str())
+                .body(Body::empty())
+                .unwrap();
+            let app = app.clone();
+            async move {
+                let response = app.oneshot(request).await.unwrap();
+                let status = response.status();
+                let body = response.into_body().collect().await.unwrap().to_bytes();
+                (status, String::from_utf8(body.to_vec()).unwrap())
+            }
+        };
+
+        let (_, index) = get("/w").await;
+        let positions: Vec<usize> = [r#"id="ns-mod""#, r#"href="/w/mod/ea""#, r#"href="/w/mod/stasis""#,
+                                     r#"id="ns-sec""#, r#"id="ns-server""#]
+            .iter()
+            .map(|needle| index.find(needle).unwrap_or_else(|| panic!("{needle}: {index}")))
+            .collect();
+        assert!(positions.is_sorted(), "{index}");
+        assert!(index.contains("&lt;i&gt;mod/ea") && index.contains("rev 2 by saya"), "{index}");
+        assert!(index.contains(r#"href="/w""#), "the nav links the wiki");
+        let (_, tagged) = get("/w?tag=nope").await;
+        assert!(tagged.contains("No pages."), "{tagged}");
+
+        let (status, current) = get("/w/mod/ea").await;
+        assert_eq!(status, StatusCode::OK);
+        assert!(current.contains("rev 2 of 2") && current.contains("Second zebra."), "{current}");
+        assert!(current.contains(r#"href="/t/35""#), "{current}");
+        assert!(current.contains(r#"href="/d/1564239183692959820""#), "{current}");
+        assert!(current.contains(r#"href="/w/mod/ea?rev=1""#), "{current}");
+        assert!(current.contains("note for First **zebra**."), "{current}");
+        let (_, old) = get("/w/mod/ea?rev=1").await;
+        assert!(old.contains("rev 1 of 2") && old.contains("<strong>zebra</strong>"), "{old}");
+        assert!(old.contains("an old revision"), "{old}");
+        assert_eq!(get("/w/mod/none").await.0, StatusCode::NOT_FOUND);
+        assert_eq!(get("/w/mod/ea?rev=9").await.0, StatusCode::NOT_FOUND);
+
+        let (_, results) = get("/search?q=zebra&kind=page").await;
+        assert!(results.contains(r#"href="/w/mod/ea""#), "{results}");
+        assert!(results.contains(r#"href="/w/sec/watch""#), "{results}");
     }
 
     #[test]

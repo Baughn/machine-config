@@ -1,4 +1,5 @@
 //! SQLite storage: threads, summary revisions, posts, attachments and an FTS5 index.
+//! Wiki pages (pages.rs), the Discord copy and status cards live in the same database.
 //!
 //! Nothing is deleted. A summary change inserts a new revision; closing a thread is a
 //! status change; a refuted post is marked `superseded_by` a later one.
@@ -16,7 +17,8 @@ use crate::error::AppError;
 ///
 /// The `search` table holds one row per thread (title + current summary) with rowid
 /// `-thread_id`, so it can be replaced in place when the summary changes, and one row per
-/// post and attachment with ordinary positive rowids.
+/// post and attachment with ordinary positive rowids. Discord messages and wiki pages record
+/// their row's rowid in a `search_row` column instead.
 const MIGRATIONS: &[&str] = &[
     r#"
 CREATE TABLE threads (
@@ -140,6 +142,37 @@ CREATE TABLE todos (
 CREATE INDEX todos_assignee ON todos(assignee, status);
 CREATE INDEX todos_thread ON todos(thread);
 "#,
+    // Wiki pages: one row per page, a revision per write; the current revision is max(rev).
+    r#"
+CREATE TABLE pages (
+    id INTEGER PRIMARY KEY,
+    slug TEXT NOT NULL UNIQUE,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    owner TEXT NOT NULL,
+    created INTEGER NOT NULL,
+    private_to TEXT,
+    search_row INTEGER NOT NULL
+);
+CREATE TABLE page_tags (
+    page INTEGER NOT NULL REFERENCES pages(id),
+    tag TEXT NOT NULL,
+    PRIMARY KEY (page, tag)
+) WITHOUT ROWID;
+CREATE INDEX page_tags_tag ON page_tags(tag);
+CREATE TABLE page_revisions (
+    page INTEGER NOT NULL REFERENCES pages(id),
+    rev INTEGER NOT NULL,
+    author TEXT NOT NULL,
+    created INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    body TEXT NOT NULL,
+    note TEXT NOT NULL DEFAULT '',
+    sources TEXT NOT NULL DEFAULT '[]',
+    PRIMARY KEY (page, rev)
+) WITHOUT ROWID;
+"#,
 ];
 
 pub const MAX_TITLE: usize = 200;
@@ -150,6 +183,8 @@ pub const MAX_TAGS: usize = 10;
 /// Todo titles are counted in characters, not bytes.
 pub const MAX_TODO_TITLE: usize = 200;
 pub const MAX_TODO_NOTE: usize = 4000;
+/// Pages are kept deliberately smaller than posts, so they stay pages.
+pub const MAX_PAGE_BODY: usize = 64 * 1024;
 
 /// Thread status. Threads are never deleted, only resolved or parked.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -330,11 +365,15 @@ pub struct Attachment {
 pub struct SearchHit {
     pub kind: String,
     /// Thread id for `thread` hits, post id for `post`, attachment id for `attachment`,
-    /// message id for `discord`.
+    /// message id for `discord`, page id for `page`.
     pub id: i64,
-    /// The board thread; none for `discord` hits.
+    /// The board thread; none for `discord` and `page` hits.
     pub thread: Option<i64>,
+    /// The thread's title, or the page's for `page` hits.
     pub thread_title: Option<String>,
+    /// The page's slug, for `page` hits.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub slug: Option<String>,
     pub author: String,
     pub created: i64,
     pub snippet: String,
@@ -433,13 +472,14 @@ pub struct ThreadUpdate {
 #[derive(Clone, Debug, Default, Deserialize)]
 pub struct SearchQuery {
     pub q: String,
-    /// `thread`, `post` or `attachment`; all kinds when absent.
+    /// `thread`, `post`, `attachment`, `discord` or `page`; all kinds when absent.
     pub kind: Option<String>,
     pub author: Option<String>,
     pub since: Option<i64>,
     pub until: Option<i64>,
     pub limit: Option<i64>,
-    /// Set by the API to the caller: hides other agents' private threads. Never from the query.
+    /// Set by the API to the caller: hides other agents' private threads and pages. Never
+    /// from the query.
     #[serde(skip)]
     pub viewer: Option<String>,
 }
@@ -508,11 +548,11 @@ fn first_line(text: &str) -> String {
         .to_owned()
 }
 
-fn bad(message: impl Into<String>) -> AppError {
+pub(crate) fn bad(message: impl Into<String>) -> AppError {
     AppError::BadRequest(message.into())
 }
 
-fn check_text(what: &str, text: &str, max: usize) -> Result<(), AppError> {
+pub(crate) fn check_text(what: &str, text: &str, max: usize) -> Result<(), AppError> {
     if text.trim().is_empty() {
         return Err(bad(format!("{what} is empty")));
     }
@@ -522,7 +562,7 @@ fn check_text(what: &str, text: &str, max: usize) -> Result<(), AppError> {
     Ok(())
 }
 
-fn check_tags(tags: &[String]) -> Result<(), AppError> {
+pub(crate) fn check_tags(tags: &[String]) -> Result<(), AppError> {
     if tags.len() > MAX_TAGS {
         return Err(bad(format!("at most {MAX_TAGS} tags")));
     }
@@ -1158,10 +1198,11 @@ impl Board {
         Ok(thread)
     }
 
-    /// Full-text search over threads (title + summary), posts and attachments.
+    /// Full-text search over threads (title + summary), posts, attachments, the Discord
+    /// copy and wiki pages (title, description + body).
     ///
     /// The query is FTS5 syntax; if it doesn't parse, each word is searched literally.
-    /// Superseded posts rank lower.
+    /// Superseded posts rank lower, pages higher.
     ///
     /// # Errors
     ///
@@ -1171,9 +1212,12 @@ impl Board {
             return Err(bad("empty query"));
         }
         if let Some(kind) = &query.kind {
-            if !matches!(kind.as_str(), "thread" | "post" | "attachment" | "discord") {
+            if !matches!(
+                kind.as_str(),
+                "thread" | "post" | "attachment" | "discord" | "page"
+            ) {
                 return Err(bad(format!(
-                    "kind {kind:?}: use thread, post, attachment or discord"
+                    "kind {kind:?}: use thread, post, attachment, discord or page"
                 )));
             }
         }
@@ -1194,20 +1238,26 @@ impl Board {
     }
 
     fn search_raw(&self, fts_query: &str, query: &SearchQuery) -> Result<Vec<SearchHit>, AppError> {
+        // bm25 is negative, best first. A superseded post drops behind its replacement;
+        // a page, which holds what is true now, moves ahead of posts that match about as
+        // well, without burying a much better match.
         let mut statement = self.conn.prepare_cached(
-            "SELECT s.kind, s.ref, s.thread, t.title, s.author, s.created, \
+            "SELECT s.kind, s.ref, s.thread, coalesce(t.title, pg.title), s.author, s.created, \
                     snippet(search, -1, '[', ']', ' ... ', 24), \
-                    p.superseded_by IS NOT NULL \
+                    p.superseded_by IS NOT NULL, pg.slug \
              FROM search s LEFT JOIN threads t ON t.id = s.thread \
              LEFT JOIN posts p ON s.kind = 'post' AND p.id = s.ref \
+             LEFT JOIN pages pg ON s.kind = 'page' AND pg.id = s.ref \
              WHERE search MATCH :q \
                AND (:kind IS NULL OR s.kind = :kind) \
                AND (:author IS NULL OR s.author = :author) \
                AND (:since IS NULL OR s.created >= :since) \
                AND (:until IS NULL OR s.created < :until) \
-               AND (:viewer IS NULL OR t.private_to IS NULL OR t.private_to = :viewer) \
+               AND (:viewer IS NULL OR coalesce(t.private_to, pg.private_to) IS NULL \
+                    OR coalesce(t.private_to, pg.private_to) = :viewer) \
              ORDER BY bm25(search, 0, 0, 0, 0, 0, 3.0, 1.0) \
                       + (CASE WHEN p.superseded_by IS NULL THEN 0 ELSE 5 END) \
+                      - (CASE WHEN s.kind = 'page' THEN 2 ELSE 0 END) \
              LIMIT :limit",
         )?;
         let rows = statement.query_map(
@@ -1230,6 +1280,7 @@ impl Board {
                     created: row.get(5)?,
                     snippet: row.get(6)?,
                     superseded: row.get(7)?,
+                    slug: row.get(8)?,
                 })
             },
         )?;

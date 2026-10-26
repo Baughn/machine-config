@@ -11,6 +11,7 @@ mod digest;
 mod discord;
 mod error;
 mod html;
+mod pages;
 mod status;
 mod web;
 

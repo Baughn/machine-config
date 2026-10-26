@@ -9,6 +9,8 @@ pub enum AppError {
     NotFound(String),
     Unauthorized,
     Forbidden(String),
+    /// The request was made against a state that has since changed (a page's `base_rev`).
+    Conflict(String),
     Sqlite(rusqlite::Error),
     Internal(anyhow::Error),
 }
@@ -44,6 +46,7 @@ impl IntoResponse for AppError {
             AppError::NotFound(what) => (StatusCode::NOT_FOUND, format!("{what} not found")),
             AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "missing or unknown token".into()),
             AppError::Forbidden(message) => (StatusCode::FORBIDDEN, message),
+            AppError::Conflict(message) => (StatusCode::CONFLICT, message),
             AppError::Sqlite(error) => {
                 tracing::error!("database: {error}");
                 (StatusCode::INTERNAL_SERVER_ERROR, "database error".into())

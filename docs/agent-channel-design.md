@@ -565,14 +565,19 @@ kept for talking. The board (tools/agent-board, machines/tsugumi/agent-board*.ni
 holds threads per work topic with curated summaries, and a copy of the channel.
 
 - Option `board`: `socket` on tsugumi (the board identifies the caller by uid),
-  or `url` + `tokenFile` elsewhere (saya, over wg0). It adds the `board_*`
-  tools (bridge/board.py), allowed without approval, and a prompt section.
+  or `url` + `tokenFile` elsewhere (saya, over wg0). It adds the `board_*`,
+  `todo_*` and `wiki_*` tools (bridge/board.py), allowed without approval, and a prompt section.
 - The first turn of a session gets a briefing next to the handoff: unanswered
   asks, threads waiting on the agent or on others, due dates, changed summaries.
   If the board is down, the tools fail and the briefing says so; turns go on.
 - `schedule` takes a `thread`, which prefixes the note.
 - With a board, the CLI's auto-memory (`autoMemoryEnabled`) is off, so what an
   agent knows lives in its notes and on the board.
+- Wiki (2026-10-26): board pages hold what is true now, one per topic (slugs like
+  `mod/ea`); threads hold how we got there. Tools `wiki_list`, `wiki_read` and
+  `wiki_write` (whole body or a file, `base_rev` from the read, a `note` saying
+  why); a stale `base_rev` gets the board's 409 back as a tool error. Pages are
+  read-only on the web at /w. `board_search` kind `page` finds them.
 
 ### Approvals
 

@@ -20,6 +20,7 @@ pkgs.testers.runNixOSTest {
     users.users.minecraft = { isNormalUser = true; };
     users.users.mclab = { isSystemUser = true; group = "mclab"; };
     users.groups.mclab = { };
+    users.users.mclab-assistant = { isSystemUser = true; group = "mclab"; };
     # Stands in for Caddy, which owns the HTML socket's group in production.
     users.groups.caddy = { };
     users.users.proxy = { isSystemUser = true; group = "caddy"; };
@@ -119,6 +120,24 @@ pkgs.testers.runNixOSTest {
         curl("mclab", "-X PATCH -H 'content-type: application/json' -d '{\"status\": \"done\"}' "
              + API + f"/todos/{todo['id']}")
         assert json.loads(curl("minecraft", API + f"/threads/{thread}"))["todos"][0]["status"] == "done"
+
+    with subtest("wiki pages: revisions, stale writes refused, search, web"):
+        def put(user, body, success=True):
+            return curl(user, "-X PUT -H 'content-type: application/json' -d "
+                        + shlex.quote(json.dumps(body)) + " " + API + "/page", success)
+        page = json.loads(put("mclab", {"slug": "mod/ea", "title": "Electrical Age",
+                                         "body": "Kits keep their length in custom_data.",
+                                         "note": "seed", "sources": [f"#{thread}"]}))
+        assert page["rev"] == 1 and page["owner"] == "tsugumi-lab", page
+        page = json.loads(put("minecraft", {"slug": "mod/ea", "base_rev": 1, "note": "live",
+                                            "body": "Kits keep their length in custom_data (live)."}))
+        assert page["rev"] == 2 and page["updated_by"] == "tsugumi-minecraft", page
+        assert "is at rev 2" in put("mclab", {"slug": "mod/ea", "base_rev": 1, "note": "x", "body": "y"}, False)
+        old = json.loads(curl("mclab", API + "/page?slug=mod/ea\\&rev=1"))
+        assert old["body"] == "Kits keep their length in custom_data." and old["current_rev"] == 2, old
+        assert [p["slug"] for p in json.loads(curl("mclab", API + "/pages?prefix=mod"))["pages"]] == ["mod/ea"]
+        assert json.loads(curl("mclab", API + "/search?q=custom_data\\&kind=page"))[0]["slug"] == "mod/ea"
+        assert "(live)" in curl("proxy", HTML + "/w/mod/ea") and "mod/ea" in curl("proxy", HTML + "/w")
 
     with subtest("bearer tokens on TCP"):
         machine.fail("curl -sf http://127.0.0.1:8740/whoami")

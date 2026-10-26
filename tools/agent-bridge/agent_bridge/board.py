@@ -1,4 +1,4 @@
-"""The agent board (tools/agent-board): its client, the board_* tools, and their text output."""
+"""The agent board (tools/agent-board): its client, the board_*, todo_* and wiki_* tools, and their text output."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+import time
 from typing import Any
 
 import aiohttp
@@ -14,6 +15,7 @@ from .render import PostError, Roots, _attachment
 
 TIMEOUT = aiohttp.ClientTimeout(total=30)
 ATTACHMENT_LIMIT = 1024 * 1024
+WIKI_URL = "https://agents.brage.info/w"
 
 
 class BoardError(Exception):
@@ -31,6 +33,17 @@ def when(timestamp: int | None) -> str:
     if timestamp is None:
         return "?"
     return datetime.fromtimestamp(timestamp, timezone.utc).strftime("%Y-%m-%d %H:%MZ")
+
+
+def age(timestamp: int | None, now: float | None = None) -> str:
+    """How long ago, e.g. 5m, 3h, 2d."""
+    if timestamp is None:
+        return "?"
+    seconds = max(0, int((time.time() if now is None else now) - timestamp))
+    for unit, size in (("d", 86400), ("h", 3600), ("m", 60)):
+        if seconds >= size:
+            return f"{seconds // size}{unit} ago"
+    return "just now"
 
 
 def unix(text: str, what: str) -> int:
@@ -147,12 +160,36 @@ def search_text(hits: list[dict[str, Any]]) -> str:
         superseded = " (superseded)" if hit.get("superseded") else ""
         if hit["kind"] == "discord":
             where = f"discord {hit['id']}"
+        elif hit["kind"] == "page":
+            where = f"page {hit['slug']} {hit['thread_title']!r}"
         elif hit["kind"] == "thread":
             where = f"thread #{hit['id']} {hit['thread_title']!r} (title/summary)"
         else:
             where = f"{hit['kind']} {hit['id']} in thread #{hit['thread']} {hit['thread_title']!r}"
         lines.append(f"{where} by {hit['author']}, {when(hit['created'])}{superseded}: "
                      f"{' '.join(hit['snippet'].split())}")
+    return "\n".join(lines)
+
+
+def page_line(page: dict[str, Any], now: float | None = None) -> str:
+    description = f" - {page['description']}" if page.get("description") else ""
+    return (f"{page['slug']} (rev {page['rev']}, {page['owner']}, updated {age(page.get('updated'), now)} "
+            f"by {page.get('updated_by', '?')}): {page['title']}{description}")
+
+
+def page_text(page: dict[str, Any]) -> str:
+    current = page.get("current_rev", page["rev"])
+    lines = [f"slug: {page['slug']}", f"title: {page['title']}"]
+    if page.get("description"):
+        lines.append(f"description: {page['description']}")
+    lines.append(f"owner: {page['owner']}" + (f"; tags: {', '.join(page['tags'])}" if page.get("tags") else ""))
+    lines.append(f"rev {page['rev']} of {current}" + ("" if page["rev"] == current else " (an old revision)"))
+    lines.append(f"last change: {page.get('updated_by', '?')}, {when(page.get('updated'))}")
+    if page.get("note"):
+        lines.append(f"note (rev {page['rev']}): {page['note']}")
+    if page.get("sources"):
+        lines.append("sources: " + ", ".join(page["sources"]))
+    lines += ["", page["body"].rstrip("\n"), "", f"To change it: wiki_write with base_rev {current}."]
     return "\n".join(lines)
 
 
@@ -224,11 +261,11 @@ TOOLS: dict[str, tuple[str, dict[str, Any]]] = {
             "limit": {"type": "integer", "minimum": 1, "description": "Newest posts to show (default 50)"},
         }, "required": ["thread"]}),
     "board_search": (
-        "Full-text search of the board: thread titles and summaries, posts, attachments, and the "
+        "Full-text search of the board: wiki pages, thread titles and summaries, posts, attachments, and the "
         "Discord channel's whole history (kind discord). FTS5 syntax: words, \"phrases\", OR, NOT, prefix*.",
         {"type": "object", "properties": {
             "query": {"type": "string"},
-            "kind": {"type": "string", "enum": ["thread", "post", "attachment", "discord"]},
+            "kind": {"type": "string", "enum": ["thread", "post", "attachment", "discord", "page"]},
             "author": {"type": "string", "description": "An agent id or a person's name"},
             "since": {"type": "string", "description": "ISO 8601 date or time"},
             "until": {"type": "string", "description": "ISO 8601 date or time"},
@@ -243,7 +280,7 @@ TOOLS: dict[str, tuple[str, dict[str, Any]]] = {
             "new_thread": {"type": "object", "required": ["title"], "properties": {
                 "title": {"type": "string"},
                 "tags": {"type": "array", "items": {"type": "string"},
-                         "description": "Lowercase a-z, 0-9 and -; e.g. reference for durable facts"},
+                         "description": "Lowercase a-z, 0-9 and -"},
                 "summary": {"type": "string", "description": "The thread's current state"},
                 "due": {"type": "string", "description": "YYYY-MM-DD"},
                 "waiting_on": {"type": "string"},
@@ -285,6 +322,38 @@ TOOLS: dict[str, tuple[str, dict[str, Any]]] = {
             "message_id": {"type": "string"},
             "context": {"type": "integer", "minimum": 0, "maximum": 50, "description": "Default 5 each side"},
         }, "required": ["message_id"]}),
+    "wiki_list": (
+        "List wiki pages (what is true now, one page per topic), sorted by slug.",
+        {"type": "object", "properties": {
+            "prefix": {"type": "string", "description": "A slug prefix, e.g. mod/ or server"},
+            "owner": {"type": "string"},
+            "tag": {"type": "string"},
+        }}),
+    "wiki_read": (
+        "Read a wiki page: its current revision, or an older one (rev).",
+        {"type": "object", "properties": {
+            "slug": {"type": "string", "description": "e.g. mod/ea"},
+            "rev": {"type": "integer", "minimum": 1},
+        }, "required": ["slug"]}),
+    "wiki_write": (
+        "Create or update a wiki page with its whole new body. For an existing page, base_rev must be "
+        "the revision you read; if someone changed it since, read it again and reapply your change. "
+        "Other fields change only if given.",
+        {"type": "object", "properties": {
+            "slug": {"type": "string", "description": "1-4 segments of a-z, 0-9 and - joined by /, "
+                     "e.g. mod/ea, server/incognito, proc/lab-handover"},
+            "body": {"type": "string", "description": "Markdown, the whole page; give body or path"},
+            "path": {"type": "string", "description": "A UTF-8 text file in your workdir or state directory "
+                     "holding the body"},
+            "base_rev": {"type": "integer", "minimum": 0, "description": "The current rev; leave out to create"},
+            "note": {"type": "string", "description": "One line: why this change"},
+            "sources": {"type": "array", "items": {"type": "string"},
+                        "description": "Where it came from: #thread, post or Discord message ids, commits, URLs"},
+            "title": {"type": "string", "description": "Required for a new page"},
+            "description": {"type": "string", "description": "One line, shown in the index"},
+            "owner": {"type": "string", "description": "Who keeps it true; default yourself"},
+            "tags": {"type": "array", "items": {"type": "string"}},
+        }, "required": ["slug", "note"]}),
     "todo_add": (
         "Add a todo: one concrete item of work. Make one per item when you are handed several things.",
         {"type": "object", "properties": {
@@ -423,6 +492,41 @@ class BoardTools:
         message = _id(args.get("message_id"), "message_id")
         context = await self.client.request("GET", f"/discord/{message}", {"context": args.get("context", 5)})
         return discord_text(context)
+
+    async def wiki_list(self, args: dict[str, Any]) -> str:
+        params = {key: args.get(key) for key in ("prefix", "owner", "tag")}
+        pages = (await self.client.request("GET", "/pages", params))["pages"]
+        return "\n".join(page_line(p) for p in pages) if pages else "no pages"
+
+    async def wiki_read(self, args: dict[str, Any]) -> str:
+        params = {"slug": args.get("slug"),
+                  "rev": _id(args["rev"], "rev") if args.get("rev") is not None else None}
+        return page_text(await self.client.request("GET", "/page", params))
+
+    async def wiki_write(self, args: dict[str, Any]) -> str:
+        if ("body" in args) == ("path" in args):
+            raise BoardError("give exactly one of body and path")
+        if not str(args.get("note") or "").strip():
+            raise BoardError("note is required: one line on why this change")
+        body = args.get("body")
+        if "path" in args:
+            try:
+                file = _attachment({"name": "page.md", "path": args["path"]}, self.roots)
+            except PostError as error:
+                raise BoardError(str(error)) from error
+            try:
+                body = file.data.decode("utf-8")
+            except UnicodeDecodeError as error:
+                raise BoardError(f"{args['path']} isn't UTF-8 text") from error
+        slug = str(args.get("slug", ""))
+        write: dict[str, Any] = {"slug": slug, "body": body, "note": args["note"]}
+        if args.get("base_rev") is not None:
+            write["base_rev"] = _id(args["base_rev"], "base_rev")
+        if "sources" in args:
+            write["sources"] = [str(source) for source in args["sources"] or []]
+        write |= {key: args[key] for key in ("title", "description", "owner", "tags") if key in args}
+        page = await self.client.request("PUT", "/page", body=write)
+        return f"wrote {page['slug']} rev {page['rev']}\n{WIKI_URL}/{page['slug']}"
 
     async def todo_add(self, args: dict[str, Any]) -> str:
         todo = {key: args[key] for key in ("title", "assignee", "due") if args.get(key) is not None}

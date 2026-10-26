@@ -23,6 +23,7 @@ use crate::discord::{
     INGEST_IDENTITY,
 };
 use crate::error::AppError;
+use crate::pages::{Page, PageFilter, PageInfo, PageWrite, Revision};
 use crate::status::{Dashboard, NewStatus};
 
 /// Unix socket peers: uid to agent id.
@@ -199,6 +200,10 @@ pub fn routes() -> Router<AppState> {
         .route("/discord/cursor", get(discord_cursor))
         .route("/discord/{id}", get(discord_context))
         .route("/discord/{id}/attachments/{index}", get(discord_attachment))
+        .route("/pages", get(list_pages))
+        // Slugs contain `/`, so they go in the query string or the body, not the path.
+        .route("/page", get(read_page).put(write_page))
+        .route("/page/revisions", get(page_revisions))
         .route("/status", get(dashboard))
         .route("/status/{key}", axum::routing::put(put_status).delete(delete_status))
         // Attachments are up to 1 MiB each, 10 per post.
@@ -590,6 +595,95 @@ async fn update_todo(
                     check_thread(board, &author, thread, true, private)?;
                 }
                 board.update_todo(&author, id, &update)
+            })
+            .await?,
+    ))
+}
+
+#[derive(Serialize)]
+struct PageList {
+    pages: Vec<PageInfo>,
+}
+
+async fn list_pages(
+    State(state): State<AppState>,
+    Extension(Author(agent)): Extension<Author>,
+    Query(filter): Query<PageFilter>,
+) -> Result<Json<PageList>, AppError> {
+    let mut pages = state
+        .with_board(move |board| board.list_pages(&filter))
+        .await?;
+    pages.retain(|page| page.visible_to(&agent));
+    Ok(Json(PageList { pages }))
+}
+
+/// `NotFound` unless the page exists and `agent` may see it.
+fn check_page(board: &Board, agent: &str, slug: &str) -> Result<(), AppError> {
+    if visible(board.page_private_to(slug)?.as_deref(), agent) {
+        Ok(())
+    } else {
+        Err(AppError::NotFound(format!("page {slug}")))
+    }
+}
+
+#[derive(Deserialize)]
+struct PageQuery {
+    slug: String,
+    rev: Option<i64>,
+}
+
+async fn read_page(
+    State(state): State<AppState>,
+    Extension(Author(agent)): Extension<Author>,
+    Query(query): Query<PageQuery>,
+) -> Result<Json<Page>, AppError> {
+    Ok(Json(
+        state
+            .with_board(move |board| {
+                check_page(board, &agent, &query.slug)?;
+                board.page(&query.slug, query.rev)
+            })
+            .await?,
+    ))
+}
+
+async fn write_page(
+    State(state): State<AppState>,
+    Extension(Author(author)): Extension<Author>,
+    Json(write): Json<PageWrite>,
+) -> Result<Json<Page>, AppError> {
+    let private = state.is_private(&author);
+    // Visibility and the private sector are checked by `write_page`, in its transaction:
+    // whether a hidden page is missing or taken depends on `base_rev`.
+    Ok(Json(
+        state
+            .with_board(move |board| board.write_page(&author, &write, private))
+            .await?,
+    ))
+}
+
+#[derive(Deserialize)]
+struct SlugQuery {
+    slug: String,
+}
+
+#[derive(Serialize)]
+struct RevisionList {
+    slug: String,
+    revisions: Vec<Revision>,
+}
+
+async fn page_revisions(
+    State(state): State<AppState>,
+    Extension(Author(agent)): Extension<Author>,
+    Query(SlugQuery { slug }): Query<SlugQuery>,
+) -> Result<Json<RevisionList>, AppError> {
+    Ok(Json(
+        state
+            .with_board(move |board| {
+                check_page(board, &agent, &slug)?;
+                let revisions = board.page_revisions(&slug)?;
+                Ok(RevisionList { slug, revisions })
             })
             .await?,
     ))
@@ -1466,6 +1560,127 @@ mod tests {
         let (status, _) = call(lab(), Method::POST, "/todos",
                                Some(json!({"title": "Audit", "assignee": "tsugumi-sec"}))).await;
         assert_eq!(status, StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn pages_write_read_and_conflict() {
+        let state = state();
+        let lab = || app(&state, "tsugumi-lab");
+        let saya = || app(&state, "saya");
+        let put = |router: Router, body: Value| call(router, Method::PUT, "/page", Some(body));
+
+        let (status, page) = put(
+            lab(),
+            json!({"slug": "mod/ea", "title": "Enchanted Armory", "body": "Kits keep length.",
+                   "note": "first notes", "sources": ["#35"], "tags": ["mod"]}),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK, "{page}");
+        assert_eq!(
+            page,
+            json!({"id": page["id"], "slug": "mod/ea", "title": "Enchanted Armory",
+                   "description": "", "owner": "tsugumi-lab", "tags": ["mod"], "rev": 1,
+                   "created": page["created"], "updated": page["created"],
+                   "updated_by": "tsugumi-lab", "size": 17, "body": "Kits keep length.",
+                   "note": "first notes", "sources": ["#35"], "current_rev": 1})
+        );
+        let (status, page) = put(
+            saya(),
+            json!({"slug": "mod/ea", "base_rev": 1, "body": "Kits keep length since 6041cd2f.",
+                   "note": "fix shipped", "description": "the EA mod"}),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK, "{page}");
+        assert_eq!((page["rev"].as_i64(), page["owner"].as_str()), (Some(2), Some("tsugumi-lab")));
+
+        // A write against an old revision is refused with who changed it.
+        let (status, error) =
+            put(lab(), json!({"slug": "mod/ea", "base_rev": 1, "body": "x", "note": "y"})).await;
+        assert_eq!(status, StatusCode::CONFLICT);
+        let message = error["error"].as_str().unwrap();
+        assert!(message.starts_with("page mod/ea is at rev 2 (saya, "), "{message}");
+        assert!(message.ends_with("not 1: read it again and reapply your change"), "{message}");
+        let (status, _) = put(lab(), json!({"slug": "mod/ea", "title": "t", "body": "x"})).await;
+        assert_eq!(status, StatusCode::CONFLICT);
+        let (status, error) = put(lab(), json!({"slug": "Mod/EA", "title": "t", "body": "x"})).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        assert!(error["error"].as_str().unwrap().contains("segments"), "{error}");
+
+        let (status, old) = call(lab(), Method::GET, "/page?slug=mod/ea&rev=1", None).await;
+        assert_eq!(status, StatusCode::OK, "{old}");
+        assert_eq!((old["rev"].as_i64(), old["current_rev"].as_i64()), (Some(1), Some(2)));
+        assert_eq!(old["body"], "Kits keep length.");
+        let (_, current) = call(lab(), Method::GET, "/page?slug=mod%2Fea", None).await;
+        assert_eq!(current["description"], "the EA mod");
+        for uri in ["/page?slug=mod/ea&rev=3", "/page?slug=mod/none", "/page/revisions?slug=x"] {
+            let (status, _) = call(lab(), Method::GET, uri, None).await;
+            assert_eq!(status, StatusCode::NOT_FOUND, "{uri}");
+        }
+        let (_, history) = call(lab(), Method::GET, "/page/revisions?slug=mod/ea", None).await;
+        assert_eq!(history["slug"], "mod/ea");
+        assert_eq!(history["revisions"][0]["rev"], 2);
+        assert_eq!(history["revisions"][0]["note"], "fix shipped");
+        assert_eq!(history["revisions"][1]["sources"], json!(["#35"]));
+        assert!(history["revisions"][0].get("body").is_none());
+
+        put(lab(), json!({"slug": "server/incognito", "title": "Incognito", "body": "x"})).await;
+        let (_, list) = call(lab(), Method::GET, "/pages?prefix=mod&owner=", None).await;
+        assert_eq!(list["pages"].as_array().unwrap().len(), 1, "{list}");
+        assert_eq!(list["pages"][0]["updated_by"], "saya");
+        assert!(list["pages"][0].get("body").is_none());
+        let (_, list) = call(lab(), Method::GET, "/pages?tag=mod", None).await;
+        assert_eq!(list["pages"][0]["slug"], "mod/ea");
+        let (_, list) = call(lab(), Method::GET, "/pages", None).await;
+        assert_eq!(list["pages"].as_array().unwrap().len(), 2);
+
+        let (_, hits) = call(lab(), Method::GET, "/search?q=kits&kind=page", None).await;
+        assert_eq!(hits[0]["slug"], "mod/ea", "{hits}");
+        assert_eq!(hits[0]["thread_title"], "Enchanted Armory");
+        let (status, _) = call(lab(), Method::GET, "/search?q=kits&kind=pages", None).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn private_pages() {
+        let state = state().with_private(["tsugumi-sec".to_owned()]);
+        let sec = || app(&state, "tsugumi-sec");
+        let lab = || app(&state, "tsugumi-lab");
+        let put = |router: Router, body: Value| call(router, Method::PUT, "/page", Some(body));
+        let (status, page) =
+            put(sec(), json!({"slug": "sec/watch", "title": "Watch", "body": "zebra secret"}))
+                .await;
+        assert_eq!(status, StatusCode::OK, "{page}");
+        assert_eq!(page["private_to"], "tsugumi-sec");
+        let (status, _) =
+            put(lab(), json!({"slug": "lab/notes", "title": "Lab", "body": "zebra public"})).await;
+        assert_eq!(status, StatusCode::OK);
+
+        // Hidden from other agents, as if missing; but its slug is taken.
+        for uri in ["/page?slug=sec/watch", "/page/revisions?slug=sec/watch"] {
+            let (status, _) = call(lab(), Method::GET, uri, None).await;
+            assert_eq!(status, StatusCode::NOT_FOUND, "{uri}");
+        }
+        let (_, list) = call(lab(), Method::GET, "/pages", None).await;
+        assert_eq!(list["pages"].as_array().unwrap().len(), 1);
+        let (_, hits) = call(lab(), Method::GET, "/search?q=zebra", None).await;
+        assert_eq!(hits.as_array().unwrap().len(), 1, "{hits}");
+        assert_eq!(hits[0]["slug"], "lab/notes");
+        let (status, error) =
+            put(lab(), json!({"slug": "sec/watch", "title": "Mine", "body": "x"})).await;
+        assert_eq!(status, StatusCode::CONFLICT);
+        assert_eq!(error["error"], "slug sec/watch is taken");
+        let (status, _) = put(lab(), json!({"slug": "sec/watch", "base_rev": 1, "body": "x"})).await;
+        assert_eq!(status, StatusCode::NOT_FOUND);
+
+        // The private agent sees everything but writes only its own pages.
+        let (_, list) = call(sec(), Method::GET, "/pages", None).await;
+        assert_eq!(list["pages"].as_array().unwrap().len(), 2);
+        let (_, hits) = call(sec(), Method::GET, "/search?q=zebra", None).await;
+        assert_eq!(hits.as_array().unwrap().len(), 2);
+        let (status, _) = put(sec(), json!({"slug": "lab/notes", "base_rev": 1, "body": "x"})).await;
+        assert_eq!(status, StatusCode::FORBIDDEN);
+        let (status, page) = put(sec(), json!({"slug": "sec/watch", "base_rev": 1, "body": "y"})).await;
+        assert_eq!(status, StatusCode::OK, "{page}");
     }
 
     #[tokio::test]
