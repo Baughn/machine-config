@@ -97,7 +97,10 @@
         import headers
         reverse_proxy /warmroast/* localhost:23000
         handle_path /images/* {
-          reverse_proxy localhost:24464
+          # gallery-bot is Python: keep compressed request bodies away from its decoders.
+          reverse_proxy localhost:24464 {
+            header_up -Content-Encoding
+          }
         }
         reverse_proxy unix//run/caddy-static/http.sock
       }

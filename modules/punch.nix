@@ -64,6 +64,9 @@ let
   proxy = ''
     reverse_proxy unix//run/punch/http.sock {
       header_up X-Punch-Client-IP {remote_host}
+      # aiohttp would decompress a brotli request body before routing (CVE-2026-111497);
+      # browsers never compress request bodies, so drop the header.
+      header_up -Content-Encoding
     }
   '';
 in
