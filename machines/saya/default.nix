@@ -22,6 +22,8 @@
 
   # Boot
   boot.loader.systemd-boot.enable = true;
+  # Without a limit every generation keeps its kernel+initrd on the ESP.
+  boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
 
   # NVIDIA dGPU only; iGPU intentionally unused.

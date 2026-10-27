@@ -65,6 +65,9 @@ in
       systemd-boot = {
         enable = true;
         memtest86.enable = true;
+        # Without a limit every generation keeps its kernel+initrd on the
+        # 2G ESP, which fills it.
+        configurationLimit = 10;
       };
       efi.canTouchEfiVariables = true;
     };
