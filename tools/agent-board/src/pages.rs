@@ -10,6 +10,7 @@ use rusqlite::{named_params, params, OptionalExtension, Row};
 use serde::{Deserialize, Serialize};
 
 use crate::db::{bad, check_tags, check_text, now, visible, Board, MAX_PAGE_BODY};
+use crate::diff::{diff_lines, hunks, Hunk};
 use crate::error::AppError;
 
 const MAX_SLUG: usize = 80;
@@ -21,6 +22,13 @@ const MAX_DESCRIPTION: usize = 300;
 const MAX_NOTE: usize = 500;
 const MAX_SOURCES: usize = 50;
 const MAX_SOURCE: usize = 200;
+/// Single-segment slugs the web view uses for itself (`/w/log`).
+const RESERVED_SLUGS: [&str; 1] = ["log"];
+/// Unchanged lines shown around each change in a diff.
+const DIFF_CONTEXT: usize = 3;
+/// Revisions in the page log, by default and at most.
+const LOG_DEFAULT: i64 = 100;
+const LOG_MAX: i64 = 500;
 
 /// A page as listed, at one revision (the current one unless an old one was asked for).
 #[derive(Clone, Debug, Serialize)]
@@ -76,6 +84,52 @@ pub struct Revision {
     pub title: String,
 }
 
+/// One revision in the log of all pages, newest first.
+#[derive(Clone, Debug, Serialize)]
+pub struct LogEntry {
+    pub slug: String,
+    /// The title as of this revision.
+    pub title: String,
+    pub rev: i64,
+    pub author: String,
+    pub created: i64,
+    pub note: String,
+    pub size: i64,
+    /// The page's private owner, for filtering; never shown.
+    #[serde(skip)]
+    pub private_to: Option<String>,
+}
+
+impl LogEntry {
+    pub fn visible_to(&self, viewer: &str) -> bool {
+        visible(self.private_to.as_deref(), viewer)
+    }
+}
+
+/// What changed in a page's body between two revisions.
+#[derive(Clone, Debug, Serialize)]
+pub struct PageDiff {
+    pub slug: String,
+    pub title: String,
+    pub from: i64,
+    pub to: i64,
+    pub current_rev: i64,
+    /// Who wrote the revisions after `from`, up to `to`, oldest first, without repeats.
+    pub authors: Vec<String>,
+    /// Changes to the title or description, as "title: old → new".
+    pub fields: Vec<String>,
+    pub hunks: Vec<Hunk>,
+}
+
+/// A page whose newest revision is someone else's, for its owner's briefing.
+#[derive(Clone, Debug, Serialize)]
+pub struct PageChange {
+    #[serde(flatten)]
+    pub info: PageInfo,
+    /// The owner's own newest revision of the page, if any: diff from there.
+    pub own_rev: Option<i64>,
+}
+
 /// Which pages `list_pages` returns; absent or empty fields match any.
 #[derive(Clone, Debug, Default, Deserialize)]
 pub struct PageFilter {
@@ -117,6 +171,9 @@ fn check_slug(slug: &str) -> Result<(), AppError> {
                 .bytes()
                 .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
     };
+    if RESERVED_SLUGS.contains(&slug) {
+        return Err(bad(format!("slug {slug:?} is reserved; put the page under a namespace")));
+    }
     let valid = (1..=MAX_SLUG).contains(&slug.len())
         && slug.split('/').count() <= MAX_SEGMENTS
         && slug.split('/').all(segment_ok);
@@ -334,6 +391,106 @@ impl Board {
         Ok(revisions)
     }
 
+    /// What changed in a page from revision `from` to `to` (default the current one).
+    ///
+    /// # Errors
+    ///
+    /// Returns `NotFound` for an unknown page or revision.
+    pub fn page_diff(&self, slug: &str, from: i64, to: Option<i64>) -> Result<PageDiff, AppError> {
+        let old = self.page(slug, Some(from))?;
+        let new = self.page(slug, to)?;
+        let (from, to) = (old.info.rev, new.info.rev);
+        let mut authors: Vec<String> = Vec::new();
+        let (low, high) = (from.min(to), from.max(to));
+        let mut statement = self.conn.prepare_cached(
+            "SELECT r.author FROM page_revisions r JOIN pages pg ON pg.id = r.page \
+             WHERE pg.slug = ?1 AND r.rev > ?2 AND r.rev <= ?3 ORDER BY r.rev",
+        )?;
+        for author in statement.query_map(params![slug, low, high], |row| row.get::<_, String>(0))? {
+            let author = author?;
+            if !authors.contains(&author) {
+                authors.push(author);
+            }
+        }
+        let mut fields = Vec::new();
+        for (what, before, after) in [
+            ("title", &old.info.title, &new.info.title),
+            ("description", &old.info.description, &new.info.description),
+        ] {
+            if before != after {
+                fields.push(format!("{what}: {before} → {after}"));
+            }
+        }
+        Ok(PageDiff {
+            slug: slug.to_owned(),
+            title: new.info.title.clone(),
+            from,
+            to,
+            current_rev: new.current_rev,
+            authors,
+            fields,
+            hunks: hunks(&diff_lines(&old.body, &new.body), DIFF_CONTEXT),
+        })
+    }
+
+    /// Revisions of all pages, newest first: those after `since` (unix seconds), at most
+    /// `limit` (default 100, at most 500).
+    ///
+    /// # Errors
+    ///
+    /// Only on database errors.
+    pub fn page_log(&self, since: Option<i64>, limit: Option<i64>) -> Result<Vec<LogEntry>, AppError> {
+        let limit = limit.unwrap_or(LOG_DEFAULT).clamp(1, LOG_MAX);
+        let mut statement = self.conn.prepare_cached(
+            "SELECT pg.slug, r.title, r.rev, r.author, r.created, r.note, \
+                    length(CAST(r.body AS BLOB)), pg.private_to \
+             FROM page_revisions r JOIN pages pg ON pg.id = r.page \
+             WHERE ?1 IS NULL OR r.created > ?1 \
+             ORDER BY r.created DESC, r.page DESC, r.rev DESC LIMIT ?2",
+        )?;
+        let rows = statement.query_map(params![since, limit], |row| {
+            Ok(LogEntry {
+                slug: row.get(0)?,
+                title: row.get(1)?,
+                rev: row.get(2)?,
+                author: row.get(3)?,
+                created: row.get(4)?,
+                note: row.get(5)?,
+                size: row.get(6)?,
+                private_to: row.get(7)?,
+            })
+        })?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
+    }
+
+    /// Pages `owner` owns whose newest revision is someone else's, written after `since`
+    /// (any time when `None`), most recent first.
+    ///
+    /// # Errors
+    ///
+    /// Only on database errors.
+    pub fn pages_changed(&self, owner: &str, since: Option<i64>) -> Result<Vec<PageChange>, AppError> {
+        let sql = format!(
+            "SELECT {PAGE_COLUMNS}, \
+                    (SELECT max(rev) FROM page_revisions WHERE page = pg.id AND author = :owner) \
+             FROM {PAGE_FROM} \
+             WHERE pg.owner = :owner AND r.author != :owner \
+               AND (:since IS NULL OR r.created > :since) \
+             ORDER BY r.created DESC"
+        );
+        let mut statement = self.conn.prepare_cached(&sql)?;
+        let rows = statement.query_map(
+            named_params! { ":rev": None::<i64>, ":owner": owner, ":since": since },
+            |row| {
+                Ok(PageChange {
+                    info: info_from_row(row)?,
+                    own_rev: row.get(12)?,
+                })
+            },
+        )?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
+    }
+
     /// Writes a page as `author`: creates it (rev 1) or adds a revision.
     ///
     /// A new page made by a private agent is private to it. A private agent writes only its
@@ -532,6 +689,7 @@ impl Board {
 mod tests {
     use super::*;
     use crate::db::SearchQuery;
+    use crate::diff::Change;
 
     fn write(slug: &str, body: &str, base_rev: Option<i64>) -> PageWrite {
         PageWrite {
@@ -947,5 +1105,48 @@ mod tests {
             ..SearchQuery::default()
         };
         assert_eq!(board.search(&kind).unwrap().len(), 1);
+    }
+
+    #[test]
+    fn diffs_logs_and_changes_for_the_owner() {
+        let board = Board::open_in_memory().unwrap();
+        assert!(board.write_page("saya", &write("log", "x", None), false).is_err());
+        board.write_page("tsugumi-lab", &write("mod/ea", "a\nb\nc\n", None), false).unwrap();
+        board.write_page("saya", &write("mod/stasis", "s", None), false).unwrap();
+        assert!(board.pages_changed("tsugumi-lab", None).unwrap().is_empty());
+
+        let mut edit = write("mod/ea", "a\nB\nc\n", Some(1));
+        edit.title = Some("New title".into());
+        board.write_page("saya", &edit, false).unwrap();
+        board.write_page("tsugumi-minecraft", &write("mod/ea", "a\nB\nc\nd\n", Some(2)), false).unwrap();
+
+        let diff = board.page_diff("mod/ea", 1, None).unwrap();
+        assert_eq!((diff.from, diff.to, diff.current_rev), (1, 3, 3));
+        assert_eq!(diff.authors, ["saya", "tsugumi-minecraft"]);
+        assert_eq!(diff.fields, ["title: Title of mod/ea → New title"]);
+        let changes: Vec<(Change, &str)> = diff.hunks[0]
+            .lines
+            .iter()
+            .map(|line| (line.change, line.text.as_str()))
+            .collect();
+        assert_eq!(changes, [(Change::Same, "a"), (Change::Removed, "b"), (Change::Added, "B"),
+                             (Change::Same, "c"), (Change::Added, "d")]);
+        assert_eq!(board.page_diff("mod/ea", 2, Some(2)).unwrap().hunks.len(), 0);
+        assert!(matches!(board.page_diff("mod/ea", 9, None), Err(AppError::NotFound(_))));
+
+        let log = board.page_log(None, None).unwrap();
+        let revs: Vec<(&str, i64)> = log.iter().map(|e| (e.slug.as_str(), e.rev)).collect();
+        // All in the same second here, so by page and then newest revision first.
+        assert_eq!(revs, [("mod/stasis", 1), ("mod/ea", 3), ("mod/ea", 2), ("mod/ea", 1)]);
+        assert_eq!(board.page_log(None, Some(1)).unwrap().len(), 1);
+        assert!(board.page_log(Some(now() + 10), None).unwrap().is_empty());
+
+        let changed = board.pages_changed("tsugumi-lab", None).unwrap();
+        assert_eq!(changed.len(), 1);
+        assert_eq!((changed[0].info.slug.as_str(), changed[0].own_rev), ("mod/ea", Some(1)));
+        assert!(board.pages_changed("tsugumi-lab", Some(now() + 10)).unwrap().is_empty());
+        // Once the owner writes the newest revision, it's no longer news.
+        board.write_page("tsugumi-lab", &write("mod/ea", "done\n", Some(3)), false).unwrap();
+        assert!(board.pages_changed("tsugumi-lab", None).unwrap().is_empty());
     }
 }

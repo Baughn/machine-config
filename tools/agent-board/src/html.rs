@@ -19,7 +19,8 @@ use crate::db::{Board, SearchQuery, Thread, ThreadFilter, Todo, TodoFilter, Todo
 use crate::digest;
 use crate::discord::ArchivedMessage;
 use crate::error::AppError;
-use crate::pages::{PageFilter, PageInfo};
+use crate::diff::Change;
+use crate::pages::{LogEntry, PageDiff, PageFilter, PageInfo};
 use crate::status::{Level, StatusCard};
 use crate::web;
 
@@ -47,6 +48,9 @@ table { border-collapse: collapse; width: 100%; } td, th { padding: .3rem .5rem;
 li.lvl-warn, li.lvl-alert { list-style: square; }
 pre { background: #f2f2f2; padding: .5rem; overflow-x: auto; }
 code { background: #f2f2f2; }
+.diff { padding: 0; } .diff div { white-space: pre-wrap; padding: 0 .5rem; }
+.diff .hunk { color: #666; background: #e8eef7; } .diff .removed { background: #fbe3e4; }
+.diff .added { background: #e3f6e3; }
 ";
 
 /// The HTML routes.
@@ -64,6 +68,8 @@ pub fn router(state: AppState) -> Router {
         .route("/day", get(discord_today))
         .route("/day/{day}", get(discord_day))
         .route("/w", get(wiki_index))
+        // Before the wildcard; the slug `log` is reserved.
+        .route("/w/log", get(wiki_log))
         // The slug's segments are the rest of the path.
         .route("/w/{*slug}", get(wiki_page))
         .route_layer(axum::middleware::from_fn_with_state(
@@ -604,6 +610,7 @@ async fn wiki_index(
         "",
         html! {
             h3 { (heading) }
+            p.meta { a href="/w/log" { "Recent changes" } }
             (wiki_index_html(&pages))
         },
     ))
@@ -627,9 +634,76 @@ fn source_html(source: &str) -> Markup {
     }
 }
 
+fn wiki_log_html(entries: &[LogEntry]) -> Markup {
+    html! {
+        table {
+            @for entry in entries {
+                tr {
+                    td.meta { (time(entry.created)) }
+                    td {
+                        a href={ "/w/" (entry.slug) } { (entry.slug) } " "
+                        @if entry.rev > 1 {
+                            a href={ "/w/" (entry.slug) "?rev=" (entry.rev) "&diff=" (entry.rev - 1) } {
+                                "rev " (entry.rev)
+                            }
+                        } @else {
+                            "new page"
+                        }
+                        br; span.meta { (entry.title) }
+                    }
+                    td { (entry.author) }
+                    td { (entry.note) }
+                }
+            }
+        }
+        @if entries.is_empty() { p { "No changes." } }
+    }
+}
+
+async fn wiki_log(State(state): State<AppState>) -> Result<Markup, AppError> {
+    let entries = state
+        .with_board(move |board| board.page_log(None, None))
+        .await?;
+    Ok(page(
+        "Wiki changes",
+        "",
+        html! {
+            h3 { "Recent wiki changes" }
+            (wiki_log_html(&entries))
+        },
+    ))
+}
+
+fn diff_html(diff: &PageDiff) -> Markup {
+    html! {
+        p.meta {
+            "Changes from rev " (diff.from) " to rev " (diff.to)
+            @if !diff.authors.is_empty() { ", by " (diff.authors.join(", ")) }
+        }
+        @if !diff.fields.is_empty() { ul { @for field in &diff.fields { li { (field) } } } }
+        @if diff.hunks.is_empty() {
+            p { "The body didn't change." }
+        }
+        @for hunk in &diff.hunks {
+            pre.diff {
+                div.hunk { "@@ line " (hunk.old_line) " → " (hunk.new_line) " @@" }
+                @for line in &hunk.lines {
+                    @match line.change {
+                        Change::Same => div { " " (line.text) },
+                        Change::Removed => div.removed { "-" (line.text) },
+                        Change::Added => div.added { "+" (line.text) },
+                    }
+                }
+            }
+        }
+    }
+}
+
 #[derive(Deserialize)]
 struct RevQuery {
     rev: Option<i64>,
+    /// Show the changes from this revision to `rev` instead of the body.
+    diff: Option<i64>,
 }
 
 async fn wiki_page(
@@ -637,9 +711,13 @@ async fn wiki_page(
     Path(slug): Path<String>,
     Query(query): Query<RevQuery>,
 ) -> Result<Markup, AppError> {
-    let (wiki, revisions) = state
+    let (wiki, revisions, diff) = state
         .with_board(move |board| {
-            Ok((board.page(&slug, query.rev)?, board.page_revisions(&slug)?))
+            let diff = match query.diff {
+                Some(from) => Some(board.page_diff(&slug, from, query.rev)?),
+                None => None,
+            };
+            Ok((board.page(&slug, query.rev)?, board.page_revisions(&slug)?, diff))
         })
         .await?;
     let info = &wiki.info;
@@ -659,7 +737,12 @@ async fn wiki_page(
                     " · " strong { "an old revision" } "; " a href=(link) { "the current one" }
                 }
             }
-            (markdown(&wiki.body))
+            @if let Some(diff) = &diff {
+                (diff_html(diff))
+                p { a href={ (link) "?rev=" (info.rev) } { "Show rev " (info.rev) } }
+            } @else {
+                (markdown(&wiki.body))
+            }
             @if !wiki.sources.is_empty() {
                 h4 { "Sources" }
                 ul { @for source in &wiki.sources { li { (source_html(source)) } } }
@@ -669,6 +752,13 @@ async fn wiki_page(
                 @for revision in &revisions {
                     tr.focus[revision.rev == info.rev] {
                         td { a href={ (link) "?rev=" (revision.rev) } { "rev " (revision.rev) } }
+                        td {
+                            @if revision.rev > 1 {
+                                a href={ (link) "?rev=" (revision.rev) "&diff=" (revision.rev - 1) } {
+                                    "diff"
+                                }
+                            }
+                        }
                         td { (revision.author) }
                         td.meta { (time(revision.created)) }
                         td { (revision.note) }
@@ -973,6 +1063,21 @@ mod tests {
         assert!(current.contains(r#"href="/d/1564239183692959820""#), "{current}");
         assert!(current.contains(r#"href="/w/mod/ea?rev=1""#), "{current}");
         assert!(current.contains("note for First **zebra**."), "{current}");
+        assert!(current.contains(r#"href="/w/mod/ea?rev=2&amp;diff=1""#), "{current}");
+
+        let (status, diff) = get("/w/mod/ea?rev=2&diff=1").await;
+        assert_eq!(status, StatusCode::OK);
+        assert!(diff.contains("Changes from rev 1 to rev 2, by saya"), "{diff}");
+        assert!(diff.contains(r#"<div class="removed">-First **zebra**.</div>"#), "{diff}");
+        assert!(diff.contains(r#"<div class="added">+Second zebra.</div>"#), "{diff}");
+        assert!(!diff.contains("<strong>zebra</strong>"), "a diff shows source, not the page");
+        assert_eq!(get("/w/mod/ea?diff=7").await.0, StatusCode::NOT_FOUND);
+
+        let (status, log) = get("/w/log").await;
+        assert_eq!(status, StatusCode::OK);
+        let newest = log.find(r#"href="/w/sec/watch""#).unwrap();
+        let second = log.find(r#"href="/w/mod/ea?rev=2&amp;diff=1""#).unwrap();
+        assert!(newest < second && log.contains("new page"), "{log}");
         let (_, old) = get("/w/mod/ea?rev=1").await;
         assert!(old.contains("rev 1 of 2") && old.contains("<strong>zebra</strong>"), "{old}");
         assert!(old.contains("an old revision"), "{old}");

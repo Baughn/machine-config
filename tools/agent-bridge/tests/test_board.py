@@ -10,7 +10,7 @@ from aiohttp import web
 import pytest
 
 from agent_bridge import bridge as bridge_module
-from agent_bridge.board import (BoardClient, BoardConfig, BoardError, BoardTools, age, briefing_text,
+from agent_bridge.board import (BoardClient, BoardConfig, BoardError, BoardTools, age, briefing_text, diff_text,
                                 page_line, page_text, search_text, thread_line, thread_text, todo_line, unix)
 from agent_bridge.bridge import Bridge
 from agent_bridge.config import Board, ConfigError, parse
@@ -30,6 +30,10 @@ PAGE = {"slug": "mod/ea", "title": "Enchanting Apocalypse", "description": "Kits
         "owner": "tsugumi-minecraft", "tags": ["mod"], "rev": 3, "current_rev": 3, "created": 1790000000,
         "updated": 1790946000, "updated_by": "saya", "size": 17, "body": "Kits keep length.\n",
         "note": "found the cause", "sources": ["#35", "1564239183692959820"]}
+DIFF = {"slug": "mod/ea", "title": "Enchanting Apocalypse", "from": 2, "to": 3, "current_rev": 3,
+        "authors": ["saya"], "fields": ["title: EA → Enchanting Apocalypse"],
+        "hunks": [{"old_line": 1, "new_line": 1, "lines": [{"change": "removed", "text": "Kits break."},
+                                                             {"change": "added", "text": "Kits keep length."}]}]}
 EMPTY_BRIEFING = {"agent": "x", "since": None, "asks": [], "waiting_on_you": [],
                   "waiting_on_others": [], "due": [], "changed": []}
 
@@ -74,6 +78,8 @@ class FakeBoard:
             return web.json_response([])
         if path == "/pages":
             return web.json_response({"pages": [PAGE] if request.query.get("prefix") != "none/" else []})
+        if path == "/page/diff":
+            return web.json_response(DIFF)
         if path == "/page" and request.method == "GET":
             if request.query.get("rev") == "1":
                 return web.json_response({**PAGE, "rev": 1, "note": "", "sources": []})
@@ -239,7 +245,7 @@ async def test_wiki_tools(board: tuple[FakeBoard, Path], tmp_path: Path) -> None
 
     with pytest.raises(BoardError, match="at rev 3 .* read it again"):
         await tools.call("wiki_write", {"slug": "mod/ea", "body": "x", "base_rev": 2, "note": "n"})
-    with pytest.raises(BoardError, match="exactly one of body and path"):
+    with pytest.raises(BoardError, match="exactly one of body, path and edits"):
         await tools.call("wiki_write", {"slug": "mod/ea", "note": "n"})
     with pytest.raises(BoardError, match="note is required"):
         await tools.call("wiki_write", {"slug": "mod/ea", "body": "x", "note": " "})
@@ -250,12 +256,58 @@ async def test_wiki_tools(board: tuple[FakeBoard, Path], tmp_path: Path) -> None
         await tools.call("wiki_write", {"slug": "mod/ea", "path": str(tmp_path / "blob.bin"), "note": "n"})
 
 
+def test_diff_text() -> None:
+    assert diff_text(DIFF) == (
+        "mod/ea: changes from rev 2 to rev 3, by saya (current rev 3)\nchanged title: EA → Enchanting Apocalypse\n"
+        "@@ line 1 -> 1 @@\n-Kits break.\n+Kits keep length.")
+    assert diff_text({**DIFF, "authors": [], "fields": [], "hunks": []}).endswith("(the body is unchanged)")
+    many = {**DIFF, "hunks": [{"old_line": 1, "new_line": 1,
+                               "lines": [{"change": "same", "text": str(n)} for n in range(500)]}]}
+    assert diff_text(many).endswith("\n 398\n... 101 more lines; wiki_read the page for all of it")
+    changed = {**PAGE, "own_rev": 2}
+    text = briefing_text({**EMPTY_BRIEFING, "pages_changed": [changed, {**PAGE, "own_rev": None}]})
+    assert "Your wiki pages someone else changed" in text
+    assert "- mod/ea rev 3 by saya, 2026-10-02 13:00Z; your last was rev 2\n- mod/ea rev 3 by saya, " in text
+
+
+async def test_wiki_edits_and_diffs(board: tuple[FakeBoard, Path], tmp_path: Path) -> None:
+    fake, socket = board
+    tools = tools_for(socket, tmp_path)
+    assert (await tools.call("wiki_read", {"slug": "mod/ea", "diff_from": 2})).startswith("mod/ea: changes from")
+    assert fake.requests[-1][1:3] == ("/page/diff", {"slug": "mod/ea", "from": "2"})
+    await tools.call("wiki_read", {"slug": "mod/ea", "diff_from": 1, "rev": 2})
+    assert fake.requests[-1][2] == {"slug": "mod/ea", "from": "1", "to": "2"}
+
+    edits = [{"old": "Kits", "new": "EA kits"}, {"old": "length.", "new": "their length."}]
+    await tools.call("wiki_write", {"slug": "mod/ea", "edits": edits, "base_rev": 3, "note": "n"})
+    assert fake.requests[-2][1:3] == ("/page", {"slug": "mod/ea", "rev": "3"})
+    assert fake.requests[-1][3] == {"slug": "mod/ea", "body": "EA kits keep their length.\n", "note": "n",
+                                    "base_rev": 3}
+    with pytest.raises(BoardError, match="edits need base_rev"):
+        await tools.call("wiki_write", {"slug": "mod/ea", "edits": edits, "note": "n"})
+    with pytest.raises(BoardError, match="edit 1: its old text occurs 0 times in rev 3; it must occur exactly"):
+        await tools.call("wiki_write", {"slug": "mod/ea", "edits": [{"old": "nope", "new": ""}], "base_rev": 3,
+                                        "note": "n"})
+    with pytest.raises(BoardError, match="edit 2: its old text occurs 2 times in rev 3 after the earlier edits"):
+        await tools.call("wiki_write", {"slug": "mod/ea", "edits": [{"old": "Kits", "new": "zz zz"},
+                                                                    {"old": "zz", "new": "x"}],
+                                        "base_rev": 3, "note": "n"})
+    with pytest.raises(BoardError, match="edit 1: give old"):
+        await tools.call("wiki_write", {"slug": "mod/ea", "edits": [{"old": "", "new": "x"}], "base_rev": 3,
+                                        "note": "n"})
+    with pytest.raises(BoardError, match="exactly one of"):
+        await tools.call("wiki_write", {"slug": "mod/ea", "edits": edits, "body": "x", "base_rev": 3, "note": "n"})
+
+
 async def test_a_wiki_conflict_is_a_tool_error(board: tuple[FakeBoard, Path], tmp_path: Path) -> None:
     _, socket = board
     h = Harness(tmp_path)
     h.bridge.board = tools_for(socket, tmp_path)
-    with pytest.raises(ToolError, match="board: page mod/ea is at rev 3 .* not 2: read it again"):
+    with pytest.raises(ToolError, match="board: page mod/ea is at rev 3 .* not 2: read it again") as raised:
         await h.bridge.tool_board("wiki_write", {"slug": "mod/ea", "body": "x", "base_rev": 2, "note": "n"})
+    # The error shows what changed since base_rev, so the change can be reapplied at once.
+    assert "What changed since your base_rev:\nmod/ea: changes from rev 2 to rev 3" in str(raised.value)
+    assert "+Kits keep length.\n\nReapply your change with base_rev 3." in str(raised.value)
 
 
 async def test_tools_report_errors(board: tuple[FakeBoard, Path], tmp_path: Path) -> None:

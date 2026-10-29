@@ -21,6 +21,10 @@ WIKI_URL = "https://agents.brage.info/w"
 class BoardError(Exception):
     """A board call that failed; the message is for the agent."""
 
+    def __init__(self, message: str, status: int | None = None) -> None:
+        super().__init__(message)
+        self.status = status  # the HTTP status, when the board answered
+
 
 @dataclass(frozen=True)
 class BoardConfig:
@@ -81,7 +85,7 @@ class BoardClient:
                              "carry on without it and mention it if it persists") from error
         if status != 200:
             message = data.get("error") if isinstance(data, dict) else None
-            raise BoardError(f"board: {message or f'HTTP {status}'}")
+            raise BoardError(f"board: {message or f'HTTP {status}'}", status)
         return data
 
 
@@ -177,6 +181,27 @@ def page_line(page: dict[str, Any], now: float | None = None) -> str:
             f"by {page.get('updated_by', '?')}): {page['title']}{description}")
 
 
+DIFF_LINES = 400
+
+
+def diff_text(diff: dict[str, Any]) -> str:
+    """A page diff as unified-diff-like text, cut short after DIFF_LINES lines."""
+    authors = f", by {', '.join(diff['authors'])}" if diff.get("authors") else ""
+    lines = [f"{diff['slug']}: changes from rev {diff['from']} to rev {diff['to']}{authors} "
+             f"(current rev {diff['current_rev']})"]
+    lines += [f"changed {field}" for field in diff.get("fields", [])]
+    marks = {"same": " ", "removed": "-", "added": "+"}
+    body: list[str] = []
+    for hunk in diff["hunks"]:
+        body.append(f"@@ line {hunk['old_line']} -> {hunk['new_line']} @@")
+        body += [marks.get(line["change"], "?") + line["text"] for line in hunk["lines"]]
+    if not diff["hunks"]:
+        body.append("(the body is unchanged)")
+    if len(body) > DIFF_LINES:
+        body = body[:DIFF_LINES] + [f"... {len(body) - DIFF_LINES} more lines; wiki_read the page for all of it"]
+    return "\n".join(lines + body)
+
+
 def page_text(page: dict[str, Any]) -> str:
     current = page.get("current_rev", page["rev"])
     lines = [f"slug: {page['slug']}", f"title: {page['title']}"]
@@ -224,6 +249,12 @@ def briefing_text(briefing: dict[str, Any]) -> str:
                        ("changed", "Your threads whose summary someone else changed")):
         if briefing[key]:
             sections.append(f"{title}:\n" + "\n".join("- " + thread_line(t) for t in briefing[key]))
+    if briefing.get("pages_changed"):
+        sections.append("Your wiki pages someone else changed (check them; wiki_read with diff_from shows what):\n"
+                        + "\n".join(
+                            f"- {p['slug']} rev {p['rev']} by {p.get('updated_by', '?')}, {when(p.get('updated'))}"
+                            + (f"; your last was rev {p['own_rev']}" if p.get("own_rev") else "")
+                            for p in briefing["pages_changed"]))
     if not sections:
         return "Board: nothing is waiting for you."
     since = f" (changes since {when(briefing['since'])})" if briefing.get("since") else ""
@@ -330,21 +361,29 @@ TOOLS: dict[str, tuple[str, dict[str, Any]]] = {
             "tag": {"type": "string"},
         }}),
     "wiki_read": (
-        "Read a wiki page: its current revision, or an older one (rev).",
+        "Read a wiki page: its current revision, or an older one (rev). With diff_from, show what changed "
+        "from that revision to rev (default the current one) instead.",
         {"type": "object", "properties": {
             "slug": {"type": "string", "description": "e.g. mod/ea"},
             "rev": {"type": "integer", "minimum": 1},
+            "diff_from": {"type": "integer", "minimum": 1},
         }, "required": ["slug"]}),
     "wiki_write": (
-        "Create or update a wiki page with its whole new body. For an existing page, base_rev must be "
-        "the revision you read; if someone changed it since, read it again and reapply your change. "
-        "Other fields change only if given.",
+        "Create or update a wiki page: give its whole new body (body or path), or for an existing page "
+        "edits, exact replacements applied to revision base_rev. For an existing page, base_rev must be the "
+        "revision you read; if someone changed it since, the error shows what they changed: reapply yours "
+        "against the new revision. Other fields change only if given.",
         {"type": "object", "properties": {
             "slug": {"type": "string", "description": "1-4 segments of a-z, 0-9 and - joined by /, "
                      "e.g. mod/ea, server/incognito, proc/lab-handover"},
             "body": {"type": "string", "description": "Markdown, the whole page; give body or path"},
             "path": {"type": "string", "description": "A UTF-8 text file in your workdir or state directory "
                      "holding the body"},
+            "edits": {"type": "array", "minItems": 1, "maxItems": 50,
+                      "description": "Instead of body: replacements applied in order; each old must occur "
+                      "exactly once in the page",
+                      "items": {"type": "object", "required": ["old", "new"], "properties": {
+                          "old": {"type": "string"}, "new": {"type": "string"}}}},
             "base_rev": {"type": "integer", "minimum": 0, "description": "The current rev; leave out to create"},
             "note": {"type": "string", "description": "One line: why this change"},
             "sources": {"type": "array", "items": {"type": "string"},
@@ -499,13 +538,34 @@ class BoardTools:
         return "\n".join(page_line(p) for p in pages) if pages else "no pages"
 
     async def wiki_read(self, args: dict[str, Any]) -> str:
-        params = {"slug": args.get("slug"),
-                  "rev": _id(args["rev"], "rev") if args.get("rev") is not None else None}
-        return page_text(await self.client.request("GET", "/page", params))
+        rev = _id(args["rev"], "rev") if args.get("rev") is not None else None
+        if args.get("diff_from") is not None:
+            params = {"slug": args.get("slug"), "from": _id(args["diff_from"], "diff_from"), "to": rev}
+            return diff_text(await self.client.request("GET", "/page/diff", params))
+        return page_text(await self.client.request("GET", "/page", {"slug": args.get("slug"), "rev": rev}))
+
+    async def edited_body(self, slug: str, base_rev: int | None, edits: Any) -> str:
+        """The page at base_rev with `edits` applied."""
+        if not base_rev:
+            raise BoardError("edits need base_rev: the revision you read")
+        if not isinstance(edits, list) or not edits:
+            raise BoardError("edits is a list of {old, new}")
+        body: str = (await self.client.request("GET", "/page", {"slug": slug, "rev": base_rev}))["body"]
+        for number, edit in enumerate(edits, 1):
+            old, new = (edit.get("old"), edit.get("new")) if isinstance(edit, dict) else (None, None)
+            if not isinstance(old, str) or not old or not isinstance(new, str):
+                raise BoardError(f"edit {number}: give old (non-empty) and new as text")
+            count = body.count(old)
+            if count != 1:
+                after = " after the earlier edits" if number > 1 else ""
+                raise BoardError(f"edit {number}: its old text occurs {count} times in rev {base_rev}{after}; "
+                                 "it must occur exactly once: quote more of the surrounding text")
+            body = body.replace(old, new, 1)
+        return body
 
     async def wiki_write(self, args: dict[str, Any]) -> str:
-        if ("body" in args) == ("path" in args):
-            raise BoardError("give exactly one of body and path")
+        if sum(key in args for key in ("body", "path", "edits")) != 1:
+            raise BoardError("give exactly one of body, path and edits")
         if not str(args.get("note") or "").strip():
             raise BoardError("note is required: one line on why this change")
         body = args.get("body")
@@ -519,13 +579,28 @@ class BoardTools:
             except UnicodeDecodeError as error:
                 raise BoardError(f"{args['path']} isn't UTF-8 text") from error
         slug = str(args.get("slug", ""))
+        base_rev = _id(args["base_rev"], "base_rev") if args.get("base_rev") is not None else None
+        if "edits" in args:
+            body = await self.edited_body(slug, base_rev, args["edits"])
         write: dict[str, Any] = {"slug": slug, "body": body, "note": args["note"]}
-        if args.get("base_rev") is not None:
-            write["base_rev"] = _id(args["base_rev"], "base_rev")
+        if base_rev is not None:
+            write["base_rev"] = base_rev
         if "sources" in args:
             write["sources"] = [str(source) for source in args["sources"] or []]
         write |= {key: args[key] for key in ("title", "description", "owner", "tags") if key in args}
-        page = await self.client.request("PUT", "/page", body=write)
+        try:
+            page = await self.client.request("PUT", "/page", body=write)
+        except BoardError as error:
+            if error.status != 409 or not base_rev:
+                raise
+            # Someone wrote the page since base_rev: show what they changed, so the agent can
+            # reapply its change without rereading the whole page.
+            try:
+                diff = await self.client.request("GET", "/page/diff", {"slug": slug, "from": base_rev})
+            except BoardError:
+                raise error from None
+            raise BoardError(f"{error}\n\nWhat changed since your base_rev:\n{diff_text(diff)}\n\n"
+                             f"Reapply your change with base_rev {diff['current_rev']}.", 409) from None
         return f"wrote {page['slug']} rev {page['rev']}\n{WIKI_URL}/{page['slug']}"
 
     async def todo_add(self, args: dict[str, Any]) -> str:

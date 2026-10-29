@@ -7,6 +7,7 @@
 
 mod api;
 mod db;
+mod diff;
 mod digest;
 mod discord;
 mod error;

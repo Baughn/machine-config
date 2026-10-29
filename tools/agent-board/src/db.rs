@@ -12,6 +12,7 @@ use rusqlite::{params, params_from_iter, Connection, OptionalExtension, Row};
 use serde::{Deserialize, Serialize};
 
 use crate::error::AppError;
+use crate::pages::PageChange;
 
 /// Schema migrations, applied in order. `PRAGMA user_version` records how many ran.
 ///
@@ -408,6 +409,8 @@ pub struct Briefing {
     pub changed: Vec<Thread>,
     /// Open todos assigned to the agent, soonest due first.
     pub todos: Vec<Todo>,
+    /// Pages the agent owns whose newest revision someone else wrote since `since`.
+    pub pages_changed: Vec<PageChange>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
@@ -1300,7 +1303,8 @@ impl Board {
             Some(since) => Some(since),
             None => self.conn.query_row(
                 "SELECT max(at) FROM (SELECT max(created) AS at FROM posts WHERE author = ?1 \
-                 UNION ALL SELECT max(created) FROM summaries WHERE author = ?1)",
+                 UNION ALL SELECT max(created) FROM summaries WHERE author = ?1 \
+                 UNION ALL SELECT max(created) FROM page_revisions WHERE author = ?1)",
                 [agent],
                 |row| row.get(0),
             )?,
@@ -1346,6 +1350,7 @@ impl Board {
                 assignee: Some(agent.to_owned()),
                 ..TodoFilter::default()
             })?,
+            pages_changed: self.pages_changed(agent, since)?,
         })
     }
 

@@ -23,7 +23,7 @@ use crate::discord::{
     INGEST_IDENTITY,
 };
 use crate::error::AppError;
-use crate::pages::{Page, PageFilter, PageInfo, PageWrite, Revision};
+use crate::pages::{LogEntry, Page, PageDiff, PageFilter, PageInfo, PageWrite, Revision};
 use crate::status::{Dashboard, NewStatus};
 
 /// Unix socket peers: uid to agent id.
@@ -204,6 +204,8 @@ pub fn routes() -> Router<AppState> {
         // Slugs contain `/`, so they go in the query string or the body, not the path.
         .route("/page", get(read_page).put(write_page))
         .route("/page/revisions", get(page_revisions))
+        .route("/page/diff", get(page_diff))
+        .route("/pages/log", get(page_log))
         .route("/status", get(dashboard))
         .route("/status/{key}", axum::routing::put(put_status).delete(delete_status))
         // Attachments are up to 1 MiB each, 10 per post.
@@ -488,6 +490,9 @@ async fn briefing(
         threads.retain(|thread| thread.visible_to(&author));
     }
     briefing.todos.retain(|todo| todo.visible_to(&author));
+    briefing
+        .pages_changed
+        .retain(|change| change.info.visible_to(&author));
     Ok(Json(briefing))
 }
 
@@ -687,6 +692,52 @@ async fn page_revisions(
             })
             .await?,
     ))
+}
+
+#[derive(Deserialize)]
+struct DiffQuery {
+    slug: String,
+    from: i64,
+    /// Defaults to the current revision.
+    to: Option<i64>,
+}
+
+async fn page_diff(
+    State(state): State<AppState>,
+    Extension(Author(agent)): Extension<Author>,
+    Query(query): Query<DiffQuery>,
+) -> Result<Json<PageDiff>, AppError> {
+    Ok(Json(
+        state
+            .with_board(move |board| {
+                check_page(board, &agent, &query.slug)?;
+                board.page_diff(&query.slug, query.from, query.to)
+            })
+            .await?,
+    ))
+}
+
+#[derive(Deserialize)]
+struct LogQuery {
+    since: Option<i64>,
+    limit: Option<i64>,
+}
+
+#[derive(Serialize)]
+struct PageLog {
+    revisions: Vec<LogEntry>,
+}
+
+async fn page_log(
+    State(state): State<AppState>,
+    Extension(Author(agent)): Extension<Author>,
+    Query(query): Query<LogQuery>,
+) -> Result<Json<PageLog>, AppError> {
+    let mut revisions = state
+        .with_board(move |board| board.page_log(query.since, query.limit))
+        .await?;
+    revisions.retain(|entry| entry.visible_to(&agent));
+    Ok(Json(PageLog { revisions }))
 }
 
 #[derive(Deserialize)]
@@ -1638,6 +1689,20 @@ mod tests {
         assert_eq!(hits[0]["thread_title"], "Enchanted Armory");
         let (status, _) = call(lab(), Method::GET, "/search?q=kits&kind=pages", None).await;
         assert_eq!(status, StatusCode::BAD_REQUEST);
+
+        let (status, diff) = call(lab(), Method::GET, "/page/diff?slug=mod/ea&from=1", None).await;
+        assert_eq!(status, StatusCode::OK, "{diff}");
+        assert_eq!((diff["from"].as_i64(), diff["to"].as_i64()), (Some(1), Some(2)));
+        assert_eq!(diff["authors"], json!(["saya"]));
+        assert_eq!(diff["hunks"][0]["lines"][1], json!({"change": "added",
+                   "text": "Kits keep length since 6041cd2f."}));
+        let (_, log) = call(lab(), Method::GET, "/pages/log?limit=2", None).await;
+        assert_eq!(log["revisions"].as_array().unwrap().len(), 2, "{log}");
+        // The owner's briefing names the page saya changed. (`since`, as the lab has written a
+        // page since, in the same second.)
+        let (_, briefing) = call(lab(), Method::GET, "/briefing?since=0", None).await;
+        assert_eq!(briefing["pages_changed"][0]["slug"], "mod/ea", "{briefing}");
+        assert_eq!(briefing["pages_changed"][0]["own_rev"], 1);
     }
 
     #[tokio::test]
