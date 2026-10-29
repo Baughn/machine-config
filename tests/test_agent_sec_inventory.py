@@ -228,7 +228,9 @@ class Load(unittest.TestCase):
 class Auth(unittest.TestCase):
     def test_parse(self):
         entries = [
-            {"SYSLOG_IDENTIFIER": "sshd-session", "MESSAGE": "Accepted publickey for svein from 81.2.69.7 port 5000 ssh2: ED25519"},
+            {"SYSLOG_IDENTIFIER": "sshd-session", "MESSAGE": "Accepted publickey for svein from 81.2.69.7 port 5000 ssh2: ED25519 SHA256:abcDEF+/1"},
+            {"SYSLOG_IDENTIFIER": "sshd-session", "MESSAGE": "Accepted publickey for svein from 81.2.69.8 port 5001 ssh2: "
+             "ED25519-CERT SHA256:certKEY ID svein@kaho (serial 7) CA ED25519 SHA256:caKEY"},
             {"SYSLOG_IDENTIFIER": "sshd", "MESSAGE": "Failed password for invalid user admin from 81.2.69.9 port 1 ssh2"},
             {"SYSLOG_IDENTIFIER": "sshd", "MESSAGE": "Invalid user oracle from 81.2.69.10 port 2"},
             {"SYSLOG_IDENTIFIER": "sudo", "__REALTIME_TIMESTAMP": "2000000",
@@ -238,6 +240,10 @@ class Auth(unittest.TestCase):
         got = inventory.parse_auth(entries, b"k")
         self.assertEqual(got["ssh_accepted"][0]["user"], "svein")
         self.assertTrue(got["ssh_accepted"][0]["source"].startswith("src-"))
+        keys = sorted((a["key_type"], a["fingerprint"], a.get("cert_id"), a.get("cert_serial"), a.get("ca_fingerprint"))
+                      for a in got["ssh_accepted"])
+        self.assertEqual(keys, [("ED25519", "SHA256:abcDEF+/1", None, None, None),
+                                ("ED25519-CERT", "SHA256:certKEY", "svein@kaho", "7", "SHA256:caKEY")])
         self.assertNotIn("81.2.69.7", json.dumps(got))
         self.assertEqual(got["ssh_failed"]["total"], 2)
         self.assertEqual(got["ssh_failed"]["users"], {"admin": 1, "oracle": 1})

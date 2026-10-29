@@ -612,6 +612,8 @@ def load(out: Path) -> dict[str, object]:
 # so they appear as keyed hashes; the key is readable by root only, not by the agent.
 
 SSH_ACCEPTED = re.compile(r"^Accepted (\S+) for (\S+) from (\S+) port \d+")
+# The key sshd names after "ssh2:": type and fingerprint, and for a certificate its ID, serial and CA.
+SSH_KEY = re.compile(r"ssh2: (\S+) (SHA256:\S+)(?: ID (.*) \(serial (\d+)\) CA (\S+) (SHA256:\S+))?\s*$")
 SSH_FAILED = re.compile(r"^Failed (\S+) for (?:invalid user )?(\S+) from (\S+) port \d+")
 SSH_INVALID = re.compile(r"^Invalid user (\S*) from (\S+)")
 SUDO = re.compile(r"^\s*(\S+) : .*?USER=(\S+) ; COMMAND=(.*)$")
@@ -634,9 +636,13 @@ def hashed(key: bytes, host: str) -> str:
     return "src-" + hmac.new(key, host.encode(), hashlib.sha256).hexdigest()[:12]
 
 
+ACCEPTED_FIELDS = ("user", "method", "source", "key_type", "fingerprint", "cert_id", "cert_serial",
+                   "ca_type", "ca_fingerprint")
+
+
 def parse_auth(entries: list[dict[str, object]], key: bytes) -> dict[str, object]:
     """Journal entries (sshd, sudo, su, logind) -> who logged in, failures, sudo use."""
-    accepted: dict[tuple[str, str, str], int] = {}
+    accepted: dict[tuple[str, ...], int] = {}
     failed_users: dict[str, int] = {}
     failed_sources: dict[str, int] = {}
     sudo, su, sessions = [], [], {}
@@ -646,7 +652,9 @@ def parse_auth(entries: list[dict[str, object]], key: bytes) -> dict[str, object
         if ident.startswith("sshd"):
             match = SSH_ACCEPTED.match(message)
             if match:
-                k = (match.group(2), match.group(1), hashed(key, match.group(3)))
+                found = SSH_KEY.search(message)
+                k = (match.group(2), match.group(1), hashed(key, match.group(3)),
+                     *(g or "" for g in (found.groups() if found else ("",) * 6)))
                 accepted[k] = accepted.get(k, 0) + 1
                 continue
             match = SSH_FAILED.match(message) or SSH_INVALID.match(message)
@@ -667,7 +675,8 @@ def parse_auth(entries: list[dict[str, object]], key: bytes) -> dict[str, object
             if match:
                 sessions[match.group(1)] = sessions.get(match.group(1), 0) + 1
     return {
-        "ssh_accepted": [{"user": k[0], "method": k[1], "source": k[2], "count": n} for k, n in sorted(accepted.items())],
+        "ssh_accepted": [{name: value for name, value in zip(ACCEPTED_FIELDS, k) if value} | {"count": n}
+                         for k, n in sorted(accepted.items())],
         "ssh_failed": {"total": sum(failed_users.values()),
                        "users": dict(sorted(failed_users.items(), key=lambda i: -i[1])[:20]),
                        "top_prefixes": dict(sorted(failed_sources.items(), key=lambda i: -i[1])[:20])},
@@ -728,7 +737,8 @@ def auth(out: Path) -> dict[str, object]:
     data["files_since_last_run"] = compare(state.get("files") or {}, hashes)  # type: ignore[arg-type]
     data["generated"] = int(time.time())
     data["note"] = ("Since the previous run. ssh sources are keyed hashes (same address, same hash); "
-                    "new_ssh_sources: not seen in 30 days. Failed logins are counted by /24 or /48. "
+                    "new_ssh_sources: not seen in 30 days. "
+                    "ssh_accepted names the key (type, SHA256 fingerprint; for certificates ID, serial and CA). Failed logins are counted by /24 or /48. "
                     "files: sha256 prefixes of account and key files; files_since_last_run: what changed.")
     cursor = next((e.get("__CURSOR") for e in reversed(entries) if e.get("__CURSOR")), state.get("cursor"))
     write(out, ".auth-state.json", {"cursor": cursor, "files": hashes})
