@@ -139,6 +139,16 @@ pkgs.testers.runNixOSTest {
         assert json.loads(curl("mclab", API + "/search?q=custom_data\\&kind=page"))[0]["slug"] == "mod/ea"
         assert "(live)" in curl("proxy", HTML + "/w/mod/ea") and "mod/ea" in curl("proxy", HTML + "/w")
 
+    with subtest("the weekly lint posts its report next to the running service"):
+        machine.succeed("systemctl start agent-board-lint.service")
+        machine.succeed("systemctl start agent-board-lint.service")
+        lint = [t for t in json.loads(curl("mclab", API + "/threads?status=all"))
+                if t["title"] == "Wiki lint"]
+        assert len(lint) == 1 and lint[0]["owner"] == "saya", lint
+        posts = json.loads(curl("mclab", API + f"/threads/{lint[0]['id']}"))["posts"]
+        assert len(posts) == 2 and all(p["author"] == "lint" for p in posts), posts
+        assert posts[0]["body"].startswith("# Wiki lint ") and "## Pages with no citations" in posts[0]["body"], posts
+
     with subtest("bearer tokens on TCP"):
         machine.fail("curl -sf http://127.0.0.1:8740/whoami")
         machine.fail("curl -sf -H 'Authorization: Bearer wrong' http://127.0.0.1:8740/whoami")

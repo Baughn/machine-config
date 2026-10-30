@@ -12,6 +12,7 @@ mod digest;
 mod discord;
 mod error;
 mod html;
+mod lint;
 mod pages;
 mod status;
 mod web;
@@ -71,6 +72,17 @@ enum Command {
         /// Print the Discord ids of the humans with open todos instead, one per line.
         #[arg(long)]
         mentions: bool,
+    },
+    /// Print the weekly wiki lint report (stale threads, summaries, todos and pages), and
+    /// with --post also post it in the "Wiki lint" thread and print the post's id.
+    Lint {
+        #[arg(long)]
+        db: PathBuf,
+        /// The service config, for the roster that may own pages.
+        #[arg(long)]
+        config: PathBuf,
+        #[arg(long)]
+        post: bool,
     },
 }
 
@@ -341,6 +353,24 @@ fn todo_digest(db: &Path, config: &Path, mentions: bool) -> anyhow::Result<()> {
     Ok(())
 }
 
+fn lint(db: &Path, config: &Path, post: bool) -> anyhow::Result<()> {
+    let config = read_config(config)?;
+    let board = Board::open(db)?;
+    let roster: Vec<String> = config
+        .assignees
+        .agents
+        .iter()
+        .chain(&config.assignees.humans)
+        .cloned()
+        .collect();
+    let (report, posted) = lint::run(&board, &roster, post).map_err(error::AppError::into_anyhow)?;
+    match posted {
+        Some((thread, post)) => println!("posted #{post} in thread #{thread}"),
+        None => print!("{report}"),
+    }
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
@@ -362,6 +392,7 @@ async fn main() -> anyhow::Result<()> {
             config,
             mentions,
         } => todo_digest(&db, &config, mentions),
+        Command::Lint { db, config, post } => lint(&db, &config, post),
     }
 }
 

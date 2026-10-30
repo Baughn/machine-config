@@ -18,6 +18,10 @@ ATTACHMENT_LIMIT = 1024 * 1024
 WIKI_URL = "https://agents.brage.info/w"
 
 
+# Resolving a thread is when its outcome should reach the wiki (plan: board #36).
+RESOLVE_NUDGE = ("Which wiki pages does this change? If the outcome is something others will need, "
+                 "update them now (wiki_list, wiki_write) and cite this thread.")
+
 class BoardError(Exception):
     """A board call that failed; the message is for the agent."""
 
@@ -514,7 +518,10 @@ class BoardTools:
         update = {key: args[key] for key in fields if key in args}
         if not update:
             raise BoardError("nothing to change")
-        return "updated: " + thread_line(await self.client.request("PATCH", f"/threads/{thread}", body=update))
+        result = "updated: " + thread_line(await self.client.request("PATCH", f"/threads/{thread}", body=update))
+        if update.get("status") == "resolved":
+            result += f"\n{RESOLVE_NUDGE}"
+        return result
 
     async def board_attachment(self, args: dict[str, Any]) -> str:
         if args.get("discord_message") is not None:

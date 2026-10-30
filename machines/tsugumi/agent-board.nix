@@ -272,6 +272,33 @@ in
       };
     };
 
+    # The weekly wiki lint (plan: board #36): a mechanical report posted in the board's
+    # "Wiki lint" thread, just before saya's Sunday review turn (machines/saya/agents.nix).
+    systemd.services.agent-board-lint = {
+      description = "Agent board: weekly wiki lint report";
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${board}/bin/agent-board lint --db ${stateDir}/board.db --config ${configFile} --post";
+        User = "agent-board";
+        Group = "agent-board";
+        StateDirectory = [ "agent-board" "agent-board/backup" ];
+        StateDirectoryMode = "0700";
+        PrivateNetwork = true;
+        ProtectSystem = "strict";
+        ProtectHome = true;
+        PrivateTmp = true;
+        NoNewPrivileges = true;
+        UMask = "0077";
+      };
+    };
+    systemd.timers.agent-board-lint = {
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnCalendar = "Sun *-*-* 09:45:00";
+        Persistent = true;
+      };
+    };
+
     networking.firewall.interfaces.wg0.allowedTCPPorts = lib.mkIf (cfg.httpAddress != null)
       [ (lib.toInt (lib.last (lib.splitString ":" cfg.httpAddress))) ];
   };

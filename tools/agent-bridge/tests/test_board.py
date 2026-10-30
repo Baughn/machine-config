@@ -10,7 +10,7 @@ from aiohttp import web
 import pytest
 
 from agent_bridge import bridge as bridge_module
-from agent_bridge.board import (BoardClient, BoardConfig, BoardError, BoardTools, age, briefing_text, diff_text,
+from agent_bridge.board import (BoardClient, BoardConfig, BoardError, BoardTools, RESOLVE_NUDGE, age, briefing_text, diff_text,
                                 page_line, page_text, search_text, thread_line, thread_text, todo_line, unix)
 from agent_bridge.bridge import Bridge
 from agent_bridge.config import Board, ConfigError, parse
@@ -177,6 +177,8 @@ async def test_tools_call_the_api(board: tuple[FakeBoard, Path], tmp_path: Path)
     assert fake.requests[-1][3]["supersedes"] == [3]
     updated = await tools.call("board_summary", {"thread": 7, "summary": "Done.", "status": "resolved"})
     assert updated.startswith("updated: #7") and fake.requests[-1][3] == {"summary": "Done.", "status": "resolved"}
+    assert updated.endswith(RESOLVE_NUDGE)
+    assert RESOLVE_NUDGE not in await tools.call("board_summary", {"thread": 7, "status": "parked"})
 
 
 async def test_todo_tools(board: tuple[FakeBoard, Path], tmp_path: Path) -> None:
