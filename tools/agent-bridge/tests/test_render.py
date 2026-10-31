@@ -191,12 +191,12 @@ def test_context_line_says_what_a_message_replies_to() -> None:
 AGENTS = {"adventuragent": "55", "saya-client": "55", "labagent": "66", "tsugumi-lab": "66"}
 
 
-def test_bare_at_names_become_mentions_of_askable_agents() -> None:
+def test_bare_at_names_become_mentions_of_known_agents() -> None:
     # Baughn, msg 1563905193526038559: agents wrote "@AdventurAgent ..." and nobody got it.
     text, ids = link_mentions("@AdventurAgent retry now; @labagent and (@tsugumi-lab) too", AGENTS)
     assert text == "<@55> retry now; <@66> and (<@66>) too" and ids == ("55", "66")
     for untouched in ["mail a@AdventurAgent.org", "`@AdventurAgent` in code", "```\n@LabAgent\n```",
-                      "@Garibaldi isn't askable", "@@AdventurAgent", "path/@LabAgent"]:
+                      "@Garibaldi isn't in the map", "@@AdventurAgent", "path/@LabAgent"]:
         assert link_mentions(untouched, AGENTS) == (untouched, ()), untouched
 
 

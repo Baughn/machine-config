@@ -1144,11 +1144,12 @@ class Bridge:
 
     @property
     def addressable(self) -> dict[str, str]:
-        """The agents a bare @Name in a post mentions: those ask_agent may ask, by
-        lowercased id and display name."""
+        """The agents a bare @Name in a post mentions: every other agent on the roster, by
+        lowercased id and display name. Whether the mention starts its turn is up to that
+        agent's own triggers (Baughn, msg 1566145707025629275: least surprise)."""
         names: dict[str, str] = {}
         for agent in self.config.roster.agents:
-            if agent.name in self.config.ask_agents:
+            if agent.name != self.config.id:
                 names[agent.name.lower()] = agent.discord_id
                 if agent.display_name:
                     names[agent.display_name.lower()] = agent.discord_id

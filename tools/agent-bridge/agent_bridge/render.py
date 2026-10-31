@@ -168,8 +168,8 @@ def render_post(args: dict[str, Any], *, owner_id: str, roots: Roots,
     if MENTION.search(f"{headline}\n{overview}"):
         raise PostError("refused: the post contains a Discord mention (<@…>). Posts are sent with "
                         "mentions disabled, so it would neither ping nor trigger anyone. To address "
-                        "an agent you may ask, write @ and its name (e.g. @Saya): that becomes a "
-                        "mention and starts its turn. To wait for its answer, use ask_agent; to "
+                        "an agent, write @ and its name (e.g. @Saya): that becomes a real mention "
+                        "and starts its turn if it takes requests from you. To wait for its answer, use ask_agent; to "
                         "reach Baughn urgently, use kind alert.")
     entries = args.get("attachments") or []
     if not isinstance(entries, list) or len(entries) > MAX_ATTACHMENTS:

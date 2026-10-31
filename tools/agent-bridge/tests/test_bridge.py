@@ -828,6 +828,14 @@ async def test_a_session_lost_mid_turn_is_not_rolled_over_before_it_is_used(harn
     assert not harness.bridge.rollover_due()
 
 
+async def test_a_bare_at_name_mentions_any_other_agent(tmp_path: Path) -> None:
+    # Baughn, msg 1566145707025629275: @Garibaldi should ping even though nobody may ask it.
+    h = Harness(tmp_path)
+    out = h.bridge.render({"kind": "status", "headline": "@tsugumi-lab, done; @tsugumi-minecraft is me"})
+    assert out.content.startswith(f"💬 **<@{LAB}>, done; @tsugumi-minecraft is me**")
+    assert out.mention_users == (LAB,)
+
+
 # --- ask_agent -------------------------------------------------------------------
 
 
