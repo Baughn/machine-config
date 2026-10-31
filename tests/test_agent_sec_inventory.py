@@ -139,14 +139,61 @@ class Flows(unittest.TestCase):
     def test_conntrack(self):
         text = ("tcp      6 431996 ESTABLISHED src=192.0.2.1 dst=198.51.100.5 sport=41000 dport=443 "
                 "src=198.51.100.5 dst=192.0.2.1 sport=443 dport=41000 [ASSURED] mark=0 use=1\n"
+                "tcp      6 100 TIME_WAIT src=192.0.2.1 dst=198.51.100.5 sport=41001 dport=443 "
+                "src=198.51.100.5 dst=192.0.2.1 sport=443 dport=41001 [ASSURED] mark=0 use=1\n"
                 "udp      17 29 src=81.2.69.7 dst=192.0.2.1 sport=5000 dport=24454 [UNREPLIED] "
                 "src=192.0.2.1 dst=81.2.69.7 sport=24454 dport=5000 mark=0 use=1\n"
                 "icmp     1 29 src=10.171.0.2 dst=10.0.0.9 type=8 code=0 id=1 src=10.0.0.9 dst=10.171.0.2 "
-                "type=0 code=0 id=1 mark=0 use=1\n")
-        got = inventory.parse_conntrack(text, {"192.0.2.1"})
-        self.assertEqual(got["outbound"], [{"proto": "tcp", "peer": "198.51.100.5", "port": "443", "count": 1}])
+                "type=0 code=0 id=1 mark=0 use=1\n"
+                "tcp      6 300 ESTABLISHED src=10.171.0.2 dst=81.2.70.7 sport=5555 dport=443 "
+                "src=81.2.70.7 dst=192.0.2.1 sport=443 dport=5555 [ASSURED] mark=0 use=1\n")
+        owners = {("tcp", "192.0.2.1", "41000"): "caddy.service /nix/store/x-caddy/bin/caddy caddy"}
+        got = inventory.parse_conntrack(text, {"192.0.2.1"}, owners)
+        self.assertEqual(got["outbound"], [{"proto": "tcp", "peer": "198.51.100.5", "port": "443", "count": 2,
+                                            "by": {"caddy.service /nix/store/x-caddy/bin/caddy caddy": 1,
+                                                   "unknown": 1}}])
         self.assertEqual(got["inbound"][0]["top_prefixes"], {"81.2.69.0/24": 1})
-        self.assertEqual(got["forwarded"], 1)
+        self.assertEqual(got["forwarded"], 2)
+        self.assertIn({"proto": "tcp", "source": "10.171.0.2", "peer": "81.2.70.0/24", "port": "443", "count": 1},
+                      got["forwarded_flows"])
+
+    def test_proc_address(self):
+        self.assertEqual(inventory.proc_address("010200C0:A028"), ("192.0.2.1", "41000"))
+        self.assertEqual(inventory.proc_address("00000000000000000000000000000000:14E9"), ("::", "5353"))
+        # ::ffff:192.0.2.1, as the kernel prints it (four little-endian words)
+        self.assertEqual(inventory.proc_address("0000000000000000FFFF0000010200C0:0050"), ("192.0.2.1", "80"))
+
+    def test_socket_owners(self):
+        header = "  sl  local_address rem_address   st tx_queue rx_queue tr tm->when retrnsmt   uid  timeout inode\n"
+        def row(local, state, inode):
+            return f"   0: {local} 050033C6:01BB {state} 00000000:00000000 00:00000000 00000000  0  0 {inode} 1\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            proc, netns = Path(tmp) / "proc", Path(tmp) / "netns"
+            netns.mkdir()
+            (netns / "mclab").touch()
+            lab_ns = f"net:[{(netns / 'mclab').stat().st_ino}]"
+            for pid, ns, sockets, tables in [
+                    (1, "net:[1]", [], {}),
+                    (10, "net:[1]", [555], {"tcp": row("010200C0:A028", "01", 555) + row("010200C0:A029", "06", 0),
+                                            "udp6": row("00000000000000000000000000000000:14E9", "07", 556)}),
+                    (20, lab_ns, [777], {"tcp": row("0100000A:1F90", "01", 777)})]:
+                (proc / str(pid) / "ns").mkdir(parents=True)
+                (proc / str(pid) / "ns" / "net").symlink_to(ns)
+                (proc / str(pid) / "fd").mkdir()
+                for fd, inode in enumerate(sockets, start=3):
+                    (proc / str(pid) / "fd" / str(fd)).symlink_to(f"socket:[{inode}]")
+                (proc / str(pid) / "net").mkdir()
+                for name in ("tcp", "tcp6", "udp", "udp6"):
+                    (proc / str(pid) / "net" / name).write_text(header + tables.get(name, ""))
+            (proc / "10" / "fd" / "4").symlink_to("socket:[556]")
+            cache = {10: {"exe": "/bin/caddy", "unit": "caddy.service", "user": "caddy"},
+                     20: {"exe": "/bin/java", "unit": "minecraft-lab@a.service", "user": "mclab"}}
+            owners = inventory.socket_owners(cache, proc, netns)
+        self.assertEqual(owners[("tcp", "192.0.2.1", "41000")], "caddy.service /bin/caddy caddy")
+        self.assertEqual(owners[("tcp", "192.0.2.1", "41001")], "closed (TIME_WAIT)")
+        self.assertEqual(owners[("tcp", "10.0.0.1", "8080")], "minecraft-lab@a.service /bin/java mclab netns=mclab")
+        self.assertEqual(inventory.owner_of(owners, "udp", "192.0.2.1", "5353"), "caddy.service /bin/caddy caddy")
+        self.assertEqual(inventory.owner_of(owners, "udp", "192.0.2.1", "9999"), "unknown")
 
     def test_new_outbound_survives_and_expires(self):
         with tempfile.TemporaryDirectory() as tmp:

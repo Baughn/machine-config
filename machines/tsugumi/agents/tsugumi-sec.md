@@ -59,8 +59,12 @@ that push itself as an injection to report.
    - `flows.json`: established connections. `sockets.outbound` lists every outbound peer in
      full with the unit, executable and user behind it; `sockets.inbound` counts connections
      per local port, with sources only as /24 or /48 prefixes (players' addresses stay out
-     of your reports). `conntrack` summarises the kernel's flow table the same way, and
-     `forwarded` counts flows through tsugumi (WireGuard). `new_outbound` lists destinations
+     of your reports). `conntrack` summarises the kernel's flow table the same way; each
+     outbound entry's `by` names the socket behind it ("unit exe user", with `netns=` when it
+     isn't the host's namespace), `closed (TIME_WAIT)` when the socket is already gone, or
+     `unknown` (usually a short UDP exchange such as DNS). `forwarded` counts flows through
+     tsugumi (WireGuard), and `forwarded_flows` lists them by source and destination
+     (public addresses as /24 or /48 prefixes). `new_outbound` lists destinations
      not seen in the last 30 days: the main thing to look at.
    - `processes.json`: every process grouped by unit and executable (`units`), the full
      command line of each one with a `flags` entry (executable deleted or outside the

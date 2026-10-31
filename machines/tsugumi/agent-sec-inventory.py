@@ -383,37 +383,131 @@ def classify_sockets(rows: list[dict[str, object]], cache: dict[int, dict[str, s
 
 
 CONNTRACK = re.compile(r"^(\S+)\s+\d+\s+(?:\d+\s+)?(?:([A-Z_]+)\s+)?.*?src=(\S+) dst=(\S+)(?: sport=(\d+) dport=(\d+))?")
+# /proc/net/tcp states we name; the rest show as their hex code.
+TCP_STATES = {"01": "ESTABLISHED", "02": "SYN_SENT", "03": "SYN_RECV", "04": "FIN_WAIT1", "05": "FIN_WAIT2",
+              "06": "TIME_WAIT", "07": "CLOSE", "08": "CLOSE_WAIT", "09": "LAST_ACK", "0A": "LISTEN",
+              "0B": "CLOSING"}
+Owners = dict[tuple[str, str, str], str]
 
 
-def parse_conntrack(output: str, local: set[str]) -> dict[str, object]:
-    """conntrack -L lines, summarised: outbound destinations in full, inbound per port by prefix."""
-    outbound: dict[tuple[str, str, str], int] = {}
+def proc_address(text: str) -> tuple[str, str]:
+    """/proc/net/tcp's hex ADDR:PORT -> (host, port); IPv4-mapped v6 addresses come out as v4."""
+    host, port = text.split(":")
+    raw = bytes.fromhex(host)
+    if len(raw) == 4:
+        return str(ipaddress.IPv4Address(raw[::-1])), str(int(port, 16))
+    address = ipaddress.IPv6Address(b"".join(raw[i:i + 4][::-1] for i in range(0, 16, 4)))
+    return str(address.ipv4_mapped or address), str(int(port, 16))
+
+
+def parse_proc_net(text: str) -> list[tuple[str, str, str, int]]:
+    """/proc/PID/net/{tcp,udp}[6] -> (local host, local port, state, socket inode)."""
+    rows = []
+    for line in text.splitlines()[1:]:
+        fields = line.split()
+        if len(fields) < 10:
+            continue
+        host, port = proc_address(fields[1])
+        rows.append((host, port, TCP_STATES.get(fields[3], fields[3]), int(fields[9])))
+    return rows
+
+
+def socket_owners(cache: dict[int, dict[str, str]], proc: Path = Path("/proc"),
+                  netns_dir: Path = Path("/run/netns")) -> Owners:
+    """(proto, local host, local port) -> who holds that socket: "unit exe user", plus "netns=NAME" outside
+    the host's namespace, or "closed (TIME_WAIT)" when no process does. Reads every namespace's socket
+    tables through one of its processes, so sockets ss can't see from the host are found too."""
+    host_ns = ""
+    try:
+        host_ns = os.readlink(proc / "1/ns/net")
+    except OSError:
+        pass
+    names = {}
+    try:
+        for entry in netns_dir.iterdir():
+            names[f"net:[{entry.stat().st_ino}]"] = entry.name
+    except OSError:
+        pass
+    by_inode: dict[int, int] = {}
+    namespaces: dict[str, int] = {}
+    for pid_dir in proc.iterdir():
+        if not pid_dir.name.isdigit():
+            continue
+        pid = int(pid_dir.name)
+        try:
+            namespaces.setdefault(os.readlink(pid_dir / "ns/net"), pid)
+            for fd in (pid_dir / "fd").iterdir():
+                target = os.readlink(fd)
+                if target.startswith("socket:["):
+                    by_inode.setdefault(int(target[8:-1]), pid)
+        except OSError:
+            continue
+    owners: Owners = {}
+    for ns, ns_pid in sorted(namespaces.items(), key=lambda item: item[0] != host_ns):
+        where = "" if ns == host_ns else f" netns={names.get(ns) or ns}"
+        for proto in ("tcp", "udp"):
+            for suffix in ("", "6"):
+                try:
+                    rows = parse_proc_net((proc / str(ns_pid) / "net" / (proto + suffix)).read_text())
+                except OSError:
+                    continue
+                for host, port, state, inode in rows:
+                    pid = by_inode.get(inode)
+                    if pid is not None:
+                        info = owner(pid, cache)
+                        label = " ".join(info[k] or "-" for k in ("unit", "exe", "user"))
+                    else:
+                        label = f"closed ({state})" if inode == 0 else "no process"
+                    key = (proto, host, port)
+                    # The host namespace comes first; a live socket beats a closed one on the same port.
+                    if key not in owners or (pid is not None and owners[key].startswith(("closed", "no process"))):
+                        owners[key] = label + where
+    return owners
+
+
+def owner_of(owners: Owners, proto: str, host: str, port: str | None) -> str:
+    if port is None:
+        return "-"
+    wildcard = "::" if ":" in host else "0.0.0.0"
+    return owners.get((proto, host, port)) or owners.get((proto, wildcard, port)) \
+        or owners.get((proto, "::", port)) or "unknown"
+
+
+def parse_conntrack(output: str, local: set[str], owners: Owners | None = None) -> dict[str, object]:
+    """conntrack -L lines, summarised: outbound destinations in full with the sockets behind them,
+    inbound per port by prefix, forwarded flows by source and destination (each a prefix if public)."""
+    outbound: dict[tuple[str, str, str], dict[str, int]] = {}
     inbound: dict[tuple[str, str], dict[str, int]] = {}
-    forwarded = 0
+    forwarded: dict[tuple[str, str, str, str], int] = {}
     for line in output.splitlines():
         match = CONNTRACK.match(line.strip())
         if match is None:
             continue
-        proto, _, src, dst, _, dport = match.groups()
+        proto, _, src, dst, sport, dport = match.groups()
         dport = dport or "-"
         if src in local and dst in local:
             continue
         if src in local:
-            key = (proto, dst, dport)
-            outbound[key] = outbound.get(key, 0) + 1
+            by = outbound.setdefault((proto, dst, dport), {})
+            label = owner_of(owners or {}, proto, src, sport)
+            by[label] = by.get(label, 0) + 1
         elif dst in local:
             counts = inbound.setdefault((proto, dport), {})
             counts[prefix(src)] = counts.get(prefix(src), 0) + 1
         else:
-            forwarded += 1
+            key = (proto, prefix(src), prefix(dst), dport)
+            forwarded[key] = forwarded.get(key, 0) + 1
     return {
-        "outbound": [{"proto": k[0], "peer": k[1], "port": k[2], "count": n}
-                     for k, n in sorted(outbound.items(), key=lambda item: -item[1])[:200]],
+        "outbound": [{"proto": k[0], "peer": k[1], "port": k[2], "count": sum(by.values()),
+                      "by": dict(sorted(by.items(), key=lambda item: -item[1])[:5])}
+                     for k, by in sorted(outbound.items(), key=lambda item: -sum(item[1].values()))[:200]],
         "outbound_destinations": len(outbound),
         "inbound": [{"proto": k[0], "port": k[1], "flows": sum(c.values()), "sources": len(c),
                      "top_prefixes": dict(sorted(c.items(), key=lambda item: -item[1])[:10])}
                     for k, c in sorted(inbound.items(), key=lambda item: -sum(item[1].values()))[:50]],
-        "forwarded": forwarded,
+        "forwarded": sum(forwarded.values()),
+        "forwarded_flows": [{"proto": k[0], "source": k[1], "peer": k[2], "port": k[3], "count": n}
+                            for k, n in sorted(forwarded.items(), key=lambda item: -item[1])[:100]],
     }
 
 
@@ -444,7 +538,11 @@ def flows(out: Path) -> dict[str, object]:
         tracked.append(result.stdout)
         if result.returncode != 0:
             errors.append(f"{family}: exit {result.returncode}: {result.stderr.strip()[-300:]}")
-    data["conntrack"] = parse_conntrack("\n".join(tracked), local)
+    try:
+        owners: Owners | None = socket_owners({})
+    except OSError as error:
+        owners, errors = None, errors + [f"socket owners: {error}"]
+    data["conntrack"] = parse_conntrack("\n".join(tracked), local, owners)
     if errors:
         data["conntrack"]["error"] = errors  # type: ignore[index]
     sockets = data["sockets"]["outbound"]  # type: ignore[index]
