@@ -28,6 +28,20 @@ class GrantError(ValueError):
         self.code = code
 
 
+def grant_key(address, config):
+    """What a grant covers: an IPv4 address, or the IPv6 prefix (default /64) holding the
+    address, so IPv6 privacy addresses (RFC 8981), which rotate, stay covered."""
+    if "%" in address:
+        raise ValueError("Scoped addresses are not supported")
+    ip = ipaddress.ip_address(address)
+    if ip.version == 4:
+        return str(ip)
+    length = config.get("ipv6PrefixLength", 64)
+    if type(length) is not int or not 1 <= length <= 128:
+        raise ValueError("Invalid IPv6 prefix length")
+    return str(ipaddress.ip_network(f"{ip}/{length}", strict=False))
+
+
 class Grants:
     def __init__(self, config, directory, nft):
         self.config = config
@@ -46,9 +60,23 @@ class Grants:
         configured = self.config["groups"]
         reconciled = False
         for group, ip in db.execute("SELECT DISTINCT group_id, ip FROM grants").fetchall():
-            if group not in configured or ipaddress.ip_address(
-                ip
-            ).version not in configured[group].get("addressFamilies", [4, 6]):
+            network = ipaddress.ip_network(ip)
+            if group not in configured or network.version not in configured[group].get(
+                "addressFamilies", [4, 6]
+            ):
+                db.execute("DELETE FROM grants WHERE group_id=? AND ip=?", (group, ip))
+                reconciled = True
+                continue
+            # Grants from before prefixes (single IPv6 addresses), or from another prefix
+            # length, move to their current prefix, keeping the latest expiry.
+            key = grant_key(str(network.network_address), self.config)
+            if key != ip:
+                db.execute(
+                    "INSERT INTO grants SELECT user, ?, group_id, expiry FROM grants "
+                    "WHERE group_id=? AND ip=? ON CONFLICT(user, ip, group_id) "
+                    "DO UPDATE SET expiry=max(expiry, excluded.expiry)",
+                    (key, group, ip),
+                )
                 db.execute("DELETE FROM grants WHERE group_id=? AND ip=?", (group, ip))
                 reconciled = True
         return reconciled
@@ -58,9 +86,7 @@ class Grants:
         Returns how many grants were extended."""
         if group not in self.config["groups"]:
             raise GrantError("invalid_groups")
-        if "%" in address:
-            raise ValueError("Scoped addresses are not supported")
-        address = str(ipaddress.ip_address(address))
+        address = grant_key(address, self.config)
         with (self.directory / "lock").open("a") as lock:
             fcntl.flock(lock, fcntl.LOCK_EX)
             now = time.time() if now is None else now
@@ -102,11 +128,9 @@ class Grants:
                     ):
                         raise GrantError("invalid_groups")
                     groups = sorted(set(groups))
-                    if "%" in address:
-                        raise ValueError("Scoped addresses are not supported")
-                    address = str(ipaddress.ip_address(address))
+                    address = grant_key(address, self.config)
                     if any(
-                        ipaddress.ip_address(address).version
+                        ipaddress.ip_network(address).version
                         not in configured[g].get("addressFamilies", [4, 6])
                         for g in groups
                     ):
@@ -148,21 +172,22 @@ class Grants:
         for group, address, expiry in rows:
             if group not in sets:
                 continue
-            if "%" in address:
-                raise ValueError("Scoped addresses are not supported")
-            ip = ipaddress.ip_address(address)
+            ip = ipaddress.ip_network(address)
             if ip.version not in groups[group].get("addressFamilies", [4, 6]):
                 continue
             remaining = min(self.config["leaseSeconds"], math.floor(expiry - now))
             if remaining > 0:
-                sets[group][ip.version].append(f"{ip} timeout {remaining}s")
+                element = ip.network_address if ip.prefixlen == ip.max_prefixlen else ip
+                sets[group][ip.version].append(f"{element} timeout {remaining}s")
         # Retire the old guard even when its grants are not being imported.
         # Otherwise it can keep blocking ports allowed by Punch until reboot.
         lines = ["destroy table inet punch", "destroy table inet minecraft_access"]
         lines.append("table inet punch {")
         for index, group in enumerate(groups):
             for family, kind in ((4, "ipv4_addr"), (6, "ipv6_addr")):
-                lines.append(f"set g{index}_v{family} {{ type {kind}; flags timeout;")
+                # IPv6 grants are prefixes, which need an interval set.
+                flags = "interval, timeout" if family == 6 else "timeout"
+                lines.append(f"set g{index}_v{family} {{ type {kind}; flags {flags};")
                 if sets[group][family]:
                     lines.append(
                         "elements = { " + ", ".join(sets[group][family]) + " }"

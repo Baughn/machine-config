@@ -66,13 +66,51 @@ class GrantTests(unittest.TestCase):
         self.grants.run(now=400)
         rules = self.nft.call_args.kwargs["input"]
         self.assertIn("192.0.2.1 timeout 1209400s", rules)
-        self.assertIn("2001:db8::1 timeout 1209500s", rules)
+        self.assertIn("2001:db8::/64 timeout 1209500s", rules)
+        self.assertIn("type ipv6_addr; flags interval, timeout;", rules)
         self.assertIn("tcp dport { 25565, 25566 }", rules)
         self.assertIn("udp dport { 24454 }", rules)
         self.assertIn("destroy table inet minecraft_access", rules)
         self.assertEqual(len(self.grants.run("1", groups=["minecraft"], now=400)), 2)
         self.grants.run(now=300 + CONFIG["leaseSeconds"])
         self.assertNotIn("elements", self.nft.call_args.kwargs["input"])
+
+    def test_ipv6_grants_cover_the_prefix(self):
+        self.grants.config = CONFIG | {"maxAddresses": 2}
+        self.grants.run("1", "2001:db8:1:2::1", groups=["minecraft"], now=100)
+        # A privacy address in the same /64 is the same grant, and doesn't count again.
+        grants = self.grants.run("1", "2001:db8:1:2:aaaa::7", groups=["minecraft"], now=200)
+        self.assertEqual(
+            grants, [{"ip": "2001:db8:1:2::/64", "group": "minecraft", "expires": 200 + CONFIG["leaseSeconds"]}]
+        )
+        self.grants.run("1", "192.0.2.1", groups=["minecraft"], now=200)
+        with self.assertRaises(ValueError):
+            self.grants.run("1", "2001:db8:1:3::1", groups=["minecraft"], now=200)
+        # A login from another address in the prefix renews it.
+        self.assertEqual(self.grants.renew("2001:db8:1:2::99", "minecraft", now=300), 1)
+        self.assertEqual(self.grants.renew("2001:db8:1:3::1", "minecraft", now=300), 0)
+        rules = self.nft.call_args.kwargs["input"]
+        self.assertIn(f"2001:db8:1:2::/64 timeout {CONFIG['leaseSeconds']}s", rules)
+        self.assertIn("192.0.2.1 timeout", rules)
+        self.assertNotIn("192.0.2.1/32", rules)
+
+    def test_ipv6_prefix_length_and_migration(self):
+        # A grant stored as a single address (before prefixes) moves to its /64, keeping
+        # the latest expiry when the prefix already has one.
+        self.grants.config = CONFIG | {"ipv6PrefixLength": 128}
+        self.grants.run("1", "2001:db8::1", groups=["minecraft"], now=100)
+        self.grants.run("1", "2001:db8::2", groups=["minecraft"], now=200)
+        self.assertIn("2001:db8::1 timeout", self.nft.call_args.kwargs["input"])
+        self.grants.config = CONFIG
+        self.assertEqual(
+            self.grants.run("1", now=300),
+            [{"ip": "2001:db8::/64", "group": "minecraft", "expires": 200 + CONFIG["leaseSeconds"]}],
+        )
+        self.assertIn("2001:db8::/64 timeout", self.nft.call_args.kwargs["input"])
+        for length in (0, 129, "64"):
+            self.grants.config = CONFIG | {"ipv6PrefixLength": length}
+            with self.assertRaises(ValueError):
+                self.grants.run("1", "2001:db8::1", groups=["minecraft"], now=400)
 
     def test_exempt_interfaces(self):
         self.grants.run(now=100)
@@ -143,7 +181,7 @@ class GrantTests(unittest.TestCase):
         result = self.grants.run("1", now=200)
         self.assertEqual(
             {(g["group"], g["ip"]) for g in result},
-            {("minecraft", "2001:db8::1"), ("stationeers", "192.0.2.1")},
+            {("minecraft", "2001:db8::/64"), ("stationeers", "192.0.2.1")},
         )
         rules = self.nft.call_args.kwargs["input"]
         self.assertNotIn("elements", rules.split("set g0_v4", 1)[1].split("}", 1)[0])
@@ -389,7 +427,7 @@ class FrontendTests(unittest.IsolatedAsyncioTestCase):
         data = {"user": "42", "ip": "2001:db8::1", "groups": ["minecraft"]}
         await self.frontend.broker_call("grant", data)
         for payload, message in (
-            (data | {"ip": "2001:db8::2"}, "Active address limit reached"),
+            (data | {"ip": "2001:db8:1::2"}, "Active address limit reached"),
             (data | {"groups": ["stationeers"]}, "Game configuration differs"),
             (data | {"ip": "192.0.2.1"}, "does not accept this IP version"),
             (data | {"ip": "invalid"}, "rejected the access request"),

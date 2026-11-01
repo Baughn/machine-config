@@ -45,9 +45,12 @@ only new connections require an unexpired grant.
    existing grants intact.
 
 Use the same computer and network as the game. IPv4/IPv6-only discovery hosts
-reveal each reachable family, but browser-only VPNs, privacy proxies, and IPv6
-source-address changes can still produce a different address from the game.
-Grant individual addresses, not IPv6 prefixes. Revisit after a network change.
+reveal each reachable family, but browser-only VPNs and privacy proxies can still
+produce a different address from the game. IPv4 grants are single addresses. IPv6
+grants cover the visitor's whole /64 (`me.punch.ipv6PrefixLength`), because IPv6
+privacy addresses (RFC 8981) differ between browser and game and rotate daily
+(Baughn, 2026-11-01). A /64 is one subscriber's network, so this is no wider than
+an IPv4 grant to a shared NAT address. Revisit after a network change.
 
 `v4.brage.info` is managed by UniFi. `modules/cloudflare-dyndns.nix` maintains
 `v6.brage.info` as a DNS-only AAAA record independently of `brage.info`. Caddy
@@ -137,9 +140,13 @@ only private `/grant` and `/list` operations. Tsugumi uses a Unix socket that
 only the frontend account can reach; Caddy cannot. Saya uses the authenticated
 WireGuard endpoint described above. Only Caddy and the frontend can reach the HTTP socket.
 The broker can update nftables but accepts only configured group names and
-individual addresses, never commands, port lists, or caller-selected expiries.
+individual addresses (which it widens to the IPv6 prefix itself), never commands, port lists, or caller-selected expiries.
 
-Grants are `(Discord user ID, IP address, group ID, absolute expiry)`. The
+Grants are `(Discord user ID, IP address or IPv6 prefix, group ID, absolute expiry)`.
+A login from any address in a granted prefix renews it, and the per-account address
+limit counts prefixes. Grants stored as single IPv6 addresses (before prefixes) or
+under another prefix length move to the current prefix on the next update, keeping
+the latest expiry. The IPv6 sets are interval sets. The
 firewall uses the latest live expiry for each `(group, address)` across users.
 Renewing one group does not extend another group's grant. Removing a group from
 configuration removes its grants and rules on reconciliation. Changing ports

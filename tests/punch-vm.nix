@@ -4,7 +4,7 @@ let
   remoteProbe = pkgs.writeText "punch-remote-probe.py" ''
     import socket
     import sys
-    for family, destination, source in ((socket.AF_INET, "127.0.0.1", "192.0.2.10"), (socket.AF_INET6, "::1", "2001:db8::10")):
+    for family, destination, source in ((socket.AF_INET, "127.0.0.1", "192.0.2.10"), (socket.AF_INET6, "::1", "2001:db8:10::10")):
         for port in (27015, 27016, 25565):
             with socket.socket(family, socket.SOCK_DGRAM) as listener, socket.socket(family, socket.SOCK_DGRAM) as client:
                 listener.bind((destination, port))
@@ -27,7 +27,8 @@ let
     expected = mode == "allowed"
     for family, destination, sources in (
         (socket.AF_INET, "127.0.0.1", ("192.0.2.10", "192.0.2.11", "192.0.2.12", "192.0.2.13")),
-        (socket.AF_INET6, "::1", ("2001:db8::10", "2001:db8::11", "2001:db8::12", "2001:db8::13")),
+        # One /64 per source; the fifth is another (privacy) address in the first one's /64.
+        (socket.AF_INET6, "::1", ("2001:db8:10::10", "2001:db8:11::11", "2001:db8:12::12", "2001:db8:13::13", "2001:db8:10::99")),
     ):
         for kind, port in ((socket.SOCK_STREAM, 25565), (socket.SOCK_STREAM, 25566),
                            (socket.SOCK_DGRAM, 24454), (socket.SOCK_STREAM, 25568),
@@ -53,7 +54,7 @@ let
                                 received = listener.recv(16) == b"test"
                         except TimeoutError:
                             received = False
-                        permitted = ({25565, 25566, 24454}, {25566, 25568, 27016}, {25565, 25566, 24454, 25568, 27016}, set())[index]
+                        permitted = ({25565, 25566, 24454}, {25566, 25568, 27016}, {25565, 25566, 24454, 25568, 27016}, set(), {25565, 25566, 24454})[index]
                         assert received == (port == 25567 or (expected and port in permitted)), (mode, source, port)
   '';
   established = pkgs.writeText "minecraft-established.py" ''
@@ -175,7 +176,7 @@ pkgs.testers.runNixOSTest {
     remote.start()
     remote.wait_for_unit("punch-firewall.service")
     remote.succeed("ip address add 192.0.2.10/32 dev lo")
-    remote.succeed("ip address add 2001:db8::10/128 dev lo")
+    remote.succeed("ip address add 2001:db8:10::10/128 dev lo")
     remote.succeed("python3 ${remoteProbe} blocked")
     machine.start(allow_reboot=True)
     machine.wait_for_unit("punch.service")
@@ -185,7 +186,7 @@ pkgs.testers.runNixOSTest {
     machine.wait_until_succeeds("test -S /run/punch-firewall/http.sock")
 
     def addresses():
-        for address in ("192.0.2.10/32", "192.0.2.11/32", "192.0.2.12/32", "192.0.2.13/32", "2001:db8::10/128", "2001:db8::11/128", "2001:db8::12/128", "2001:db8::13/128"):
+        for address in ("192.0.2.10/32", "192.0.2.11/32", "192.0.2.12/32", "192.0.2.13/32", "2001:db8:10::10/128", "2001:db8:11::11/128", "2001:db8:12::12/128", "2001:db8:13::13/128", "2001:db8:10::99/128"):
             machine.succeed(f"ip address add {address} dev lo")
 
     addresses()
@@ -194,14 +195,14 @@ pkgs.testers.runNixOSTest {
 
     probe("blocked")
     grant_url = "curl -fsS --unix-socket /run/punch-firewall/http.sock http://localhost/grant -H 'Content-Type: application/json' -d "
-    for address in ("192.0.2.10", "2001:db8::10"):
+    for address in ("192.0.2.10", "2001:db8:10::10"):
         command = grant_url + shlex.quote(json.dumps({"user": "42", "ip": address, "groups": ["minecraft"]}))
         machine.fail("su -s /bin/sh outsider -c " + shlex.quote(command))
         machine.fail("su -s /bin/sh caddy -c " + shlex.quote(command))
         machine.succeed("su -s /bin/sh punch -c " + shlex.quote(command))
     for user, suffix, groups in (("43", "11", ["stationeers"]), ("44", "12", ["minecraft", "stationeers"])):
-        for prefix in ("192.0.2.", "2001:db8::"):
-            machine.succeed(grant_url + shlex.quote(json.dumps({"user": user, "ip": prefix + suffix, "groups": groups})))
+        for address in ("192.0.2." + suffix, f"2001:db8:{suffix}::{suffix}"):
+            machine.succeed(grant_url + shlex.quote(json.dumps({"user": user, "ip": address, "groups": groups})))
     probe("allowed")
     machine.succeed("systemctl reload firewall")
     probe("allowed")
@@ -220,7 +221,7 @@ pkgs.testers.runNixOSTest {
     main = "curl --noproxy '*' -kfsS --resolve punch.brage.info:443:127.0.0.1 -b '__Host-punch-session=test-session' https://punch.brage.info"
     machine.wait_until_succeeds(main + "/api/status")
     tickets = json.loads(machine.succeed(main + "/api/visit -X POST -H 'Origin: https://punch.brage.info' -H 'X-CSRF-Token: test-csrf'"))
-    for ticket, address, dest in zip(tickets, ("192.0.2.10", "2001:db8::10"), ("127.0.0.1", "[::1]")):
+    for ticket, address, dest in zip(tickets, ("192.0.2.10", "2001:db8:10::10"), ("127.0.0.1", "[::1]")):
         host = "v4.brage.info" if ticket["family"] == 4 else "v6.brage.info"
         result = json.loads(machine.succeed("curl --noproxy '*' -kfsS --interface " + address + " --resolve " + host + ":443:" + dest + " " + ticket["url"] + " -H 'Origin: https://punch.brage.info' -H 'Content-Type: application/json' -H 'X-Punch-Client-IP: 203.0.113.99' -H 'X-Forwarded-For: 203.0.113.99' -d " + shlex.quote(json.dumps({"ticket": ticket["ticket"]}))))
         assert result["ip"] == address, result
@@ -229,7 +230,7 @@ pkgs.testers.runNixOSTest {
 
     remote.succeed("python3 ${remoteProbe} allowed")
     assert "remote" not in machine.succeed("sqlite3 /var/lib/punch-firewall/grants.sqlite 'select group_id from grants'")
-    assert remote.succeed("sqlite3 /var/lib/punch-firewall/grants.sqlite 'select group_id,ip from grants'").strip() == "remote|2001:db8::10"
+    assert remote.succeed("sqlite3 /var/lib/punch-firewall/grants.sqlite 'select group_id,ip from grants'").strip() == "remote|2001:db8:10::/64"
     machine.succeed("test $(curl -s -o /dev/null -w '%{http_code}' http://192.168.1.2:9781/list -d '{\"user\":\"42\"}') = 401")
     remote.succeed("systemctl stop punch-firewall")
     status = json.loads(machine.succeed(main + "/api/status"))
@@ -244,11 +245,14 @@ pkgs.testers.runNixOSTest {
         ("minecraft@chat", "[21:29:24] [Server thread/INFO] [minecraft/DedicatedServer]: <Bob> " + login.format("192.0.2.12")),
         ("other", login.format("192.0.2.11")),
         ("minecraft@test", login.format("192.0.2.10")),
+        ("minecraft@test6", login.format("2001:db8:12::99")),
     ):
         machine.succeed(f"systemd-run --wait --unit={unit} echo " + shlex.quote(line))
     def renewed(ip):
         return grants_db + shlex.quote(f"select count(*) from grants where ip='{ip}' and group_id='minecraft' and expiry > unixepoch()+200")
     machine.wait_until_succeeds("test $(" + renewed("192.0.2.10") + ") = 1", timeout=30)
+    # Another address in a granted /64 renews the prefix's grant.
+    machine.wait_until_succeeds("test $(" + renewed("2001:db8:12::/64") + ") = 1", timeout=30)
     machine.succeed("test $(" + renewed("192.0.2.12") + ") = 0")
     machine.succeed("test $(" + grants_db + shlex.quote("select count(*) from grants where ip='192.0.2.11' and expiry > unixepoch()+200") + ") = 0")
     machine.succeed("journalctl -u punch-firewall --no-pager | grep -q 'A minecraft login renewed 1 grant'")

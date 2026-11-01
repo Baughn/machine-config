@@ -36,6 +36,7 @@ let
       groups = localGroups;
       inherit (access)
         exemptInterfaces
+        ipv6PrefixLength
         leaseSeconds
         listenAddress
         listenPort
@@ -176,6 +177,14 @@ in
       type = lib.types.listOf (lib.types.strMatching "[A-Za-z0-9_.-]{1,15}");
       default = [ ];
       description = "Interfaces whose traffic skips the guard on every local group (e.g. wg0).";
+    };
+    ipv6PrefixLength = lib.mkOption {
+      type = lib.types.ints.between 1 128;
+      default = 64;
+      description = ''
+        IPv6 grants cover the visitor's whole prefix of this length, so privacy addresses
+        (RFC 8981), which change daily, keep working. 128 grants single addresses.
+      '';
     };
     leaseSeconds = lib.mkOption {
       type = lib.types.ints.between 1 (14 * 24 * 60 * 60);
