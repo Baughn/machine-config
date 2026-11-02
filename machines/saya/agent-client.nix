@@ -17,10 +17,23 @@ let
   boardToken = ../../secrets/agent-board-saya-client-token.age;
   ready = roster.agents ? ${user} && builtins.pathExists discordToken;
   hasBoard = builtins.pathExists boardToken;
+  # Git credential helper handing the lab agents' GitHub PAT (secrets/agent-ea-pat.age) to
+  # https://github.com, so it can push its EA introspect branches (Baughn, msg
+  # 1566824672266420386). Only answers `get`.
+  gitCredential = pkgs.writeShellScript "saya-client-git-credential" ''
+    [[ "$1" == get ]] || exit 0
+    echo username=x-access-token
+    echo "password=$(< ${config.age.secrets.agent-ea-pat.path})"
+  '';
 in
 lib.mkIf ready {
   age.secrets = {
     agent-saya-client-discord.file = discordToken;
+    agent-ea-pat = {
+      file = ../../secrets/agent-ea-pat.age;
+      owner = user;
+      mode = "0400";
+    };
   } // lib.optionalAttrs hasBoard {
     agent-board-saya-client-token.file = boardToken;
   };
@@ -73,6 +86,10 @@ lib.mkIf ready {
       cage gamescope xwayland xvfb xdotool grim mesa-demos vulkan-tools
     ];
     environment = {
+      # git push to https://github.com/… authenticates with the PAT, no setup needed.
+      GIT_CONFIG_COUNT = "1";
+      GIT_CONFIG_KEY_0 = "credential.https://github.com.helper";
+      GIT_CONFIG_VALUE_0 = "${gitCredential}";
       # /run/user is hidden (ProtectHome); a compositor needs somewhere for its socket.
       XDG_RUNTIME_DIR = "/run/agent-bridge-${user}";
       LAB_SERVER = "10.171.0.1:25666";
