@@ -18,7 +18,7 @@
     ./agent-client.nix
     ./agent-printer.nix
     ./agent-ship.nix
-    ./gpu-unlock.nix
+    #./gpu-unlock.nix
   ];
 
   # Boot
