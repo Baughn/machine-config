@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   game-watcher = pkgs.mkCranePackage {
@@ -47,7 +47,7 @@ let
       }
     ];
 
-    gpu_guards = [
+    gpu_guards = lib.optionals config.systemd.services.comfyui.enable [
       {
         name = "stationeers-coi-comfyui";
         requires_any_of = [ "stationeers" "captain-of-industry" "pacific-drive" ];

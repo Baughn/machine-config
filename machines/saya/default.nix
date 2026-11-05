@@ -27,10 +27,11 @@
   boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # NVIDIA dGPU only; iGPU intentionally unused.
+  # Temporarily on the Ryzen iGPU: the 4090 keeps falling off the PCIe bus
+  # (2026-11). Revert to NVIDIA (amdgpu = false) once it is back.
   me.cachy-kernel = {
     enable = true;
-    amdgpu = false;
+    amdgpu = true;
   };
 
   # Work around ZFS' lack of STATX_MNT_ID_UNIQUE
@@ -132,13 +133,17 @@
 
   # GPU
   services.xserver.enable = true;
-  services.xserver.videoDrivers = [ "nvidia" ];
-  hardware.nvidia = {
-    modesetting.enable = true;
-    open = true;
-    nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.production;
-  };
+  services.xserver.videoDrivers = [ "amdgpu" ];
+  hardware.graphics.enable = true;
+  hardware.amdgpu.initrd.enable = true;
+  # NVIDIA, while the 4090 is out (see me.cachy-kernel above):
+  # services.xserver.videoDrivers = [ "nvidia" ];
+  # hardware.nvidia = {
+  #   modesetting.enable = true;
+  #   open = true;
+  #   nvidiaSettings = true;
+  #   package = config.boot.kernelPackages.nvidiaPackages.production;
+  # };
 
   # Fonts
   fonts.fontconfig = {
@@ -184,8 +189,8 @@
     google-chrome
     firefox
     discord
-    nvtopPackages.nvidia
-    btop-cuda
+    nvtopPackages.amd
+    btop-rocm
     zed-editor
     orca-slicer
     prusa-slicer
