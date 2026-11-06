@@ -1,4 +1,4 @@
-{ lib, stdenv, kernel }:
+{ lib, stdenv, buildPackages, kernel }:
 
 stdenv.mkDerivation {
   pname = "magic-reboot";
@@ -22,6 +22,11 @@ stdenv.mkDerivation {
   installPhase = ''
     runHook preInstall
     install -D magic_reboot.ko $out/lib/modules/${kernel.modDirVersion}/extra/magic_reboot.ko
+  '' + lib.optionalString (buildPackages ? kmodigest) ''
+    # Sign it and write the magic_reboot.ko.cer that nixpkgs' module
+    # aggregator merges into modules.cer (what modules_install would do).
+    ${lib.getExe buildPackages.kmodigest} $out/lib/modules/${kernel.modDirVersion}/extra/magic_reboot.ko
+  '' + ''
     runHook postInstall
   '';
 

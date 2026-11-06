@@ -67,7 +67,12 @@ let
     ];
     installPhase = ''
       runHook preInstall
-      install -Dm444 gpu_unlock.ko -t $out/lib/modules/${kernel.modDirVersion}/extra
+      install -Dm644 gpu_unlock.ko -t $out/lib/modules/${kernel.modDirVersion}/extra
+    '' + lib.optionalString (pkgs.buildPackages ? kmodigest) ''
+      # Sign it and write the gpu_unlock.ko.cer that nixpkgs' module
+      # aggregator merges into modules.cer (what modules_install would do).
+      ${lib.getExe pkgs.buildPackages.kmodigest} $out/lib/modules/${kernel.modDirVersion}/extra/gpu_unlock.ko
+    '' + ''
       runHook postInstall
     '';
     meta.license = lib.licenses.gpl2Only;
