@@ -1546,3 +1546,14 @@ async def test_the_presence_loop_sends_only_changes(harness: Harness, monkeypatc
     await settle()
     task.cancel()
     assert harness.chat.presences == ["Idle", "Paused"]
+
+
+def test_unknown_tool_arguments_are_refused() -> None:
+    """A guessed argument name (content for overview) must fail loudly, not post a bodiless message."""
+    from agent_bridge.session import POST_SCHEMA, check_arguments
+    known = set(POST_SCHEMA["properties"])
+    check_arguments({"kind": "report", "headline": "h", "overview": "body"}, known)
+    with pytest.raises(ToolError, match="unknown argument content; this tool takes .*overview"):
+        check_arguments({"kind": "report", "headline": "h", "content": "body"}, known)
+    with pytest.raises(ToolError, match="unknown arguments question, text"):
+        check_arguments({"headline": "h", "text": "x", "question": "y"}, known)

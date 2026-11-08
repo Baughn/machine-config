@@ -134,6 +134,25 @@ POST_SCHEMA: dict[str, Any] = {
 }
 
 
+HISTORY_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "limit": {"type": "integer", "minimum": 1, "maximum": 100},
+        "thread": {"type": "string", "description": "A thread id; default the main channel"},
+    },
+}
+
+
+def check_arguments(args: dict[str, Any], known: set[str]) -> None:
+    """Refuse arguments the tool's schema doesn't name. The SDK passes them through, and a guessed
+    name (`content` for `overview`) would otherwise be dropped silently: the post goes out without
+    its body and the agent never learns why."""
+    unknown = sorted(set(args) - known)
+    if unknown:
+        raise ToolError(f"unknown argument{'s' if len(unknown) > 1 else ''} {', '.join(unknown)}; "
+                        f"this tool takes {', '.join(sorted(known)) or 'no arguments'}. Nothing was done.")
+
+
 RCON_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
@@ -227,9 +246,12 @@ def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = 
                   effort_levels: tuple[str, ...] = (), board: bool = False, sources: bool = False) -> Any:
     from claude_agent_sdk import create_sdk_mcp_server, tool
 
-    def wrap(function: Any) -> Any:
+    def wrap(function: Any, schema: dict[str, Any]) -> Any:
+        known = set(schema.get("properties", {}))
+
         async def call(args: dict[str, Any]) -> dict[str, Any]:
             try:
+                check_arguments(args, known)
                 text = await function(args)
             except ToolError as error:
                 return {"content": [{"type": "text", "text": str(error)}], "is_error": True}
@@ -238,27 +260,26 @@ def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = 
 
     tools = [
         tool("post", "Post a message in the Discord channel. This is the only way to say "
-             "anything there; your final answer is never shown.", POST_SCHEMA)(wrap(handlers.tool_post)),
+             "anything there; your final answer is never shown.", POST_SCHEMA)
+        (wrap(handlers.tool_post, POST_SCHEMA)),
         tool("history", "Recent messages in the channel, or in one of its threads, oldest first, "
-             "labelled with their authors.",
-             {"type": "object", "properties": {
-                 "limit": {"type": "integer", "minimum": 1, "maximum": 100},
-                 "thread": {"type": "string", "description": "A thread id; default the main channel"}}})
-        (wrap(handlers.tool_history)),
+             "labelled with their authors.", HISTORY_SCHEMA)
+        (wrap(handlers.tool_history, HISTORY_SCHEMA)),
         tool("inbox", "Messages that arrived since your turn started (see `unread` in tool results). "
              "Reading them marks them delivered.", {"type": "object", "properties": {}})
-        (wrap(handlers.tool_inbox)),
+        (wrap(handlers.tool_inbox, {})),
         tool("schedule", "Schedule a follow-up turn for yourself: at the given time the bridge starts a "
              "turn whose input is your note, even if nobody has said anything. Use it to check on "
              "something later instead of promising to. Schedules survive restarts and new sessions.",
-             SCHEDULE_SCHEMA)(wrap(handlers.tool_schedule)),
+             SCHEDULE_SCHEMA)(wrap(handlers.tool_schedule, SCHEDULE_SCHEMA)),
         tool("schedules", "List your schedules, or cancel one.", SCHEDULES_SCHEMA)
-        (wrap(handlers.tool_schedules)),
+        (wrap(handlers.tool_schedules, SCHEDULES_SCHEMA)),
     ]
     if rcon:
         tools.append(tool("rcon", "Run a Minecraft server console command over RCON and return the "
                           "server's reply. Read-only commands (e.g. list) run at once; commands that "
-                          "affect players or saving may need an approver.", RCON_SCHEMA)(wrap(handlers.tool_rcon)))
+                          "affect players or saving may need an approver.", RCON_SCHEMA)
+                     (wrap(handlers.tool_rcon, RCON_SCHEMA)))
     if ask_agents:
         tools.append(tool("ask_agent", "Ask another agent in the channel something and wait for its "
                           "answer, which comes back as this tool's result. The question is posted "
@@ -267,26 +288,28 @@ def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = 
                           "within 2 minutes (it is down, restarting or paused), the call returns at once "
                           "saying so. It also returns early if that agent ends its turn without replying, "
                           "or if another agent asks you something while you wait (answer that first).",
-                          ask_schema(ask_agents))(wrap(handlers.tool_ask_agent)))
+                          ask_schema(ask_agents))
+                     (wrap(handlers.tool_ask_agent, ask_schema(ask_agents))))
     if ship:
         tools.append(tool("ship", "Ask Baughn to push a commit to master and deploy it. The deploy service "
                           "posts the diff for his approval, and pushes and deploys only after he approves. "
-                          "Waits for the outcome and returns it.", SHIP_SCHEMA)(wrap(handlers.tool_ship)))
+                          "Waits for the outcome and returns it.", SHIP_SCHEMA)(wrap(handlers.tool_ship, SHIP_SCHEMA)))
     if len(effort_levels) > 1:
         tools.append(tool("effort", f"Set how hard you think from your next step on: {BASE_EFFORT} or "
                           "higher. It holds for the rest of this turn; the next turn starts at "
                           f"{BASE_EFFORT} again. The level and reason are shown in the channel.",
-                          effort_schema(effort_levels))(wrap(handlers.tool_effort)))
+                          effort_schema(effort_levels))
+                     (wrap(handlers.tool_effort, effort_schema(effort_levels))))
     if board:
         for name, (description, schema) in BOARD_TOOLS.items():
             async def call_board(args: dict[str, Any], name: str = name) -> str:
                 return await handlers.tool_board(name, args)
-            tools.append(tool(name, description, schema)(wrap(call_board)))
+            tools.append(tool(name, description, schema)(wrap(call_board, schema)))
     if sources:
         for name, (description, schema) in SOURCE_TOOLS.items():
             async def call_sources(args: dict[str, Any], name: str = name) -> str:
                 return await handlers.tool_sources(name, args)
-            tools.append(tool(name, description, schema)(wrap(call_sources)))
+            tools.append(tool(name, description, schema)(wrap(call_sources, schema)))
     return create_sdk_mcp_server("bridge", tools=tools)
 
 
