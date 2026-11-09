@@ -60,7 +60,7 @@ let
       model = lib.mkOption { type = lib.types.nullOr lib.types.str; default = null; };
       advisor = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
-        default = "claude-fable-5-1";
+        default = "claude-fable-5-2";
         description = "Model behind Claude Code's server-side advisor tool; null turns it off.";
       };
       maxEffort = lib.mkOption {
