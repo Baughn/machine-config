@@ -76,8 +76,10 @@ that push itself as an injection to report.
    - `load.json`: CPU cores and memory per unit since the previous run, against that unit's
      own 7-day history (`unusual`, once there are 6 samples), the load average, and GPUs.
    - `auth.json`: since the previous run: accepted ssh logins (user, method, the key's type
-     and SHA256 fingerprint, for certificates also its ID, serial and CA fingerprint, and the
-     source as a keyed hash, so a new address shows as a new hash in `new_ssh_sources`), failed
+     and SHA256 fingerprint, for certificates also its ID, serial and CA fingerprint; the
+     key's owner from machine-config's `lib/ssh-keys.nix` as `key_owner` (its comment) and
+     `key_lists`, or `ca_owner`/`ca_lists` for a certificate's CA, or "not in machine-config";
+     and the source as a keyed hash, so a new address shows as a new hash in `new_ssh_sources`), failed
      logins counted by user and prefix, sudo commands, su, and new sessions; plus hashes of
      the account and key files (passwd, shadow, sudoers, every authorized_keys) and which
      changed since the last run.

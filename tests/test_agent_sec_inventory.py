@@ -172,10 +172,13 @@ class Flows(unittest.TestCase):
             netns.mkdir()
             (netns / "mclab").touch()
             lab_ns = f"net:[{(netns / 'mclab').stat().st_ino}]"
+            # Every process in a namespace sees the same tables, as in /proc (which pid is read
+            # first depends on directory order).
+            host_tables = {"tcp": row("010200C0:A028", "01", 555) + row("010200C0:A029", "06", 0),
+                           "udp6": row("00000000000000000000000000000000:14E9", "07", 556)}
             for pid, ns, sockets, tables in [
-                    (1, "net:[1]", [], {}),
-                    (10, "net:[1]", [555], {"tcp": row("010200C0:A028", "01", 555) + row("010200C0:A029", "06", 0),
-                                            "udp6": row("00000000000000000000000000000000:14E9", "07", 556)}),
+                    (1, "net:[1]", [], host_tables),
+                    (10, "net:[1]", [555], host_tables),
                     (20, lab_ns, [777], {"tcp": row("0100000A:1F90", "01", 777)})]:
                 (proc / str(pid) / "ns").mkdir(parents=True)
                 (proc / str(pid) / "ns" / "net").symlink_to(ns)
@@ -299,6 +302,31 @@ class Auth(unittest.TestCase):
         self.assertNotIn("abc", got["sudo"][0]["command"])
         self.assertEqual(got["sudo"][0]["time"], 2)
         self.assertEqual(got["new_sessions"], {"svein": 1})
+
+    def test_key_owners(self):
+        ca = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGfsmAbJ1GKytVA71izC3xvIFYDQVHT2Q5CZPaIA6WqS"
+        owners = inventory.key_owners({
+            "svein": ["cert-authority " + ca + " svein@tsugumi"],
+            "minecraft": ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICGxbfR3P4jby0eDYiB1+/0uq1OvNQWXHTAET+YYlDNC",
+                          ca + " svein@tsugumi", "garbage"],
+            "saya-agent": ['restrict,command="/x y" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHIj6Cs5uJ+h6Z+l/pIZGoqLv42kpPbquWEfE/PYB8xT saya-agent@saya'],
+        })
+        # Fingerprints as ssh-keygen -lf prints them.
+        ca_fp = "SHA256:" + inventory.base64.b64encode(inventory.hashlib.sha256(
+            inventory.base64.b64decode(ca.split()[1])).digest()).decode().rstrip("=")
+        self.assertEqual(owners[ca_fp], {"lists": ["minecraft", "svein"], "comment": "svein@tsugumi"})
+        self.assertEqual(len(owners), 3)
+        self.assertIn({"lists": ["saya-agent"], "comment": "saya-agent@saya"}, owners.values())
+        self.assertIn({"lists": ["minecraft"]}, owners.values())
+        accepted = [{"fingerprint": "SHA256:other", "ca_fingerprint": ca_fp}, {"fingerprint": ca_fp}]
+        inventory.name_owners(accepted, owners)
+        self.assertEqual(accepted[0]["key_owner"], "not in machine-config")
+        self.assertEqual(accepted[0]["ca_owner"], "svein@tsugumi")
+        self.assertEqual(accepted[1]["key_lists"], ["minecraft", "svein"])
+        nameless = [k for k, v in owners.items() if "comment" not in v][0]
+        accepted = [{"fingerprint": nameless}]
+        inventory.name_owners(accepted, owners)
+        self.assertEqual(accepted[0]["key_owner"], "(no comment)")
 
     def test_compare(self):
         self.assertEqual(inventory.compare({"a": "1", "b": "2"}, {"b": "3", "c": "4"}),

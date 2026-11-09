@@ -9,6 +9,7 @@ NIXPKGS_PATH, NIXPKGS_VERSION, MACHINE_CONFIG_REV, FLAKE_INPUTS and BUILT (JSON)
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import hmac
 import ipaddress
@@ -782,6 +783,43 @@ def parse_auth(entries: list[dict[str, object]], key: bytes) -> dict[str, object
     }
 
 
+def key_owners(lists: dict[str, list[str]]) -> dict[str, dict[str, object]]:
+    """lib/ssh-keys.nix (list name -> authorized_keys lines) -> SHA256 fingerprint -> comment and lists."""
+    owners: dict[str, dict[str, object]] = {}
+    for name, lines in sorted(lists.items()):
+        for line in lines:
+            words = line.split()
+            for i, word in enumerate(words[:-1]):
+                if re.fullmatch(r"(ssh|ecdsa|sk)-[\w@.-]+", word):
+                    try:
+                        blob = base64.b64decode(words[i + 1], validate=True)
+                    except ValueError:
+                        break
+                    fp = "SHA256:" + base64.b64encode(hashlib.sha256(blob).digest()).decode().rstrip("=")
+                    entry = owners.setdefault(fp, {"lists": []})
+                    if len(words) > i + 2 and "comment" not in entry:
+                        entry["comment"] = " ".join(words[i + 2:])
+                    if name not in entry["lists"]:  # type: ignore[operator]
+                        entry["lists"].append(name)  # type: ignore[union-attr]
+                    break
+    return owners
+
+
+def name_owners(accepted: list[dict[str, object]], owners: dict[str, dict[str, object]]) -> None:
+    """Adds the key's owner from machine-config, for the key itself or a certificate's CA."""
+    for login in accepted:
+        for field, prefix_ in (("fingerprint", "key"), ("ca_fingerprint", "ca")):
+            fp = login.get(field)
+            if not fp:
+                continue
+            owner = owners.get(str(fp))
+            if owner is None:
+                login[f"{prefix_}_owner"] = "not in machine-config"
+                continue
+            login[f"{prefix_}_owner"] = owner.get("comment") or "(no comment)"
+            login[f"{prefix_}_lists"] = owner["lists"]
+
+
 def watched_files() -> list[Path]:
     """Account and key files whose changes matter."""
     files = [Path(p) for p in ("/etc/passwd", "/etc/group", "/etc/shadow", "/etc/sudoers", "/etc/ld.so.preload")]
@@ -828,6 +866,7 @@ def auth(out: Path) -> dict[str, object]:
         except ValueError:
             continue
     data = parse_auth(entries, source_key(out))
+    name_owners(data["ssh_accepted"], key_owners(json.loads(os.environ.get("SSH_KEY_OWNERS") or "{}")))  # type: ignore[arg-type]
     data["new_ssh_sources"] = mark_new(out, ".ssh-sources-seen.json",
                                        [a["source"] for a in data["ssh_accepted"]], time.time())  # type: ignore[index]
     hashes = file_hashes(watched_files())
@@ -836,7 +875,9 @@ def auth(out: Path) -> dict[str, object]:
     data["generated"] = int(time.time())
     data["note"] = ("Since the previous run. ssh sources are keyed hashes (same address, same hash); "
                     "new_ssh_sources: not seen in 30 days. "
-                    "ssh_accepted names the key (type, SHA256 fingerprint; for certificates ID, serial and CA). Failed logins are counted by /24 or /48. "
+                    "ssh_accepted names the key (type, SHA256 fingerprint; for certificates ID, serial and CA) and its owner "
+                    "from machine-config's lib/ssh-keys.nix: key_owner is the key's comment, key_lists the lists it is in "
+                    "(ca_owner, ca_lists for a certificate's CA), or \"not in machine-config\". Failed logins are counted by /24 or /48. "
                     "files: sha256 prefixes of account and key files; files_since_last_run: what changed.")
     cursor = next((e.get("__CURSOR") for e in reversed(entries) if e.get("__CURSOR")), state.get("cursor"))
     write(out, ".auth-state.json", {"cursor": cursor, "files": hashes})

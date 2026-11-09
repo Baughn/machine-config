@@ -192,6 +192,8 @@ lib.mkIf ready {
       # 1559353262581489697). The system already depends on the rev (modules/nix-deploy.nix).
       MACHINE_CONFIG_REV = toString config.system.configurationRevision;
       FLAKE_INPUTS = builtins.toJSON (lib.mapAttrs (_: input: input.rev or null) flakeSelf.inputs);
+      # Names the owner of each accepted ssh key (Baughn, msg 1569406592380706879).
+      SSH_KEY_OWNERS = builtins.toJSON (import ../../lib/ssh-keys.nix);
       BUILT = builtins.toJSON { dessplay = "${dessplay.packages.${pkgs.stdenv.hostPlatform.system}.default}"; };
       # The store is read-only here; root would otherwise open the database itself.
       NIX_REMOTE = "daemon";
