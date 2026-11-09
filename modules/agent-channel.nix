@@ -63,6 +63,16 @@ let
         default = "claude-fable-5-2";
         description = "Model behind Claude Code's server-side advisor tool; null turns it off.";
       };
+      altModel = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = "claude-fable-5-2";
+        description = ''
+          The agent's model tool switches to this, only in a turn the owner started (Baughn,
+          msg 1569435737986957353); the bridge switches back after altModelRevert seconds
+          without a turn. null leaves the tool out.
+        '';
+      };
+      altModelRevert = lib.mkOption { type = lib.types.int; default = 5 * 3600; };
       maxEffort = lib.mkOption {
         type = lib.types.enum [ "medium" "high" "xhigh" "max" ];
         default = "high";
@@ -265,6 +275,8 @@ let
     ship = i.ship;
     inherit (i) advisor;
     max_effort = i.maxEffort;
+    alt_model = i.altModel;
+    alt_model_revert = i.altModelRevert;
     trigger_sources = i.triggerSources;
     unattended_sources = i.unattendedTriggers;
     thread_sources = i.triggerThreads;

@@ -54,6 +54,13 @@ def working_block(config: Config) -> str:
             "the plan for a larger project: one that spans several components, many files, or "
             "more than a day's work, or whose mistakes are costly to undo. A single small mod or "
             "config change is not that. The level and your reason are shown in the channel.")
+    if config.alt_model:
+        # Baughn, msg 1569435737986957353.
+        lines.append(
+            f"- The `model` tool switches you to {config.alt_model}. Use it only when Baughn asks "
+            "for it in this turn (the bridge refuses otherwise). Switch back to the default "
+            "yourself when the work he asked for is done; if you don't, the bridge switches back "
+            f"after {config.alt_model_revert / 3600:g} h without a turn.")
     # Baughn, msg 1559346966389985442.
     lines.append(
         "- Suggestions are welcome: improvements, cleanup or refactoring, better tools, anything "

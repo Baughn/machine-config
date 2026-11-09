@@ -11,6 +11,7 @@ from typing import Any
 from .sources import SourcesConfig
 
 ROLES = ("owner", "admin", "agent")
+DEFAULT_MODEL = "default"  # the model tool's name for config.model (None: the CLI's default)
 MODES = ("default", "auto", "acceptEdits", "plan", "dontAsk")
 EFFORT_LEVELS = ("low", "medium", "high", "xhigh", "max")
 BASE_EFFORT = "medium"  # every turn starts here; the default on Opus 5.5
@@ -117,6 +118,9 @@ class Config:
     ship: Ship | None = None
     advisor: str | None = None  # model for the server-side advisor tool
     max_effort: str = "medium"  # the effort tool may raise effort up to this; medium: no tool
+    # The model tool switches to this on the owner's request; None: no tool (Baughn, msg 1569435737986957353).
+    alt_model: str | None = None
+    alt_model_revert: float = 5 * 3600  # seconds without a turn before the bridge switches back
     # Local trigger sources (spool.py): name -> what the agent is asked to do when one fires.
     trigger_sources: dict[str, str] = field(default_factory=dict)
     # Sources whose turns run while nobody can approve: permission requests are refused.
@@ -245,6 +249,8 @@ def parse(data: dict[str, Any], state: Path) -> Config:
         idle_reset=float(data.get("idle_reset", 6 * 3600)),
         advisor=data.get("advisor") or None,
         max_effort=data.get("max_effort", "medium"),
+        alt_model=data.get("alt_model") or None,
+        alt_model_revert=float(data.get("alt_model_revert", 5 * 3600)),
         trigger_sources=_sources(data.get("trigger_sources", {})),
         unattended_sources=_strings(data, "unattended_sources"),
         thread_sources=_titles(data.get("thread_sources", {})),
@@ -270,6 +276,10 @@ def validate(config: Config) -> None:
             raise ConfigError(f"ask_agents: {name} is not another agent in the roster")
     if config.max_effort not in EFFORT_LEVELS[EFFORT_LEVELS.index(BASE_EFFORT):]:
         raise ConfigError(f"max_effort must be one of {EFFORT_LEVELS[EFFORT_LEVELS.index(BASE_EFFORT):]}")
+    if config.alt_model is not None and (config.alt_model == config.model or config.alt_model == DEFAULT_MODEL):
+        raise ConfigError("alt_model must differ from model")
+    if config.alt_model_revert <= 0:
+        raise ConfigError("alt_model_revert must be positive")
     if not set(config.unattended_sources) <= set(config.trigger_sources):
         raise ConfigError("unattended_sources must name trigger_sources")
     if not set(config.thread_sources) <= set(config.trigger_sources):

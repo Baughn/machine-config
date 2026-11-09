@@ -1262,6 +1262,105 @@ async def test_effort_is_shown_and_reset_next_turn(tmp_path: Path) -> None:
     assert h.session.efforts == ["high", "medium"]  # already at medium: no request
 
 
+ALT = "claude-fable-5-2"
+
+
+async def test_model_switch_needs_the_owner_and_reverts_after_idle(tmp_path: Path) -> None:
+    h = Harness(tmp_path, alt_model=ALT)
+    seen: list[str] = []
+
+    async def refused(session: FakeSession, prompt: str) -> TurnResult:
+        with pytest.raises(ToolError, match="only Baughn"):
+            await h.bridge.tool_model({"model": ALT, "reason": "asked"})
+        with pytest.raises(ToolError, match="model must be"):
+            await h.bridge.tool_model({"model": "claude-other", "reason": "x"})
+        return TurnResult("session-1")
+
+    h.session.script = refused
+    await h.say(ALICE, "@me switch to fable", mention=True)
+    await run_turn(h)
+    assert h.session.models == []
+
+    async def switch(session: FakeSession, prompt: str) -> TurnResult:
+        with pytest.raises(ToolError, match="why"):
+            await h.bridge.tool_model({"model": ALT, "reason": " "})
+        await h.bridge.tool_model({"model": ALT, "reason": "Baughn asked"})
+        assert h.bridge.status is not None
+        seen.append(h.bridge.status.render(h.clock()))
+        return TurnResult("session-1")
+
+    h.session.script = switch
+    await h.say(OWNER, "@me use fable for this", mention=True)
+    await run_turn(h)
+    assert h.session.models == [ALT]
+    assert f"model: {ALT} (Baughn asked)" in seen[0]
+    assert f"on {ALT}" in h.bridge.describe()
+
+    # Another agent's turn neither refuses switching back nor resets the model.
+    h.session.script = silent
+    await h.say(LAB, "@me a question", mention=True)
+    await run_turn(h)
+    assert h.session.models == [ALT]
+
+    # A restarted bridge puts its new CLI back on the alternative model.
+    second = Harness(tmp_path, alt_model=ALT)
+    second.clock.now = h.clock.now
+    await second.bridge.start()
+    assert second.session.models == [ALT]
+
+    h.clock.now += 4.9 * HOUR
+    await h.bridge.maybe_revert_model()
+    assert h.session.models == [ALT]
+    h.clock.now += 0.2 * HOUR
+    await h.bridge.maybe_revert_model()
+    assert h.session.models == [ALT, None]
+    assert h.bridge.alt_since is None
+    assert not (h.config.state / "model.json").exists()
+    assert any("back on the default model" in m.content for m in h.chat.sent.values())
+
+
+async def test_switching_back_needs_no_owner_and_new_session_resets(tmp_path: Path) -> None:
+    h = Harness(tmp_path, alt_model=ALT, model="claude-opus-5-5")
+
+    async def switch(session: FakeSession, prompt: str) -> TurnResult:
+        await h.bridge.tool_model({"model": ALT, "reason": "Baughn asked"})
+        return TurnResult("session-1")
+
+    h.session.script = switch
+    await h.say(OWNER, "@me use fable", mention=True)
+    await run_turn(h)
+
+    async def back(session: FakeSession, prompt: str) -> TurnResult:
+        await h.bridge.tool_model({"model": "default", "reason": "done"})
+        await h.bridge.tool_model({"model": "default", "reason": "done"})  # already there: no request
+        return TurnResult("session-1")
+
+    h.session.script = back
+    await h.say(LAB, "@me finished?", mention=True)
+    await run_turn(h)
+    assert h.session.models == [ALT, "claude-opus-5-5"]
+    assert h.bridge.alt_since is None
+
+    h.session.script = switch
+    await h.say(OWNER, "@me fable again", mention=True)
+    await run_turn(h)
+    await h.bridge.new_session()
+    assert h.bridge.alt_since is None
+    assert not (h.config.state / "model.json").exists()
+
+
+async def test_a_refused_switch_after_restart_falls_back(tmp_path: Path) -> None:
+    (tmp_path / "state").mkdir()
+    (tmp_path / "state/model.json").write_text(json.dumps({"model": ALT, "since": 1.0}))
+    h = Harness(tmp_path, alt_model=ALT)
+    h.session.fail_model = True
+    await h.bridge.start()
+    assert h.bridge.alt_since is None
+    # A saved switch to a model the config no longer names is ignored.
+    (tmp_path / "state/model.json").write_text(json.dumps({"model": "claude-old", "since": 1.0}))
+    assert Harness(tmp_path, alt_model=ALT).bridge.alt_since is None
+
+
 async def test_advisor_and_subagent_calls_show_in_status(harness: Harness) -> None:
     seen: list[str] = []
 

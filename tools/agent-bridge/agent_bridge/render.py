@@ -219,6 +219,7 @@ class Status:
     pending: int = 0
     posts: int = 0
     effort: str | None = None  # "high (reason)" while raised
+    model: str | None = None  # "claude-… (reason)" while on the alternative model
     advisor: int = 0  # advisor consultations
     error: str | None = None  # why the turn failed, shown on the final message
     log: list[str] = field(default_factory=list)
@@ -238,6 +239,8 @@ class Status:
         lines.append(counts)
         if self.effort:
             lines.append(f"  effort: {self.effort}")
+        if self.model:
+            lines.append(f"  model: {self.model}")
         if self.error:
             lines.append(f"  error: {self.error}")
         text = "\n".join(lines)

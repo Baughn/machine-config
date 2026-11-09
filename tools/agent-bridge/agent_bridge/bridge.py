@@ -17,7 +17,7 @@ from typing import Any, Protocol
 from . import approval, rcon, spool
 from .approval import Cancelled, Pending, Verdict
 from .board import BoardError, BoardTools
-from .config import BASE_EFFORT, Config
+from .config import BASE_EFFORT, DEFAULT_MODEL, Config
 from .limits import Breaker, Streak
 from .policy import (Attachment, Author, Command, Incoming, Kind, Route, command_applies,
                      STREAK_LIMIT, may_approve, mentioned, parse_command, route)
@@ -203,6 +203,9 @@ class Bridge:
         self.spool_queued: set[Path] = set()  # files in the buffer; seen again after a restart
         self.spool_turns: deque[float] = deque()  # when spool batches were queued, last hour
         self.effort = BASE_EFFORT  # what the CLI runs at now
+        # Since when the CLI runs on config.alt_model (the model tool); None: on config.model.
+        self.alt_since: float | None = self.read_model_state()
+        self.owner_turn = False  # the current turn has a request from the owner
         self.ship_task: asyncio.Task[None] | None = None  # a ship outliving the bridge that started it
         # Deploys don't restart the bridge (restartIfChanged = false): it notices that its unit
         # changed and exits between turns, so systemd starts the new one.
@@ -221,6 +224,28 @@ class Bridge:
     def turn_file(self) -> Path:
         """Present while a turn runs: a bridge that finds it at start was stopped mid-turn."""
         return self.config.state / "turn.json"
+
+    @property
+    def model_file(self) -> Path:
+        return self.config.state / "model.json"
+
+    def read_model_state(self) -> float | None:
+        if self.config.alt_model is None:
+            return None
+        with contextlib.suppress(OSError, ValueError, KeyError, TypeError):
+            saved = json.loads(self.model_file.read_text())
+            if saved["model"] == self.config.alt_model:
+                return float(saved["since"])
+        return None
+
+    def save_model_state(self, since: float | None) -> None:
+        self.alt_since = since
+        if since is None:
+            self.model_file.unlink(missing_ok=True)
+            return
+        temporary = self.model_file.with_suffix(".tmp")
+        temporary.write_text(json.dumps({"model": self.config.alt_model, "since": since}))
+        temporary.replace(self.model_file)
 
     def read_unit(self) -> str | None:
         """Where the unit file resolves to: a store path that changes with every deploy
@@ -272,6 +297,14 @@ class Bridge:
         except Exception:
             log.exception("resuming session %s failed; starting fresh", self.session_id)
             await self.new_session()
+            return
+        if self.alt_since is not None:
+            # A new CLI process starts on config.model; the switch outlives it.
+            try:
+                await self.session.set_model(self.config.alt_model)
+            except Exception as error:
+                log.warning("switching the new CLI to %s failed: %s", self.config.alt_model, error)
+                self.save_model_state(None)
 
     async def new_session(self) -> None:
         with contextlib.suppress(Exception):
@@ -279,6 +312,7 @@ class Bridge:
         self.last_turn, self.fresh, self.retry_at = None, True, 0.0
         self.save_session(None)
         self.effort = BASE_EFFORT
+        self.save_model_state(None)  # a new session starts on config.model
         await self.session.connect(None)
 
     def save_session(self, session_id: str | None) -> None:
@@ -294,6 +328,10 @@ class Bridge:
             self.wake.clear()
             self.fire_schedules()
             self.poll_spool()
+            try:
+                await self.maybe_revert_model()
+            except Exception:
+                log.exception("switching the model back failed")
             try:
                 await self.maybe_rollover()
             except Exception:
@@ -589,6 +627,8 @@ class Bridge:
         state = "working" if self.status else "idle"
         if self.status and self.effort != BASE_EFFORT:
             state += f" at {self.effort} effort"
+        if self.alt_since is not None:
+            state += f", on {self.config.alt_model}"
         if self.paused:
             state += ", paused"
         if self.breaker.tripped:
@@ -768,12 +808,16 @@ class Bridge:
             trigger = last.message
             self.agent_requests, self.replied = set(), set()
             self.taken(entries)
+            self.owner_turn = any(e.trigger and not e.scheduled and e.message.author.kind is Kind.HUMAN
+                                  and e.message.author.role == "owner" for e in entries)
             # Only when every trigger in the batch is unattended: a message from someone makes
             # it an ordinary turn.
             self.unattended = all(e.source in self.config.unattended_sources
                                   for e in entries if e.trigger)
             requester = last.origin or (f"its schedule {trigger.id}" if last.scheduled else trigger.author.name)
             status = Status(self.config.id, requester, now)
+            if self.alt_since is not None:
+                status.model = self.config.alt_model
             self.status, self.stopping = status, False
             try:
                 reply_to = None if last.scheduled else trigger.id
@@ -834,7 +878,7 @@ class Bridge:
                 final = "done" if status.posts else "silent"
             self.turns += 1
             self.turn_thread = self.turn_trigger = None
-            self.unattended = False
+            self.unattended = self.owner_turn = False
             self.announced.clear()
             self.last_log = status.log
             self.write_turn_log(status, final, result)
@@ -906,6 +950,29 @@ class Bridge:
         if len(data) > HANDOFF_LIMIT:
             text += f"\n… (truncated at {HANDOFF_LIMIT} bytes; read the file for the rest)"
         return text
+
+    def model_revert_due(self) -> bool:
+        """Checked under the lock too, so a running turn shows as self.status, not as the lock."""
+        if self.alt_since is None or self.status is not None or self.handoff:
+            return False
+        idle_since = max(self.alt_since, self.last_turn or 0.0)
+        return self.clock() >= idle_since + self.config.alt_model_revert
+
+    async def maybe_revert_model(self) -> None:
+        """After alt_model_revert seconds without a turn on the alternative model, back to config.model."""
+        if not self.model_revert_due() or self.lock.locked():
+            return
+        async with self.lock:
+            if not self.model_revert_due():
+                return
+            await self.session.set_model(self.config.model)
+            self.save_model_state(None)
+        hours = self.config.alt_model_revert / 3600
+        log.info("idle for %g h on %s; back to the default model", hours, self.config.alt_model)
+        with contextlib.suppress(Exception):
+            await self.chat.send(Outgoing(f"🔁 {self.config.id}: back on the default model after "
+                                          f"{hours:g} h without a turn on {self.config.alt_model}.",
+                                          thread=MAIN))
 
     def rollover_due(self) -> bool:
         if self.config.idle_reset <= 0 or self.last_turn is None or self.fresh:
@@ -1041,6 +1108,32 @@ class Bridge:
             self.status.effort = None if level == BASE_EFFORT else f"{level} ({reason[:100]})"
         self.note(f"effort {level}: {reason}")
         return f"effort is {level} for the rest of this turn{self.unread()}"
+
+    async def tool_model(self, args: dict[str, Any]) -> str:
+        alt = self.config.alt_model
+        model, reason = str(args.get("model", "")), " ".join(str(args.get("reason", "")).split())
+        if alt is None or model not in (DEFAULT_MODEL, alt):
+            raise ToolError(f"model must be {DEFAULT_MODEL} or {alt}{self.unread()}")
+        if not reason:
+            raise ToolError(f"say why, in a few words{self.unread()}")
+        to_alt = model == alt
+        if to_alt and not self.owner_turn:
+            # Baughn: "only toggled on user request" (msg 1569435737986957353).
+            raise ToolError(f"only Baughn can ask for {alt}: this turn has no request from him{self.unread()}")
+        if to_alt != (self.alt_since is not None):
+            try:
+                await self.session.set_model(alt if to_alt else self.config.model)
+            except Exception as error:
+                raise ToolError(f"the CLI refused the model change: {error}{self.unread()}") from error
+            self.save_model_state(self.clock() if to_alt else None)
+        if self.status is not None:
+            self.status.model = f"{alt} ({reason[:100]})" if to_alt else None
+        self.note(f"model {model}: {reason}")
+        if to_alt:
+            hours = self.config.alt_model_revert / 3600
+            return (f"on {alt} from your next step, until you switch back or {hours:g} h pass without "
+                    f"a turn{self.unread()}")
+        return f"on the default model from your next step{self.unread()}"
 
     async def tool_finished(self, name: str, failed: bool, subagent: bool = False) -> str | None:
         tool_log.info("%s %s%s", "failed" if failed else "done", "subagent " if subagent else "", name)

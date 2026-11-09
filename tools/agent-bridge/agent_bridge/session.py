@@ -92,6 +92,7 @@ class Handlers(Protocol):
     async def tool_schedule(self, args: dict[str, Any]) -> str: ...
     async def tool_schedules(self, args: dict[str, Any]) -> str: ...
     async def tool_effort(self, args: dict[str, Any]) -> str: ...
+    async def tool_model(self, args: dict[str, Any]) -> str: ...
     async def tool_board(self, tool: str, args: dict[str, Any]) -> str: ...
     async def tool_sources(self, tool: str, args: dict[str, Any]) -> str: ...
     async def advisor_called(self) -> None: ...
@@ -103,6 +104,7 @@ class AgentSession(Protocol):
     async def interrupt(self) -> None: ...
     async def disconnect(self) -> None: ...
     async def set_effort(self, level: str) -> None: ...
+    async def set_model(self, model: str | None) -> None: ...
     async def topic(self, request: str) -> str | None: ...
 
 
@@ -211,6 +213,17 @@ def effort_schema(levels: tuple[str, ...]) -> dict[str, Any]:
     }
 
 
+def model_schema(alt: str) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "properties": {
+            "model": {"type": "string", "enum": ["default", alt]},
+            "reason": {"type": "string", "description": "Why, in a few words; shown in the channel"},
+        },
+        "required": ["model", "reason"],
+    }
+
+
 SCHEDULES_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {"cancel": {"type": "string", "description": "A schedule id to cancel, e.g. s3"}},
@@ -243,7 +256,8 @@ SOURCE_TOOL_NAMES = [f"mcp__bridge__{name}" for name in SOURCE_TOOLS]
 
 
 def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = (), ship: bool = False,
-                  effort_levels: tuple[str, ...] = (), board: bool = False, sources: bool = False) -> Any:
+                  effort_levels: tuple[str, ...] = (), board: bool = False, sources: bool = False,
+                  alt_model: str | None = None) -> Any:
     from claude_agent_sdk import create_sdk_mcp_server, tool
 
     def wrap(function: Any, schema: dict[str, Any]) -> Any:
@@ -300,6 +314,13 @@ def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = 
                           f"{BASE_EFFORT} again. The level and reason are shown in the channel.",
                           effort_schema(effort_levels))
                      (wrap(handlers.tool_effort, effort_schema(effort_levels))))
+    if alt_model:
+        tools.append(tool("model", f"Switch the model you run on, from your next step on: {alt_model} or "
+                          "back to the default. Switching to it works only in a turn Baughn started; "
+                          "switching back always works. It lasts until switched back, or until the bridge "
+                          "switches back after hours without a turn. Shown in the channel.",
+                          model_schema(alt_model))
+                     (wrap(handlers.tool_model, model_schema(alt_model))))
     if board:
         for name, (description, schema) in BOARD_TOOLS.items():
             async def call_board(args: dict[str, Any], name: str = name) -> str:
@@ -317,7 +338,7 @@ MCP_TOOL_TIMEOUT_MS = 65 * 60 * 1000
 RCON_TOOL = "mcp__bridge__rcon"
 BRIDGE_TOOLS = ["mcp__bridge__post", "mcp__bridge__history", "mcp__bridge__inbox", RCON_TOOL,
                 "mcp__bridge__ask_agent", "mcp__bridge__ship", "mcp__bridge__schedule",
-                "mcp__bridge__schedules", "mcp__bridge__effort", *BOARD_TOOL_NAMES, *SOURCE_TOOL_NAMES]
+                "mcp__bridge__schedules", "mcp__bridge__effort", "mcp__bridge__model", *BOARD_TOOL_NAMES, *SOURCE_TOOL_NAMES]
 # Whatever the subagent is for, the main agent does the talking.
 SUBAGENT_PROMPT = (
     "You are a subagent of {id}, working inside one of its turns. Report what you found or did in "
@@ -388,7 +409,7 @@ class SdkSession:
 
     def __init__(self, handlers: Handlers, rcon: bool = False, ask_agents: tuple[str, ...] = (),
                  ship: bool = False, effort_levels: tuple[str, ...] = (), board: bool = False,
-                 sources: bool = False, **kwargs: Any) -> None:
+                 sources: bool = False, alt_model: str | None = None, **kwargs: Any) -> None:
         self.handlers = handlers
         self.board = board
         self.sources = sources
@@ -396,6 +417,7 @@ class SdkSession:
         self.ask_agents = ask_agents
         self.ship = ship
         self.effort_levels = effort_levels
+        self.alt_model = alt_model
         self.kwargs = kwargs
         self.client: Any = None
         self.drainer: asyncio.Task[None] | None = None
@@ -437,7 +459,8 @@ class SdkSession:
         options = ClaudeAgentOptions(
             **options_kwargs(**{**self.kwargs, "resume": resume}),
             mcp_servers={"bridge": bridge_server(handlers, self.rcon, self.ask_agents, self.ship,
-                                                 self.effort_levels, self.board, self.sources)},
+                                                 self.effort_levels, self.board, self.sources,
+                                                 self.alt_model)},
             can_use_tool=can_use_tool,
             hooks={"PreToolUse": [HookMatcher(hooks=[pre])],
                    "PostToolUse": [HookMatcher(hooks=[post])],
@@ -524,6 +547,12 @@ class SdkSession:
             raise ToolError("no session")
         await self.client._query._send_control_request(
             {"subtype": "apply_flag_settings", "settings": {"effortLevel": level}})
+
+    async def set_model(self, model: str | None) -> None:
+        """Switch the model mid-session (None: the CLI's default); the CLI uses it from the next request."""
+        if self.client is None:
+            raise ToolError("no session")
+        await self.client.set_model(model)
 
     async def topic(self, request: str) -> str | None:
         """A few words saying what a request is about, from a separate one-shot CLI."""

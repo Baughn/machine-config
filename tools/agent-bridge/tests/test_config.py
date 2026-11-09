@@ -135,6 +135,18 @@ def test_effort_levels_and_prompt() -> None:
         make_config(max_effort="low")
 
 
+def test_alt_model_prompt_and_validation() -> None:
+    config = make_config(alt_model="claude-fable-5-2")
+    assert config.alt_model_revert == 5 * 3600
+    prompt = system_prompt(config)
+    assert "The `model` tool switches you to claude-fable-5-2" in prompt and "after 5 h" in prompt
+    assert "`model` tool" not in system_prompt(make_config())
+    for bad in ({"alt_model": "x", "model": "x"}, {"alt_model": "default"},
+                {"alt_model": "x", "alt_model_revert": 0}):
+        with pytest.raises(ConfigError):
+            make_config(**bad)
+
+
 def test_display_names() -> None:
     data = config_data()
     data["roster"]["agents"]["tsugumi-minecraft"]["display_name"] = "ErisiAgent"
