@@ -42,8 +42,6 @@ in
   networking.firewall.allowedTCPPorts = [ 8485 ];
 
   systemd.services.comfyui = {
-    # Disabled while saya runs on the iGPU (4090 off the bus, 2026-11).
-    enable = false;
     description = "ComfyUI AI Image Generation";
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];

@@ -18,6 +18,7 @@
     ./agent-client.nix
     ./agent-printer.nix
     ./agent-ship.nix
+    # gpu-unlock doesn't support the RTX 50 series (Baughn, msg 1569435737986957353).
     #./gpu-unlock.nix
   ];
 
@@ -27,11 +28,10 @@
   boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # Temporarily on the Ryzen iGPU: the 4090 keeps falling off the PCIe bus
-  # (2026-11). Revert to NVIDIA (amdgpu = false) once it is back.
+  # NVIDIA dGPU only; iGPU intentionally unused.
   me.cachy-kernel = {
     enable = true;
-    amdgpu = true;
+    amdgpu = false;
   };
 
   # Work around ZFS' lack of STATX_MNT_ID_UNIQUE
@@ -133,17 +133,14 @@
 
   # GPU
   services.xserver.enable = true;
-  services.xserver.videoDrivers = [ "amdgpu" ];
-  hardware.graphics.enable = true;
-  hardware.amdgpu.initrd.enable = true;
-  # NVIDIA, while the 4090 is out (see me.cachy-kernel above):
-  # services.xserver.videoDrivers = [ "nvidia" ];
-  # hardware.nvidia = {
-  #   modesetting.enable = true;
-  #   open = true;
-  #   nvidiaSettings = true;
-  #   package = config.boot.kernelPackages.nvidiaPackages.production;
-  # };
+  # RTX 5080 (Blackwell): needs the open kernel module.
+  services.xserver.videoDrivers = [ "nvidia" ];
+  hardware.nvidia = {
+    modesetting.enable = true;
+    open = true;
+    nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.production;
+  };
 
   # Fonts
   fonts.fontconfig = {
@@ -189,8 +186,8 @@
     google-chrome
     firefox
     discord
-    nvtopPackages.amd
-    btop-rocm
+    nvtopPackages.nvidia
+    btop-cuda
     zed-editor
     orca-slicer
     prusa-slicer
