@@ -75,7 +75,7 @@
       {
         publicKey = "QPSh4TROwtw54n9Xb/VvCHN0TQpm6417p7Gl+//7VVg=";
         allowedIPs = [ "10.42.0.3/32" ];
-        endpoint = "ctha.ja4.org:51820";
+        endpoint = "sentinel.ja4.org:51820";
       }
       # Xon
       {
