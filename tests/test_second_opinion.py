@@ -267,6 +267,40 @@ class Loop(unittest.TestCase):
         self.assertIn("ceiling", text)
         self.assertAlmostEqual(spent, 1.2)
 
+    def test_wraps_up_before_ceiling(self):
+        call = self.response(NS(function_call=NS(name="list_dir", id="x", args={})))
+        answer = self.response(NS(function_call=None, text="partial"), text="partial")
+        sent = []
+
+        def final(contents):
+            sent.append(list(contents))
+            return answer
+        text, spent, done = so.converse(lambda c: call, lambda d: d, ["q"], so.Files("/", ["/"]),
+                                        lambda r: 0.3, 1.0, time.monotonic() + 600, final=final)
+        self.assertTrue(done)
+        self.assertTrue(text.startswith("partial"))
+        self.assertIn("budget", text)
+        # Two tool rounds (0.6), then the answer instead of a third: 0.9, within the ceiling.
+        self.assertAlmostEqual(spent, 0.9)
+        self.assertEqual(sent[0][-1][0][:2], ("list_dir", "x"))
+        self.assertIn("not run", sent[0][-1][0][2])
+
+    def test_wraps_up_near_deadline(self):
+        call = self.response(NS(function_call=NS(name="list_dir", id="x", args={})))
+        answer = self.response(text="short")
+        text, _, done = so.converse(lambda c: call, lambda d: d, ["q"], so.Files("/", ["/"]),
+                                    lambda r: 0.01, 1.0, time.monotonic() + 30, final=lambda c: answer)
+        self.assertTrue(done)
+        self.assertIn("time", text)
+
+    def test_wrap_up_without_text(self):
+        call = self.response(NS(function_call=NS(name="list_dir", id="x", args={})))
+        text, _, done = so.converse(lambda c: call, lambda d: d, ["q"], so.Files("/", ["/"]),
+                                    lambda r: 0.6, 1.0, time.monotonic() + 600,
+                                    final=lambda c: self.response(text=None))
+        self.assertFalse(done)
+        self.assertTrue(text.startswith("(stopped"))
+
     def test_out_of_time_stops(self):
         def generate(contents):
             raise so.OutOfTime("standard: ReadTimeout: timed out")

@@ -84,6 +84,12 @@ STANDARD_RESERVE = 300
 # of the question does too.
 FLEX_WAIT = 480
 FLEX_BACKOFF = (5, 10, 20, 40, 60)
+# When another tool round might not fit (cost ceiling, time or MAX_ROUNDS), the pending tool
+# calls get this instead of their results, and one last round with function calls off asks for
+# the answer (LabAssistant, msg 1570852160701464737: a round that hit the ceiling returned nothing).
+WRAP_UP = ("(not run: this question is nearly out of {why}. Do not ask for more tools: write your "
+           "answer now, from what you have read, and say what you could not check.)")
+WRAP_SECONDS = 120
 
 SYSTEM = (
     "You give a second opinion to another AI agent (Claude). Your file tools read what it can "
@@ -331,18 +337,23 @@ def tiered(call: Callable[[str, float], Any], tier: str, deadline: float, transi
 
 def converse(generate: Callable[[list[Any]], Any], results: Callable[[list[tuple[str, str | None, str]]], Any],
              contents: list[Any], files: Any, cost: Callable[[Any], float], call_usd: float,
-             deadline: float, nudge: Callable[[], Any] | None = None) -> tuple[str, float, bool]:
+             deadline: float, nudge: Callable[[], Any] | None = None,
+             final: Callable[[list[Any]], Any] | None = None) -> tuple[str, float, bool]:
     """The tool loop, from contents ending in the question; appends to contents as it goes.
     Returns the answer, what it cost and whether Gemini finished (or was stopped at the call's
-    ceiling, the deadline or the round limit)."""
+    ceiling, the deadline or the round limit). With final (generate without function calls),
+    a round that might not fit gets Gemini to answer from what it has read instead."""
     spent = 0.0
     nudged = False
-    for _ in range(MAX_ROUNDS):
+    for round_no in range(MAX_ROUNDS):
+        started = time.monotonic()
         try:
             response = generate(contents)
         except OutOfTime as error:
             return f"(stopped: Gemini didn't answer in time; last try {error})", spent, False
-        spent += cost(response)
+        last = cost(response)
+        spent += last
+        took = time.monotonic() - started
         content = response.candidates[0].content if response.candidates else None
         if content is None:  # blocked (safety, prohibited content) or otherwise empty
             feedback = getattr(response, "prompt_feedback", None)
@@ -359,6 +370,24 @@ def converse(generate: Callable[[list[Any]], Any], results: Callable[[list[tuple
             continue
         if not calls:
             return (response.text or "(Gemini gave no text)"), spent, True
+        # Room for another tool round and then the answer? Rounds grow, so allow 2x the last.
+        why = ("budget" if spent + 2 * last > call_usd else
+               "time" if deadline - time.monotonic() < max(WRAP_SECONDS, 2 * took) else
+               "tool rounds" if round_no >= MAX_ROUNDS - 2 else None)
+        if final is not None and why is not None:
+            note = WRAP_UP.format(why=why)
+            contents.append(results([(c.name, c.id, note) for c in calls]))
+            try:
+                response = final(contents)
+            except OutOfTime as error:
+                return f"(stopped: Gemini didn't answer in time; last try {error})", spent, False
+            spent += cost(response)
+            content = response.candidates[0].content if response.candidates else None
+            if content is None or not response.text:
+                return f"(stopped: near the end of its {why}, Gemini was asked to answer and gave no text)", spent, False
+            contents.append(content)
+            return (f"{response.text}\n\n(Gemini stopped reading early, near the end of this question's {why}; "
+                    "the answer rests on what it had read by then.)"), spent, True
         if spent >= call_usd:
             return f"(stopped: this question reached its ${call_usd:.2f} ceiling before Gemini finished)", spent, False
         if time.monotonic() > deadline:
@@ -474,13 +503,18 @@ def ask_gemini(question: str, history: list[Any], files: Any, model: str, call_u
         return (isinstance(error, errors.APIError) and error.code in (429, 500, 503, 504)) or \
             isinstance(error, httpx.TimeoutException)
 
-    def generate(contents: list[Any]) -> Any:
+    answer_only = config.model_copy(update={"tool_config": types.ToolConfig(
+        include_server_side_tool_invocations=True,
+        function_calling_config=types.FunctionCallingConfig(mode=types.FunctionCallingConfigMode.NONE))})
+
+    def generate(contents: list[Any], last: bool = False) -> Any:
         # After a round fell back to standard, flex is skipped for the rest of the question.
         asked = "standard" if tier == "flex" and "standard" in billed else tier
+        base = answer_only if last else config
 
         def call(asked: str, timeout: float) -> Any:
             options = types.HttpOptions(timeout=int(timeout * 1000))
-            response = client.models.generate_content(model=model, contents=contents, config=config.model_copy(
+            response = client.models.generate_content(model=model, contents=contents, config=base.model_copy(
                 update={"service_tier": types.ServiceTier(asked), "http_options": options}))
             billed.append(billed_tier(response.usage_metadata, asked))
             return response
@@ -506,7 +540,8 @@ def ask_gemini(question: str, history: list[Any], files: Any, model: str, call_u
     asked = types.Content(role="user", parts=[types.Part(text=question)])
     contents = before + [asked]
     text, _, done = converse(generate, results, contents, files, cost, call_usd, deadline, nudge=lambda: types.Content(
-        role="user", parts=[types.Part(text="You wrote no answer. Write your answer now, as text, from what you have read.")]))
+        role="user", parts=[types.Part(text="You wrote no answer. Write your answer now, as text, from what you have read.")]),
+        final=lambda c: generate(c, last=True))
     if tier != "standard" and any(b != tier for b in billed):
         why = f"; last {tier} error: {problems[-1]}" if problems else ""
         text += f"\n\n({sum(b != tier for b in billed)} of {len(billed)} rounds ran on standard{why})"
