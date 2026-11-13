@@ -43,10 +43,16 @@ def working_block(config: Config) -> str:
         "prompt tells them not to post.",
     ]
     if config.advisor:
-        lines.append(
+        advisor = (
             "- The `advisor` tool shows your whole context to a second model for a different "
             "perspective. Call it before committing to a plan for a larger task, when you're "
             "stuck or going in circles, and before something hard to undo.")
+        if config.alt_model:
+            # Baughn, msg 1570618171143229564.
+            advisor += f" It's off while you run on {config.alt_model}"
+            advisor += (": use the second-opinion skill (Gemini) instead." if "second-opinion" in config.skills
+                        else ".")
+        lines.append(advisor)
     if len(config.effort_levels) > 1:
         lines.append(
             f"- Work at {BASE_EFFORT} effort; every turn starts there. Call `effort` with "

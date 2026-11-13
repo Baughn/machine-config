@@ -14,7 +14,7 @@ import pytest
 from agent_bridge.approval import STOP, Verdict
 from agent_bridge import bridge as bridge_module
 from agent_bridge.bridge import Bridge
-from agent_bridge.config import ConfigError, parse
+from agent_bridge.config import DEFAULT_MODEL, ConfigError, parse
 from agent_bridge.policy import Attachment, Incoming, Route, classify, may_approve, route
 from agent_bridge.render import ChatError, Outgoing
 from agent_bridge.session import Permission, ToolError, TurnResult
@@ -1317,6 +1317,44 @@ async def test_model_switch_needs_the_owner_and_reverts_after_idle(tmp_path: Pat
     assert h.bridge.alt_since is None
     assert not (h.config.state / "model.json").exists()
     assert any("back on the default model" in m.content for m in h.chat.sent.values())
+
+
+async def test_no_advisor_on_the_alternative_model(tmp_path: Path) -> None:
+    h = Harness(tmp_path, alt_model=ALT, advisor="claude-opus-5-5", skills=["second-opinion"])
+    replies: list[str] = []
+
+    async def switch(session: FakeSession, prompt: str) -> TurnResult:
+        replies.append(await h.bridge.tool_model({"model": ALT, "reason": "Baughn asked"}))
+        return TurnResult("session-1")
+
+    h.session.script = switch
+    await h.say(OWNER, "@me use fable", mention=True)
+    await run_turn(h)
+    assert h.session.advisors == [None]
+    assert "second-opinion skill" in replies[0]
+
+    # A restarted bridge turns it off in its new CLI too.
+    second = Harness(tmp_path, alt_model=ALT, advisor="claude-opus-5-5")
+    second.clock.now = h.clock.now
+    await second.bridge.start()
+    assert second.session.models == [ALT] and second.session.advisors == [None]
+
+    async def back(session: FakeSession, prompt: str) -> TurnResult:
+        await h.bridge.tool_model({"model": DEFAULT_MODEL, "reason": "done"})
+        return TurnResult("session-1")
+
+    h.session.script = back
+    await h.say(OWNER, "@me back", mention=True)
+    await run_turn(h)
+    assert h.session.advisors == [None, "claude-opus-5-5"]
+
+    # The idle revert puts it back as well.
+    h.session.script = switch
+    await h.say(OWNER, "@me fable again", mention=True)
+    await run_turn(h)
+    h.clock.now += 6 * HOUR
+    await h.bridge.maybe_revert_model()
+    assert h.session.advisors == [None, "claude-opus-5-5", None, "claude-opus-5-5"]
 
 
 async def test_switching_back_needs_no_owner_and_new_session_resets(tmp_path: Path) -> None:

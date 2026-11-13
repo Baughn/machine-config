@@ -129,6 +129,10 @@ def test_effort_levels_and_prompt() -> None:
     assert config.effort_levels == ("medium", "high")
     prompt = system_prompt(config)
     assert "Call `effort` with high" in prompt and "`advisor`" in prompt
+    assert "off while" not in prompt
+    switching = system_prompt(make_config(advisor="claude-opus-5-5", alt_model="claude-fable-5-2",
+                                          skills=["second-opinion"]))
+    assert "off while you run on claude-fable-5-2: use the second-opinion skill" in switching
     plain = system_prompt(make_config())
     assert "`effort`" not in plain and "`advisor`" not in plain
     with pytest.raises(ConfigError):

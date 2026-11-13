@@ -149,6 +149,15 @@ class Entry:
     source: str | None = None  # the local trigger source, for spool entries
 
 
+def advisor_off_note(config: Config) -> str:
+    """What replaces the advisor while on the alternative model, for the model tool's reply."""
+    if config.advisor is None:
+        return ""
+    if "second-opinion" in config.skills:
+        return ". The advisor is off there; for a different perspective use the second-opinion skill (Gemini)"
+    return ". The advisor is off there"
+
+
 class Bridge:
     def __init__(self, config: Config, chat: Chat, session: Callable[[Bridge], AgentSession], *,
                  clock: Callable[[], float] = time.time, tokens: tuple[str, ...] = (),
@@ -305,6 +314,19 @@ class Bridge:
             except Exception as error:
                 log.warning("switching the new CLI to %s failed: %s", self.config.alt_model, error)
                 self.save_model_state(None)
+                return
+            await self.apply_advisor()
+
+    async def apply_advisor(self) -> None:
+        """No advisor on the alternative model (Baughn, msg 1570618171143229564: a second view
+        from the same model isn't one); config.advisor again on the default."""
+        if self.config.advisor is None or self.config.alt_model is None:
+            return
+        wanted = None if self.alt_since is not None else self.config.advisor
+        try:
+            await self.session.set_advisor(wanted)
+        except Exception as error:
+            log.warning("setting the advisor to %s failed: %s", wanted, error)
 
     async def new_session(self) -> None:
         with contextlib.suppress(Exception):
@@ -967,6 +989,7 @@ class Bridge:
                 return
             await self.session.set_model(self.config.model)
             self.save_model_state(None)
+            await self.apply_advisor()
         hours = self.config.alt_model_revert / 3600
         log.info("idle for %g h on %s; back to the default model", hours, self.config.alt_model)
         with contextlib.suppress(Exception):
@@ -1126,13 +1149,14 @@ class Bridge:
             except Exception as error:
                 raise ToolError(f"the CLI refused the model change: {error}{self.unread()}") from error
             self.save_model_state(self.clock() if to_alt else None)
+            await self.apply_advisor()
         if self.status is not None:
             self.status.model = f"{alt} ({reason[:100]})" if to_alt else None
         self.note(f"model {model}: {reason}")
         if to_alt:
             hours = self.config.alt_model_revert / 3600
             return (f"on {alt} from your next step, until you switch back or {hours:g} h pass without "
-                    f"a turn{self.unread()}")
+                    f"a turn{advisor_off_note(self.config)}{self.unread()}")
         return f"on the default model from your next step{self.unread()}"
 
     async def tool_finished(self, name: str, failed: bool, subagent: bool = False) -> str | None:

@@ -105,6 +105,7 @@ class AgentSession(Protocol):
     async def disconnect(self) -> None: ...
     async def set_effort(self, level: str) -> None: ...
     async def set_model(self, model: str | None) -> None: ...
+    async def set_advisor(self, model: str | None) -> None: ...
     async def topic(self, request: str) -> str | None: ...
 
 
@@ -349,6 +350,7 @@ SUBAGENT_PROMPT = (
 )
 # The CLI's own schedulers and watchers would start the agent between turns,
 # where nothing reads its output (see SdkSession.drain); the schedule tool replaces them.
+BASH_MAX_TIMEOUT_MS = 20 * 60 * 1000
 CLI_SCHEDULERS = ["CronCreate", "CronDelete", "CronList", "ScheduleWakeup", "RemoteTrigger", "Monitor"]
 
 
@@ -376,6 +378,9 @@ def options_kwargs(*, workdir: Path, state: Path, cli_path: str | None, model: s
         env={"CLAUDE_CODE_OAUTH_TOKEN": token, "CLAUDE_CONFIG_DIR": str(state / "claude"),
              # ask_agent holds its tool call open for up to an hour.
              "MCP_TOOL_TIMEOUT": str(MCP_TOOL_TIMEOUT_MS),
+             # The longest a Bash call may be given: second-opinion can take 20 minutes on
+             # flex (Baughn, msg 1570619532744196169). The default stays 2 minutes.
+             "BASH_MAX_TIMEOUT_MS": str(BASH_MAX_TIMEOUT_MS),
              # A background task's completion restarts the agent after its turn
              # has ended, where no turn reads its output (see SdkSession.drain).
              "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1"},
@@ -547,6 +552,14 @@ class SdkSession:
             raise ToolError("no session")
         await self.client._query._send_control_request(
             {"subtype": "apply_flag_settings", "settings": {"effortLevel": level}})
+
+    async def set_advisor(self, model: str | None) -> None:
+        """Change the advisor model mid-session (None: no advisor). The CLI keeps an
+        advisorModel of null as it was; an empty string turns the advisor off (2.1.317)."""
+        if self.client is None:
+            raise ToolError("no session")
+        await self.client._query._send_control_request(
+            {"subtype": "apply_flag_settings", "settings": {"advisorModel": model or ""}})
 
     async def set_model(self, model: str | None) -> None:
         """Switch the model mid-session (None: the CLI's default); the CLI uses it from the next request."""

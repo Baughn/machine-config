@@ -159,6 +159,7 @@ class FakeSession:
         self.fail_resume = False
         self.efforts: list[str] = []
         self.models: list[str | None] = []
+        self.advisors: list[str | None] = []
         self.fail_model = False
         self.topics: list[str] = []
         self.topic_answer: str | None = "Discord presence for the bots"
@@ -186,6 +187,9 @@ class FakeSession:
         if self.fail_model:
             raise RuntimeError("no such model")
         self.models.append(model)
+
+    async def set_advisor(self, model: str | None) -> None:
+        self.advisors.append(model)
 
     async def topic(self, request: str) -> str | None:
         self.topics.append(request)
