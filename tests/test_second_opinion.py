@@ -249,6 +249,16 @@ class Loop(unittest.TestCase):
             self.assertEqual((text, spent, done), ("done", 0.5, True))
             self.assertEqual(sent[1][-1], ("results", [("read_file", "c1", "1\thello")]))
 
+    def test_empty_answer_is_nudged_once(self):
+        replies = [self.response(text=None), self.response(text="here")]
+        text, _, done = so.converse(lambda c: replies.pop(0), lambda d: d, ["q"], so.Files("/", ["/"]),
+                                    lambda r: 0.01, 1.0, time.monotonic() + 60, nudge=lambda: "nudge")
+        self.assertEqual((text, done), ("here", True))
+        empty = self.response(text=None)
+        text, _, _ = so.converse(lambda c: empty, lambda d: d, ["q"], so.Files("/", ["/"]),
+                                 lambda r: 0.01, 1.0, time.monotonic() + 60, nudge=lambda: "nudge")
+        self.assertEqual(text, "(Gemini gave no text)")
+
     def test_stops_at_ceiling(self):
         call = self.response(NS(function_call=NS(name="list_dir", id="x", args={})))
         text, spent, done = so.converse(lambda c: call, lambda d: d, ["q"], so.Files("/", ["/"]),
@@ -268,6 +278,15 @@ class Loop(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Blocked(unittest.TestCase):
+    def test_no_candidates(self):
+        blocked = NS(candidates=None, prompt_feedback="block_reason=SAFETY", text=None)
+        text, _, done = so.converse(lambda c: blocked, lambda d: d, ["q"], so.Files("/", ["/"]),
+                                    lambda r: 0.01, 1.0, time.monotonic() + 60)
+        self.assertFalse(done)
+        self.assertIn("SAFETY", text)
 
 
 class Protocol(unittest.TestCase):

@@ -331,20 +331,32 @@ def tiered(call: Callable[[str, float], Any], tier: str, deadline: float, transi
 
 def converse(generate: Callable[[list[Any]], Any], results: Callable[[list[tuple[str, str | None, str]]], Any],
              contents: list[Any], files: Any, cost: Callable[[Any], float], call_usd: float,
-             deadline: float) -> tuple[str, float, bool]:
+             deadline: float, nudge: Callable[[], Any] | None = None) -> tuple[str, float, bool]:
     """The tool loop, from contents ending in the question; appends to contents as it goes.
     Returns the answer, what it cost and whether Gemini finished (or was stopped at the call's
     ceiling, the deadline or the round limit)."""
     spent = 0.0
+    nudged = False
     for _ in range(MAX_ROUNDS):
         try:
             response = generate(contents)
         except OutOfTime as error:
             return f"(stopped: Gemini didn't answer in time; last try {error})", spent, False
         spent += cost(response)
-        content = response.candidates[0].content
+        content = response.candidates[0].content if response.candidates else None
+        if content is None:  # blocked (safety, prohibited content) or otherwise empty
+            feedback = getattr(response, "prompt_feedback", None)
+            reason = getattr(response.candidates[0], "finish_reason", None) if response.candidates else None
+            return f"(stopped: Gemini returned no answer; {feedback or reason or 'no reason given'})", spent, False
         contents.append(content)  # unmodified: thought signatures and tool parts must go back
         calls = [p.function_call for p in (content.parts or []) if getattr(p, "function_call", None)]
+        if not calls and not response.text and nudge is not None and not nudged and spent < call_usd \
+                and time.monotonic() < deadline:
+            # It sometimes ends a tool-heavy turn without writing anything (LabAgent, msg
+            # 1570791658935812133): ask once for the answer.
+            nudged = True
+            contents.append(nudge())
+            continue
         if not calls:
             return (response.text or "(Gemini gave no text)"), spent, True
         if spent >= call_usd:
@@ -475,7 +487,7 @@ def ask_gemini(question: str, history: list[Any], files: Any, model: str, call_u
         return tiered(call, asked, deadline, transient, problems=problems)
 
     def cost(response: Any) -> float:
-        meta = getattr(response.candidates[0], "grounding_metadata", None)
+        meta = getattr(response.candidates[0], "grounding_metadata", None) if response.candidates else None
         searches = len(getattr(meta, "web_search_queries", None) or [])
         usage = response.usage_metadata
         usd = call_cost(model, billed[-1], usage, searches, today)
@@ -493,7 +505,8 @@ def ask_gemini(question: str, history: list[Any], files: Any, model: str, call_u
     before = [types.Content.model_validate(c) for c in history]
     asked = types.Content(role="user", parts=[types.Part(text=question)])
     contents = before + [asked]
-    text, _, done = converse(generate, results, contents, files, cost, call_usd, deadline)
+    text, _, done = converse(generate, results, contents, files, cost, call_usd, deadline, nudge=lambda: types.Content(
+        role="user", parts=[types.Part(text="You wrote no answer. Write your answer now, as text, from what you have read.")]))
     if tier != "standard" and any(b != tier for b in billed):
         why = f"; last {tier} error: {problems[-1]}" if problems else ""
         text += f"\n\n({sum(b != tier for b in billed)} of {len(billed)} rounds ran on standard{why})"
