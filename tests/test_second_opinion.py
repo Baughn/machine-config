@@ -87,7 +87,7 @@ class Tiers(unittest.TestCase):
 
     def test_flex_first(self):
         self.assertEqual(self.run_tiered(["ok"]), "ok")
-        self.assertEqual(self.calls, [("flex", 840)])
+        self.assertEqual(self.calls, [("flex", 480)])
 
     def test_flex_retries_then_succeeds(self):
         self.assertEqual(self.run_tiered([TimeoutError(), "ok"]), "ok")
@@ -111,6 +111,21 @@ class Tiers(unittest.TestCase):
         self.clock = 900
         self.assertEqual(self.run_tiered(["ok"]), "ok")
         self.assertEqual(self.calls, [("standard", 240)])
+
+    def test_flex_wait_is_capped(self):
+        class Slow(TimeoutError):
+            pass
+
+        def call(asked, left):
+            self.calls.append((asked, round(left)))
+            if asked == "flex":
+                self.clock += left
+                raise Slow()
+            return "ok"
+        result = so.tiered(call, "flex", 1140, lambda e: isinstance(e, TimeoutError), lambda s: None,
+                           lambda: self.clock)
+        self.assertEqual(result, "ok")
+        self.assertEqual(self.calls, [("flex", 480), ("standard", 660)])
 
     def test_last_try_out_of_time(self):
         with self.assertRaises(so.OutOfTime):

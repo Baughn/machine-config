@@ -70,6 +70,10 @@ SEARCH_USD = 0.014
 # retrying with backoff, until this much of the question's time (SO_TIMEOUT, inside the agents'
 # 20-minute Bash limit) is left, then goes standard so an answer still arrives.
 STANDARD_RESERVE = 300
+# The most a round waits for flex, retries included (Baughn, msg 1570625432452071605: Google's
+# target is 1-15 minutes, so don't give up too early). Once a round has gone standard, the rest
+# of the question does too.
+FLEX_WAIT = 480
 FLEX_BACKOFF = (5, 10, 20, 40, 60)
 
 SYSTEM = (
@@ -265,14 +269,16 @@ FUNCTIONS = [
 def tiered(call: Callable[[str, float], Any], tier: str, deadline: float, transient: Callable[[Exception], bool],
            sleep: Callable[[float], None] = time.sleep, now: Callable[[], float] = time.monotonic,
            problems: list[str] | None = None) -> Any:
-    """One round: call(tier, timeout in seconds). Flex is retried with backoff while more than
-    STANDARD_RESERVE seconds are left, then the round goes standard; other tiers go straight.
-    Transient failures are noted in problems; one on the last try raises OutOfTime."""
+    """One round: call(tier, timeout in seconds). Flex is retried with backoff for up to
+    FLEX_WAIT seconds, as long as STANDARD_RESERVE seconds stay for standard, then the round goes
+    standard; other tiers go straight. Transient failures are noted in problems; one on the last
+    try raises OutOfTime."""
     if tier == "flex":
+        flex_end = min(now() + FLEX_WAIT, deadline - STANDARD_RESERVE)
         for wait in (0, *FLEX_BACKOFF):
             if wait:
-                sleep(min(wait, max(0.0, deadline - now() - STANDARD_RESERVE)))
-            left = deadline - now() - STANDARD_RESERVE
+                sleep(min(wait, max(0.0, flex_end - now())))
+            left = flex_end - now()
             if left <= 1:
                 break
             try:
@@ -427,13 +433,16 @@ def ask_gemini(question: str, history: list[Any], cwd: str, roots: list[str], mo
             isinstance(error, httpx.TimeoutException)
 
     def generate(contents: list[Any]) -> Any:
+        # After a round fell back to standard, flex is skipped for the rest of the question.
+        asked = "standard" if tier == "flex" and "standard" in billed else tier
+
         def call(asked: str, timeout: float) -> Any:
             options = types.HttpOptions(timeout=int(timeout * 1000))
             response = client.models.generate_content(model=model, contents=contents, config=config.model_copy(
                 update={"service_tier": types.ServiceTier(asked), "http_options": options}))
             billed.append(billed_tier(response.usage_metadata, asked))
             return response
-        return tiered(call, tier, deadline, transient, problems=problems)
+        return tiered(call, asked, deadline, transient, problems=problems)
 
     def cost(response: Any) -> float:
         meta = getattr(response.candidates[0], "grounding_metadata", None)
