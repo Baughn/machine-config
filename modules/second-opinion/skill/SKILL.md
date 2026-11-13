@@ -1,14 +1,14 @@
 ---
 name: second-opinion
-description: Ask Gemini (a differently trained model) for a second opinion on a plan, design, diagnosis or risk, with read access to your repositories and the web. Use when you're unsure, stuck, or about to commit to something costly; it returns an opinion and pointers, never code. Costs real money (a monthly budget).
+description: Ask Gemini (a differently trained model) for a second opinion on a plan, design, diagnosis or risk, with read access to your files and the web. Use when you're unsure, stuck, or about to commit to something costly; it returns an opinion and pointers, never code. Costs real money (a monthly budget).
 ---
 
 # Second opinion
 
 `second-opinion [--dir DIR] FILE` sends the question in FILE to Gemini (gemini-4-carbon, flex tier) and
-prints its answer. It can read the directories configured for you (the first is the default
-DIR; it lists them if you ask outside them) and search and read the web. It can't run
-anything or change files.
+prints its answer. It can read any file you can (your own `second-opinion` process reads them
+for it; relative paths start in DIR, by default your current directory), except keys and
+tokens, and search and read the web. It can't run anything or change files.
 
 What it's for (Baughn): a different perspective. Gemini looks, points out what you may have
 missed or underrated, and suggests approaches you may not have thought of, because it was

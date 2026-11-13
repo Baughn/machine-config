@@ -36,6 +36,16 @@ class Paths(unittest.TestCase):
         for path in ("../secret", "/etc/passwd", "link", "sub/../../secret"):
             self.assertTrue(self.files.call("read_file", {"path": path}).startswith("error:"), path)
 
+    def test_hidden(self):
+        (self.repo / "keys").mkdir()
+        (self.repo / "keys" / "k").write_text("one\n")
+        files = so.Files(str(self.repo), ["/"], [str(self.repo / "keys")])
+        self.assertTrue(files.call("read_file", {"path": "keys/k"}).startswith("error:"))
+        self.assertTrue(files.call("list_dir", {"path": "keys/.."}).startswith("error:") is False)
+        self.assertNotIn("keys", files.call("grep", {"pattern": "one"}))
+        self.assertIn("sub/a.txt", files.call("grep", {"pattern": "one"}))
+        self.assertEqual(files.call("read_file", {"path": "../secret"}), "1\tno")
+
     def test_prefix_is_not_inside(self):
         self.assertIsNone(so.inside(str(self.repo) + "2", [os.path.realpath(self.repo)]))
 
@@ -137,21 +147,28 @@ class Budget(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         base = self.tmp.name
-        os.makedirs(f"{base}/view/home/a/repo/sub")
-        os.makedirs(f"{base}/view/home/b/repo")
-        self.env = {"SO_VIEW": f"{base}/view", "SO_LEDGER": f"{base}/state/ledger.json",
-                    "SO_CLIENTS": json.dumps({"a": ["/home/a/repo"], "b": ["/home/b/repo"]}),
+        self.env = {"SO_LEDGER": f"{base}/state/ledger.json",
+                    "SO_CLIENTS": json.dumps({"a": ["/home/a/private"], "b": []}),
                     "SO_MONTHLY_USD": "20", "SO_CALL_USD": "1", "SO_CONVERSATIONS": f"{base}/state/conversations",
                     "SO_USAGE": f"{base}/state/usage.jsonl"}
         self.ledger = so.Ledger(Path(self.env["SO_LEDGER"]))
         self.month = time.strftime("%Y-%m", time.gmtime())
 
-    def test_each_caller_only_its_dirs(self):
-        for caller, wanted in (("a", "/home/b/repo"), ("a", "/home/a/repo/../../b/repo"), ("b", "/etc")):
-            with self.assertRaisesRegex(so.Refused, "dir must be inside"):
-                so.answer({"question": "hi", "dir": wanted}, caller, self.env)
-        with self.assertRaisesRegex(so.Refused, "no directories"):
+    def test_callers_and_dirs(self):
+        with self.assertRaisesRegex(so.Refused, "may not ask"):
             so.answer({"question": "hi"}, "c", self.env)
+        with self.assertRaisesRegex(so.Refused, "absolute"):
+            so.answer({"question": "hi", "dir": "rel"}, "a", self.env)
+        seen = []
+
+        def fake(question, history, files, model, call_usd, today, env, spent, stats=None):
+            seen.append(files)
+            return "ok", history + [question]
+        with unittest.mock.patch.object(so, "ask_gemini", fake):
+            so.answer({"question": "hi", "cwd": "/home/a/work"}, "a", self.env, lambda cwd, hide: (cwd, hide))
+        self.assertEqual(seen[0][0], "/home/a/work")
+        self.assertIn("/run/agenix", seen[0][1])
+        self.assertIn("/home/a/private", seen[0][1])
 
     def test_refuses_when_spent(self):
         self.assertEqual(self.ledger.add(self.month, 19.5), 19.5)
@@ -159,8 +176,8 @@ class Budget(unittest.TestCase):
             so.answer({"question": "hi", "dir": "/home/a/repo/sub"}, "a", self.env)
 
     def test_reservation_is_settled(self):
-        def fake(question, history, cwd, roots, model, call_usd, today, env, spent, stats=None):
-            self.assertEqual(cwd, os.path.realpath(self.env["SO_VIEW"] + "/home/a/repo/sub"))
+        def fake(question, history, files, model, call_usd, today, env, spent, stats=None):
+            self.assertEqual(files.cwd, "/home/a/repo/sub")
             self.assertAlmostEqual(self.ledger.spent(self.month), 1.0)  # booked while it runs
             spent[0] += 0.25
             return "fine", history + [question]
@@ -172,7 +189,7 @@ class Budget(unittest.TestCase):
         self.assertRegex(records[0]["conversation"], so.TAG)
 
     def test_failure_keeps_what_was_spent(self):
-        def fake(question, history, cwd, roots, model, call_usd, today, env, spent, stats=None):
+        def fake(question, history, files, model, call_usd, today, env, spent, stats=None):
             spent[0] += 0.4
             raise RuntimeError("API down")
         with unittest.mock.patch.object(so, "ask_gemini", fake), self.assertRaises(RuntimeError):
@@ -184,8 +201,8 @@ class Budget(unittest.TestCase):
     def test_conversations(self):
         seen = []
 
-        def fake(question, history, cwd, roots, model, call_usd, today, env, spent, stats=None):
-            seen.append((list(history), cwd))
+        def fake(question, history, files, model, call_usd, today, env, spent, stats=None):
+            seen.append((list(history), files.cwd))
             return "ok", history + [question]
         with unittest.mock.patch.object(so, "ask_gemini", fake):
             first = so.answer({"question": "one", "dir": "/home/a/repo/sub"}, "a", self.env)
@@ -193,7 +210,7 @@ class Budget(unittest.TestCase):
             second = so.answer({"question": "two", "continue": tag}, "a", self.env)
             self.assertIn(f"Conversation {tag}:", second)
             # The history carries over, and so does the directory.
-            self.assertEqual(seen[1], (["one"], os.path.realpath(self.env["SO_VIEW"] + "/home/a/repo/sub")))
+            self.assertEqual(seen[1], (["one"], "/home/a/repo/sub"))
             for caller, wanted in (("b", tag), ("a", "c-nonexistent0"), ("a", "../ledger")):
                 with self.assertRaisesRegex(so.Refused, "no conversation"):
                     so.answer({"question": "x", "continue": wanted}, caller, self.env)
@@ -251,3 +268,27 @@ class Loop(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Protocol(unittest.TestCase):
+    def test_client_runs_tools_until_answer(self):
+        import io
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "f").write_text("hello\n")
+            inp = io.StringIO(json.dumps({"tool": "read_file", "args": {"path": "f"}, "cwd": tmp, "hide": []}) + "\n"
+                              + json.dumps({"tool": "read_file", "args": {"path": "f"}, "cwd": tmp, "hide": [tmp]}) + "\n"
+                              + json.dumps({"answer": "done"}) + "\n")
+            out = io.StringIO()
+            self.assertEqual(so.client(inp, out), "done\n")
+            replies = [json.loads(line)["result"] for line in out.getvalue().splitlines()]
+            self.assertEqual(replies[0], "1\thello")
+            self.assertTrue(replies[1].startswith("error:"))
+            # The service's side of the same exchange.
+            remote = so.RemoteFiles(io.BytesIO(out.getvalue().encode()), io.StringIO(), tmp, [])
+            self.assertEqual(remote.call("read_file", {"path": "f"}), "1\thello")
+            with self.assertRaises(ConnectionError):
+                so.RemoteFiles(io.BytesIO(b""), io.StringIO(), tmp, []).call("list_dir", {})
+
+    def test_client_without_answer(self):
+        import io
+        self.assertTrue(so.client(io.StringIO(""), io.StringIO()).startswith("failed:"))

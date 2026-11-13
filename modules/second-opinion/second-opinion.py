@@ -6,8 +6,12 @@ before getting into the weeds. It never writes code; it's billed by the token.
 
 The service runs as its own user, which holds the API key; the agents reach it only through
 the unit's socket, which tells it who is asking. Gemini gets Google Search, URL context and
-three read-only file tools (list_dir, read_file, grep) inside the asking agent's directories,
-which the unit binds read-only under SO_VIEW; there is no shell. A monthly ledger stops calls
+three read-only file tools (list_dir, read_file, grep); there is no shell. The file tools run
+in the asking agent's own client process, so Gemini reads what that agent can read (Baughn,
+msg 1570789306484920362), except secrets (HIDDEN) and the agent's configured exclusions.
+Protocol: the client sends the request as one JSON line; the service answers with JSON lines,
+{"tool", "args", "cwd", "hide"} for each file tool call, which the client answers with
+{"result"}, and finally {"answer"}. A monthly ledger stops calls
 at the budget (Baughn: $20 a month per machine), and each call has its own ceiling; the
 project's spend cap in AI Studio is the backstop.
 
@@ -21,8 +25,8 @@ Usage:
                               ask: the question is FILE's contents; Gemini starts in DIR
   second-opinion [--dir DIR] --import QUESTION_FILE ANSWER_FILE
                               start a conversation from an earlier question and answer
-Environment (serve): GEMINI_API_KEY_FILE, SO_MODEL, SO_CLIENTS (JSON: user -> directories),
-SO_TIER (standard or flex), SO_USAGE (JSON lines, one per question), SO_VIEW, SO_LEDGER, SO_CONVERSATIONS, SO_MONTHLY_USD, SO_CALL_USD,
+Environment (serve): GEMINI_API_KEY_FILE, SO_MODEL, SO_CLIENTS (JSON: user -> paths to hide),
+SO_TIER (standard or flex), SO_USAGE (JSON lines, one per question), SO_LEDGER, SO_CONVERSATIONS, SO_MONTHLY_USD, SO_CALL_USD,
 SO_TIMEOUT (seconds).
 """
 
@@ -45,6 +49,11 @@ from typing import Any, Callable
 
 SOCKET = "/run/second-opinion/socket"
 MAX_REQUEST = 256 * 1024
+MAX_REPLY = 1024 * 1024
+# Never shown to Gemini, whatever the agent can read: keys and tokens (url_context could carry
+# them off in a URL).
+HIDDEN = ("/run/agenix", "/run/agenix.d", "/run/secrets", "~/.ssh", "~/.claude/.credentials.json",
+          "~/.config/gh", "~/.gnupg")
 MAX_TOOL_OUTPUT = 60_000
 MAX_ROUNDS = 40
 MAX_OUTPUT_TOKENS = 16384
@@ -77,8 +86,8 @@ FLEX_WAIT = 480
 FLEX_BACKOFF = (5, 10, 20, 40, 60)
 
 SYSTEM = (
-    "You give a second opinion to another AI agent (Claude), which works on the repository your "
-    "file tools read (paths are relative to its working directory). You were trained differently, "
+    "You give a second opinion to another AI agent (Claude). Your file tools read what it can "
+    "read (relative paths start in its working directory for this question). You were trained differently, "
     "so your value is a different perspective: point out what it may have missed, risks it "
     "underrates, claims that don't hold up against the files or the web, and approaches it may not "
     "have thought of. Give an opinion, not an implementation: never write code, patches or full "
@@ -204,15 +213,18 @@ def inside(path: str, roots: list[str]) -> str | None:
 
 
 class Files:
-    """The model's read-only file tools, confined to the allowed roots."""
+    """The model's read-only file tools, confined to the allowed roots and away from hidden paths."""
 
-    def __init__(self, cwd: str, roots: list[str]) -> None:
+    def __init__(self, cwd: str, roots: list[str], hide: list[str] | tuple[str, ...] = ()) -> None:
         self.cwd, self.roots = cwd, roots
+        self.hide = [os.path.realpath(os.path.expanduser(h)) for h in hide]
 
     def resolve(self, path: str) -> str:
         real = inside(os.path.join(self.cwd, path or "."), self.roots)
         if real is None:
             raise Refused(f"{path}: outside the readable directories ({', '.join(self.roots)})")
+        if inside(real, self.hide):
+            raise Refused(f"{path}: hidden")
         return real
 
     def list_dir(self, path: str = ".") -> str:
@@ -238,7 +250,9 @@ class Files:
                                 capture_output=True, text=True, timeout=60)
         if result.returncode > 1:
             raise Refused(result.stderr.strip()[:500])
-        return result.stdout.replace(self.cwd.rstrip("/") + "/", "") or "(no matches)"
+        shown = [line for line in result.stdout.splitlines(keepends=True)
+                 if not any(line.startswith(h.rstrip("/") + "/") for h in self.hide)]
+        return "".join(shown).replace(self.cwd.rstrip("/") + "/", "") or "(no matches)"
 
     def call(self, name: str, args: dict[str, Any]) -> str:
         tools: dict[str, Callable[..., str]] = {"list_dir": self.list_dir, "read_file": self.read_file,
@@ -252,14 +266,30 @@ class Files:
         return text if len(text) <= MAX_TOOL_OUTPUT else text[:MAX_TOOL_OUTPUT] + "\n... (cut)"
 
 
+class RemoteFiles:
+    """The file tools as the asking agent runs them: each call goes to its client over the socket."""
+
+    def __init__(self, inp: Any, out: Any, cwd: str, hide: list[str]) -> None:
+        self.inp, self.out, self.cwd, self.hide = inp, out, cwd, hide
+
+    def call(self, name: str, args: dict[str, Any]) -> str:
+        self.out.write(json.dumps({"tool": name, "args": args, "cwd": self.cwd, "hide": self.hide}) + "\n")
+        self.out.flush()
+        line = self.inp.readline(MAX_REPLY)
+        try:
+            return str(json.loads(line)["result"])
+        except (ValueError, KeyError, TypeError) as error:
+            raise ConnectionError(f"the client went away or sent a bad reply ({error})") from error
+
+
 FUNCTIONS = [
-    {"name": "list_dir", "description": "List a directory in the repository.",
+    {"name": "list_dir", "description": "List a directory.",
      "parameters": {"type": "object", "properties": {"path": {"type": "string", "description": "Relative path; default ."}}}},
-    {"name": "read_file", "description": "Read lines of a file in the repository, numbered.",
+    {"name": "read_file", "description": "Read lines of a file, numbered.",
      "parameters": {"type": "object", "properties": {
          "path": {"type": "string"}, "offset": {"type": "integer", "description": "First line (1-based)"},
          "limit": {"type": "integer", "description": "Number of lines, at most 2000"}}, "required": ["path"]}},
-    {"name": "grep", "description": "Search the repository with ripgrep (a regex); at most 50 matches per file.",
+    {"name": "grep", "description": "Search files under a directory with ripgrep (a regex); at most 50 matches per file.",
      "parameters": {"type": "object", "properties": {
          "pattern": {"type": "string"}, "path": {"type": "string", "description": "Relative path; default ."}},
          "required": ["pattern"]}},
@@ -300,7 +330,7 @@ def tiered(call: Callable[[str, float], Any], tier: str, deadline: float, transi
 
 
 def converse(generate: Callable[[list[Any]], Any], results: Callable[[list[tuple[str, str | None, str]]], Any],
-             contents: list[Any], files: Files, cost: Callable[[Any], float], call_usd: float,
+             contents: list[Any], files: Any, cost: Callable[[Any], float], call_usd: float,
              deadline: float) -> tuple[str, float, bool]:
     """The tool loop, from contents ending in the question; appends to contents as it goes.
     Returns the answer, what it cost and whether Gemini finished (or was stopped at the call's
@@ -325,12 +355,13 @@ def converse(generate: Callable[[list[Any]], Any], results: Callable[[list[tuple
     return f"(stopped after {MAX_ROUNDS} rounds of tool calls)", spent, False
 
 
-def answer(request: dict[str, Any], caller: str, env: dict[str, str]) -> str:
-    view = env.get("SO_VIEW", "")
-    dirs = json.loads(env.get("SO_CLIENTS", "{}")).get(caller, [])
-    if not dirs:
-        raise Refused(f"{caller} has no directories for second opinions")
-    roots = [os.path.realpath(view + d) for d in dirs]
+def answer(request: dict[str, Any], caller: str, env: dict[str, str],
+           tools: Callable[[str, list[str]], Any] = lambda cwd, hide: Files(cwd, ["/"], hide)) -> str:
+    """The answer for caller; tools(cwd, hide) gives the file tools (the client's, when serving)."""
+    clients = json.loads(env.get("SO_CLIENTS", "{}"))
+    if caller not in clients:
+        raise Refused(f"{caller} may not ask for second opinions")
+    hide = [*HIDDEN, *clients[caller]]
     conversations = Conversations(Path(env["SO_CONVERSATIONS"]))
     conversations.sweep(time.time())
     tag = request.get("continue")
@@ -345,11 +376,10 @@ def answer(request: dict[str, Any], caller: str, env: dict[str, str]) -> str:
         question = request.get("question")
     if not isinstance(question, str) or not question.strip():
         raise Refused("empty question")
-    wanted = str(request.get("dir") or previous.get("dir") or dirs[0])
-    cwd = inside(view + os.path.normpath("/" + wanted), roots)
-    if cwd is None or not os.path.isdir(cwd):
-        raise Refused(f"dir must be inside one of: {', '.join(dirs)}")
-    where = cwd[len(view):]
+    wanted = str(request.get("dir") or previous.get("dir") or request.get("cwd") or "/")
+    if not wanted.startswith("/"):
+        raise Refused("dir must be an absolute path")
+    where = os.path.normpath(wanted)
     if imported is not None:
         new = conversations.save(None, caller, where, [
             {"role": "user", "parts": [{"text": question}]}, {"role": "model", "parts": [{"text": imported["answer"]}]}])
@@ -369,7 +399,7 @@ def answer(request: dict[str, Any], caller: str, env: dict[str, str]) -> str:
                         "conversation": conversation, "outcome": outcome, "usd": round(spent[0], 6),
                         "seconds": round(time.monotonic() - started, 1), **stats})
     try:
-        text, history = ask_gemini(question, previous.get("contents", []), cwd, roots, model, call_usd, today,
+        text, history = ask_gemini(question, previous.get("contents", []), tools(where, hide), model, call_usd, today,
                                    env, spent, stats=stats)
     except BaseException:
         record("failed", tag)
@@ -401,7 +431,7 @@ def continue_hint(tag: str) -> str:
     return f"continue it with `second-opinion --continue {tag} FILE` (kept {CONVERSATION_DAYS} days after its last use)"
 
 
-def ask_gemini(question: str, history: list[Any], cwd: str, roots: list[str], model: str, call_usd: float,
+def ask_gemini(question: str, history: list[Any], files: Any, model: str, call_usd: float,
                today: str, env: dict[str, str], spent: list[float],
                stats: dict[str, Any] | None = None) -> tuple[str, list[Any]]:
     """Gemini's answer to question after history (JSON contents), and the history to keep."""
@@ -463,7 +493,7 @@ def ask_gemini(question: str, history: list[Any], cwd: str, roots: list[str], mo
     before = [types.Content.model_validate(c) for c in history]
     asked = types.Content(role="user", parts=[types.Part(text=question)])
     contents = before + [asked]
-    text, _, done = converse(generate, results, contents, Files(cwd, roots), cost, call_usd, deadline)
+    text, _, done = converse(generate, results, contents, files, cost, call_usd, deadline)
     if tier != "standard" and any(b != tier for b in billed):
         why = f"; last {tier} error: {problems[-1]}" if problems else ""
         text += f"\n\n({sum(b != tier for b in billed)} of {len(billed)} rounds ran on standard{why})"
@@ -484,7 +514,8 @@ def peer() -> str:
 
 
 def serve() -> None:
-    raw = sys.stdin.buffer.read(MAX_REQUEST + 1)
+    inp, out = sys.stdin.buffer, sys.stdout
+    raw = inp.readline(MAX_REQUEST + 1)
     try:
         if len(raw) > MAX_REQUEST:
             raise Refused(f"request over {MAX_REQUEST} bytes")
@@ -492,11 +523,13 @@ def serve() -> None:
             request = json.loads(raw)
         except ValueError as error:
             raise Refused(f"bad request: {error}") from error
-        print(answer(request, peer(), dict(os.environ)))
+        text = answer(request, peer(), dict(os.environ), lambda cwd, hide: RemoteFiles(inp, out, cwd, hide))
     except Refused as error:
-        print(f"refused: {error}")
+        text = f"refused: {error}"
     except Exception as error:  # the API's errors are many; the caller needs the message
-        print(f"failed: {type(error).__name__}: {str(error)[:2000]}")
+        text = f"failed: {type(error).__name__}: {str(error)[:2000]}"
+    out.write(json.dumps({"answer": text}) + "\n")
+    out.flush()
 
 
 def ask(args: list[str]) -> None:
@@ -507,6 +540,8 @@ def ask(args: list[str]) -> None:
             args = []
             break
         flag, value, args = args[0], args[1], args[2:]
+        if flag == "--dir" and not os.path.isdir(value):
+            sys.exit(f"second-opinion: {value} is not a directory")
         request["dir" if flag == "--dir" else "continue"] = os.path.abspath(value) if flag == "--dir" else value
     if "import" not in request:
         if len(args) != 1:
@@ -514,14 +549,24 @@ def ask(args: list[str]) -> None:
         request["question"] = Path(args[0]).read_text()
     elif args:
         sys.exit(__doc__)
+    request["cwd"] = os.getcwd()
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as conn:
         conn.connect(SOCKET)
-        conn.sendall(json.dumps(request).encode())
-        conn.shutdown(socket.SHUT_WR)
-        chunks = []
-        while chunk := conn.recv(65536):
-            chunks.append(chunk)
-    sys.stdout.write(b"".join(chunks).decode(errors="replace"))
+        conn.sendall(json.dumps(request).encode() + b"\n")
+        sys.stdout.write(client(conn.makefile("r", encoding="utf-8", errors="replace"),
+                                conn.makefile("w", encoding="utf-8")))
+
+
+def client(inp: Any, out: Any) -> str:
+    """Run the service's file tool calls here, as the asking agent, until the answer comes."""
+    while line := inp.readline(MAX_REPLY):
+        message = json.loads(line)
+        if "answer" in message:
+            return str(message["answer"]) + "\n"
+        files = Files(str(message["cwd"]), ["/"], [str(h) for h in message.get("hide", HIDDEN)])
+        out.write(json.dumps({"result": files.call(str(message["tool"]), dict(message.get("args") or {}))}) + "\n")
+        out.flush()
+    return "failed: the service closed the connection without an answer\n"
 
 
 if __name__ == "__main__":

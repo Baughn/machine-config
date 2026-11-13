@@ -64,7 +64,7 @@ in
   # Gemini second opinions (modules/second-opinion.nix).
   me.secondOpinion = {
     enable = true;
-    agents.saya.dirs = [ repo ];
+    agents.saya = { };
   };
 
   me.agentChannel = {

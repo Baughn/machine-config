@@ -209,7 +209,7 @@
         pkgs = import nixpkgs { inherit system; config.allowUnfree = true; overlays = [ craneOverlay ]; };
       };
       security-scripts = pkgs.runCommand "security-script-tests" {
-        nativeBuildInputs = [ (pkgs.python3.withPackages (p: [ p.javaproperties ])) pkgs.git ];
+        nativeBuildInputs = [ (pkgs.python3.withPackages (p: [ p.javaproperties ])) pkgs.git pkgs.ripgrep ];
       } ''
         export PYTHONDONTWRITEBYTECODE=1
         cd ${pkgs.lib.fileset.toSource {

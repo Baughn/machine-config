@@ -150,19 +150,12 @@ in
     "d /var/lib/${labs.assistant.user}/agent/notes 0700 ${labs.assistant.user} - -"
   ];
 
-  # Gemini second opinions (modules/second-opinion.nix), with the paths each agent asked for
-  # (msgs 1560358441791520832, 1560358537203425363).
+  # Gemini second opinions (modules/second-opinion.nix); Gemini reads what the asking agent can.
   me.secondOpinion = {
     enable = true;
-    agents.tsugumi-lab.dirs = map (d: "/var/lib/${labs.main.user}/agent/${d}") [
-      "stasis" "notes/rifts" "notes/timestop" "notes/overnight" "eln/port26" "eln/notes"
-    ];
-    # Its clones and notes (tsugumi-lab-assistant.md says to keep them there).
-    agents.tsugumi-lab-assistant.dirs = map (d: "/var/lib/${labs.assistant.user}/agent/${d}") [ "src" "notes" ];
-    agents.tsugumi-minecraft = {
-      dirs = [ "/home/minecraft/builder" "/home/minecraft/agent/notes" "/home/minecraft/agent/tools" ];
-      exclude = [ "/home/minecraft/agent/notes/handoff.md" "/home/minecraft/builder/tools/control/target" ];
-    };
+    agents.tsugumi-lab = { };
+    agents.tsugumi-lab-assistant = { };
+    agents.tsugumi-minecraft.exclude = [ "/home/minecraft/agent/notes/handoff.md" "/home/minecraft/builder/tools/control/target" ];
   };
 
   me.agentChannel = {
