@@ -88,11 +88,13 @@ in
         SO_CLIENTS = builtins.toJSON (lib.mapAttrs' (_: a: lib.nameValuePair a.user a.dirs) agents);
         SO_VIEW = view;
         SO_LEDGER = "${state}/ledger.json";
+        SO_USAGE = "${state}/usage.jsonl";
         SO_CONVERSATIONS = "${state}/conversations";
         SO_MONTHLY_USD = toString cfg.monthlyUsd;
         SO_CALL_USD = "1";
-        # The agents' shell commands time out after 10 minutes.
-        SO_TIMEOUT = "540";
+        # The agents' Bash calls may run 20 minutes (BASH_MAX_TIMEOUT_MS in the bridge; Baughn,
+        # msg 1570619532744196169): Carbon on flex can be slow.
+        SO_TIMEOUT = "1140";
       };
       path = [ pkgs.ripgrep ];
       serviceConfig = {
@@ -104,7 +106,7 @@ in
         Group = user;
         StateDirectory = user;
         StateDirectoryMode = "0700";
-        RuntimeMaxSec = "11min";
+        RuntimeMaxSec = "21min";
         TemporaryFileSystem = [ view ];
         # "-": a missing directory mustn't take the service down for everyone.
         BindReadOnlyPaths = map (dir: "-${dir}:${view}${dir}") dirs;

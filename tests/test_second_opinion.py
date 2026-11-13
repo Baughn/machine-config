@@ -72,7 +72,7 @@ class Tiers(unittest.TestCase):
         self.clock = 0.0
         self.calls = []
 
-    def run_tiered(self, outcomes, tier="flex", timeout=540):
+    def run_tiered(self, outcomes, tier="flex", timeout=1140):
         def call(asked, left):
             self.calls.append((asked, round(left)))
             outcome = outcomes.pop(0)
@@ -87,7 +87,7 @@ class Tiers(unittest.TestCase):
 
     def test_flex_first(self):
         self.assertEqual(self.run_tiered(["ok"]), "ok")
-        self.assertEqual(self.calls, [("flex", 360)])
+        self.assertEqual(self.calls, [("flex", 840)])
 
     def test_flex_retries_then_succeeds(self):
         self.assertEqual(self.run_tiered([TimeoutError(), "ok"]), "ok")
@@ -105,12 +105,16 @@ class Tiers(unittest.TestCase):
 
     def test_standard_tier_goes_straight(self):
         self.assertEqual(self.run_tiered(["ok"], tier="standard"), "ok")
-        self.assertEqual(self.calls, [("standard", 540)])
+        self.assertEqual(self.calls, [("standard", 1140)])
 
     def test_no_time_left_for_flex(self):
-        self.clock = 400
+        self.clock = 900
         self.assertEqual(self.run_tiered(["ok"]), "ok")
-        self.assertEqual(self.calls, [("standard", 140)])
+        self.assertEqual(self.calls, [("standard", 240)])
+
+    def test_last_try_out_of_time(self):
+        with self.assertRaises(so.OutOfTime):
+            self.run_tiered([TimeoutError()] * 7)
 
 
 class Budget(unittest.TestCase):
@@ -122,7 +126,8 @@ class Budget(unittest.TestCase):
         os.makedirs(f"{base}/view/home/b/repo")
         self.env = {"SO_VIEW": f"{base}/view", "SO_LEDGER": f"{base}/state/ledger.json",
                     "SO_CLIENTS": json.dumps({"a": ["/home/a/repo"], "b": ["/home/b/repo"]}),
-                    "SO_MONTHLY_USD": "20", "SO_CALL_USD": "1", "SO_CONVERSATIONS": f"{base}/state/conversations"}
+                    "SO_MONTHLY_USD": "20", "SO_CALL_USD": "1", "SO_CONVERSATIONS": f"{base}/state/conversations",
+                    "SO_USAGE": f"{base}/state/usage.jsonl"}
         self.ledger = so.Ledger(Path(self.env["SO_LEDGER"]))
         self.month = time.strftime("%Y-%m", time.gmtime())
 
@@ -139,7 +144,7 @@ class Budget(unittest.TestCase):
             so.answer({"question": "hi", "dir": "/home/a/repo/sub"}, "a", self.env)
 
     def test_reservation_is_settled(self):
-        def fake(question, history, cwd, roots, model, call_usd, today, env, spent):
+        def fake(question, history, cwd, roots, model, call_usd, today, env, spent, stats=None):
             self.assertEqual(cwd, os.path.realpath(self.env["SO_VIEW"] + "/home/a/repo/sub"))
             self.assertAlmostEqual(self.ledger.spent(self.month), 1.0)  # booked while it runs
             spent[0] += 0.25
@@ -147,19 +152,24 @@ class Budget(unittest.TestCase):
         with unittest.mock.patch.object(so, "ask_gemini", fake):
             text = so.answer({"question": "hi", "dir": "/home/a/repo/sub"}, "a", self.env)
         self.assertIn("$0.250 for this question; $0.25 of $20.00", text)
+        records = [json.loads(line) for line in Path(self.env["SO_USAGE"]).read_text().splitlines()]
+        self.assertEqual([(r["caller"], r["outcome"], r["usd"]) for r in records], [("a", "answered", 0.25)])
+        self.assertRegex(records[0]["conversation"], so.TAG)
 
     def test_failure_keeps_what_was_spent(self):
-        def fake(question, history, cwd, roots, model, call_usd, today, env, spent):
+        def fake(question, history, cwd, roots, model, call_usd, today, env, spent, stats=None):
             spent[0] += 0.4
             raise RuntimeError("API down")
         with unittest.mock.patch.object(so, "ask_gemini", fake), self.assertRaises(RuntimeError):
             so.answer({"question": "hi"}, "a", self.env)
         self.assertAlmostEqual(self.ledger.spent(self.month), 0.4)
+        record = json.loads(Path(self.env["SO_USAGE"]).read_text())
+        self.assertEqual((record["outcome"], record["usd"]), ("failed", 0.4))
 
     def test_conversations(self):
         seen = []
 
-        def fake(question, history, cwd, roots, model, call_usd, today, env, spent):
+        def fake(question, history, cwd, roots, model, call_usd, today, env, spent, stats=None):
             seen.append((list(history), cwd))
             return "ok", history + [question]
         with unittest.mock.patch.object(so, "ask_gemini", fake):
@@ -214,6 +224,14 @@ class Loop(unittest.TestCase):
         self.assertFalse(done)
         self.assertIn("ceiling", text)
         self.assertAlmostEqual(spent, 1.2)
+
+    def test_out_of_time_stops(self):
+        def generate(contents):
+            raise so.OutOfTime("standard: ReadTimeout: timed out")
+        text, spent, done = so.converse(generate, lambda d: d, ["q"], so.Files("/", ["/"]),
+                                        lambda r: 0.0, 1.0, time.monotonic() + 60)
+        self.assertFalse(done)
+        self.assertTrue(text.startswith("(stopped: Gemini didn't answer in time"))
 
 
 if __name__ == "__main__":
