@@ -239,7 +239,13 @@ in
       role = ./agents/tsugumi-lab.md;
       askAgents = [ "tsugumi-minecraft" "saya" "tsugumi-lab-assistant" ] ++ client;
       extraDirs = [ "/srv/towerview" ];
-      allow = [ "Edit(//srv/towerview/**)" "Write(//srv/towerview/**)" ];
+      allow = [
+        "Edit(//srv/towerview/**)"
+        "Write(//srv/towerview/**)"
+        # The classifier refuses its GitHub pushes (EA develop) even after Baughn's OK in chat;
+        # Baughn: "Add it to the whitelist" (msg 1570794768324370573).
+        "Bash(git push origin *)"
+      ];
     }) {
       triggerSources.free-research = freeResearch.instruction;
       triggerTimers.free-research = freeResearch.calendar.tsugumi-lab;
