@@ -81,7 +81,10 @@ in
       description = "A second opinion from Gemini";
       environment = {
         GEMINI_API_KEY_FILE = config.age.secrets.gemini-api-key.path;
-        SO_MODEL = "gemini-4-argon";
+        # Baughn, msg 1570617277282386031: Carbon on flex (half price; queued, so rounds fall
+        # back to standard when flex is too slow or busy to answer in time).
+        SO_MODEL = "gemini-4-carbon";
+        SO_TIER = "flex";
         SO_CLIENTS = builtins.toJSON (lib.mapAttrs' (_: a: lib.nameValuePair a.user a.dirs) agents);
         SO_VIEW = view;
         SO_LEDGER = "${state}/ledger.json";

@@ -22,7 +22,8 @@ Usage:
   second-opinion [--dir DIR] --import QUESTION_FILE ANSWER_FILE
                               start a conversation from an earlier question and answer
 Environment (serve): GEMINI_API_KEY_FILE, SO_MODEL, SO_CLIENTS (JSON: user -> directories),
-SO_VIEW, SO_LEDGER, SO_CONVERSATIONS, SO_MONTHLY_USD, SO_CALL_USD, SO_TIMEOUT (seconds).
+SO_TIER (standard or flex), SO_VIEW, SO_LEDGER, SO_CONVERSATIONS, SO_MONTHLY_USD, SO_CALL_USD,
+SO_TIMEOUT (seconds).
 """
 
 from __future__ import annotations
@@ -49,17 +50,27 @@ MAX_ROUNDS = 40
 MAX_OUTPUT_TOKENS = 16384
 CONVERSATION_DAYS = 7
 TAG = re.compile(r"c-[A-Za-z0-9_-]{12}")
-# USD per million tokens: (input, cached input, output incl. thinking), with the date each
-# price starts (ai.google.dev/gemini-api/docs/pricing, 2026-10-15). Unknown models cost as
-# much as the dearest one here, so the ledger never undercounts.
-PRICES: dict[str, list[tuple[str, tuple[float, float, float]]]] = {
-    "gemini-4-argon": [("2000-01-01", (2.00, 0.10, 10.00)), ("2026-12-01", (4.00, 0.20, 20.00))],
-    "gemini-3.8-flash": [("2000-01-01", (0.75, 0.075, 3.75)), ("2027-01-01", (1.50, 0.15, 7.50))],
+# USD per million tokens: (input, cached input, output incl. thinking), per model and service
+# tier, with the date each price starts (aistudio.google.com/docs/pricing, 2026-11-13). Flex is
+# half price. Unknown models or tiers cost as much as the dearest one here, so the ledger never
+# undercounts.
+PRICES: dict[tuple[str, str], list[tuple[str, tuple[float, float, float]]]] = {
+    ("gemini-4-carbon", "standard"): [("2000-01-01", (2.00, 0.10, 10.00)), ("2026-12-01", (4.00, 0.20, 20.00))],
+    ("gemini-4-carbon", "flex"): [("2000-01-01", (1.00, 0.05, 5.00)), ("2026-12-01", (2.00, 0.10, 10.00))],
+    ("gemini-4-argon", "standard"): [("2000-01-01", (2.00, 0.10, 10.00)), ("2026-12-01", (4.00, 0.20, 20.00))],
+    ("gemini-4-argon", "flex"): [("2000-01-01", (1.00, 0.05, 5.00)), ("2026-12-01", (2.00, 0.10, 10.00))],
+    ("gemini-3.8-flash", "standard"): [("2000-01-01", (0.75, 0.075, 3.75)), ("2027-01-01", (1.50, 0.15, 7.50))],
 }
 FALLBACK_PRICE = (4.00, 0.40, 20.00)
 # Grounding with Google Search: $14 per 1,000 queries past the free 5,000 a month. Counted
 # from the first query, to stay on the safe side.
 SEARCH_USD = 0.014
+# Flex (SO_TIER=flex) queues requests and may refuse them (429/503) when busy; nothing moves a
+# request to standard by itself (aistudio.google.com/docs/flex-inference). A round tries flex,
+# retrying with backoff, until this much of the question's time is left, then goes standard so
+# the answer still arrives inside the agents' 10-minute shell timeout.
+STANDARD_RESERVE = 180
+FLEX_BACKOFF = (5, 10, 20, 40, 60)
 
 SYSTEM = (
     "You give a second opinion to another AI agent (Claude), which works on the repository your "
@@ -78,17 +89,24 @@ class Refused(Exception):
     """A request or tool call that was refused; the message is for the caller."""
 
 
-def price(model: str, today: str) -> tuple[float, float, float]:
+def price(model: str, tier: str, today: str) -> tuple[float, float, float]:
     current = FALLBACK_PRICE
-    for start, value in PRICES.get(model, []):
+    for start, value in PRICES.get((model, tier), []):
         if today >= start:
             current = value
     return current
 
 
-def call_cost(model: str, usage: Any, searches: int, today: str) -> float:
-    """USD for one generate_content call, from its usage metadata."""
-    inp, cached_price, out = price(model, today)
+def billed_tier(usage: Any, asked: str) -> str:
+    """The tier a response was billed at: what its usage metadata says, else the one asked for."""
+    tier = getattr(usage, "service_tier", None)
+    tier = str(getattr(tier, "value", tier) or "").lower()
+    return tier if tier in ("standard", "flex", "priority") else asked
+
+
+def call_cost(model: str, tier: str, usage: Any, searches: int, today: str) -> float:
+    """USD for one generate_content call at tier, from its usage metadata."""
+    inp, cached_price, out = price(model, tier, today)
     prompt = (getattr(usage, "prompt_token_count", 0) or 0) + (getattr(usage, "tool_use_prompt_token_count", 0) or 0)
     cached = getattr(usage, "cached_content_token_count", 0) or 0
     output = (getattr(usage, "candidates_token_count", 0) or 0) + (getattr(usage, "thoughts_token_count", 0) or 0)
@@ -240,6 +258,27 @@ FUNCTIONS = [
 ]
 
 
+def tiered(call: Callable[[str, float], Any], tier: str, deadline: float, transient: Callable[[Exception], bool],
+           sleep: Callable[[float], None] = time.sleep, now: Callable[[], float] = time.monotonic) -> Any:
+    """One round: call(tier, timeout in seconds). Flex is retried with backoff while more than
+    STANDARD_RESERVE seconds are left, then the round goes standard; other tiers go straight."""
+    if tier == "flex":
+        for wait in (0, *FLEX_BACKOFF):
+            if wait:
+                sleep(min(wait, max(0.0, deadline - now() - STANDARD_RESERVE)))
+            left = deadline - now() - STANDARD_RESERVE
+            if left <= 1:
+                break
+            try:
+                return call("flex", left)
+            except Exception as error:
+                if not transient(error):
+                    raise
+                print(f"flex: {type(error).__name__}: {str(error)[:200]}", file=sys.stderr)
+        tier = "standard"
+    return call(tier, max(60.0, deadline - now()))
+
+
 def converse(generate: Callable[[list[Any]], Any], results: Callable[[list[tuple[str, str | None, str]]], Any],
              contents: list[Any], files: Files, cost: Callable[[Any], float], call_usd: float,
              deadline: float) -> tuple[str, float, bool]:
@@ -292,7 +331,7 @@ def answer(request: dict[str, Any], caller: str, env: dict[str, str]) -> str:
         new = conversations.save(None, caller, where, [
             {"role": "user", "parts": [{"text": question}]}, {"role": "model", "parts": [{"text": imported["answer"]}]}])
         return f"Imported as conversation {new}. {continue_hint(new)}"
-    model = env.get("SO_MODEL", "gemini-4-argon")
+    model = env.get("SO_MODEL", "gemini-4-carbon")
     monthly, call_usd = float(env.get("SO_MONTHLY_USD", "20")), float(env.get("SO_CALL_USD", "1"))
     ledger = Ledger(Path(env["SO_LEDGER"]))
     now = datetime.datetime.now(datetime.timezone.utc)
@@ -319,7 +358,8 @@ def ask_gemini(question: str, history: list[Any], cwd: str, roots: list[str], mo
                today: str, env: dict[str, str], spent: list[float]) -> tuple[str, list[Any]]:
     """Gemini's answer to question after history (JSON contents), and the history to keep."""
     from google import genai
-    from google.genai import types
+    from google.genai import errors, types
+    import httpx
 
     client = genai.Client(api_key=Path(env["GEMINI_API_KEY_FILE"]).read_text().strip())
     config = types.GenerateContentConfig(
@@ -332,13 +372,27 @@ def ask_gemini(question: str, history: list[Any], cwd: str, roots: list[str], mo
             function_calling_config=types.FunctionCallingConfig(mode=types.FunctionCallingConfigMode.VALIDATED)),
     )
 
+    tier = env.get("SO_TIER", "standard")
+    billed: list[str] = []
+    deadline = time.monotonic() + int(env.get("SO_TIMEOUT", "540"))
+
+    def transient(error: Exception) -> bool:
+        return (isinstance(error, errors.APIError) and error.code in (429, 500, 503, 504)) or \
+            isinstance(error, httpx.TimeoutException)
+
     def generate(contents: list[Any]) -> Any:
-        return client.models.generate_content(model=model, contents=contents, config=config)
+        def call(asked: str, timeout: float) -> Any:
+            options = types.HttpOptions(timeout=int(timeout * 1000))
+            response = client.models.generate_content(model=model, contents=contents, config=config.model_copy(
+                update={"service_tier": types.ServiceTier(asked), "http_options": options}))
+            billed.append(billed_tier(response.usage_metadata, asked))
+            return response
+        return tiered(call, tier, deadline, transient)
 
     def cost(response: Any) -> float:
         meta = getattr(response.candidates[0], "grounding_metadata", None)
         searches = len(getattr(meta, "web_search_queries", None) or [])
-        usd = call_cost(model, response.usage_metadata, searches, today)
+        usd = call_cost(model, billed[-1], response.usage_metadata, searches, today)
         spent[0] += usd
         return usd
 
@@ -350,8 +404,9 @@ def ask_gemini(question: str, history: list[Any], cwd: str, roots: list[str], mo
     before = [types.Content.model_validate(c) for c in history]
     asked = types.Content(role="user", parts=[types.Part(text=question)])
     contents = before + [asked]
-    deadline = time.monotonic() + int(env.get("SO_TIMEOUT", "540"))
     text, _, done = converse(generate, results, contents, Files(cwd, roots), cost, call_usd, deadline)
+    if tier != "standard" and any(b != tier for b in billed):
+        text += f"\n\n({sum(b != tier for b in billed)} of {len(billed)} rounds ran on standard: {tier} was busy)"
     if not done:
         # Unanswered tool calls can't be continued from: keep the question and the stop notice.
         contents = before + [asked, types.Content(role="model", parts=[types.Part(text=text)])]

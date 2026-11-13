@@ -48,13 +48,69 @@ class Cost(unittest.TestCase):
     def test_prices_change_on_date(self):
         usage = NS(prompt_token_count=1_000_000, candidates_token_count=100_000, thoughts_token_count=0,
                    cached_content_token_count=0, tool_use_prompt_token_count=0)
-        self.assertAlmostEqual(so.call_cost("gemini-4-argon", usage, 0, "2026-10-15"), 3.0)
-        self.assertAlmostEqual(so.call_cost("gemini-4-argon", usage, 0, "2026-12-01"), 6.0)
-        self.assertAlmostEqual(so.call_cost("gemini-4-argon", usage, 10, "2026-10-15"), 3.14)
+        self.assertAlmostEqual(so.call_cost("gemini-4-carbon", "standard", usage, 0, "2026-11-15"), 3.0)
+        self.assertAlmostEqual(so.call_cost("gemini-4-carbon", "standard", usage, 0, "2026-12-01"), 6.0)
+        self.assertAlmostEqual(so.call_cost("gemini-4-carbon", "standard", usage, 10, "2026-11-15"), 3.14)
+        self.assertAlmostEqual(so.call_cost("gemini-4-carbon", "flex", usage, 0, "2026-11-15"), 1.5)
+        self.assertAlmostEqual(so.call_cost("gemini-4-carbon", "flex", usage, 0, "2026-12-01"), 3.0)
 
-    def test_unknown_model_costs_most(self):
+    def test_unknown_model_or_tier_costs_most(self):
         usage = NS(prompt_token_count=1_000_000, candidates_token_count=None)
-        self.assertAlmostEqual(so.call_cost("gemini-9", usage, 0, "2026-10-15"), 4.0)
+        self.assertAlmostEqual(so.call_cost("gemini-9", "standard", usage, 0, "2026-10-15"), 4.0)
+        self.assertAlmostEqual(so.call_cost("gemini-4-carbon", "priority", usage, 0, "2026-10-15"), 4.0)
+
+    def test_billed_tier(self):
+        self.assertEqual(so.billed_tier(NS(service_tier=NS(value="STANDARD")), "flex"), "standard")
+        self.assertEqual(so.billed_tier(NS(service_tier=None), "flex"), "flex")
+        self.assertEqual(so.billed_tier(NS(), "standard"), "standard")
+
+
+class Tiers(unittest.TestCase):
+    """tiered() on a fake clock: sleep advances it."""
+
+    def setUp(self):
+        self.clock = 0.0
+        self.calls = []
+
+    def run_tiered(self, outcomes, tier="flex", timeout=540):
+        def call(asked, left):
+            self.calls.append((asked, round(left)))
+            outcome = outcomes.pop(0)
+            if isinstance(outcome, Exception):
+                self.clock += 30
+                raise outcome
+            return outcome
+
+        def sleep(seconds):
+            self.clock += seconds
+        return so.tiered(call, tier, timeout, lambda e: isinstance(e, TimeoutError), sleep, lambda: self.clock)
+
+    def test_flex_first(self):
+        self.assertEqual(self.run_tiered(["ok"]), "ok")
+        self.assertEqual(self.calls, [("flex", 360)])
+
+    def test_flex_retries_then_succeeds(self):
+        self.assertEqual(self.run_tiered([TimeoutError(), "ok"]), "ok")
+        self.assertEqual([c[0] for c in self.calls], ["flex", "flex"])
+
+    def test_standard_when_flex_stays_busy(self):
+        self.assertEqual(self.run_tiered([TimeoutError()] * 6 + ["ok"]), "ok")
+        self.assertEqual(self.calls[-1][0], "standard")
+        self.assertGreaterEqual(self.calls[-1][1], 60)
+        self.assertTrue(all(c[0] == "flex" for c in self.calls[:-1]))
+
+    def test_other_errors_are_raised(self):
+        with self.assertRaises(ValueError):
+            self.run_tiered([ValueError("bad request")])
+
+    def test_standard_tier_goes_straight(self):
+        self.assertEqual(self.run_tiered(["ok"], tier="standard"), "ok")
+        self.assertEqual(self.calls, [("standard", 540)])
+
+    def test_no_time_left_for_flex(self):
+        self.clock = 400
+        self.assertEqual(self.run_tiered(["ok"]), "ok")
+        self.assertEqual(self.calls, [("standard", 140)])
 
 
 class Budget(unittest.TestCase):
