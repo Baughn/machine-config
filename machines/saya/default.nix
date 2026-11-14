@@ -28,10 +28,12 @@
   boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # NVIDIA dGPU only; iGPU intentionally unused.
+  # NVIDIA drives the desktop; amdgpu is loaded so the Ryzen iGPU is a second,
+  # weak render device for saya-client's GPU tests (Baughn, msg 1571114327723999295).
+  # The iGPU must also be enabled in the firmware setup, with the dGPU as primary display.
   me.cachy-kernel = {
     enable = true;
-    amdgpu = false;
+    amdgpu = true;
   };
 
   # Work around ZFS' lack of STATX_MNT_ID_UNIQUE
