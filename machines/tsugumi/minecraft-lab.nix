@@ -156,7 +156,7 @@ let
         };
         memoryMax = lib.mkOption {
           type = lib.types.str;
-          default = "16G";
+          default = "32G";
           description = "MemoryMax of the lab's slice, every lab server together.";
         };
         cpuQuota = lib.mkOption { type = lib.types.str; default = "800%"; };

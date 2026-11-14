@@ -119,7 +119,8 @@ in
   };
   # LabAssistant's lab (agents.nix), for interruptions while LabAgent does long work
   # (Baughn, msgs 1563890365226950749, 1563890697965404163). Quota and memory are
-  # Saya's defaults, smaller than main's.
+  # Saya's defaults, smaller than main's. Memory doubled 2026-11-14 (Baughn, msg
+  # 1571309405071474822; endfight was OOM-killed).
   me.minecraft.labs.assistant = {
     loginPort = 25667;
     remoteLogin = {
@@ -131,7 +132,7 @@ in
       allow = [ "10.171.0.6" ];
     };
     quota = "100G";
-    memoryMax = "8G";
+    memoryMax = "16G";
   };
 
   ## DessPlay Rendezvous
