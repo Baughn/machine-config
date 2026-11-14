@@ -102,7 +102,10 @@ let
       "Bash(rm -rf *)"
     ];
     deny = [ "Bash(sudo *)" ];
-    serviceConfig = lab.serviceConfig;
+    # Files they hand over must be readable by tsugumi-minecraft, caddy and the other
+    # lab; the bridge's default 0077 kept tripping that (Baughn, msg 1571310395787059402).
+    # Their home is 0700 and the bridge's state 0700, so nothing private opens up.
+    serviceConfig = lab.serviceConfig // { UMask = "0022"; };
   };
 in
 {
@@ -136,12 +139,12 @@ in
 
   # Shared bare git repos for the two lab agents (lab-common.md), and the PAT's group.
   # setgid keeps new repos in the group; git init --shared=group sets the modes,
-  # since the bridges' umask is 0077.
+  # as other umasks may be stricter.
   users.groups.lab-agents.members = [ labs.main.user labs.assistant.user ];
 
   # towers.brage.info (static-web.nix): the lab's browser build of the Stasis Delvers tower
   # generator, public (Baughn, msg 1559296753629663233). caddy-static reads it as "other",
-  # so files must be world-readable; the bridge's umask makes them 0600.
+  # so files must be world-readable (the lab bridges' umask is 0022).
   systemd.tmpfiles.rules = [
     "d /srv/towerview 0755 ${labs.main.user} ${labs.main.user} -"
     "d /srv/lab-git 2770 root lab-agents -"

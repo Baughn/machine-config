@@ -205,7 +205,7 @@ let
     # lab writes, tsugumi-minecraft reads. setgid keeps new entries in the
     # group; files copied with mode 0600 still need chmod g+r.
     # The lab is a member too, so it can chgrp what it makes there (cp keeps
-    # the lab's group; the bridge's umask makes files 0600).
+    # the lab's group and the source's mode).
     users.groups.lab-handover.members = [ lab.user ];
 
     systemd.tmpfiles.rules = [
