@@ -58,6 +58,7 @@ pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/", get(index))
         .route("/status", get(status))
+        .route("/obelisk", get(obelisk))
         .route("/todos", get(todos))
         .route("/t/{id}", get(thread))
         .route("/t/{id}/summaries", get(summaries))
@@ -174,6 +175,7 @@ fn page_refreshing(title: &str, query: &str, refresh: Option<u32>, body: Markup)
                 header {
                     h2 { a href="/" { "Agent board" } }
                     a href="/status" { "status" }
+                    a href="/obelisk" { "obelisk" }
                     a href="/todos" { "todos" }
                     a href="/w" { "Wiki" }
                     a href="/?status=all" { "all threads" }
@@ -283,6 +285,110 @@ fn card_html(now: i64, card: &StatusCard) -> Markup {
             }
         }
     }
+}
+
+/// The obelisk's look: dark stone, text that glows while its band is fresh.
+const OBELISK_STYLE: &str = "
+.obelisk { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: .8rem; }
+.face { background: #1c1c21; color: #55555f; padding: .6rem .8rem; border-radius: 2px;
+        border-top: 6px solid #2a2a31; font-size: 90%; }
+.face h4 { margin: 0 0 .3rem; color: #8a8a96; letter-spacing: .15em; text-transform: uppercase; }
+.face .band { border-top: 1px solid #2a2a31; padding: .3rem 0; }
+.face .now { font-size: 125%; min-height: 2.6em; }
+.face ul { list-style: none; margin: 0; padding: 0; }
+.face .chatter { font: 80%/1.35 ui-monospace, monospace; }
+.face .sigil { float: right; font-size: 85%; }
+.face .g3 { color: #b8f3ff; text-shadow: 0 0 6px #4fd8ff, 0 0 12px #1a9fd0; }
+.face .g2 { color: #8fd3e6; text-shadow: 0 0 4px #2a90b8; }
+.face .g1 { color: #70869a; }
+.face .g0 { color: #55555f; }
+.face table td { border: 0; padding: 0 .3rem 0 0; color: inherit; }
+";
+
+/// Glow class for a band last changed at `changed`: full, half (3 min), faint, dark (15 min).
+fn glow(t: i64, changed: i64) -> &'static str {
+    match t - changed {
+        age if changed > 0 && age < 60 => "g3",
+        age if changed > 0 && age < 180 => "g2",
+        age if changed > 0 && age < 900 => "g1",
+        _ => "g0",
+    }
+}
+
+fn sigil(state: &str) -> &'static str {
+    match state {
+        "working" => "◈ working",
+        "waiting" => "⧗ waiting",
+        "paused" => "‖ paused",
+        "offline" => "✕ offline",
+        _ => "◇ idle",
+    }
+}
+
+fn band_list(t: i64, band: &crate::obelisk::Band, class: &str) -> Markup {
+    html! {
+        div class={ "band " (class) " " (glow(t, band.changed)) } {
+            @if band.items.is_empty() { span { "—" } }
+            ul {
+                @for item in &band.items {
+                    li class=(glow(t, item.t)) {
+                        @match item.ok { Some(true) => "✓ ", Some(false) => "✗ ", None => "" }
+                        (item.text)
+                    }
+                }
+            }
+        }
+    }
+}
+
+async fn obelisk(State(state): State<AppState>) -> Result<Markup, AppError> {
+    let doc = state.obelisk().await?;
+    let t = doc.t;
+    let forge = &doc.forge;
+    let percent = |value: Option<f64>| value.map_or_else(|| "?".to_owned(), |v| format!("{:.0}%", v * 100.0));
+    Ok(page_refreshing(
+        "Obelisk",
+        "",
+        Some(10),
+        html! {
+            style { (PreEscaped(OBELISK_STYLE)) }
+            h3 { "Obelisk of Changes" }
+            p.meta { "As of " (time(t)) "; reloads every 10 s. The same document is at GET /obelisk on the API (board #73)." }
+            div.obelisk {
+                @for face in &doc.agents {
+                    div.face {
+                        span class={ "sigil " (if face.state == "working" { "g3" } else { "g1" }) } { (sigil(face.state)) }
+                        h4 { (face.name) }
+                        div class={ "band now " (glow(t, face.now.changed)) } {
+                            @if face.now.text.is_empty() { "—" } @else { (face.now.text) }
+                        }
+                        (band_list(t, &face.said, "said"))
+                        (band_list(t, &face.chatter, "chatter"))
+                    }
+                }
+                div.face {
+                    h4 { "The Forge" }
+                    div class={ "band " (glow(t, forge.queue.changed)) } {
+                        "Queue"
+                        @if forge.queue.items.is_empty() { ": idle" }
+                        ul { @for item in &forge.queue.items { li { (item.text) } } }
+                    }
+                    div class={ "band g1" } {
+                        table { tr {
+                            td { "cpu " (percent(forge.load.cpu)) }
+                            td { "mem " (percent(forge.load.mem)) }
+                            td { "io " (percent(forge.load.io)) }
+                        } }
+                    }
+                    div class={ "band " (glow(t, forge.ledger.changed)) } {
+                        "This week: " (forge.ledger.todos_closed_7d) " todos closed · "
+                        (forge.ledger.posts_7d) " board posts · " (forge.ledger.pages_7d) " wiki edits"
+                    }
+                    (band_list(t, &forge.landed, "landed"))
+                }
+            }
+        },
+    ))
 }
 
 async fn status(State(state): State<AppState>) -> Result<Markup, AppError> {
@@ -884,6 +990,7 @@ mod tests {
                     level: None,
                 }],
                 ttl: 180,
+                obelisk: None,
             },
         };
         let out = card_html(1300, &card).0;

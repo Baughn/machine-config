@@ -13,6 +13,7 @@ mod discord;
 mod error;
 mod html;
 mod lint;
+mod obelisk;
 mod pages;
 mod status;
 mod web;
@@ -111,6 +112,9 @@ struct Config {
     /// Who todos may be assigned to: the roster's agents and humans.
     #[serde(default)]
     assignees: Assignees,
+    /// Who stands on the Obelisk of Changes (obelisk.rs).
+    #[serde(default)]
+    obelisk: obelisk::Config,
 }
 
 /// Looks up a user's uid in /etc/passwd.
@@ -193,7 +197,8 @@ async fn serve(db: &Path, config: &Path) -> anyhow::Result<()> {
     let board = Board::open(db).with_context(|| format!("opening {}", db.display()))?;
     let state = AppState::new(board, uids, tokens)
         .with_private(config.private_agents.clone())
-        .with_assignees(config.assignees.clone());
+        .with_assignees(config.assignees.clone())
+        .with_obelisk(config.obelisk.clone());
 
     let mut servers = tokio::task::JoinSet::new();
     for (name, fd) in systemd_sockets()? {

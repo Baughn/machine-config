@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::db::{now, Ask, Board, Thread, Todo, TodoFilter};
 use crate::discord::INGEST_IDENTITY;
 use crate::error::AppError;
+use crate::obelisk::{self, CardExtra};
 
 const MAX_TITLE: usize = 100;
 const MAX_STATE: usize = 80;
@@ -47,6 +48,9 @@ pub struct NewStatus {
     pub lines: Vec<StatusLine>,
     /// Seconds after which the card counts as stale.
     pub ttl: i64,
+    /// What a bridge adds for the Obelisk of Changes (obelisk.rs).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub obelisk: Option<CardExtra>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -104,6 +108,23 @@ fn check(status: &NewStatus) -> Result<(), AppError> {
         }
         if line.link.as_ref().is_some_and(|link| link.len() > MAX_LINK) {
             return Err(bad(format!("link: at most {MAX_LINK} bytes")));
+        }
+    }
+    if let Some(extra) = &status.obelisk {
+        if extra.topic.as_ref().is_some_and(|topic| topic.len() > obelisk::MAX_TOPIC) {
+            return Err(bad(format!("obelisk.topic: at most {} bytes", obelisk::MAX_TOPIC)));
+        }
+        if extra.chatter.len() > obelisk::MAX_CHATTER {
+            return Err(bad(format!("obelisk.chatter: at most {} lines", obelisk::MAX_CHATTER)));
+        }
+        if extra.chatter.iter().any(|line| {
+            line.text.len() > obelisk::MAX_CHATTER_TEXT || line.id.len() > obelisk::MAX_ID
+        }) {
+            return Err(bad(format!(
+                "obelisk.chatter: text at most {} bytes, id at most {}",
+                obelisk::MAX_CHATTER_TEXT,
+                obelisk::MAX_ID
+            )));
         }
     }
     if !(MIN_TTL..=MAX_TTL).contains(&status.ttl) {

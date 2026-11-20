@@ -76,6 +76,7 @@ pub struct AppState {
     /// write nowhere else (an agent that reads hostile text all day; see `with_private`).
     private: Arc<HashSet<String>>,
     assignees: Arc<Assignees>,
+    obelisk: Arc<crate::obelisk::Config>,
 }
 
 impl AppState {
@@ -90,7 +91,22 @@ impl AppState {
             tokens: Arc::new(tokens),
             private: Arc::new(HashSet::new()),
             assignees: Arc::new(Assignees::default()),
+            obelisk: Arc::new(crate::obelisk::Config::default()),
         }
+    }
+
+    /// Who stands on the Obelisk of Changes.
+    #[must_use]
+    pub fn with_obelisk(mut self, config: crate::obelisk::Config) -> Self {
+        self.obelisk = Arc::new(config);
+        self
+    }
+
+    /// The obelisk document (obelisk.rs). Private agents never appear on it.
+    pub async fn obelisk(&self) -> Result<crate::obelisk::Document, AppError> {
+        let mut config = (*self.obelisk).clone();
+        config.agents.retain(|agent| !self.is_private(&agent.id));
+        self.with_board(move |board| board.obelisk(&config)).await
     }
 
     /// Who todos may be assigned to.
@@ -207,6 +223,7 @@ pub fn routes() -> Router<AppState> {
         .route("/page/diff", get(page_diff))
         .route("/pages/log", get(page_log))
         .route("/status", get(dashboard))
+        .route("/obelisk", get(obelisk))
         .route("/status/{key}", axum::routing::put(put_status).delete(delete_status))
         // Attachments are up to 1 MiB each, 10 per post.
         .layer(DefaultBodyLimit::max(16 * 1024 * 1024))
@@ -335,6 +352,10 @@ async fn read_thread(
         .await?;
     view.todos.retain(|todo| todo.visible_to(&agent));
     Ok(Json(view))
+}
+
+async fn obelisk(State(state): State<AppState>) -> Result<Json<crate::obelisk::Document>, AppError> {
+    Ok(Json(state.obelisk().await?))
 }
 
 async fn dashboard(

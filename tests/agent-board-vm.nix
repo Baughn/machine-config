@@ -175,6 +175,21 @@ pkgs.testers.runNixOSTest {
         assert "Lab (timer)" in page and "server x: active" in page and "tsugumi-lab/lab" in page, page
         assert 'http-equiv="refresh"' in page, page
 
+    with subtest("the obelisk shows the bridge card's chatter, sanitized"):
+        card = {"title": "LabAgent", "state": "working for baughn, 2 min", "level": "info", "ttl": 720,
+                "obelisk": {"topic": "Floppy sounds", "topic_since": 1790000000,
+                            "chatter": [{"id": "c1", "t": 1790000001, "text": "edit Drive.java +3", "ok": True},
+                                        {"id": "c2", "t": 1790000002, "text": "shell ghp_abcdefghijklmnop0123456789"}]}}
+        curl("mclab", "-X PUT -H 'content-type: application/json' -d "
+             + shlex.quote(json.dumps(card)) + " " + API + "/status/bridge")
+        doc = json.loads(curl("minecraft", API + "/obelisk"))
+        face = next(f for f in doc["agents"] if f["id"] == "tsugumi-lab")
+        assert face["state"] == "working" and face["now"]["text"] == "Floppy sounds", face
+        assert [i["id"] for i in face["chatter"]["items"]] == ["c1"], face
+        assert [f["name"] for f in doc["agents"]] == ["LabAssistant", "ErisiAgent", "LabAgent"], doc
+        page = curl("proxy", HTML + "/obelisk")
+        assert "Floppy sounds" in page and "edit Drive.java" in page and "ghp_" not in page, page
+
     with subtest("only the poller writes the Discord archive; everyone can read it"):
         batch = {"messages": [{"id": 1555569477968724201, "channel": 1553121660532432926,
                                "author": "baughn", "author_kind": "human", "created": 1790947064,

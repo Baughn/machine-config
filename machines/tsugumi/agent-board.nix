@@ -22,6 +22,9 @@ let
       # For the daily digest's pings.
       discord_ids = lib.mapAttrs (_: who: who.discordId) roster.humans;
     };
+    # The Obelisk of Changes (board #73; Baughn, msg 1573355320326230037): its three agent faces.
+    obelisk.agents = map (id: { inherit id; name = roster.agents.${id}.displayName; })
+      [ "tsugumi-lab-assistant" "tsugumi-minecraft" "tsugumi-lab" ];
   } // lib.optionalAttrs (cfg.discordPublicKey != null) {
     discord = {
       public_key = cfg.discordPublicKey;
