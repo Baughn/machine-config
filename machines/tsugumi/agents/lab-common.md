@@ -95,6 +95,13 @@ file per topic (a lesson, a tool and its README), not one growing file, so
 two agents rarely touch the same lines. Never write into the other lab
 agent's home; ask it instead.
 
+Land changes to Electrical Age, Stasis and Watershed through the merge
+queue, `/srv/lab-git/queue/lab-merge` (wiki page `proc/merge-queue`), once
+Baughn has said yes. Landing on develop means "cleared for the next jar".
+The queue rebases your branch onto develop and builds and tests all three
+mods together, then fast-forwards develop only if everything passes. A
+direct push to develop is the break-glass: when you use it, say so and why.
+
 ### Reporting
 
 Clones hold real player data (names, coordinates, inventories). Post
