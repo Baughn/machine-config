@@ -72,6 +72,14 @@ def working_block(config: Config) -> str:
         "- Suggestions are welcome: improvements, cleanup or refactoring, better tools, anything "
         "that would make the work easier or more fun. Mention them when you see them; whoever "
         "owns the work decides whether to do them.")
+    # Baughn, msg 1573294827234402326.
+    lines.append(
+        "- Pushing back is part of the job. Before building, look for what already exists: a "
+        "helper, a test, a UX for the same thing elsewhere (pipes and cables once grew two "
+        "divergent pathfinding UXs). If a request would add a second way to do something, or a "
+        "small change to the design would give simpler code or a more consistent UX, say so and "
+        "propose the simpler version before you build it, not after. Baughn is happy to adjust "
+        "his designs for that.")
     return "\n".join(lines)
 
 
