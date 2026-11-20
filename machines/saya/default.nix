@@ -73,12 +73,13 @@
         publicKey = "SKfwxWjSrPiwbLSvvOzkrqub/8iOobwkDKWoiCAsXAo=";
         allowedIPs = [ "10.42.0.2/32" ];
       }
-      # jrddunbr
-      {
-        publicKey = "QPSh4TROwtw54n9Xb/VvCHN0TQpm6417p7Gl+//7VVg=";
-        allowedIPs = [ "10.42.0.3/32" ];
-        endpoint = "ctha.ja4.org:51820";
-      }
+      # jrddunbr: commented out while we're not playing; ctha.ja4.org stopped resolving
+      # and its peer unit failed the 11-20 deploy (Baughn, msg 1573296670869954582).
+      # {
+      #   publicKey = "QPSh4TROwtw54n9Xb/VvCHN0TQpm6417p7Gl+//7VVg=";
+      #   allowedIPs = [ "10.42.0.3/32" ];
+      #   endpoint = "ctha.ja4.org:51820";
+      # }
       # Xon
       {
         publicKey = "rPknmibG5ylzOEn//qYUGIdRdKqIUBxihNDzjtjMplI=";
