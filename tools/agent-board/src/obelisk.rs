@@ -582,7 +582,16 @@ fn queue_bands<'a>(updated: i64, lines: impl Iterator<Item = &'a str>) -> (Band,
         };
         Some((text, t))
     };
+    // `repo … branch`: a job's first and last words, to match a rejection with a later merge.
+    let repo_branch = |text: &str| -> Option<(String, String)> {
+        let mut words = text.split_whitespace();
+        let repo = words.next()?;
+        let branch = words.next_back()?;
+        Some((repo.to_owned(), branch.to_owned()))
+    };
     let (mut queue, mut landed) = (Vec::new(), Vec::new());
+    // (repo, branch, t) of each merge and of each rejection (index into `queue`).
+    let (mut merges, mut rejections) = (Vec::new(), Vec::new());
     for line in lines {
         let mut words = line.splitn(3, ' ');
         let first = words.next().unwrap_or("");
@@ -593,10 +602,16 @@ fn queue_bands<'a>(updated: i64, lines: impl Iterator<Item = &'a str>) -> (Band,
             let Some((text, t)) = split_time(rest) else {
                 continue;
             };
+            let key = rest
+                .rsplit_once(" @")
+                .and_then(|(before, _)| repo_branch(before));
             let Some(text) = sanitize(&text, MAX_TEXT) else {
                 continue;
             };
             if first == "merged" {
+                if let Some((repo, branch)) = key {
+                    merges.push((repo, branch, t));
+                }
                 landed.push(Item {
                     id: format!("merge-{id}"),
                     t,
@@ -605,6 +620,9 @@ fn queue_bands<'a>(updated: i64, lines: impl Iterator<Item = &'a str>) -> (Band,
                     stages: None,
                 });
             } else {
+                if let Some((repo, branch)) = key {
+                    rejections.push((repo, branch, t, queue.len()));
+                }
                 queue.push(Item {
                     id: format!("job-{id}"),
                     t,
@@ -643,6 +661,23 @@ fn queue_bands<'a>(updated: i64, lines: impl Iterator<Item = &'a str>) -> (Band,
             });
         }
     }
+    // A rejection that a later merge of the same branch superseded (a retry landed) is history,
+    // not something waiting: drop it (Baughn, msg 1573479687836016732).
+    let superseded: std::collections::BTreeSet<usize> = rejections
+        .iter()
+        .filter(|(repo, branch, t, _)| {
+            merges
+                .iter()
+                .any(|(r, b, mt)| r == repo && b == branch && mt >= t)
+        })
+        .map(|(_, _, _, index)| *index)
+        .collect();
+    let queue = queue
+        .into_iter()
+        .enumerate()
+        .filter(|(index, _)| !superseded.contains(index))
+        .map(|(_, item)| item)
+        .collect();
     (band(queue), band(landed))
 }
 
@@ -802,6 +837,22 @@ mod tests {
         let rejected = queue.items.iter().find(|item| item.id == "job-6").unwrap();
         assert_eq!(rejected.ok, Some(false));
         assert_eq!(rejected.text, "stasis fix-x: Stasis tests failed");
+    }
+
+    #[test]
+    fn a_rejection_superseded_by_a_later_merge_is_dropped() {
+        let lines = [
+            "merged #2 eln 2f671b06 floppy-sounds @1790000500",
+            "rejected #1 eln floppy-sounds @1790000000: Stasis gate: no JDK21",
+            "rejected #3 eln floppy-sounds-2 @1790000000: other branch",
+            "rejected #4 stasis floppy-sounds @1790000000: other repo",
+            "rejected #5 eln floppy-sounds @1790000900: after the merge",
+        ];
+        let (queue, landed) = queue_bands(1_790_001_000, lines.into_iter());
+        assert_eq!(landed.items.len(), 1);
+        let mut ids: Vec<_> = queue.items.iter().map(|item| item.id.as_str()).collect();
+        ids.sort_unstable();
+        assert_eq!(ids, ["job-3", "job-4", "job-5"]);
     }
 
     #[test]
