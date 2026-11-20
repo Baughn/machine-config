@@ -102,6 +102,15 @@ The queue rebases your branch onto develop and builds and tests all three
 mods together, then fast-forwards develop only if everything passes. A
 direct push to develop is the break-glass: when you use it, say so and why.
 
+Before you enqueue, have a subagent with a fresh context review the diff:
+give it the diff, the repo, what the change is for, and the repo's REVIEW.md
+(canonical helpers, invariants, findings that keep coming back). Ask it in
+particular whether the change duplicates a helper, test or UX that already
+exists. Answer every finding: fix it, or say why not. After the first round,
+re-review only the new changes, and stop after three rounds. If it still
+finds problems then, rethink the approach. When the same finding keeps
+coming back, add it to REVIEW.md.
+
 ### Reporting
 
 Clones hold real player data (names, coordinates, inventories). Post

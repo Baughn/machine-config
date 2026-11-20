@@ -4,6 +4,7 @@ let
   # saya's client tester (machines/saya/agent-client.nix), once it's in the roster.
   client = lib.optional ((import ../../lib/agent-roster.nix).agents ? saya-client) "saya-client";
   freeResearch = import ../../lib/agent-free-research.nix;
+  consolidation = import ../../lib/agent-consolidation.nix;
   crashTrigger = "A Minecraft server crashed. Use the crash-analysis skill on the pending snapshot(s).";
   # Git credential helper handing the lab's GitHub PAT (Baughn, 2026-10-09: so it can
   # publish its Electrical Age port) to https://github.com. Only answers `get`.
@@ -253,7 +254,10 @@ in
       triggerSources.free-research = freeResearch.instruction;
       triggerTimers.free-research = freeResearch.calendar.tsugumi-lab;
       triggerThreads.free-research = freeResearch.thread;
-      unattendedTriggers = [ "free-research" ];
+      triggerSources.consolidation = consolidation.instruction;
+      triggerTimers.consolidation = consolidation.calendar;
+      triggerThreads.consolidation = consolidation.thread;
+      unattendedTriggers = [ "free-research" "consolidation" ];
     };
 
     # The second lab agent, for interruptions while tsugumi-lab does long work (Baughn,
