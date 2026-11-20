@@ -192,6 +192,14 @@ pkgs.testers.runNixOSTest {
         machine.wait_until_succeeds("sudo -u minecraft cat /run/obelisk/obelisk.json | grep -q Floppy", timeout=30)
         machine.succeed("sudo -u mclab-assistant test -r /run/obelisk/obelisk.json")
         machine.fail("sudo -u proxy cat /run/obelisk/obelisk.json")
+        queue = {"title": "Merge queue", "ttl": 86400,
+                 "lines": [{"text": "#8 eln floppy-sounds: eln ok · stasis run"},
+                           {"text": "merged #7 eln 2f671b06 floppy-sounds @1790000000"}]}
+        curl("mclab-assistant", "-X PUT -H 'content-type: application/json' -d "
+             + shlex.quote(json.dumps(queue)) + " " + API + "/status/queue")
+        forge = json.loads(curl("minecraft", API + "/obelisk"))["forge"]
+        assert forge["queue"]["items"][0]["stages"] == {"eln": "ok", "stasis": "run"}, forge
+        assert forge["landed"]["items"][0]["id"] == "merge-7", forge
 
     with subtest("only the poller writes the Discord archive; everyone can read it"):
         batch = {"messages": [{"id": 1555569477968724201, "channel": 1553121660532432926,

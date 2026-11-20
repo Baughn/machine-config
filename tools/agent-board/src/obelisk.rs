@@ -149,6 +149,9 @@ pub struct Item {
     pub text: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ok: Option<bool>,
+    /// A queue job's gate stages, repo -> wait | run | ok | fail | flaky.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stages: Option<std::collections::BTreeMap<String, String>>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -379,29 +382,20 @@ impl Board {
                 chatter: chatter(card),
             });
         }
-        let queue = cards
+        // The newest live queue card (lab-merge writes it as whichever lab agent runs it).
+        let (queue, landed) = cards
             .iter()
-            .find(|card| card.key == QUEUE_KEY && !card.stale)
-            .map_or_else(Band::default, |card| {
-                let items = card
-                    .body
-                    .lines
-                    .iter()
-                    .enumerate()
-                    .filter_map(|(index, line)| {
-                        Some(Item {
-                            id: format!("{}-{index}", card.agent),
-                            t: card.updated,
-                            text: sanitize(&line.text, MAX_TEXT)?,
-                            ok: None,
-                        })
-                    })
-                    .collect();
-                Band {
-                    changed: card.updated,
-                    items,
-                }
-            });
+            .filter(|card| card.key == QUEUE_KEY && !card.stale)
+            .max_by_key(|card| card.updated)
+            .map_or_else(
+                || (Band::default(), Band::default()),
+                |card| {
+                    queue_bands(
+                        card.updated,
+                        card.body.lines.iter().map(|line| line.text.as_str()),
+                    )
+                },
+            );
         Ok(Document {
             v: 1,
             t,
@@ -410,7 +404,7 @@ impl Board {
                 queue,
                 load: load(t),
                 ledger: self.obelisk_ledger(t)?,
-                landed: Band::default(),
+                landed,
             },
         })
     }
@@ -493,6 +487,7 @@ impl Board {
                 t: created,
                 text,
                 ok: None,
+                stages: None,
             });
             if items.len() == SAID {
                 break;
@@ -528,6 +523,94 @@ impl Board {
     }
 }
 
+/// The merge queue's card lines (format agreed with LabAgent, msg 1573363088936149184):
+/// `#7 eln floppy-sounds: eln ok · stasis run · watershed wait` for a job in the gate,
+/// `merged #7 eln 2f671b06 floppy-sounds @1790000000` and
+/// `rejected #7 eln floppy-sounds @1790000000: reason` for the last few finished ones.
+/// Returns (queue: jobs in the gate and rejected ones, landed: merges).
+fn queue_bands<'a>(updated: i64, lines: impl Iterator<Item = &'a str>) -> (Band, Band) {
+    let job_id = |word: &str| {
+        word.strip_prefix('#')
+            .filter(|n| !n.is_empty() && n.len() <= 9 && n.bytes().all(|b| b.is_ascii_digit()))
+            .map(str::to_owned)
+    };
+    // `… @1790000000` (and for rejections `…: reason` after it): the text and the time.
+    let split_time = |rest: &str| -> Option<(String, i64)> {
+        let (before, after) = rest.rsplit_once(" @")?;
+        let digits: String = after.chars().take_while(char::is_ascii_digit).collect();
+        let t = digits.parse().ok()?;
+        let tail = after[digits.len()..].trim_start_matches(':').trim();
+        let text = if tail.is_empty() {
+            before.to_owned()
+        } else {
+            format!("{before}: {tail}")
+        };
+        Some((text, t))
+    };
+    let (mut queue, mut landed) = (Vec::new(), Vec::new());
+    for line in lines {
+        let mut words = line.splitn(3, ' ');
+        let first = words.next().unwrap_or("");
+        if first == "merged" || first == "rejected" {
+            let (Some(id), Some(rest)) = (words.next().and_then(job_id), words.next()) else {
+                continue;
+            };
+            let Some((text, t)) = split_time(rest) else {
+                continue;
+            };
+            let Some(text) = sanitize(&text, MAX_TEXT) else {
+                continue;
+            };
+            if first == "merged" {
+                landed.push(Item {
+                    id: format!("merge-{id}"),
+                    t,
+                    text,
+                    ok: Some(true),
+                    stages: None,
+                });
+            } else {
+                queue.push(Item {
+                    id: format!("job-{id}"),
+                    t,
+                    text,
+                    ok: Some(false),
+                    stages: None,
+                });
+            }
+        } else if let Some(id) = job_id(first) {
+            let Some((what, gates)) = line[first.len()..].split_once(": ") else {
+                continue;
+            };
+            let stages = gates
+                .split('·')
+                .filter_map(|gate| {
+                    let (repo, state) = gate.trim().split_once(' ')?;
+                    let state = state.trim();
+                    let known = ["wait", "run", "ok", "fail", "flaky"].contains(&state);
+                    let repo_ok = !repo.is_empty()
+                        && repo.len() <= 20
+                        && repo
+                            .bytes()
+                            .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_');
+                    (known && repo_ok).then(|| (repo.to_owned(), state.to_owned()))
+                })
+                .collect::<std::collections::BTreeMap<_, _>>();
+            let Some(text) = sanitize(what.trim(), MAX_TEXT) else {
+                continue;
+            };
+            queue.push(Item {
+                id: format!("job-{id}"),
+                t: updated,
+                text,
+                ok: None,
+                stages: Some(stages),
+            });
+        }
+    }
+    (band(queue), band(landed))
+}
+
 fn chatter(card: Option<&StatusCard>) -> Band {
     let Some(extra) = card.and_then(|card| card.body.obelisk.as_ref()) else {
         return Band::default();
@@ -543,6 +626,7 @@ fn chatter(card: Option<&StatusCard>) -> Band {
                 t: line.t,
                 text,
                 ok: line.ok,
+                stages: None,
             })
         })
         .collect::<Vec<_>>();
@@ -606,6 +690,32 @@ mod tests {
         assert!(is_noise("⚙ LabAgent · working for baughn, 3 min"));
         assert!(is_noise("🔐 **tsugumi-lab asks to run Bash**"));
         assert!(!is_noise("💬 **Floppy sounds**"));
+    }
+
+    #[test]
+    fn queue_lines_become_jobs_and_merges() {
+        let lines = [
+            "#8 eln floppy-sounds: eln ok · stasis run · watershed wait · evil bogus",
+            "merged #7 eln 2f671b06 floppy-sounds @1790000000",
+            "rejected #6 stasis fix-x @1789990000: Stasis tests failed",
+            "garbage line",
+            "merged #x nope @1",
+        ];
+        let (queue, landed) = queue_bands(1_790_000_100, lines.into_iter());
+        assert_eq!(landed.items.len(), 1);
+        assert_eq!(landed.items[0].id, "merge-7");
+        assert_eq!(landed.items[0].t, 1_790_000_000);
+        assert_eq!(landed.items[0].text, "eln 2f671b06 floppy-sounds");
+        assert_eq!(landed.changed, 1_790_000_000);
+        assert_eq!(queue.items.len(), 2);
+        let job = queue.items.iter().find(|item| item.id == "job-8").unwrap();
+        assert_eq!(job.text, "eln floppy-sounds");
+        let stages = job.stages.as_ref().unwrap();
+        assert_eq!(stages.len(), 3);
+        assert_eq!(stages["stasis"], "run");
+        let rejected = queue.items.iter().find(|item| item.id == "job-6").unwrap();
+        assert_eq!(rejected.ok, Some(false));
+        assert_eq!(rejected.text, "stasis fix-x: Stasis tests failed");
     }
 
     #[test]

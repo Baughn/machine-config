@@ -371,7 +371,17 @@ async fn obelisk(State(state): State<AppState>) -> Result<Markup, AppError> {
                     div class={ "band " (glow(t, forge.queue.changed)) } {
                         "Queue"
                         @if forge.queue.items.is_empty() { ": idle" }
-                        ul { @for item in &forge.queue.items { li { (item.text) } } }
+                        ul {
+                            @for item in &forge.queue.items {
+                                li class=(glow(t, item.t)) {
+                                    @if item.ok == Some(false) { "✗ " }
+                                    (item.text)
+                                    @if let Some(stages) = &item.stages {
+                                        @for (repo, stage) in stages { " · " (repo) " " (stage) }
+                                    }
+                                }
+                            }
+                        }
                     }
                     div class={ "band g1" } {
                         table { tr {
