@@ -23,7 +23,7 @@ from .policy import (Attachment, Author, Command, Incoming, Kind, Route, command
                      STREAK_LIMIT, may_approve, mentioned, parse_command, route)
 from .prompt import HANDOFF_FILE, handoff_prompt, new_session_preamble, report_nudge, todos_line, turn_prompt
 from .render import (MAIN, ChatError, File, Outgoing, PostError, Roots, Status, answer_footer, approval_request, context_line,
-                     is_status, question_text, render_post, settled, summarize_tool)
+                     digest_tool, is_status, question_text, render_post, settled, summarize_tool)
 from .schedule import Schedule, ScheduleError, Schedules, stamp
 from .session import AgentSession, Permission, ToolError, TurnResult
 from .shellfmt import format_shell
@@ -66,6 +66,8 @@ ACK_TIMEOUT = 120.0
 CARD_HEARTBEAT = 300.0
 CARD_TTL = 720
 CARD_DEBOUNCE = 2.0
+# The Obelisk of Changes (board #73): the last tool calls as allowlisted digests, on the card.
+CHATTER_KEEP = 20
 # The bot's Discord status (Baughn, msg 1560674790623412305): idle and when the next schedule
 # is due, or busy with a topic. A human's request gets its topic from a short model call.
 PRESENCE_HEARTBEAT = 60.0
@@ -189,6 +191,10 @@ class Bridge:
         self.presence_task: asyncio.Task[None] | None = None
         self.presence_shown: str | None = None
         self.topic: str | None = None  # what the current turn is about, for the presence
+        self.topic_since = 0.0
+        # The obelisk's chatter: [id, time, tool name, digest, ok], newest last.
+        self.chatter: deque[list[Any]] = deque(maxlen=CHATTER_KEEP)
+        self.chatter_seq = 0
         self.topic_task: asyncio.Task[None] | None = None
         self.run_command = run_command
         self.status: Status | None = None
@@ -734,8 +740,13 @@ class Bridge:
         else:
             level = ("alert" if self.waiting else "info" if status is not None
                      else "warn" if self.last_error is not None else "ok")
+        obelisk: dict[str, Any] = {"chatter": [
+            {"id": entry[0], "t": int(entry[1]), "text": entry[3],
+             **({"ok": entry[4]} if entry[4] is not None else {})} for entry in self.chatter]}
+        if self.status is not None and self.topic:
+            obelisk |= {"topic": self.topic[:200], "topic_since": int(self.topic_since)}
         return {"title": self.config.me.shown, "state": state[:80], "level": level,
-                "lines": lines[:50], "ttl": CARD_TTL}
+                "lines": lines[:50], "ttl": CARD_TTL, "obelisk": obelisk}
 
     async def publish_card(self) -> None:
         if self.board is None:
@@ -793,6 +804,7 @@ class Bridge:
         """The thread's name for now, and for a human's request a model's summary of it."""
         last = [e for e in entries if e.trigger][-1]
         self.topic = None if last.scheduled else last.message.thread_name
+        self.topic_since = self.clock()
         humans = [e.message for e in entries if e.trigger and e.message.author.kind is Kind.HUMAN]
         if humans:
             self.topic_task = asyncio.create_task(self.find_topic(humans[-1], status))
@@ -809,6 +821,7 @@ class Bridge:
         topic = " ".join((topic or "").split()).strip("\"'`*. ")[:100]
         if topic and self.status is status:
             self.topic = topic
+            self.topic_since = self.clock()
             self.changed()
 
     def end_topic(self) -> None:
@@ -1099,6 +1112,11 @@ class Bridge:
             who = "subagent: " if subagent else ""
             self.status.last = who + summarize_tool(name, tool_input)
             self.note(f"→ {who}{name} {json.dumps(tool_input, ensure_ascii=False)[:2000]}")
+            now = self.clock()
+            self.chatter_seq += 1
+            self.chatter.append([f"{int(now)}-{self.chatter_seq}", now, name,
+                                 ("↳ " if subagent else "") + digest_tool(name, tool_input), None])
+            self.card_changed.set()
 
     async def advisor_called(self) -> None:
         if self.status is not None:
@@ -1162,6 +1180,10 @@ class Bridge:
     async def tool_finished(self, name: str, failed: bool, subagent: bool = False) -> str | None:
         tool_log.info("%s %s%s", "failed" if failed else "done", "subagent " if subagent else "", name)
         self.note(f"← {name}{' (failed)' if failed else ''}")
+        for entry in reversed(self.chatter):
+            if entry[2] == name and entry[4] is None:
+                entry[4] = not failed
+                break
         return None if subagent or self.status is None else self.news()
 
     def news(self) -> str | None:

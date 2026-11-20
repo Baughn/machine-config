@@ -11,7 +11,7 @@ from agent_bridge.config import Limits
 from agent_bridge.policy import Kind
 from agent_bridge.shellfmt import format_shell
 from agent_bridge.render import (HEADLINE_LIMIT, MESSAGE_LIMIT, OVERVIEW_LIMIT, PostError, Roots, Status, link_mentions,
-                                 approval_request, render_post, summarize_tool)
+                                 approval_request, digest_tool, render_post, summarize_tool)
 
 
 def roots(tmp: Path) -> Roots:
@@ -209,3 +209,37 @@ def test_post_mentions_bare_names(tmp_path: Path) -> None:
     assert alert.mention_users == ("1", "66")
     # Without agents (the default) nothing changes.
     assert post(tmp_path, headline="@LabAgent").mention_users == ()  # type: ignore[attr-defined]
+
+
+def test_digest_tool_shows_only_allowlisted_words() -> None:
+    assert digest_tool("Edit", {"file_path": "/srv/x/src/FloppyDrive.java",
+                                "old_string": "a", "new_string": "a\nb\nc"}) == "edit FloppyDrive.java +3 −1"
+    assert digest_tool("Write", {"file_path": "/a/b/notes.md", "content": "x\ny"}) == "write notes.md +2"
+    assert digest_tool("Bash", {"command": "cd /srv/ea && ./gradlew runGameTestServer --offline"}) \
+        == "gradle runGameTestServer"
+    assert digest_tool("Bash", {"command": "git commit -m 'secret plan for player Steve'"}) == "git commit"
+    assert digest_tool("Bash", {"command": "/srv/lab-git/queue/lab-merge enqueue eln my-branch"}) \
+        == "lab-merge enqueue"
+    assert digest_tool("mcp__bridge__post", {"headline": "x"}) == "post"
+    assert digest_tool("Grep", {"pattern": "Steve"}) == "search"
+
+
+def test_digest_tool_hides_hostile_input() -> None:
+    hostile = [
+        ("Bash", {"command": "rcon say Steve is at 120 64 -300"}),
+        ("Bash", {"command": "curl -H 'Authorization: Bearer ghp_abcdefghijklmnopqrstuvwxyz0123' https://x"}),
+        ("Bash", {"command": "TOKEN=hunter2 mysecretprogram --flag"}),
+        ("Bash", {"command": "git commit$(cat /run/agenix/token)"}),
+        ("Read", {"file_path": "/home/minecraft/world/playerdata/1234-uuid.dat"}),
+        ("Read", {"file_path": "/run/agenix/agent-ea-pat"}),
+        ("Read", {"file_path": "/home/x/.ssh/id_ed25519"}),
+        ("Read", {"file_path": "/srv/nixos/secrets/gemini-api-key.age"}),
+        ("Edit", {"file_path": "/x/§kweird‮name.java", "old_string": "", "new_string": ""}),
+        ("mcp__evil__Steve_Is_At_Spawn", {}),
+        ("WeirdTool With Spaces", {}),
+    ]
+    for name, tool_input in hostile:
+        digest = digest_tool(name, tool_input)
+        for bad in ("Steve", "120", "ghp_", "hunter2", "mysecret", "agenix", "1234", "id_ed25519",
+                    "gemini", "§", "‮", "Spawn", "Spaces", "pat"):
+            assert bad not in digest, (name, tool_input, digest)

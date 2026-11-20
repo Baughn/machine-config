@@ -265,6 +265,106 @@ def summarize_tool(name: str, tool_input: dict[str, Any]) -> str:
     return f"{name} `{detail.replace('`', 'ʼ')}`"
 
 
+# The Obelisk of Changes' chatter (board #73): players read it, so a tool call becomes a few
+# allowlisted words, never its raw input. The board sanitizes it again.
+DIGEST_PROGRAMS = frozenset({
+    "gradle", "gradlew", "git", "jj", "nix", "nix-shell", "nix-build", "cargo", "python", "python3",
+    "pytest", "rg", "grep", "find", "ls", "cat", "head", "tail", "sed", "awk", "wc", "diff", "sort",
+    "jq", "curl", "systemctl", "journalctl", "lab-merge", "minecraft-lab", "scratch", "java", "ffmpeg",
+    "sox", "make", "rsync", "tar", "unzip", "du", "df", "ps", "free", "mvn", "javap", "sqlite3",
+})
+DIGEST_SUBCOMMANDS = {
+    "git": {"status", "log", "diff", "commit", "push", "pull", "fetch", "rebase", "checkout", "switch",
+            "branch", "merge", "show", "add", "worktree", "stash", "cherry-pick", "reset", "tag", "clone",
+            "blame", "bisect"},
+    "jj": {"st", "status", "log", "diff", "new", "describe", "commit", "squash", "rebase", "git",
+           "bookmark", "show", "edit", "abandon", "split", "restore"},
+    "nix": {"build", "develop", "run", "eval", "flake", "shell", "log", "search"},
+    "cargo": {"build", "test", "clippy", "fmt", "run", "check"},
+    "lab-merge": {"enqueue", "run", "status"},
+    "minecraft-lab": {"list", "start", "stop", "clone", "destroy", "status", "logs"},
+    "systemctl": {"status", "start", "stop", "restart", "show", "list-units", "is-active"},
+}
+GRADLE_TASK = re.compile(r":?[A-Za-z][A-Za-z0-9]*(?::[A-Za-z][A-Za-z0-9]*)*")
+DIGEST_SUFFIXES = frozenset({
+    ".java", ".kt", ".kts", ".gradle", ".rs", ".py", ".nix", ".md", ".json", ".json5", ".toml", ".ts",
+    ".js", ".sh", ".yml", ".yaml", ".txt", ".png", ".ogg", ".wav", ".glsl", ".fsh", ".vsh", ".mcmeta",
+    ".lang", ".snbt", ".nbt", ".csv", ".html", ".css", ".xml", ".mcfunction",
+})
+# Path segments whose files show no name: secrets, homes' dotfiles, system dirs, world data.
+DIGEST_HIDDEN = re.compile(
+    r"(^|/)(secrets?|\.ssh|\.gnupg|\.config|\.local|etc|run|proc|sys|tmp|credentials?|playerdata|stats"
+    r"|advancements|region|entities|poi|DIM-?1|DIM1|data)(/|$)|token|passw|\.env|\.age$|key",
+    re.IGNORECASE)
+
+
+def _digest_file(path: str) -> str:
+    name = Path(path).name
+    if not name or DIGEST_HIDDEN.search(path) or Path(name).suffix.lower() not in DIGEST_SUFFIXES:
+        return "a file"
+    if find_secret(name) or not re.fullmatch(r"[A-Za-z0-9._+-]{1,60}", name):
+        return "a file"
+    return name
+
+
+def _lines(text: Any) -> int:
+    return len(str(text).splitlines()) if text else 0
+
+
+def _digest_shell(command: str) -> str:
+    """The program and, from a list, its subcommand or gradle tasks; else just "shell"."""
+    for segment in re.split(r"&&|\|\||;|\||\n", command):
+        words = segment.split()
+        while words and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=\S*", words[0]):
+            words = words[1:]  # FOO=bar cmd
+        if not words or words[0] in ("cd", "export", "set", "echo", "true", "sudo", "time", "env"):
+            continue
+        program = Path(words[0]).name
+        if program not in DIGEST_PROGRAMS:
+            return "shell"
+        args = [w for w in words[1:] if not w.startswith("-")]
+        if program in ("gradle", "gradlew"):
+            tasks = [a for a in args if GRADLE_TASK.fullmatch(a)][:2]
+            return " ".join(["gradle", *tasks])
+        allowed = DIGEST_SUBCOMMANDS.get(program, set())
+        if args and args[0] in allowed:
+            return f"{program} {args[0]}"
+        return program
+    return "shell"
+
+
+def digest_tool(name: str, tool_input: dict[str, Any]) -> str:
+    """A tool call as the obelisk shows it: a verb and at most a file name or subcommand."""
+    if name in ("Read", "NotebookRead"):
+        return f"read {_digest_file(str(tool_input.get('file_path', '')))}"
+    if name == "Edit":
+        added, removed = _lines(tool_input.get("new_string")), _lines(tool_input.get("old_string"))
+        return f"edit {_digest_file(str(tool_input.get('file_path', '')))} +{added} −{removed}"
+    if name == "MultiEdit":
+        edits = tool_input.get("edits") or []
+        added = sum(_lines(e.get("new_string")) for e in edits if isinstance(e, dict))
+        removed = sum(_lines(e.get("old_string")) for e in edits if isinstance(e, dict))
+        return f"edit {_digest_file(str(tool_input.get('file_path', '')))} +{added} −{removed}"
+    if name == "Write":
+        return f"write {_digest_file(str(tool_input.get('file_path', '')))} +{_lines(tool_input.get('content'))}"
+    if name == "NotebookEdit":
+        return f"edit {_digest_file(str(tool_input.get('notebook_path', '')))}"
+    if name == "Bash":
+        return _digest_shell(str(tool_input.get("command", "")))
+    if name in ("Grep", "Glob"):
+        return "search"
+    if name in ("Agent", "Task"):
+        return "subagent"
+    if name in ("WebFetch", "WebSearch"):
+        return "web"
+    if name == "TodoWrite":
+        return "plan"
+    if name.startswith("mcp__"):
+        tool = name.rsplit("__", 1)[-1]
+        return tool if re.fullmatch(r"[a-z_]{1,30}", tool) else "tool"
+    return name.lower() if re.fullmatch(r"[A-Za-z]{1,30}", name) else "tool"
+
+
 def pretty_input(name: str, tool_input: dict[str, Any], command: str | None = None) -> str:
     """A tool's input as an approver reads it: short values on a line each, long
     or multi-line text (a shell command, file contents) in its own code block.
