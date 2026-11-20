@@ -189,6 +189,9 @@ pkgs.testers.runNixOSTest {
         assert [f["name"] for f in doc["agents"]] == ["LabAssistant", "ErisiAgent", "LabAgent"], doc
         page = curl("proxy", HTML + "/obelisk")
         assert "Floppy sounds" in page and "edit Drive.java" in page and "ghp_" not in page, page
+        machine.wait_until_succeeds("sudo -u minecraft cat /run/obelisk/obelisk.json | grep -q Floppy", timeout=30)
+        machine.succeed("sudo -u mclab-assistant test -r /run/obelisk/obelisk.json")
+        machine.fail("sudo -u proxy cat /run/obelisk/obelisk.json")
 
     with subtest("only the poller writes the Discord archive; everyone can read it"):
         batch = {"messages": [{"id": 1555569477968724201, "channel": 1553121660532432926,

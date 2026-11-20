@@ -27,6 +27,50 @@ const WEEK: i64 = 7 * 86_400;
 pub struct Config {
     #[serde(default)]
     pub agents: Vec<Agent>,
+    /// Where to keep the document for the mod (rewritten every [`WRITE_EVERY`], with a fresh
+    /// `t` even when nothing changed, so readers can tell a quiet board from a dead one).
+    #[serde(default)]
+    pub file: Option<std::path::PathBuf>,
+}
+
+/// How often the file is rewritten.
+pub const WRITE_EVERY: std::time::Duration = std::time::Duration::from_secs(10);
+
+/// Writes `doc` to `path` atomically (a temporary file in the same directory, then
+/// rename), readable by the directory's group.
+///
+/// # Errors
+///
+/// I/O errors.
+pub fn write_file(doc: &Document, path: &std::path::Path) -> anyhow::Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+    let json = serde_json::to_vec(doc)?;
+    let tmp = path.with_extension("json.tmp");
+    std::fs::write(&tmp, json)?;
+    std::fs::set_permissions(&tmp, std::fs::Permissions::from_mode(0o640))?;
+    std::fs::rename(&tmp, path)?;
+    Ok(())
+}
+
+/// Rewrites the file forever; a failure is logged and retried next round.
+pub async fn write_loop(state: crate::api::AppState, path: std::path::PathBuf) {
+    let mut ticker = tokio::time::interval(WRITE_EVERY);
+    loop {
+        ticker.tick().await;
+        let result = match state.obelisk().await {
+            Ok(doc) => {
+                let path = path.clone();
+                tokio::task::spawn_blocking(move || write_file(&doc, &path))
+                    .await
+                    .map_err(anyhow::Error::from)
+                    .and_then(|written| written)
+            }
+            Err(error) => Err(anyhow::anyhow!("{error:?}")),
+        };
+        if let Err(error) = result {
+            tracing::warn!("obelisk file {}: {error:#}", path.display());
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -572,10 +616,17 @@ mod tests {
                 id: "a".into(),
                 name: "A".into(),
             }],
+            file: None,
         };
         let doc = board.obelisk(&config).unwrap();
         assert_eq!(doc.agents.len(), 1);
         assert_eq!(doc.agents[0].state, "offline");
         assert!(doc.agents[0].said.items.is_empty());
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("obelisk.json");
+        write_file(&doc, &path).unwrap();
+        let back: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+        assert_eq!(back["v"], 1);
     }
 }

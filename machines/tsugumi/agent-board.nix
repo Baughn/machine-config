@@ -11,6 +11,7 @@ let
   board = pkgs.callPackage ../../tools/agent-board { };
   roster = import ../../lib/agent-roster.nix;
   stateDir = "/var/lib/agent-board";
+  obeliskDir = "/run/obelisk";
   configFile = pkgs.writeText "agent-board.json" (builtins.toJSON ({
     inherit (cfg) users;
     tokens = lib.mapAttrs (agent: _: "token-${agent}") cfg.tokens;
@@ -25,6 +26,8 @@ let
     # The Obelisk of Changes (board #73; Baughn, msg 1573355320326230037): its three agent faces.
     obelisk.agents = map (id: { inherit id; name = roster.agents.${id}.displayName; })
       [ "tsugumi-lab-assistant" "tsugumi-minecraft" "tsugumi-lab" ];
+    # The mod's feed, rewritten every 10 s; readable by the servers (group obelisk), not by all.
+    obelisk.file = "${obeliskDir}/obelisk.json";
   } // lib.optionalAttrs (cfg.discordPublicKey != null) {
     discord = {
       public_key = cfg.discordPublicKey;
@@ -132,6 +135,11 @@ in
     };
     users.groups.agent-board = { };
 
+    # The Obelisk of Changes feed (board #73): the live server (minecraft) and the lab servers
+    # read it. setgid, so the board's files get the group. Lab units see /run as it is.
+    users.groups.obelisk.members = [ "minecraft" "mclab" "mclab-assistant" ];
+    systemd.tmpfiles.rules = [ "d ${obeliskDir} 2750 agent-board obelisk -" ];
+
     # Mode 0666 is deliberate: the service answers only uids listed in `users`.
     systemd.sockets.agent-board-api = socketDefaults // {
       listenStreams = [ "/run/agent-board/api.sock" ];
@@ -190,6 +198,7 @@ in
         Group = "agent-board";
         StateDirectory = [ "agent-board" "agent-board/backup" ];
         StateDirectoryMode = "0700";
+        ReadWritePaths = [ obeliskDir ];
         Restart = "always";
         RestartSec = 5;
         # The sockets come from systemd, so the service itself never needs the network.

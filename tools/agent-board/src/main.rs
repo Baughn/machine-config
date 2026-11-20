@@ -200,6 +200,10 @@ async fn serve(db: &Path, config: &Path) -> anyhow::Result<()> {
         .with_assignees(config.assignees.clone())
         .with_obelisk(config.obelisk.clone());
 
+    if let Some(file) = config.obelisk.file.clone() {
+        tokio::spawn(obelisk::write_loop(state.clone(), file));
+    }
+
     let mut servers = tokio::task::JoinSet::new();
     for (name, fd) in systemd_sockets()? {
         // SAFETY: systemd passed this fd to us and nothing else in the process owns it.
