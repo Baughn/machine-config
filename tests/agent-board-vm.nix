@@ -179,7 +179,9 @@ pkgs.testers.runNixOSTest {
         card = {"title": "LabAgent", "state": "working for baughn, 2 min", "level": "info", "ttl": 720,
                 "obelisk": {"topic": "Floppy sounds", "topic_since": 1790000000,
                             "chatter": [{"id": "c1", "t": 1790000001, "text": "edit Drive.java +3", "ok": True},
-                                        {"id": "c2", "t": 1790000002, "text": "shell ghp_abcdefghijklmnop0123456789"}]}}
+                                        {"id": "c2", "t": 1790000002, "text": "shell ghp_abcdefghijklmnop0123456789"}],
+                            "diff": [{"id": "d1", "t": 1790000003, "file": "Drive.java",
+                                      "lines": ["-    old();", "+    spin();"]}]}}
         curl("mclab", "-X PUT -H 'content-type: application/json' -d "
              + shlex.quote(json.dumps(card)) + " " + API + "/status/bridge")
         doc = json.loads(curl("minecraft", API + "/obelisk"))
@@ -187,11 +189,14 @@ pkgs.testers.runNixOSTest {
         assert face["state"] == "working" and face["now"]["text"] == "Floppy sounds", face
         assert [i["id"] for i in face["chatter"]["items"]] == ["c1"], face
         assert [f["name"] for f in doc["agents"]] == ["LabAssistant", "ErisiAgent", "LabAgent"], doc
+        assert face["diff"]["hunks"][0]["lines"] == ["-    old();", "+    spin();"], face
         page = curl("proxy", HTML + "/obelisk")
         assert "Floppy sounds" in page and "edit Drive.java" in page and "ghp_" not in page, page
         machine.wait_until_succeeds("sudo -u minecraft cat /run/obelisk/obelisk.json | grep -q Floppy", timeout=30)
         machine.succeed("sudo -u mclab-assistant test -r /run/obelisk/obelisk.json")
         machine.fail("sudo -u proxy cat /run/obelisk/obelisk.json")
+        load = json.loads(machine.wait_until_succeeds("sudo -u minecraft cat /run/obelisk/load.json", timeout=30))
+        assert load["ncpu"] >= 1 and load["mem_total_mib"] > 0, load
         queue = {"title": "Merge queue", "ttl": 86400,
                  "lines": [{"text": "#8 eln floppy-sounds: eln ok · stasis run"},
                            {"text": "merged #7 eln 2f671b06 floppy-sounds @1790000000"}]}

@@ -23,7 +23,7 @@ from .policy import (Attachment, Author, Command, Incoming, Kind, Route, command
                      STREAK_LIMIT, may_approve, mentioned, parse_command, route)
 from .prompt import HANDOFF_FILE, handoff_prompt, new_session_preamble, report_nudge, todos_line, turn_prompt
 from .render import (MAIN, ChatError, File, Outgoing, PostError, Roots, Status, answer_footer, approval_request, context_line,
-                     digest_tool, is_status, question_text, render_post, settled, summarize_tool)
+                     diff_lines, digest_tool, is_status, question_text, render_post, settled, summarize_tool)
 from .schedule import Schedule, ScheduleError, Schedules, stamp
 from .session import AgentSession, Permission, ToolError, TurnResult
 from .shellfmt import format_shell
@@ -68,6 +68,8 @@ CARD_TTL = 720
 CARD_DEBOUNCE = 2.0
 # The Obelisk of Changes (board #73): the last tool calls as allowlisted digests, on the card.
 CHATTER_KEEP = 20
+# The diff waterfall: the newest hunks, dropping the oldest past this many lines.
+DIFF_KEEP_LINES = 300
 # The bot's Discord status (Baughn, msg 1560674790623412305): idle and when the next schedule
 # is due, or busy with a topic. A human's request gets its topic from a short model call.
 PRESENCE_HEARTBEAT = 60.0
@@ -195,6 +197,7 @@ class Bridge:
         # The obelisk's chatter: [id, time, tool name, digest, ok], newest last.
         self.chatter: deque[list[Any]] = deque(maxlen=CHATTER_KEEP)
         self.chatter_seq = 0
+        self.diffs: deque[dict[str, Any]] = deque()  # {id, t, file, lines}, newest last
         self.topic_task: asyncio.Task[None] | None = None
         self.run_command = run_command
         self.status: Status | None = None
@@ -742,7 +745,8 @@ class Bridge:
                      else "warn" if self.last_error is not None else "ok")
         obelisk: dict[str, Any] = {"chatter": [
             {"id": entry[0], "t": int(entry[1]), "text": entry[3],
-             **({"ok": entry[4]} if entry[4] is not None else {})} for entry in self.chatter]}
+             **({"ok": entry[4]} if entry[4] is not None else {})} for entry in self.chatter],
+            "diff": list(self.diffs)}
         if self.status is not None and self.topic:
             obelisk |= {"topic": self.topic[:200], "topic_since": int(self.topic_since)}
         return {"title": self.config.me.shown, "state": state[:80], "level": level,
@@ -1116,6 +1120,12 @@ class Bridge:
             self.chatter_seq += 1
             self.chatter.append([f"{int(now)}-{self.chatter_seq}", now, name,
                                  ("↳ " if subagent else "") + digest_tool(name, tool_input), None])
+            hunk = diff_lines(name, tool_input)
+            if hunk is not None:
+                self.diffs.append({"id": f"{int(now)}-{self.chatter_seq}", "t": int(now),
+                                   "file": hunk[0], "lines": hunk[1]})
+                while sum(len(d["lines"]) for d in self.diffs) > DIFF_KEEP_LINES and len(self.diffs) > 1:
+                    self.diffs.popleft()
             self.card_changed.set()
 
     async def advisor_called(self) -> None:

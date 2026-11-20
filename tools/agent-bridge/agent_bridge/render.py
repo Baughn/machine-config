@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
+import difflib
 import json
 from pathlib import Path
 import re
@@ -363,6 +364,57 @@ def digest_tool(name: str, tool_input: dict[str, Any]) -> str:
         tool = name.rsplit("__", 1)[-1]
         return tool if re.fullmatch(r"[a-z_]{1,30}", tool) else "tool"
     return name.lower() if re.fullmatch(r"[A-Za-z]{1,30}", name) else "tool"
+
+
+# The obelisk's diff waterfall (Baughn, msg 1573365797915467938): Edit/Write as +/- lines, only
+# for source files in the work repos (LabAssistant, msg 1573366294743621735). Notes, clones and
+# world data can hold player names and coordinates, so they never show.
+DIFF_REPOS = ("electricalage", "electrical-age", "eln", "ea", "stasis", "watershed", "lab-tools",
+              "obelisk", "nixos", "machine-config")
+DIFF_EXCLUDED = frozenset({"notes", "clones", "clone", "scratch", "free-research", "consolidation",
+                           "secrets", "secret", "world", "saves", "logs", "run", "build", ".gradle",
+                           "crash-reports", "inbox", "outbox", "handover", "tmp"})
+DIFF_SUFFIXES = frozenset({".java", ".kt", ".kts", ".gradle", ".rs", ".py", ".nix", ".toml", ".ts",
+                           ".js", ".sh", ".glsl", ".fsh", ".vsh", ".json", ".json5", ".mcmeta", ".css",
+                           ".html", ".xml", ".yml", ".yaml"})
+DIFF_HUNK_LINES = 200
+DIFF_LINE = 160
+
+
+def diff_path_allowed(path: str) -> bool:
+    """Whether a file's diff may show on the obelisk: a source file inside a work repo."""
+    parts = [part.lower() for part in Path(path).parts]
+    if not parts or Path(path).suffix.lower() not in DIFF_SUFFIXES or DIGEST_HIDDEN.search(path):
+        return False
+    if any(part in DIFF_EXCLUDED for part in parts):
+        return False
+    return any(part == repo or part.startswith((repo + "-", repo + "_"))
+               for part in parts[:-1] for repo in DIFF_REPOS)
+
+
+def diff_lines(name: str, tool_input: dict[str, Any]) -> tuple[str, list[str]] | None:
+    """(file basename, +/- lines) for an Edit/MultiEdit/Write the obelisk may show, else None."""
+    path = str(tool_input.get("file_path", ""))
+    if name not in ("Edit", "MultiEdit", "Write") or not diff_path_allowed(path):
+        return None
+    if name == "Write":
+        pairs = [("", str(tool_input.get("content", "")))]
+    elif name == "Edit":
+        pairs = [(str(tool_input.get("old_string", "")), str(tool_input.get("new_string", "")))]
+    else:
+        pairs = [(str(e.get("old_string", "")), str(e.get("new_string", "")))
+                 for e in tool_input.get("edits") or [] if isinstance(e, dict)]
+    lines: list[str] = []
+    for old, new in pairs:
+        for line in difflib.unified_diff(old.splitlines(), new.splitlines(), n=0, lineterm=""):
+            if line.startswith(("---", "+++", "@@")):
+                continue
+            line = line.expandtabs(4)[:DIFF_LINE]
+            # The board refuses lines over 300 bytes.
+            lines.append(line.encode()[:300].decode(errors="ignore"))
+    if not lines:
+        return None
+    return Path(path).name, lines[:DIFF_HUNK_LINES]
 
 
 def pretty_input(name: str, tool_input: dict[str, Any], command: str | None = None) -> str:

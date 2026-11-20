@@ -303,6 +303,8 @@ const OBELISK_STYLE: &str = "
 .face .g1 { color: #70869a; }
 .face .g0 { color: #55555f; }
 .face table td { border: 0; padding: 0 .3rem 0 0; color: inherit; }
+.face .add { color: #5c9a5c; white-space: pre; overflow: hidden; }
+.face .del { color: #a05656; white-space: pre; overflow: hidden; }
 ";
 
 /// Glow class for a band last changed at `changed`: full, half (3 min), faint, dark (15 min).
@@ -364,6 +366,16 @@ async fn obelisk(State(state): State<AppState>) -> Result<Markup, AppError> {
                         }
                         (band_list(t, &face.said, "said"))
                         (band_list(t, &face.chatter, "chatter"))
+                        div class={ "band chatter " (glow(t, face.diff.changed)) } {
+                            @for hunk in face.diff.hunks.iter().take(3) {
+                                div.meta { (hunk.file) }
+                                @for line in hunk.lines.iter().take(12) {
+                                    div class=(if line.starts_with('+') { "add" } else if line.starts_with('-') { "del" } else { "" }) {
+                                        (line)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 div.face {

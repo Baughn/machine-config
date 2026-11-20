@@ -43,10 +43,19 @@ pub const WRITE_EVERY: std::time::Duration = std::time::Duration::from_secs(10);
 ///
 /// I/O errors.
 pub fn write_file(doc: &Document, path: &std::path::Path) -> anyhow::Result<()> {
+    write_atomic(path, &serde_json::to_vec(doc)?)
+}
+
+/// Writes `bytes` to `path` atomically (a temporary file in the same directory, then
+/// rename), mode 0640, so the directory's group (setgid) can read it.
+///
+/// # Errors
+///
+/// I/O errors.
+pub fn write_atomic(path: &std::path::Path, bytes: &[u8]) -> anyhow::Result<()> {
     use std::os::unix::fs::PermissionsExt;
-    let json = serde_json::to_vec(doc)?;
     let tmp = path.with_extension("json.tmp");
-    std::fs::write(&tmp, json)?;
+    std::fs::write(&tmp, bytes)?;
     std::fs::set_permissions(&tmp, std::fs::Permissions::from_mode(0o640))?;
     std::fs::rename(&tmp, path)?;
     Ok(())
@@ -90,7 +99,24 @@ pub struct CardExtra {
     pub topic_since: Option<i64>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub chatter: Vec<ChatterIn>,
+    /// Edit/Write hunks for the diff waterfall, oldest first (the bridge picks which files).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub diff: Vec<Hunk>,
 }
+
+/// One edit's +/- lines.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Hunk {
+    pub id: String,
+    pub t: i64,
+    pub file: String,
+    pub lines: Vec<String>,
+}
+
+/// Limits on the diff a card may carry.
+pub const MAX_DIFF_LINES: usize = 400;
+pub const MAX_DIFF_LINE: usize = 300;
+pub const MAX_HUNKS: usize = 100;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ChatterIn {
@@ -126,6 +152,14 @@ pub struct Face {
     pub now: Now,
     pub said: Band,
     pub chatter: Band,
+    pub diff: DiffBand,
+}
+
+/// The diff waterfall: newest hunk first.
+#[derive(Clone, Debug, Default, Serialize)]
+pub struct DiffBand {
+    pub changed: i64,
+    pub hunks: Vec<Hunk>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -380,6 +414,7 @@ impl Board {
                 now: self.obelisk_now(&agent.id, card)?,
                 said: self.obelisk_said(&agent.id)?,
                 chatter: chatter(card),
+                diff: diff(card),
             });
         }
         // The newest live queue card (lab-merge writes it as whichever lab agent runs it).
@@ -611,6 +646,47 @@ fn queue_bands<'a>(updated: i64, lines: impl Iterator<Item = &'a str>) -> (Band,
     (band(queue), band(landed))
 }
 
+/// Like [`sanitize`], but keeps a diff line's sign and indentation.
+fn sanitize_diff_line(line: &str) -> Option<String> {
+    let (sign, rest) = match line.chars().next() {
+        Some(sign @ ('+' | '-' | ' ')) => (sign, &line[1..]),
+        _ => (' ', line),
+    };
+    let indent = rest.len() - rest.trim_start_matches(' ').len();
+    let body = sanitize(rest, MAX_TEXT)?;
+    Some(format!("{sign}{}{body}", " ".repeat(indent.min(16))))
+}
+
+fn diff(card: Option<&StatusCard>) -> DiffBand {
+    let Some(extra) = card.and_then(|card| card.body.obelisk.as_ref()) else {
+        return DiffBand::default();
+    };
+    let mut hunks: Vec<Hunk> = extra
+        .diff
+        .iter()
+        .filter_map(|hunk| {
+            let lines: Vec<String> = hunk
+                .lines
+                .iter()
+                .filter_map(|line| sanitize_diff_line(line))
+                .collect();
+            (!lines.is_empty()).then(|| {
+                Some(Hunk {
+                    id: sanitize(&hunk.id, MAX_ID)?,
+                    t: hunk.t,
+                    file: sanitize(&hunk.file, 60)?,
+                    lines,
+                })
+            })?
+        })
+        .collect();
+    hunks.sort_by_key(|hunk| std::cmp::Reverse(hunk.t));
+    DiffBand {
+        changed: hunks.first().map_or(0, |hunk| hunk.t),
+        hunks,
+    }
+}
+
 fn chatter(card: Option<&StatusCard>) -> Band {
     let Some(extra) = card.and_then(|card| card.body.obelisk.as_ref()) else {
         return Band::default();
@@ -690,6 +766,16 @@ mod tests {
         assert!(is_noise("⚙ LabAgent · working for baughn, 3 min"));
         assert!(is_noise("🔐 **tsugumi-lab asks to run Bash**"));
         assert!(!is_noise("💬 **Floppy sounds**"));
+    }
+
+    #[test]
+    fn diff_lines_keep_sign_and_indent_and_lose_secrets() {
+        assert_eq!(
+            sanitize_diff_line("+    int x = 1;").unwrap(),
+            "+    int x = 1;"
+        );
+        assert_eq!(sanitize_diff_line("-§kold").unwrap(), "-old");
+        assert!(sanitize_diff_line("+ token = \"ghp_abcdefghijklmnopqrstuvwxyz0123\"").is_none());
     }
 
     #[test]

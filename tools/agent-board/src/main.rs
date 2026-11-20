@@ -13,6 +13,7 @@ mod discord;
 mod error;
 mod html;
 mod lint;
+mod load;
 mod obelisk;
 mod pages;
 mod status;
@@ -201,7 +202,10 @@ async fn serve(db: &Path, config: &Path) -> anyhow::Result<()> {
         .with_obelisk(config.obelisk.clone());
 
     if let Some(file) = config.obelisk.file.clone() {
+        // The fast feed, load.json, goes beside the document (load.rs).
+        let load_file = file.with_file_name("load.json");
         tokio::spawn(obelisk::write_loop(state.clone(), file));
+        tokio::spawn(load::write_loop(config.obelisk.clone(), load_file));
     }
 
     let mut servers = tokio::task::JoinSet::new();

@@ -127,6 +127,22 @@ fn check(status: &NewStatus) -> Result<(), AppError> {
             )));
         }
     }
+    if let Some(extra) = &status.obelisk {
+        let lines: usize = extra.diff.iter().map(|hunk| hunk.lines.len()).sum();
+        let too_long = extra.diff.iter().any(|hunk| {
+            hunk.id.len() > obelisk::MAX_ID
+                || hunk.file.len() > obelisk::MAX_ID
+                || hunk.lines.iter().any(|line| line.len() > obelisk::MAX_DIFF_LINE)
+        });
+        if extra.diff.len() > obelisk::MAX_HUNKS || lines > obelisk::MAX_DIFF_LINES || too_long {
+            return Err(bad(format!(
+                "obelisk.diff: at most {} hunks, {} lines of {} bytes",
+                obelisk::MAX_HUNKS,
+                obelisk::MAX_DIFF_LINES,
+                obelisk::MAX_DIFF_LINE
+            )));
+        }
+    }
     if !(MIN_TTL..=MAX_TTL).contains(&status.ttl) {
         return Err(bad(format!("ttl: {MIN_TTL}-{MAX_TTL} seconds")));
     }
