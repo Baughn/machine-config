@@ -836,6 +836,14 @@ async def test_a_bare_at_name_mentions_any_other_agent(tmp_path: Path) -> None:
     assert out.mention_users == (LAB,)
 
 
+async def test_a_bare_at_name_mentions_a_human(tmp_path: Path) -> None:
+    # Baughn, msg 1573752156958367745: "@baughn" in a question should ping him.
+    h = Harness(tmp_path)
+    out = h.bridge.render({"kind": "question", "headline": "@Baughn: which one?"})
+    assert f"<@{OWNER}>: which one?" in out.content
+    assert out.mention_users == (OWNER,)
+
+
 # --- ask_agent -------------------------------------------------------------------
 
 

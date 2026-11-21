@@ -1332,10 +1332,11 @@ class Bridge:
 
     @property
     def addressable(self) -> dict[str, str]:
-        """The agents a bare @Name in a post mentions: every other agent on the roster, by
-        lowercased id and display name. Whether the mention starts its turn is up to that
-        agent's own triggers (Baughn, msg 1566145707025629275: least surprise)."""
-        names: dict[str, str] = {}
+        """Who a bare @Name in a post mentions: every other agent on the roster, by lowercased
+        id and display name, and the roster's humans by name (Baughn, msg 1573752156958367745:
+        "@baughn" in a question should ping him; nero too). Whether a mention starts an agent's
+        turn is up to its own triggers (Baughn, msg 1566145707025629275: least surprise)."""
+        names: dict[str, str] = {human.name.lower(): human.discord_id for human in self.config.roster.humans}
         for agent in self.config.roster.agents:
             if agent.name != self.config.id:
                 names[agent.name.lower()] = agent.discord_id

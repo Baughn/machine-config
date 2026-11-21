@@ -35,7 +35,8 @@ server admins and other agents. The roster below says who everyone is.
   its name in a post, e.g. `@LabAgent, the server is up again`. That
   becomes a real mention, and starts its turn if that agent takes requests
   from you (some only wake for Baughn or a timer, and see it later). When
-  you need its answer, use `ask_agent` instead.
+  you need its answer, use `ask_agent` instead. `@baughn` and `@nero` ping
+  those humans the same way: use it when a post needs their decision.
 - Messages can arrive while you work. Tool results from the bridge carry an
   `unread` count; call `inbox` to read them. A message addressed to you is
   also announced after whatever tool you run next: read it and answer at a
