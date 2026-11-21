@@ -9,6 +9,8 @@ let
   # instances too: their drop-ins carry a default PATH that overrides this one.
   path = [ pkgs.bash config.nix.package pkgs.git ];
   uid = toString config.users.users.minecraft.uid;
+  liveVersions = pkgs.writers.writePython3Bin "minecraft-live-versions" { flakeIgnore = [ "E501" ]; }
+    (builtins.readFile ./minecraft-live-versions.py);
 
   # update-and-start.sh prompts when a directory isn't set up yet, and with
   # stdin on the console FIFO nothing would ever answer. Refuse instead, and
@@ -166,9 +168,38 @@ in
         wantedBy = [ "multi-user.target" ];
         restartIfChanged = false;
       })
-      cfg.autostart);
+      cfg.autostart) // {
+      minecraft-live-versions = {
+        description = "Record the commits of Incognito's running mods";
+        serviceConfig = {
+          Type = "oneshot";
+          User = "minecraft";
+          Group = "users";
+          ExecStart = "${liveVersions}/bin/minecraft-live-versions /home/minecraft/incognito/mods incognito /run/minecraft-live/versions.json";
+          ProtectSystem = "strict";
+          ReadWritePaths = [ "/run/minecraft-live" ];
+          PrivateTmp = true;
+          NoNewPrivileges = true;
+        };
+      };
+    };
 
-    systemd.tmpfiles.rules = [ "d /run/minecraft 0755 root root -" ];
+    systemd.tmpfiles.rules = [
+      "d /run/minecraft 0755 root root -"
+      "d /run/minecraft-live 0755 minecraft users -"
+    ];
+
+    # The commits Incognito's own mods run, for lab-merge's "don't drop a live commit" check
+    # (LabAgent, msg 1573712107931828365): /run/minecraft-live/versions.json, world-readable.
+    # start.py refreshes mods/ only at a start, so a change there is a (re)start.
+    systemd.paths.minecraft-live-versions = {
+      wantedBy = [ "paths.target" ];
+      pathConfig.PathChanged = "/home/minecraft/incognito/mods";
+    };
+    systemd.timers.minecraft-live-versions = {
+      wantedBy = [ "timers.target" ];
+      timerConfig = { OnBootSec = "2min"; OnUnitActiveSec = "10min"; };
+    };
 
     # minecraft (admins over ssh, and later the agent) manages its world units
     # and nothing else. Unlike sudo, this works under NoNewPrivileges.
