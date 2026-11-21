@@ -11,7 +11,7 @@ from agent_bridge.config import Limits
 from agent_bridge.policy import Kind
 from agent_bridge.shellfmt import format_shell
 from agent_bridge.render import (HEADLINE_LIMIT, MESSAGE_LIMIT, OVERVIEW_LIMIT, PostError, Roots, Status, link_mentions,
-                                 approval_request, diff_lines, digest_tool, render_post, summarize_tool)
+                                 approval_request, diff_path_allowed, digest_tool, render_post, summarize_tool)
 
 
 def roots(tmp: Path) -> Roots:
@@ -245,17 +245,13 @@ def test_digest_tool_hides_hostile_input() -> None:
             assert bad not in digest, (name, tool_input, digest)
 
 
-def test_diff_lines_only_for_source_in_work_repos() -> None:
-    edit = {"old_string": "a\nb", "new_string": "a\nc\nd"}
-    assert diff_lines("Edit", {"file_path": "/var/lib/mclab/agent/ElectricalAge/src/Drive.java", **edit}) \
-        == ("Drive.java", ["-b", "+c", "+d"])
-    assert diff_lines("Write", {"file_path": "/x/eln-wt-floppy/src/A.kt", "content": "x\ny"}) \
-        == ("A.kt", ["+x", "+y"])
+def test_diff_paths_only_for_source_in_work_repos() -> None:
+    assert diff_path_allowed("/var/lib/mclab/agent/ElectricalAge/src/Drive.java")
+    assert diff_path_allowed("/x/eln-wt-floppy/src/A.kt")
     for path in ("/var/lib/mclab/agent/notes/eln/Plan.java",     # notes
                  "/srv/minecraft-lab/c1/eln/world/x.json",       # a clone's world
                  "/x/ElectricalAge/README.md",                   # not source
                  "/x/somewhere/Drive.java",                      # not a work repo
                  "/x/nixos/secrets/key.nix",                     # secrets
                  "/x/eastern/Drive.java"):                       # 'ea' only as a whole name
-        assert diff_lines("Edit", {"file_path": path, **edit}) is None, path
-    assert diff_lines("Read", {"file_path": "/x/eln/A.java"}) is None
+        assert not diff_path_allowed(path), path

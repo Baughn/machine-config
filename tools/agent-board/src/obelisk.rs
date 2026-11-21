@@ -99,7 +99,7 @@ pub struct CardExtra {
     pub topic_since: Option<i64>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub chatter: Vec<ChatterIn>,
-    /// Edit/Write hunks for the diff waterfall, oldest first (the bridge picks which files).
+    /// New diff lines for the waterfall, oldest first (the bridge reads them from git and picks which files).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub diff: Vec<Hunk>,
 }

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
-import difflib
 import json
 from pathlib import Path
 import re
@@ -366,8 +365,8 @@ def digest_tool(name: str, tool_input: dict[str, Any]) -> str:
     return name.lower() if re.fullmatch(r"[A-Za-z]{1,30}", name) else "tool"
 
 
-# The obelisk's diff waterfall (Baughn, msg 1573365797915467938): Edit/Write as +/- lines, only
-# for source files in the work repos (LabAssistant, msg 1573366294743621735). Notes, clones and
+# The obelisk's diff waterfall (Baughn, msg 1573365797915467938; lines from git, see gitdiff.py),
+# only for source files in the work repos (LabAssistant, msg 1573366294743621735). Notes, clones and
 # world data can hold player names and coordinates, so they never show.
 DIFF_REPOS = ("electricalage", "electrical-age", "eln", "ea", "stasis", "watershed", "lab-tools",
               "obelisk", "nixos", "machine-config")
@@ -390,31 +389,6 @@ def diff_path_allowed(path: str) -> bool:
         return False
     return any(part == repo or part.startswith((repo + "-", repo + "_"))
                for part in parts[:-1] for repo in DIFF_REPOS)
-
-
-def diff_lines(name: str, tool_input: dict[str, Any]) -> tuple[str, list[str]] | None:
-    """(file basename, +/- lines) for an Edit/MultiEdit/Write the obelisk may show, else None."""
-    path = str(tool_input.get("file_path", ""))
-    if name not in ("Edit", "MultiEdit", "Write") or not diff_path_allowed(path):
-        return None
-    if name == "Write":
-        pairs = [("", str(tool_input.get("content", "")))]
-    elif name == "Edit":
-        pairs = [(str(tool_input.get("old_string", "")), str(tool_input.get("new_string", "")))]
-    else:
-        pairs = [(str(e.get("old_string", "")), str(e.get("new_string", "")))
-                 for e in tool_input.get("edits") or [] if isinstance(e, dict)]
-    lines: list[str] = []
-    for old, new in pairs:
-        for line in difflib.unified_diff(old.splitlines(), new.splitlines(), n=0, lineterm=""):
-            if line.startswith(("---", "+++", "@@")):
-                continue
-            line = line.expandtabs(4)[:DIFF_LINE]
-            # The board refuses lines over 300 bytes.
-            lines.append(line.encode()[:300].decode(errors="ignore"))
-    if not lines:
-        return None
-    return Path(path).name, lines[:DIFF_HUNK_LINES]
 
 
 def pretty_input(name: str, tool_input: dict[str, Any], command: str | None = None) -> str:

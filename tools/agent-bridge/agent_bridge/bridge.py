@@ -17,13 +17,14 @@ from typing import Any, Protocol
 from . import approval, rcon, spool
 from .approval import Cancelled, Pending, Verdict
 from .board import BoardError, BoardTools
+from .gitdiff import GitDiffs
 from .config import BASE_EFFORT, DEFAULT_MODEL, Config
 from .limits import Breaker, Streak
 from .policy import (Attachment, Author, Command, Incoming, Kind, Route, command_applies,
                      STREAK_LIMIT, may_approve, mentioned, parse_command, route)
 from .prompt import HANDOFF_FILE, handoff_prompt, new_session_preamble, report_nudge, todos_line, turn_prompt
 from .render import (MAIN, ChatError, File, Outgoing, PostError, Roots, Status, answer_footer, approval_request, context_line,
-                     diff_lines, digest_tool, is_status, question_text, render_post, settled, summarize_tool)
+                     digest_tool, is_status, question_text, render_post, settled, summarize_tool)
 from .schedule import Schedule, ScheduleError, Schedules, stamp
 from .session import AgentSession, Permission, ToolError, TurnResult
 from .shellfmt import format_shell
@@ -70,6 +71,8 @@ CARD_DEBOUNCE = 2.0
 CHATTER_KEEP = 20
 # The diff waterfall: the newest hunks, dropping the oldest past this many lines.
 DIFF_KEEP_LINES = 300
+# Tools that can change files: after one, look for new diff lines in the work repos.
+DIFF_TOOLS = frozenset({"Edit", "MultiEdit", "Write", "NotebookEdit", "Bash"})
 # The bot's Discord status (Baughn, msg 1560674790623412305): idle and when the next schedule
 # is due, or busy with a topic. A human's request gets its topic from a short model call.
 PRESENCE_HEARTBEAT = 60.0
@@ -198,6 +201,10 @@ class Bridge:
         self.chatter: deque[list[Any]] = deque(maxlen=CHATTER_KEEP)
         self.chatter_seq = 0
         self.diffs: deque[dict[str, Any]] = deque()  # {id, t, file, lines}, newest last
+        self.gitdiffs = GitDiffs(config.workdir)
+        self.diff_task: asyncio.Task[None] | None = None
+        self.diff_again = False
+        self.diff_seq = 0
         self.topic_task: asyncio.Task[None] | None = None
         self.run_command = run_command
         self.status: Status | None = None
@@ -300,6 +307,7 @@ class Bridge:
         self.streak = Streak.from_history([(m.author.kind, mentioned(self.config, m)) for m in history])
         if self.board is not None:
             self.card_task = asyncio.create_task(self.card_loop())
+            self.refresh_diffs()  # the baseline: what is already uncommitted isn't news
         self.presence_task = asyncio.create_task(self.presence_loop())
 
     async def reconnect(self) -> None:
@@ -1120,13 +1128,37 @@ class Bridge:
             self.chatter_seq += 1
             self.chatter.append([f"{int(now)}-{self.chatter_seq}", now, name,
                                  ("↳ " if subagent else "") + digest_tool(name, tool_input), None])
-            hunk = diff_lines(name, tool_input)
-            if hunk is not None:
-                self.diffs.append({"id": f"{int(now)}-{self.chatter_seq}", "t": int(now),
-                                   "file": hunk[0], "lines": hunk[1]})
-                while sum(len(d["lines"]) for d in self.diffs) > DIFF_KEEP_LINES and len(self.diffs) > 1:
-                    self.diffs.popleft()
             self.card_changed.set()
+
+    def refresh_diffs(self) -> None:
+        """Look for new lines in the work repos (gitdiff), in the background; a call while a
+        look runs asks for one more after it."""
+        if self.board is None:
+            return
+        if self.diff_task is not None and not self.diff_task.done():
+            self.diff_again = True
+            return
+        self.diff_task = asyncio.create_task(self.look_for_diffs())
+
+    async def look_for_diffs(self) -> None:
+        while True:
+            self.diff_again = False
+            try:
+                hunks = await asyncio.to_thread(self.gitdiffs.scan)
+            except Exception:  # the waterfall is decoration; never break a turn
+                log.exception("git diff scan failed")
+                hunks = []
+            now = self.clock()
+            for file, lines in hunks:
+                self.diff_seq += 1
+                self.diffs.append({"id": f"{int(now)}-g{self.diff_seq}", "t": int(now),
+                                   "file": file, "lines": lines})
+            while sum(len(d["lines"]) for d in self.diffs) > DIFF_KEEP_LINES and len(self.diffs) > 1:
+                self.diffs.popleft()
+            if hunks:
+                self.card_changed.set()
+            if not self.diff_again:
+                return
 
     async def advisor_called(self) -> None:
         if self.status is not None:
@@ -1190,6 +1222,8 @@ class Bridge:
     async def tool_finished(self, name: str, failed: bool, subagent: bool = False) -> str | None:
         tool_log.info("%s %s%s", "failed" if failed else "done", "subagent " if subagent else "", name)
         self.note(f"← {name}{' (failed)' if failed else ''}")
+        if name in DIFF_TOOLS:
+            self.refresh_diffs()
         for entry in reversed(self.chatter):
             if entry[2] == name and entry[4] is None:
                 entry[4] = not failed

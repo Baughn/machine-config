@@ -12,9 +12,11 @@ pkgs.python3Packages.buildPythonApplication {
   postPatch = ''
     substituteInPlace agent_bridge/shellfmt.py \
       --replace-fail 'SHFMT = "shfmt"' 'SHFMT = "${pkgs.shfmt}/bin/shfmt"'
+    substituteInPlace agent_bridge/gitdiff.py \
+      --replace-fail 'GIT = "git"' 'GIT = "${pkgs.git}/bin/git"'
   '';
 
-  nativeCheckInputs = with pkgs.python3Packages; [ pytestCheckHook pytest-asyncio hypothesis mypy ];
+  nativeCheckInputs = (with pkgs.python3Packages; [ pytestCheckHook pytest-asyncio hypothesis mypy ]) ++ [ pkgs.git ];
   preCheck = ''
     mypy
   '';
