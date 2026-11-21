@@ -175,3 +175,28 @@ async def test_unattended_turns_refuse_approvals(tmp_path: Path) -> None:
 def test_thread_sources_must_be_trigger_sources() -> None:
     with pytest.raises(ConfigError):
         make_config(trigger_sources=SOURCES, thread_sources={"free-research": "Free research"})
+
+
+def test_a_shared_spool_takes_only_listed_sources_from_listed_writers(tmp_path: Path) -> None:
+    import pwd
+    me = pwd.getpwuid(os.getuid()).pw_name
+    sources = {**SOURCES, "lab-handover": "Stage the handover."}
+    d = tmp_path / "shared"
+    ok = drop(d, "a.json", {"source": "lab-handover", "note": "/srv/x"})
+    drop(d, "b.json", {"source": "crash-analysis"})  # not listed for the shared spool
+    found = scan(d, {"lab-handover": sources["lab-handover"]}, set(), {"lab-handover": (me,)})
+    assert [t.path for t in found] == [ok]
+    assert [p.name for p in (d / "rejected").iterdir()] == ["b.json"]
+    drop(d, "c.json", {"source": "lab-handover"})
+    assert scan(d, {"lab-handover": "x"}, {ok}, {"lab-handover": ("someone-else",)}) == []
+    assert sorted(p.name for p in (d / "rejected").iterdir()) == ["b.json", "c.json"]
+
+
+def test_trigger_writers_need_a_shared_spool_and_known_sources() -> None:
+    with pytest.raises(ConfigError):
+        make_config(trigger_sources=SOURCES, trigger_writers={"crash-analysis": ["mclab"]})
+    with pytest.raises(ConfigError):
+        make_config(trigger_sources=SOURCES, trigger_writers={"other": ["mclab"]}, shared_spool="/x")
+    config = make_config(trigger_sources=SOURCES, trigger_writers={"crash-analysis": ["mclab"]},
+                         shared_spool="/x")
+    assert config.trigger_writers == {"crash-analysis": ("mclab",)}

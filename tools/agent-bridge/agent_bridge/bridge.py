@@ -425,6 +425,11 @@ class Bridge:
         if len(self.spool_turns) >= spool.PER_HOUR:
             return
         found = spool.scan(self.spool_dir, sources, self.spool_queued)
+        if self.config.shared_spool is not None:
+            writers = self.config.trigger_writers
+            found = sorted(found + spool.scan(self.config.shared_spool, {s: sources[s] for s in writers},
+                                              self.spool_queued, writers),
+                           key=lambda t: (t.written, t.path.name))
         if not found:
             return
         self.spool_turns.append(now)

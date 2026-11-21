@@ -1,6 +1,9 @@
 """Local triggers: programs running as the agent's own user drop JSON files into
 $STATE/triggers/, and the bridge turns them into turns. Pure apart from the directory.
 
+A shared spool (`shared_spool`) also takes files from other users, for the sources
+`trigger_writers` lists, each only from the users listed for it (the file's owner).
+
 A file is `{"source": "<name>", "note": "<text>"}`. What the agent is asked to do comes
 from the instance config (`trigger_sources`), never from the file: the note is data.
 """
@@ -11,6 +14,7 @@ from dataclasses import dataclass
 import json
 import logging
 from pathlib import Path
+import pwd
 
 from .schedule import NOTE_LIMIT
 
@@ -28,8 +32,18 @@ class Trigger:
     written: float  # the file's mtime
 
 
-def parse(path: Path, sources: dict[str, str]) -> Trigger:
-    """One spool file, or ValueError saying why it is rejected."""
+def owner(path: Path) -> str:
+    uid = path.stat().st_uid
+    try:
+        return pwd.getpwuid(uid).pw_name
+    except KeyError:
+        return str(uid)
+
+
+def parse(path: Path, sources: dict[str, str],
+          writers: dict[str, tuple[str, ...]] | None = None) -> Trigger:
+    """One spool file, or ValueError saying why it is rejected. With `writers` (a shared
+    spool), only those sources, each from a file its listed users own."""
     size = path.stat().st_size
     if size > FILE_LIMIT:
         raise ValueError(f"{size} bytes, over {FILE_LIMIT}")
@@ -42,6 +56,8 @@ def parse(path: Path, sources: dict[str, str]) -> Trigger:
     source, note = data.get("source"), data.get("note", "")
     if not isinstance(source, str) or source not in sources:
         raise ValueError(f"unknown source {source!r}")
+    if writers is not None and (who := owner(path)) not in writers.get(source, ()):
+        raise ValueError(f"{who} may not fire {source!r}")
     if not isinstance(note, str):
         raise ValueError("note is not a string")
     if len(note) > NOTE_LIMIT:
@@ -49,7 +65,8 @@ def parse(path: Path, sources: dict[str, str]) -> Trigger:
     return Trigger(path, source, note.strip(), path.stat().st_mtime)
 
 
-def scan(directory: Path, sources: dict[str, str], skip: set[Path]) -> list[Trigger]:
+def scan(directory: Path, sources: dict[str, str], skip: set[Path],
+         writers: dict[str, tuple[str, ...]] | None = None) -> list[Trigger]:
     """The directory's valid *.json files, oldest first, apart from those in `skip`.
     Invalid ones move to rejected/. Writers rename into place, so *.tmp is never read."""
     found = []
@@ -61,7 +78,7 @@ def scan(directory: Path, sources: dict[str, str], skip: set[Path]) -> list[Trig
         if path in skip or not path.is_file():
             continue
         try:
-            found.append(parse(path, sources))
+            found.append(parse(path, sources, writers))
         except FileNotFoundError:
             continue
         except (OSError, ValueError) as error:

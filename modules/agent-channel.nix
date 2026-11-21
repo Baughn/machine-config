@@ -186,6 +186,17 @@ let
           instruction. The note is shown as data. Other sources are rejected.
         '';
       };
+      triggerWriters = lib.mkOption {
+        type = lib.types.attrsOf (lib.types.listOf lib.types.str);
+        default = { };
+        example = { lab-handover = [ "mclab" ]; };
+        description = ''
+          triggerSources other users may fire (source -> user names): they write the same
+          files to /var/lib/agent-triggers/<id>/, which only they (group
+          agent-triggers-<id>) and the agent can write. The bridge accepts there only these
+          sources, each from a file a listed user owns.
+        '';
+      };
       unattendedTriggers = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [ ];
@@ -280,6 +291,8 @@ let
     trigger_sources = i.triggerSources;
     unattended_sources = i.unattendedTriggers;
     thread_sources = i.triggerThreads;
+    trigger_writers = i.triggerWriters;
+    shared_spool = if i.triggerWriters == { } then null else "/var/lib/agent-triggers/${name}";
     board = if i.board == null then null else lib.filterAttrs (_: v: v != null) {
       inherit (i.board) socket url;
       token = i.board.tokenFile != null;
@@ -343,8 +356,8 @@ in
         message = "agent-channel: ${name}'s unattendedTriggers must name triggerSources";
       }
       {
-        assertion = lib.all (s: lib.hasAttr s i.triggerSources) (lib.attrNames (i.triggerTimers // i.triggerThreads));
-        message = "agent-channel: ${name}'s triggerTimers and triggerThreads must name triggerSources";
+        assertion = lib.all (s: lib.hasAttr s i.triggerSources) (lib.attrNames (i.triggerTimers // i.triggerThreads // i.triggerWriters));
+        message = "agent-channel: ${name}'s triggerTimers, triggerThreads and triggerWriters must name triggerSources";
       }
       {
         assertion = !(lib.elem "agent" i.approvers);
@@ -407,12 +420,16 @@ in
       restartIfChanged = false;
     }) cfg.instances;
 
+    users.groups = lib.mapAttrs' (name: i: lib.nameValuePair "agent-triggers-${name}" {
+      members = lib.unique (lib.concatLists (lib.attrValues i.triggerWriters));
+    }) (lib.filterAttrs (_: i: i.triggerWriters != { }) cfg.instances);
+
     systemd.timers = lib.mapAttrs (_: t: {
       wantedBy = [ "timers.target" ];
       timerConfig = { OnCalendar = t.calendar; Persistent = true; };
     }) timers;
 
-    systemd.tmpfiles.rules = lib.concatLists (lib.mapAttrsToList (name: i:
+    systemd.tmpfiles.rules = lib.unique (lib.concatLists (lib.mapAttrsToList (name: i:
       [
         "d ${i.workdir} 0700 ${i.user} - -"
         "d ${i.workdir}/.claude 0700 ${i.user} - -"
@@ -424,7 +441,12 @@ in
         "d /var/lib/agent-bridge/${name} 0700 ${i.user} - -"
         "d /var/lib/agent-bridge/${name}/triggers 0700 ${i.user} - -"
       ]
+      # Writers may add files but neither list nor remove others' (sticky); the agent reads them.
+      ++ lib.optionals (i.triggerWriters != { }) [
+        "d /var/lib/agent-triggers 0755 root root -"
+        "d /var/lib/agent-triggers/${name} 1730 ${i.user} agent-triggers-${name} -"
+      ]
       ++ lib.mapAttrsToList (skill: src: "L+ ${i.workdir}/.claude/skills/${skill} - - - - ${src}") (skillsOf i)
-    ) cfg.instances);
+    ) cfg.instances));
   };
 }

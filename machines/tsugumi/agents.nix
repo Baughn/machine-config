@@ -6,6 +6,17 @@ let
   freeResearch = import ../../lib/agent-free-research.nix;
   consolidation = import ../../lib/agent-consolidation.nix;
   crashTrigger = "A Minecraft server crashed. Use the crash-analysis skill on the pending snapshot(s).";
+  # The merge queue's landings go to ErisiAgent and the result to the lab agent without
+  # anyone polling (Baughn, msg 1573523617407570061). lab-merge writes the handover into
+  # mergeHandover and the trigger files (format: the agent-channel triggerSources option).
+  mergeHandover = "/srv/lab-handover-queue";
+  handoverTrigger = "The lab's merge queue landed a change and wrote its handover; the note says where. "
+    + "Check and stage it as you would any lab handover (checksum, README, built on what is live). "
+    + "Passing the queue counts as Baughn's approval (msg 1573401987456831529); your usual rules for "
+    + "restarts and players still apply. Say in the channel what you staged.";
+  mergeResultTrigger = "Your merge queue job finished; the note has the outcome. If it landed, the queue "
+    + "has handed it to ErisiAgent already: tell whoever was waiting, in their thread. If it was "
+    + "rejected, find out why and fix or re-enqueue.";
   # Git credential helper handing the lab's GitHub PAT (Baughn, 2026-10-09: so it can
   # publish its Electrical Age port) to https://github.com. Only answers `get`.
   labGitCredential = pkgs.writeShellScript "lab-git-credential" ''
@@ -66,7 +77,7 @@ let
     channel = "main";
     promptFile = labPrompt lab role;
     board.socket = "/run/agent-board/api.sock";
-    extraDirs = [ lab.mounts lab.handover lab.outboxDir "/srv/lab-git" ] ++ extraDirs;
+    extraDirs = [ lab.mounts lab.handover lab.outboxDir "/srv/lab-git" mergeHandover ] ++ extraDirs;
     rcon.root = lab.mounts;
     # Any console command on its clones, without an approver or the classifier (Baughn,
     # msg 1558472455818055812: "Nothing there they couldn't do from the filesystem already").
@@ -92,6 +103,9 @@ let
     # For testing crash analysis on clones whose lab.env enables it.
     skills.crash-analysis = ./agents/skills/crash-analysis;
     triggerSources.crash-analysis = crashTrigger;
+    triggerSources.merge-result = mergeResultTrigger;
+    # Whichever lab runs the queue tells the submitter.
+    triggerWriters.merge-result = [ labs.main.user labs.assistant.user ];
     permissionMode = "auto";
     model = "claude-opus-5-5";
     allow = [
@@ -201,6 +215,9 @@ in
   systemd.tmpfiles.rules = [
     "d /srv/towerview 0755 ${labs.main.user} ${labs.main.user} -"
     "d /srv/lab-git 2770 root lab-agents -"
+    # The queue's handovers: both lab users write, minecraft (ErisiAgent) reads.
+    "d ${mergeHandover} 2770 root lab-agents -"
+    "A+ ${mergeHandover} - - - - user:minecraft:r-x,default:user:minecraft:r-x"
     # Second-opinion dirs must exist for their ACLs.
     "d /var/lib/${labs.assistant.user}/agent/src 0700 ${labs.assistant.user} - -"
     "d /var/lib/${labs.assistant.user}/agent/notes 0700 ${labs.assistant.user} - -"
@@ -239,6 +256,8 @@ in
       skills.crash-analysis = ./agents/skills/crash-analysis;
       # crash_analysis.py (start.py, after an unrequested nonzero exit).
       triggerSources.crash-analysis = crashTrigger;
+      triggerSources.lab-handover = handoverTrigger;
+      triggerWriters.lab-handover = [ labs.main.user labs.assistant.user ];
       permissionMode = "auto";
       # Pinned rather than the "opus" alias, so a model change is a deliberate
       # edit. Needs Claude Code >= 2.1.280, from nixpkgs-fast (see flake.nix).

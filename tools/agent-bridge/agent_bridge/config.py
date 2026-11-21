@@ -127,6 +127,9 @@ class Config:
     unattended_sources: tuple[str, ...] = ()
     # Sources whose turns get a Discord thread of their own: name -> title (the date is added).
     thread_sources: dict[str, str] = field(default_factory=dict)
+    # A spool other users may write to: source -> the users who may fire it there (spool.py).
+    shared_spool: Path | None = None
+    trigger_writers: dict[str, tuple[str, ...]] = field(default_factory=dict)
     idle_reset: float = 6 * 3600  # seconds without a turn before a handoff and new session; 0: never
     board: Board | None = None
     sources: SourcesConfig | None = None  # the fetch_source/package_source tools
@@ -184,6 +187,14 @@ def _titles(value: Any) -> dict[str, str]:
                                               for k, v in value.items()):
         raise ConfigError("thread_sources must map names to non-empty thread titles")
     return {k: " ".join(v.split()) for k, v in value.items()}
+
+
+def _writers(value: Any) -> dict[str, tuple[str, ...]]:
+    if not isinstance(value, dict) or not all(
+            isinstance(k, str) and isinstance(v, list) and v and all(isinstance(u, str) and u for u in v)
+            for k, v in value.items()):
+        raise ConfigError("trigger_writers must map sources to lists of user names")
+    return {k: tuple(v) for k, v in value.items()}
 
 
 def _sources(value: Any) -> dict[str, str]:
@@ -254,6 +265,8 @@ def parse(data: dict[str, Any], state: Path) -> Config:
         trigger_sources=_sources(data.get("trigger_sources", {})),
         unattended_sources=_strings(data, "unattended_sources"),
         thread_sources=_titles(data.get("thread_sources", {})),
+        shared_spool=Path(data["shared_spool"]) if data.get("shared_spool") else None,
+        trigger_writers=_writers(data.get("trigger_writers", {})),
         board=_board(data.get("board")),
         sources=_sources_tools(data.get("sources")),
     )
@@ -284,6 +297,10 @@ def validate(config: Config) -> None:
         raise ConfigError("unattended_sources must name trigger_sources")
     if not set(config.thread_sources) <= set(config.trigger_sources):
         raise ConfigError("thread_sources must name trigger_sources")
+    if not set(config.trigger_writers) <= set(config.trigger_sources):
+        raise ConfigError("trigger_writers must name trigger_sources")
+    if bool(config.trigger_writers) != (config.shared_spool is not None):
+        raise ConfigError("shared_spool and trigger_writers go together")
     if config.owner_only and (config.triggers != {"owner"} or config.approvers != {"owner"}):
         raise ConfigError("owner_only requires triggers = approvers = [owner]")
     workdir = config.workdir.resolve()
