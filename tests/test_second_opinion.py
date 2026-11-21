@@ -161,7 +161,7 @@ class Budget(unittest.TestCase):
             so.answer({"question": "hi", "dir": "rel"}, "a", self.env)
         seen = []
 
-        def fake(question, history, files, model, call_usd, today, env, spent, stats=None):
+        def fake(question, history, files, model, call_usd, today, env, spent, stats=None, **kw):
             seen.append(files)
             return "ok", history + [question]
         with unittest.mock.patch.object(so, "ask_gemini", fake):
@@ -176,7 +176,7 @@ class Budget(unittest.TestCase):
             so.answer({"question": "hi", "dir": "/home/a/repo/sub"}, "a", self.env)
 
     def test_reservation_is_settled(self):
-        def fake(question, history, files, model, call_usd, today, env, spent, stats=None):
+        def fake(question, history, files, model, call_usd, today, env, spent, stats=None, **kw):
             self.assertEqual(files.cwd, "/home/a/repo/sub")
             self.assertAlmostEqual(self.ledger.spent(self.month), 1.0)  # booked while it runs
             spent[0] += 0.25
@@ -189,7 +189,7 @@ class Budget(unittest.TestCase):
         self.assertRegex(records[0]["conversation"], so.TAG)
 
     def test_failure_keeps_what_was_spent(self):
-        def fake(question, history, files, model, call_usd, today, env, spent, stats=None):
+        def fake(question, history, files, model, call_usd, today, env, spent, stats=None, **kw):
             spent[0] += 0.4
             raise RuntimeError("API down")
         with unittest.mock.patch.object(so, "ask_gemini", fake), self.assertRaises(RuntimeError):
@@ -201,7 +201,7 @@ class Budget(unittest.TestCase):
     def test_conversations(self):
         seen = []
 
-        def fake(question, history, files, model, call_usd, today, env, spent, stats=None):
+        def fake(question, history, files, model, call_usd, today, env, spent, stats=None, **kw):
             seen.append((list(history), files.cwd))
             return "ok", history + [question]
         with unittest.mock.patch.object(so, "ask_gemini", fake):
@@ -220,6 +220,30 @@ class Budget(unittest.TestCase):
         with self.assertRaisesRegex(so.Refused, "no conversation"):
             so.answer({"question": "x", "continue": tag}, "a", self.env)
         self.assertFalse(path.exists())
+
+    def test_neon_persona(self):
+        seen = []
+
+        def fake(question, history, files, model, call_usd, today, env, spent, stats=None, mode=None, effort=None):
+            seen.append((model, mode["command"], mode["tools"], effort))
+            return "ok", history + [question]
+        with unittest.mock.patch.object(so, "ask_gemini", fake):
+            first = so.answer({"question": "word this", "persona": "neon"}, "a", self.env)
+            tag = re.search(r"Conversation (c-\S+):", first).group(1)
+            self.assertIn(f"`neon --continue {tag} FILE`", first)
+            so.answer({"question": "and this", "persona": "neon", "effort": "high", "continue": tag}, "a", self.env)
+            self.assertEqual(seen, [("gemini-4-neon", "neon", False, "medium"), ("gemini-4-neon", "neon", False, "high")])
+            # A conversation stays with its persona.
+            with self.assertRaisesRegex(so.Refused, "is a neon conversation"):
+                so.answer({"question": "x", "continue": tag}, "a", self.env)
+            with self.assertRaisesRegex(so.Refused, "effort must be"):
+                so.answer({"question": "x", "persona": "neon", "effort": "xhigh"}, "a", self.env)
+            with self.assertRaisesRegex(so.Refused, "takes no --effort"):
+                so.answer({"question": "x", "effort": "high"}, "a", self.env)
+            with self.assertRaisesRegex(so.Refused, "no persona"):
+                so.answer({"question": "x", "persona": "carbon"}, "a", self.env)
+        records = [json.loads(line) for line in Path(self.env["SO_USAGE"]).read_text().splitlines()]
+        self.assertEqual({r["persona"] for r in records}, {"neon"})
 
     def test_import(self):
         text = so.answer({"import": {"question": "q", "answer": "a"}}, "a", self.env)

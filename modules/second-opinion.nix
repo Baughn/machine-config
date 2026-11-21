@@ -17,6 +17,10 @@ let
   script = pkgs.writers.writePython3Bin "second-opinion"
     { libraries = [ pkgs.python3Packages.google-genai ]; flakeIgnore = [ "E501" ]; }
     (builtins.readFile ./second-opinion/second-opinion.py);
+  # Neon, the writer (Baughn, msg 1573663480177893457): the same service, another persona.
+  neon = pkgs.writeShellScriptBin "neon" ''
+    exec ${lib.getExe script} --persona neon "$@"
+  '';
 in
 {
   options.me.secondOpinion = {
@@ -75,6 +79,7 @@ in
         # back to standard when flex is too slow or busy to answer in time).
         SO_MODEL = "gemini-4-carbon";
         SO_TIER = "flex";
+        NEON_MODEL = "gemini-4-neon";
         SO_CLIENTS = builtins.toJSON (lib.mapAttrs' (_: a: lib.nameValuePair a.user a.exclude) agents);
         SO_LEDGER = "${state}/ledger.json";
         SO_USAGE = "${state}/usage.jsonl";
@@ -107,9 +112,10 @@ in
     };
 
     me.agentChannel.instances = lib.mapAttrs (_: _: {
-      path = [ script pkgs.ripgrep ];
-      allow = [ "Bash(second-opinion *)" ];
+      path = [ script neon pkgs.ripgrep ];
+      allow = [ "Bash(second-opinion *)" "Bash(neon *)" ];
       skills.second-opinion = ./second-opinion/skill;
+      skills.neon = ./second-opinion/neon-skill;
     }) cfg.agents;
   };
 }
