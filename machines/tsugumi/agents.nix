@@ -24,6 +24,37 @@ let
         (lib.replaceStrings [ "G" ] [ " GB" ] lab.memoryMax) (toString (lib.toInt (lib.removeSuffix "%" lab.cpuQuota) / 100))
         (toString lab.loginPort) lab.remoteLogin.address lab.outboxDir (labOutboxUrl lab) lab.handover ]
       (builtins.readFile ./agents/lab-common.md)) ] (builtins.readFile role));
+  # The merge queue's runner (/srv/lab-git/queue/lab-merge, proc/merge-queue) as its own unit:
+  # run from inside a bridge, a bridge restart (e.g. onto a deploy) killed it mid-gate
+  # (LabAgent, msg 1573506711623438369). One instance per lab user, in that lab's netns,
+  # started by `lab-merge run --detach`; lab-merge's own flock keeps it to one at a time.
+  labMergeUnit = lab: {
+    name = "lab-merge@${lab.user}";
+    value = {
+      description = "Lab merge queue runner (${lab.user})";
+      bindsTo = [ "${lab.unit}-pasta.service" ];
+      after = [ "${lab.unit}-pasta.service" ];
+      path = with pkgs; [ git python3 bash coreutils findutils gnused gnutar gzip unzip which ];
+      environment = {
+        JDK25 = "${pkgs.jdk25}";
+        JDK21 = "${pkgs.jdk21}";
+        HOME = "/var/lib/${lab.user}";
+        USER = lab.user;
+        GIT_CONFIG_COUNT = "1";
+        GIT_CONFIG_KEY_0 = "credential.https://github.com.helper";
+        GIT_CONFIG_VALUE_0 = "${labGitCredential}";
+      };
+      serviceConfig = lab.serviceConfig // {
+        Type = "oneshot";
+        User = lab.user;
+        Group = lab.user;
+        SupplementaryGroups = [ "lab-agents" ];
+        UMask = "0022";
+        Slice = "lab-merge.slice";
+        ExecStart = "/srv/lab-git/queue/lab-merge run";
+      };
+    };
+  };
   labOutboxUrl = lab: "http://10.171.0.1:${toString lab.outbox.port}/";
 
   # A lab agent's instance (minecraft-lab.nix): its lab's user, sandbox, directories
@@ -96,6 +127,8 @@ let
       "Bash(systemctl stop ${lab.unit}@*)"
       "Bash(systemctl restart ${lab.unit}@*)"
       "Bash(minecraft-lab destroy *)"
+      "Bash(systemctl start lab-merge@${lab.user})"
+      "Bash(systemctl stop lab-merge@${lab.user})"
       "mcp__bridge__rcon"
     ] ++ allow;
     ask = [
@@ -129,14 +162,33 @@ in
   me.minecraft.labs.assistant.agent = "tsugumi-lab-assistant";
 
   # Each lab agent lives in its lab's network namespace, beside its servers.
-  systemd.services.agent-bridge-tsugumi-lab = {
-    bindsTo = [ "${labs.main.unit}-pasta.service" ];
-    after = [ "${labs.main.unit}-pasta.service" ];
+  systemd.services = {
+    agent-bridge-tsugumi-lab = {
+      bindsTo = [ "${labs.main.unit}-pasta.service" ];
+      after = [ "${labs.main.unit}-pasta.service" ];
+    };
+    agent-bridge-tsugumi-lab-assistant = {
+      bindsTo = [ "${labs.assistant.unit}-pasta.service" ];
+      after = [ "${labs.assistant.unit}-pasta.service" ];
+    };
+  } // lib.listToAttrs (map labMergeUnit [ labs.main labs.assistant ]);
+
+  # Both runners together (LabAgent: 16 GB, 8 CPUs).
+  systemd.slices.lab-merge.sliceConfig = {
+    MemoryMax = "16G";
+    CPUQuota = "800%";
   };
-  systemd.services.agent-bridge-tsugumi-lab-assistant = {
-    bindsTo = [ "${labs.assistant.unit}-pasta.service" ];
-    after = [ "${labs.assistant.unit}-pasta.service" ];
-  };
+  # Each lab user may start and stop only its own runner.
+  security.polkit.extraConfig = lib.concatMapStrings (lab: ''
+    polkit.addRule(function (action, subject) {
+      if (action.id == "org.freedesktop.systemd1.manage-units" &&
+          subject.user == "${lab.user}" &&
+          action.lookup("unit") == "lab-merge@${lab.user}.service" &&
+          ["start", "stop"].indexOf(action.lookup("verb")) >= 0) {
+        return polkit.Result.YES;
+      }
+    });
+  '') [ labs.main labs.assistant ];
 
   # Shared bare git repos for the two lab agents (lab-common.md), and the PAT's group.
   # setgid keeps new repos in the group; git init --shared=group sets the modes,
