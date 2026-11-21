@@ -27,7 +27,7 @@ in
     enable = lib.mkEnableOption "the second-opinion service (needs secrets/gemini-api-key.age for this machine)";
     monthlyUsd = lib.mkOption {
       type = lib.types.ints.positive;
-      default = 20;
+      default = 30;
       description = "This machine's monthly budget; calls past it are refused.";
     };
     agents = lib.mkOption {
