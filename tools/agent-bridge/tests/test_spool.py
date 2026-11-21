@@ -186,10 +186,25 @@ def test_a_shared_spool_takes_only_listed_sources_from_listed_writers(tmp_path: 
     drop(d, "b.json", {"source": "crash-analysis"})  # not listed for the shared spool
     found = scan(d, {"lab-handover": sources["lab-handover"]}, set(), {"lab-handover": (me,)})
     assert [t.path for t in found] == [ok]
-    assert [p.name for p in (d / "rejected").iterdir()] == ["b.json"]
     drop(d, "c.json", {"source": "lab-handover"})
     assert scan(d, {"lab-handover": "x"}, {ok}, {"lab-handover": ("someone-else",)}) == []
-    assert sorted(p.name for p in (d / "rejected").iterdir()) == ["b.json", "c.json"]
+    # Rejected files in a shared spool are deleted, never moved: `rejected` could be a
+    # writer's symlink (Garibaldi, board #15).
+    assert sorted(p.name for p in d.iterdir()) == ["a.json"]
+
+
+def test_symlinks_are_never_followed(tmp_path: Path) -> None:
+    import pwd
+    me = pwd.getpwuid(os.getuid()).pw_name
+    secret = drop(tmp_path, "secret.json", {"source": "lab-handover", "note": "private"})
+    d = tmp_path / "shared"
+    d.mkdir()
+    (d / "a.json").symlink_to(secret)
+    (tmp_path / "elsewhere").mkdir()
+    (d / "rejected").symlink_to(tmp_path / "elsewhere")
+    assert scan(d, {"lab-handover": "x"}, set(), {"lab-handover": (me,)}) == []
+    assert not (d / "a.json").exists() and not (d / "a.json").is_symlink()
+    assert list((tmp_path / "elsewhere").iterdir()) == [] and secret.exists()
 
 
 def test_trigger_writers_need_a_shared_spool_and_known_sources() -> None:
