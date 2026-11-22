@@ -8,6 +8,8 @@ let
     "ar-innna.brage.info" = "/srv/aquagon";
     # Stasis Delvers' tower generator in the browser; the lab publishes it (agents.nix).
     "towers.brage.info" = "/srv/towerview";
+    # The EA handbook, rendered from Stasis main by eln-handbook.nix.
+    "eln.brage.info" = "/srv/eln-handbook/site";
   };
   # Content negotiation for markdown: browsers (Accept: text/html) get the
   # file rendered through this wrapper; everything else gets the raw .md.

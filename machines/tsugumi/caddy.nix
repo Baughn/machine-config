@@ -83,6 +83,15 @@
         reverse_proxy unix//run/caddy-static/http.sock
       }
 
+      # The EA handbook (eln-handbook.nix). Rendered from the lab's Markdown, which may hold
+      # raw HTML, so no scripts, frames or forms; pages revalidate after each re-render.
+      eln.brage.info {
+        import headers
+        header Content-Security-Policy "default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+        header Cache-Control "no-cache"
+        reverse_proxy unix//run/caddy-static/http.sock
+      }
+
       ganbot.brage.info {
         import headers
         reverse_proxy http://saya.local:8485

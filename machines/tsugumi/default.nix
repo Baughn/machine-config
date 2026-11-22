@@ -38,6 +38,7 @@ in
     ./lan.nix
     ./dhcpcd.nix
     ./caddy.nix
+    ./eln-handbook.nix
     ./rolebot.nix
     ./irctool.nix
     ./aniwatch.nix
