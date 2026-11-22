@@ -6,7 +6,9 @@ Based on LabAssistant's handbook-html.py (Discord 1574067721782431764). A pure
 function of its input: no network. Links to *.md become *.html; YAML front
 matter gives the page title; images next to the pages are copied; an
 index.html listing every page is written when the handbook has no index.md.
-Raw HTML in the Markdown passes through: eln.brage.info's CSP forbids scripts.
+Symlinks in the tree are skipped, so a commit can't publish files from the host,
+and the HTML is sanitised with nh3 (no meta refresh, forms, frames or scripts),
+on top of eln.brage.info's CSP (Garibaldi, board #15 post 840).
 """
 import html
 import os
@@ -15,9 +17,12 @@ import shutil
 import sys
 
 import markdown
+import nh3
 import yaml
 
 ASSETS = (".png", ".jpg", ".jpeg", ".gif", ".webp")
+# nh3's defaults, plus heading ids so the toc extension's anchors keep working.
+ATTRIBUTES = {**nh3.ALLOWED_ATTRIBUTES, "*": {"id"}}
 
 CSS = """
 body{max-width:46rem;margin:2rem auto;padding:0 1rem;font:17px/1.55 Georgia,serif;color:#222;background:#fbf8f1}
@@ -60,7 +65,11 @@ def main(src, out, rev):
     pages, assets = [], []
     for root, _, files in os.walk(src):
         for f in files:
-            rel = os.path.relpath(os.path.join(root, f), src)
+            path = os.path.join(root, f)
+            rel = os.path.relpath(path, src)
+            if os.path.islink(path) or not os.path.isfile(path):
+                print(f"skipping {rel}: not a regular file", file=sys.stderr)
+                continue
             if f.endswith(".md"):
                 pages.append(rel)
             elif f.lower().endswith(ASSETS):
@@ -74,6 +83,7 @@ def main(src, out, rev):
         position = nav.get("position") if isinstance(nav.get("position"), (int, float)) else 1e9
         body = re.sub(r"\]\(([^)\s]+)\)", md_link, body)
         content = markdown.markdown(body, extensions=["tables", "fenced_code", "toc", "sane_lists"], output_format="html5")
+        content = nh3.clean(content, attributes=ATTRIBUTES)
         home = "../" * rel.count(os.sep) + "index.html"
         dest = os.path.join(out, rel[:-3] + ".html")
         os.makedirs(os.path.dirname(dest), exist_ok=True)

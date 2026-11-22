@@ -12,7 +12,7 @@ let
 
   render = pkgs.writers.writePython3 "eln-handbook-render"
     {
-      libraries = [ pkgs.python3Packages.markdown pkgs.python3Packages.pyyaml ];
+      libraries = [ pkgs.python3Packages.markdown pkgs.python3Packages.nh3 pkgs.python3Packages.pyyaml ];
       flakeIgnore = [ "E501" ];
     }
     (builtins.readFile ./eln-handbook.py);
@@ -63,7 +63,9 @@ in
         exit 0
       fi
       rev=$(git --git-dir=${repo} rev-parse --verify 'main^{commit}')
-      if [ -d ${out}/site ] && [ "$(cat ${out}/rev 2>/dev/null || true)" = "$rev" ]; then
+      # The stamp includes the renderer, so a renderer change re-renders at once.
+      stamp="$rev ${render}"
+      if [ -d ${out}/site ] && [ "$(cat ${out}/rev 2>/dev/null || true)" = "$stamp" ]; then
         exit 0
       fi
       tmp=$(mktemp -d)
@@ -72,7 +74,7 @@ in
       git --git-dir=${repo} archive "$rev" ${guide} | tar -x -C "$tmp/src"
       ${render} "$tmp/src/${guide}" "$tmp/site" "$rev"
       rsync -r --delete --chmod=D755,F644 "$tmp/site/" ${out}/site/
-      echo "$rev" > ${out}/rev
+      echo "$stamp" > ${out}/rev
       echo "rendered Stasis $rev"
     '';
   };
