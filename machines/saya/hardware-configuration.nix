@@ -12,7 +12,7 @@
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
-  boot.supportedFilesystems = [ "bcachefs" ];
+  boot.supportedFilesystems = [ ];
 
   fileSystems."/" =
     { device = "rpool";
