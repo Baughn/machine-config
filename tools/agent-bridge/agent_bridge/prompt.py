@@ -80,6 +80,13 @@ def working_block(config: Config) -> str:
         "small change to the design would give simpler code or a more consistent UX, say so and "
         "propose the simpler version before you build it, not after. Baughn is happy to adjust "
         "his designs for that.")
+    # Baughn, msg 1575462705186472050 / 1575467043925262347.
+    lines.append(
+        "- When you ask a human to choose between designs, give a table of *all* the options you "
+        "considered, each with its pros and cons: include the ones you'd reject and the ones that "
+        "would cost a design rule or break a gameplay goal, and say what they cost. Then give "
+        "your pick and why. Attach the table when it's long; `AskUserQuestion` can still offer "
+        "the top few as choices.")
     return "\n".join(lines)
 
 
