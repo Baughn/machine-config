@@ -20,6 +20,23 @@
         "type": "github"
       }
     },
+    "antigravity-nix": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795677075,
+        "narHash": "sha256-wxmI7pyE/XuYlWwHic0bHsR2L3gI8zyQjkxQGQ1u0jw=",
+        "owner": "jacopone",
+        "repo": "antigravity-nix",
+        "rev": "c7b60189f6c5d728d8da3e2bb71a3684f1598a95",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jacopone",
+        "repo": "antigravity-nix",
+        "rev": "c7b60189f6c5d728d8da3e2bb71a3684f1598a95",
+        "type": "github"
+      }
+    },
     "crane": {
       "locked": {
         "lastModified": 1794962885,
@@ -348,6 +365,7 @@
     "root": {
       "inputs": {
         "agenix": "agenix",
+        "antigravity-nix": "antigravity-nix",
         "crane": "crane",
         "dessplay": "dessplay",
         "ganbot": "ganbot",
