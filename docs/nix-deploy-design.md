@@ -1,43 +1,56 @@
 # deploy: unified build + deploy tool
 
-*Deployment workflow updated: 2026-09-30 (lineage check). Status: implemented (v1). The
-crate lives in `tools/nix-deploy/`; the installed command is `deploy`.*
+*Deployment workflow updated: 2026-11-26 (interactive TUI, jj hygiene, speculative flake updates, input diff review, system telemetry). Status: implemented (v2). The crate lives in `tools/nix-deploy/`; the installed command is `deploy`.*
 
 ## Problem
 
 The former `deploy-all.sh` workflow did `nix build .#all-systems | nom --json`
-followed by `colmena apply`. This had two costs:
+followed by `colmena apply`. That had two costs:
 
-1. **Double evaluation.** The flake is evaluated once for the `nix build` and
+1. **Double evaluation.** The flake was evaluated once for `nix build` and
    again inside colmena — ~20 seconds each.
-2. **nom slows the build.** nom's rendering is expensive enough (Haskell,
-   eager redraws) that piping the JSON log through it measurably slows the
-   build it is displaying.
+2. **nom slows the build.** nom's rendering was expensive enough (Haskell,
+   eager redraws) that piping the JSON log through it measurably slowed the
+   build it was displaying.
 
-Separately, neither tool knows anything about *what changed*: a kernel,
-NVIDIA-driver, or KWin bump silently gets `switch`ed, leaving the machine in a
-state where a reboot is needed but nothing says so.
+In v1, `deploy` eliminated both and added closure diffs + reboot verdicts.
+However, daily deploys still required separate manual rituals around it:
+`./pull.sh`, committing dirty jj working copies, running `nix flake update`,
+inspecting third-party flake input diffs (overlays, custom modules, tools) for
+supply-chain/breaking changes, and `./push.sh` before rebooting.
 
 ## Goals
 
 - One flake evaluation total, shared by every machine.
-- A nom-style build progress tree whose rendering can never block the build.
-- Closure-diff inspection per machine, with a reboot-worthiness verdict and an
-  interactive **switch / boot / boot+reboot / exit** choice.
+- A full-screen `ratatui` TUI (with clean non-TTY / `--mode` / `--check` /
+  `--no-tui` fallback so unattended deployers like `agent-ship` behave
+  identically to v1).
+- Built-in Jujutsu repo hygiene: rebase incoming `trunk()` commits, name dirty
+  working copies so `nix build` always records a clean `self.rev`, manage the
+  `"Bumps"` commit for `flake.lock` updates, roll back `"Bumps"` via
+  `jj op restore` on abort, and offer pushing `master` before a local reboot or
+  on exit.
+- Speculative background `nix flake update` that never mutates `./flake.lock`
+  until accepted, plus asynchronous diff fetching for non-core changed flake
+  inputs while `nix build` runs in parallel.
+- Conservative filtering of pure version/hash bump hunks (toggleable) and a
+  post-filter changed-file cap (default 60, expandable) so human review stays
+  focused on actual code/config changes.
+- Activation gating whenever reviewable flake input diffs exist.
+- Top-bar `btop`-style CPU and Memory sparklines (with ZFS ARC reclaimable
+  memory accounting).
 - Sequenced deployment: remote machines (tsugumi) first, the local machine
   (saya) last, since a local `switch` (or reboot) can disrupt the session
   driving the deploy.
-- Replaces both nom and colmena in the daily workflow.
 
 ## Non-goals
 
 - Clever transport or orchestration. `nix copy` over ssh on a LAN plus
   `switch-to-configuration` is the whole push mechanism.
-- Rollback automation. `nixos-rebuild --rollback` / boot-menu rollback and the
-  existing `magic-reboot` module remain the recovery story.
+- System rollback automation. `nixos-rebuild --rollback` / boot-menu rollback
+  and the existing `magic-reboot` module remain the recovery story (only the
+  jj `"Bumps"` commit is offered for `jj op restore` on pre-activation abort).
 - Secrets, provisioning, multi-user deploys, non-NixOS targets.
-- Removing colmena from `flake.nix` immediately — it stayed as a fallback until
-  the tool had earned trust (see Migration). It has since been removed.
 
 ## Shape
 
@@ -46,28 +59,42 @@ the other tools, installed on saya via `environment.systemPackages`.
 Binary name: `deploy`.
 
 ```
-deploy [MACHINE...] [--mode switch|boot] [--check] [--strict] [--allow-rollback]
+deploy [MACHINE...] [--mode switch|boot] [--check] [--strict] [--allow-rollback] [--no-tui]
 ```
 
 - No machine arguments: deploy every machine in the manifest, remotes first,
   local host last.
 - `MACHINE...`: deploy only the named machines (still in canonical order).
-- `--mode`: skip the interactive prompt and force that mode on every machine.
-  Never auto-reboots anything; with `--mode switch` the reboot verdict is
-  still printed as a warning.
-- `--check`: run only the lineage check (below), then stop without building.
+- `--mode`: skip the TUI and interactive prompts, forcing that mode on every
+  machine. Never auto-reboots anything; with `--mode switch` the reboot verdict
+  is still printed as a warning.
+- `--check`: run only the lineage check (below) in plain mode, then stop
+  without building.
 - `--strict`: the lineage check also refuses unrecorded or dirty running
-  revisions. For unattended deployers (agent-ship).
+  revisions. For unattended deployers (`agent-ship`).
 - `--allow-rollback`: deploy even when the lineage check refuses.
+- `--no-tui`: force the plain v1 CLI pipeline even on an interactive terminal.
 
-Run from the repository or a subdirectory; the tool locates the repository
-root. For unattended activation of the server, use `deploy --mode switch tsugumi`.
+Whenever `!stdin.is_terminal() || !stderr.is_terminal() || --mode || --check || --no-tui`,
+`deploy` bypasses the TUI, jj prompts, and flake update completely and executes
+the plain v1 pipeline unchanged.
 
 ## Machine manifest
 
-A small `deploy.toml` at the repo root, read by the tool:
+`deploy.toml` at the repo root:
 
 ```toml
+[settings]
+reboot_timeout_secs = 300
+ignore_diff_repos = [
+    "NixOS/nixpkgs",
+    "DeterminateSystems/nixpkgs-weekly",
+    "nix-community/nixpkgs.lib",
+    "nix-community/home-manager",
+    "nix-darwin/nix-darwin",
+]
+max_diff_files = 60
+
 [machines.tsugumi]
 target = "svein@tsugumi.local" # ssh destination; also used for nix copy
 order = 1
@@ -77,249 +104,136 @@ local = true                   # activate via sudo, no ssh; deploys last
 order = 2
 ```
 
-Rationale: the alternative — reading the machine list out of the flake —
-costs an extra evaluation or an eval-time JSON output, exactly what we're
-trying to eliminate. Two machines in a TOML file is not a maintenance burden.
-The manifest is the single place that knows how tsugumi is reached;
-everything else derives from it. Root commands are wrapped in `sudo`
-(svein has passwordless sudo on both machines, and root ssh is disabled);
-an explicit `sudo = false` or a `root@` target skips the wrapping.
+- `ignore_diff_repos`: repositories (`owner/repo`, case-insensitive, including
+  FlakeHub URLs like `DeterminateSystems/nixpkgs-weekly`) skipped when fetching
+  input diffs. High-churn core inputs live here; everything else is fetched and
+  reviewed.
+- `max_diff_files`: post-filter substantive changed-file threshold above which
+  an input's diff starts collapsed in the TUI (expandable with `e`).
 
-## Pipeline
+## Interactive TUI workflow
 
-### 0. Lineage check
+### Top bar: CPU & Memory sparklines (`sysmon.rs`)
 
-Every system records the flake revision it was built from
-(`system.configurationRevision = self.rev or self.dirtyRev`, set in
-`modules/nix-deploy.nix`; `<commit>-dirty` when the tree had uncommitted
-changes, which is normal from a jj working copy with a non-empty `@`).
-Before building anything, for each selected machine the tool reads the
-running revision (`nixos-version --json` on the target) and the one it is
-about to build (`nix flake metadata --json`), and asks git in the repository
-root whether the running commit is an ancestor of the deployed one:
+A full-width 3-line header samples Linux telemetry every 500 ms:
 
-| running revision | default | `--strict` |
-|---|---|---|
-| ancestor (or equal), clean | go | go |
-| ancestor, `-dirty` | warn: its uncommitted changes get replaced | refuse |
-| rewritten: jj says an ancestor has its change id | warn | refuse |
-| unrecorded | warn | refuse |
-| not an ancestor | refuse | refuse |
-| unknown to this repository | refuse | refuse |
+- **CPU**: delta busy percentage from `/proc/stat` + 1-minute load average from
+  `/proc/loadavg` + 120-sample sparkline.
+- **Memory**: `/proc/meminfo` (`MemTotal - MemAvailable`) minus ZFS ARC
+  reclaimable bytes (`size.saturating_sub(c_min)` from
+  `/proc/spl/kstat/zfs/arcstats`, matching `btop`/`htop`). Displays
+  `MEM XX.XG (+YY.YG ARC) / ZZ.ZG`, omitting `(+ARC)` when ZFS is absent.
 
-The rewritten row exists because jj rewrites commits routinely (squash,
-describe, rebase after a deploy); the old commit is then a hidden
-predecessor rather than a git ancestor. It is only checked when the
-repository root has `.jj` (`jj --ignore-working-copy log`, so no snapshot),
-which agent-ship's plain git clone doesn't. "Unknown" is the usual rollback: another checkout deployed commits that
-were never pushed. Any refusal aborts before anything is built or copied;
-`--allow-rollback` downgrades refusals to warnings. The decision is
-`lineage::judge`, a pure function with unit tests.
+### Startup dialogs (`repo.rs`, `lineage.rs`, `flake_diff.rs`)
 
-Why: deploys come from Baughn's working copy and from agent-ship's clean
-clone of master. Without this, each silently rolled back the other's
-unpushed or unfetched work (September 2026). A side effect of recording the
-revision is that every commit yields a new toplevel, so "already up to
-date" only happens when nothing was committed in between.
+1. **Repo sync**: Inspects `.jj` via `repo::inspect`. If `@..trunk()` is
+   non-empty, shows the incoming commits and offers `[r]ebase onto trunk`,
+   `[c]ontinue without rebasing`, or `[q]uit`. Rebase conflicts exit cleanly
+   with an error summary.
+2. **Working copy hygiene**: Re-inspects after optional rebase. If `@` is dirty:
+   - Only `flake.lock` modified: deferred to the `"Bumps"` step.
+   - Unnamed dirty `@`: prompts for a commit message, then runs `jj describe` +
+     `jj new`.
+   - Named dirty `@`: automatically runs `jj new`.
+   This guarantees `nix build` evaluates a clean commit (`self.rev`, not
+   `-dirty`).
+3. **Lineage check**: Verifies each selected machine's running
+   `configurationRevision` is an ancestor (or jj rewrite) of the deploying
+   revision. Refusals exit cleanly unless `--allow-rollback` is passed.
+4. **Speculative `nix flake update`**: Immediately spawns `nix flake update`
+   against a temporary lockfile in the background (`./flake.lock` is never
+   touched until accepted; quitting or skipping kills the child and removes the
+   temp directory).
+   - While running: `[y]` queues auto-apply when ready, `[n]` skips, `[q]` quits.
+   - If up to date: auto-dismisses and starts building.
+   - If inputs changed: lists bumped inputs (tagged `[core]` vs `[review]`) and
+     prompts `[y] Apply & build` / `[n] Skip & build` / `[q] Quit`.
+   - On accept: records `pre_bump_op_id` (`jj op log`), atomically replaces
+     `./flake.lock`, squashes into a mutable `"Bumps"` parent or creates a new
+     `"Bumps"` commit + `jj new`, then launches background diff fetchers AND
+     `nix build` in parallel.
 
-### 1. Build (single eval)
+### Main two-pane workspace
 
-```
-nix build --no-link --log-format internal-json \
-  .#nixosConfigurations.saya.config.system.build.toplevel \
-  .#nixosConfigurations.tsugumi.config.system.build.toplevel
-```
+Responsive layout: 50/50 side-by-side when terminal width >= 100 columns,
+single `Tab`-switched pane on narrower terminals.
 
-One `nix` process evaluates once (in-process eval cache is shared across
-installables) and builds both toplevels. Out-paths come from
-`--print-out-paths` on stdout, matched to machines by their
-`nixos-system-<name>-` store names. stderr carries the JSON log that feeds
-the progress UI.
+- **Left pane (`Diffs & Commits`)**:
+  - Section 1: Local commits since each machine's running revision
+    (`git log old..new`).
+  - Section 2: Asynchronously fetched diffs for every non-ignored changed flake
+    input (GitHub Compare API via `curl`, optionally authenticated via
+    `GITHUB_TOKEN`, `GH_TOKEN`, or `gh auth token`).
+  - Pure version/hash/rev/checksum bump hunks are hidden by default with a
+    per-input badge (`[f]` toggles showing/hiding them).
+  - Inputs exceeding `max_diff_files` substantive files *after* filtering start
+    collapsed with a commit summary and compare URL (`[e]` toggles expanding).
+  - Navigation: `Tab` / `Left` / `Right` switch pane, `j`/`k`/arrows scroll,
+    `PgUp`/`PgDn`/`Ctrl-d`/`Ctrl-u` page, `n`/`N` jump between input and file
+    headers.
+- **Right pane (`Build & Deploy`)**:
+  - During `nix build`: live `internal-json` progress tree (elapsed,
+    `done/expected`, running derivations + phase + log tail, active transfers,
+    recent completions, warnings/errors). Quitting kills `nix build` cleanly.
+  - After build: computes per-machine `current_system`, closure reboot verdict
+    (structural symlinks `kernel`/`kernel-modules`/`initrd`/`systemd` +
+    built-in patterns `nvidia-x11`/`linux-firmware` + per-machine
+    `<toplevel>/deploy-reboot-patterns.json`), and captured `nvd diff` in a
+    background thread.
+  - **Activation gating**: If any reviewable flake input diffs exist, the right
+    pane pauses at `[a]pprove & continue / [q] abort` so no machine switches
+    before diffs are reviewed.
+  - Per machine (tsugumi, then saya): shows `nvd diff` and reboot verdict;
+    prompts `[s]witch / [b]oot / [r] boot+reboot / [q] abort`. Auto-switches
+    only when there are no reviewable diffs AND no reboot-worthy changes.
+  - Streams `nix copy` (8 parallel unmultiplexed ssh connections),
+    `nix-env --set`, `switch-to-configuration`, and remote `reboot_and_wait`
+    live into the right pane.
+- **Abort rollback**: Aborting or failing after a `"Bumps"` commit was created
+  or squashed prompts `[r]evert Bumps (jj op restore) / [k]eep Bumps`.
+- **Push to master**:
+  - Choosing `boot + reboot` on the local machine (`saya`) when unpushed
+    commits exist prompts immediately before `systemctl reboot`:
+    `[p]ush to master & reboot / [r]eboot without pushing / [c]ancel`.
+  - Finishing all machines without a local reboot when unpushed commits exist
+    prompts `[p]ush to master / [Enter/q] exit`.
+- **Terminal safety**: An RAII guard + panic hook always restores raw mode and
+  leaves the alternate screen; a concise exit summary (and failure details) is
+  printed to stderr afterward.
 
-`.#all-systems` in `flake.nix` becomes redundant for deploys; keep or drop it
-independently.
+## Plain / Non-TTY pipeline (v1 compatibility)
 
-### 2. Progress UI (nom-style, but skippable)
+When stdin/stderr is not a TTY or `--mode` / `--check` / `--no-tui` is set:
 
-Two threads:
-
-- **Parser thread** reads stderr line-by-line, decodes `@nix` JSON messages
-  (`start`/`stop`/`result` activities), and maintains the model: derivations
-  building (with elapsed time and last log line), downloads in flight
-  (bytes/total), counts of done/expected, failures with captured log tails.
-  This thread must keep up with nix at full speed; it does no I/O to the
-  terminal.
-- **Render thread** wakes at most ~12 Hz, snapshots the model (shared via a
-  mutex; the parser holds it only per-line), and redraws a status tree:
-  running builds with elapsed time, phase, and last log line, downloads with
-  byte progress, a recent-completions line, and a summary header. If a frame
-  is late, it is skipped — the model is always current, frames are
-  disposable. Rendering cost therefore bounds *display latency*, never build
-  throughput.
-
-Non-TTY output (piped, CI): internal-json is not requested at all; nix's own
-non-tty log format streams through untouched.
-
-On build failure: print the failed derivation's log tail (nix includes it in
-the JSON stream), exit non-zero. Nothing has been pushed yet.
-
-### 3. Closure diff + reboot verdict (per machine)
-
-For each machine, compare the freshly built toplevel against what is running:
-
-- **Old system path:** locally, `readlink -f /run/current-system`; remotely,
-  the same over ssh.
-- **Old closure listing:** `nix-store --query --requisites` on the old path —
-  run remotely over ssh for tsugumi (the old closure need not exist in saya's
-  store). Only store path *names* are needed, not contents. (`nix-store`
-  rather than `nix path-info`: no experimental-features dependency.)
-- **New closure listing:** the same, locally on the new toplevel.
-
-Two classes of checks:
-
-**Built-in structural checks** — compare well-known symlinks inside the two
-toplevels (`readlink`, remote via ssh for the old side):
-
-| Check | Signal |
-|---|---|
-| `kernel` | kernel update |
-| `kernel-modules` | module set changed — this also catches NVIDIA driver bumps |
-| `initrd` | initrd rebuilt |
-| `systemd` (from closure pattern `systemd-<ver>`) | pid-1 update; `switch` re-execs systemd but a reboot is cleaner |
-
-**Pattern checks** — regexes matched against store-path *names* in both
-closures; a pattern whose matched set differs between old and new is
-reboot-worthy. Built-in defaults: `nvidia-x11`, `linux-firmware`. Per-machine
-extras come from the machine config (see next section) — e.g. saya adds
-`kwin` so compositor updates trigger a reboot recommendation. This remains
-configured even though the local KWin source override is currently disabled.
-
-The verdict plus its reasons ("kernel 6.15.4 → 6.15.6", "kwin changed") is
-printed alongside a short human diff. For the human diff, shell out to
-`nvd diff <old> <new>` if available rather than reimplementing it; it's
-purely informational. (For tsugumi, `nvd` needs both closures locally — if
-the old closure isn't in saya's store, skip nvd and show only the tool's own
-verdict reasons. Don't copy closures just to prettify output.)
-
-### 4. Reboot patterns from machine config, without a second eval
-
-A tiny module, `modules/nix-deploy.nix`, declares:
-
-```nix
-me.deploy.rebootPatterns = mkOption {
-  type = types.listOf types.str;
-  default = [];
-}
-```
-
-and embeds the result *into the system closure itself*:
-
-```nix
-system.systemBuilderCommands = ''
-  cp ${pkgs.writeText "deploy-reboot-patterns.json"
-        (builtins.toJSON config.me.deploy.rebootPatterns)} \
-     $out/deploy-reboot-patterns.json
-'';
-```
-
-The tool reads `<toplevel>/deploy-reboot-patterns.json` from the path it just
-built. Policy lives in nix, travels with the build, and costs zero extra
-evaluations. Machines that don't set it get `[]` plus the built-ins.
-
-### 5. Prompt
-
-After the diff, per machine, on saya's terminal:
-
-```
-tsugumi: reboot recommended
-  kernel: 6.15.4 → 6.15.6
-  kernel-modules changed
-  [s]witch anyway  [b]oot only  [r] boot + reboot now  [e]xit
-```
-
-- **switch** — activate now despite the verdict.
-- **boot** — `switch-to-configuration boot`; takes effect at next manual
-  reboot.
-- **boot + reboot** — for tsugumi: `boot`, then `systemctl reboot` over ssh,
-  then wait for it to return (see below). For saya: `boot`, then
-  `systemctl reboot` locally — the tool prints a farewell and the session
-  ends; this is only offered as the *last* machine, which saya always is.
-- **exit** — abort the whole run. Machines already activated stay activated;
-  everything is idempotent on rerun (builds cached, `nix copy` no-ops,
-  re-switching to the same system is harmless).
-
-When the verdict is "no reboot needed", the prompt collapses to a simple
-confirm-or-exit (or nothing at all — see Open questions).
-
-### 6. Activation
-
-Per machine, in manifest order (tsugumi, then saya):
-
-1. `nix copy --to ssh://<target>?max-connections=8 <toplevel>` with ssh
-   multiplexing disabled via `NIX_SSHOPTS`, so paths copy in parallel over
-   separate ssh processes (skipped for local).
-2. Prompt (above) unless `--mode` given.
-3. Set the profile so rollback and GC behave:
-   `nix-env --profile /nix/var/nix/profiles/system --set <toplevel>`
-   (over ssh as root; locally via sudo).
-4. `<toplevel>/bin/switch-to-configuration <mode>` (ssh/sudo likewise).
-   Stream its output through; a non-zero exit is a deploy failure.
-5. If boot+reboot on tsugumi: `systemctl reboot`, then poll ssh every few
-   seconds until reachable, then require
-   `systemctl is-system-running --wait` to report `running` (or `degraded`,
-   with a loud warning listing failed units), and verify
-   `readlink /run/current-system` equals the new toplevel. Timeout: 5
-   minutes, configurable in `deploy.toml`.
-
-**Failure policy: abort everything.** Any failure — copy, activation, reboot
-timeout — stops the run before later machines are touched. Rerunning after a
-fix is cheap since every earlier step is idempotent. (`magic-reboot` remains
-the big hammer if tsugumi wedges.)
-
-ssh invocations use the manifest's `target` string and inherit the user's ssh
-config/agent — no credentials handling in the tool. Root operations (profile
-set, activation, reboot) go through `sudo` on both machines; svein's sudo is
-passwordless, so nothing interrupts the flow.
+1. `lineage` check against selected machines (`--check` exits here).
+2. Single-evaluation `nix build --no-link --print-out-paths` (using `ui.rs`
+   inline ANSI renderer when stderr is a TTY, or nix's own output otherwise).
+3. Per machine: `diff::assess`, `diff::show_nvd_diff`, prompt or `--mode`,
+   `activate::copy_closure`, `activate::activate`, and optional reboot.
 
 ## Crate layout
 
 ```
 tools/nix-deploy/
-  Cargo.toml          # anyhow, clap, serde/serde_json, regex, toml, terminal_size
+  Cargo.toml          # anyhow, clap, crossterm, ratatui, regex, serde/serde_json, terminal_size, toml
   src/
-    main.rs           # CLI, orchestration
-    manifest.rs       # deploy.toml
-    build.rs          # nix build invocation, out-path recovery
+    main.rs           # CLI flags, TUI vs plain dispatch, plain pipeline
+    manifest.rs       # deploy.toml (machines + settings + diff defaults)
+    repo.rs           # jj/git inspection, rebase, commit hygiene, Bumps, op restore, push
+    flake_diff.rs     # speculative nix flake update, lockfile v7 diff, GitHub diffs, filtering
+    sysmon.rs         # /proc/stat, /proc/meminfo, ZFS ARC, /proc/loadavg sparkline sampler
+    build.rs          # single-eval nix build (plain + cancellable TUI BuildHandle)
     log_model.rs      # internal-json parser + build-state model
-    ui.rs             # render thread, tree drawing, non-TTY fallback
-    diff.rs           # closure listing, structural + pattern checks, verdict
+    ui.rs             # inline ANSI build progress display for plain TTY mode
+    tui/
+      mod.rs          # terminal RAII guard, panic hook, worker threads, event loop
+      state.rs        # TUI state machine, diff flattening, filter/collapse/jump helpers
+      render.rs       # ratatui widgets (sparklines, responsive panes, modals, footer)
+    diff.rs           # closure listing, structural + pattern checks, nvd diff
     lineage.rs        # running vs. deployed revision, rollback refusal
-    target.rs         # ssh/local command abstraction (run, copy, reboot-wait)
-    activate.rs       # profile set + switch-to-configuration + reboot flow
+    target.rs         # ssh/local command abstraction (capture, streamed, callback streaming)
+    activate.rs       # profile set + switch-to-configuration + reboot flow (plain + streaming)
 ```
 
-`log_model.rs` and `diff.rs` are pure and unit-tested against captured
-`internal-json` samples and synthetic closure lists; `check-rust-tools`
-covers the crate like every other tool. `agents/rust.md` applies.
-
-## Migration
-
-`deploy` is now the normal NixOS deployment workflow. Use `deploy tsugumi`,
-`deploy saya`, or bare `deploy` for all manifest machines. Colmena, the
-`colmenaHive` output, and the old `deploy-all.sh` / `deploy-tsugumi.sh` /
-`deploy-local.sh` scripts have been removed; `nixosConfigurations` is now
-built directly with `nixpkgs.lib.nixosSystem`. Darwin still uses
-`deploy-kaho.sh`.
-
-## Open questions
-
-- **Prompt on no-verdict machines:** when nothing is reboot-worthy, should the
-  tool still pause for confirmation before switching tsugumi, or just go?
-  Leaning "just go" — the whole point is an unattended happy path — but it
-  changes the feel of the tool. Default in v1: just go, print what it did.
-- **`is-system-running` = `degraded`:** treat as success-with-warning (v1
-  choice above) or failure? tsugumi has enough services that a single flaky
-  unit shouldn't strand a deploy.
-- **Eval progress display:** `internal-json` eval activity reporting is
-  coarser than build reporting; the 20-second eval may show as little more
-  than a spinner. Acceptable for v1.
+`check-rust-tools` covers the crate like every other tool. `agents/rust.md`
+applies.

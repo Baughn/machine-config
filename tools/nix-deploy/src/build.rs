@@ -2,8 +2,11 @@
 
 use std::collections::BTreeMap;
 use std::io::{BufRead, BufReader, IsTerminal, Read};
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Stdio};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc::{self, Receiver};
 use std::sync::{Arc, Mutex};
+use std::thread::JoinHandle;
 
 use anyhow::{bail, Context, Result};
 
@@ -11,14 +14,8 @@ use crate::log_model::Model;
 use crate::manifest::Machine;
 use crate::ui::Ui;
 
-/// Build all toplevels in one `nix build` invocation (one evaluation) and
-/// return machine name → out path.
-///
-/// # Errors
-///
-/// Errors if the build fails or an out path can't be matched to a machine.
-pub fn build_toplevels(machines: &[Machine]) -> Result<BTreeMap<String, String>> {
-    let installables: Vec<String> = machines
+fn installables_for(machines: &[Machine]) -> Vec<String> {
+    machines
         .iter()
         .map(|m| {
             format!(
@@ -26,7 +23,149 @@ pub fn build_toplevels(machines: &[Machine]) -> Result<BTreeMap<String, String>>
                 m.name
             )
         })
-        .collect();
+        .collect()
+}
+
+/// Handle to a background `nix build` feeding a shared [`Model`].
+///
+/// Calling [`BuildHandle::cancel`] or dropping the handle kills the `nix` child
+/// process and reaps its worker thread so no stray build lingers after quitting
+/// the TUI.
+pub struct BuildHandle {
+    child: Arc<Mutex<Option<Child>>>,
+    cancelled: Arc<AtomicBool>,
+    result_rx: Receiver<Result<BTreeMap<String, String>>>,
+    worker: Option<JoinHandle<()>>,
+}
+
+impl BuildHandle {
+    /// Spawn a single-evaluation `nix build` with `--log-format internal-json`
+    /// streaming stderr events into `model`.
+    ///
+    /// # Errors
+    ///
+    /// Errors if spawning `nix` fails.
+    pub fn spawn(machines: &[Machine], model: Arc<Mutex<Model>>) -> Result<Self> {
+        let installables = installables_for(machines);
+        let mut cmd = Command::new("nix");
+        cmd.args([
+            "build",
+            "--no-link",
+            "--print-out-paths",
+            "--log-format",
+            "internal-json",
+        ]);
+        cmd.args(&installables);
+        cmd.stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .stdin(Stdio::null());
+
+        let mut child = cmd.spawn().context("spawning nix build")?;
+        let stdout = child.stdout.take().expect("stdout was piped");
+        let stderr = child.stderr.take().expect("stderr was piped");
+
+        let child_slot = Arc::new(Mutex::new(Some(child)));
+        let cancelled = Arc::new(AtomicBool::new(false));
+        let (tx, result_rx) = mpsc::channel();
+        let machines_owned = machines.to_vec();
+
+        // Parser drains stderr at full speed without holding `child_slot`.
+        let parser = std::thread::spawn({
+            let model = Arc::clone(&model);
+            move || {
+                for line in BufReader::new(stderr).lines().map_while(Result::ok) {
+                    if let Ok(mut guard) = model.lock() {
+                        guard.apply_line(&line);
+                    }
+                }
+            }
+        });
+
+        let worker = std::thread::spawn({
+            let child_slot = Arc::clone(&child_slot);
+            let cancelled = Arc::clone(&cancelled);
+            move || {
+                let outcome =
+                    finish_build(stdout, parser, &child_slot, &cancelled, &machines_owned);
+                let _ = tx.send(outcome);
+            }
+        });
+
+        Ok(Self {
+            child: child_slot,
+            cancelled,
+            result_rx,
+            worker: Some(worker),
+        })
+    }
+
+    /// Non-blocking check for build completion.
+    pub fn try_take(&self) -> Option<Result<BTreeMap<String, String>>> {
+        self.result_rx.try_recv().ok()
+    }
+
+    /// Kill the running `nix build` process if it is still alive.
+    pub fn cancel(&self) {
+        self.cancelled.store(true, Ordering::Relaxed);
+        if let Ok(mut guard) = self.child.lock() {
+            if let Some(child) = guard.as_mut() {
+                let _ = child.kill();
+            }
+        }
+    }
+}
+
+impl Drop for BuildHandle {
+    fn drop(&mut self) {
+        self.cancel();
+        if let Some(worker) = self.worker.take() {
+            let _ = worker.join();
+        }
+    }
+}
+
+fn finish_build(
+    mut stdout: std::process::ChildStdout,
+    parser: JoinHandle<()>,
+    child_slot: &Mutex<Option<Child>>,
+    cancelled: &AtomicBool,
+    machines: &[Machine],
+) -> Result<BTreeMap<String, String>> {
+    let mut out = String::new();
+    let read_res = stdout
+        .read_to_string(&mut out)
+        .context("reading nix build output");
+    let _ = parser.join();
+
+    let status = {
+        let mut guard = child_slot
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        match guard.take() {
+            Some(mut child) => child.wait().context("waiting for nix build")?,
+            None => bail!("nix build child handle was already taken"),
+        }
+    };
+
+    if cancelled.load(Ordering::Relaxed) {
+        bail!("nix build cancelled");
+    }
+    read_res?;
+    if !status.success() {
+        bail!("nix build failed ({status})");
+    }
+    let out_paths: Vec<&str> = out.lines().filter(|l| !l.is_empty()).collect();
+    match_paths(machines, &out_paths)
+}
+
+/// Build all toplevels in one `nix build` invocation (one evaluation) and
+/// return machine name -> out path.
+///
+/// # Errors
+///
+/// Errors if the build fails or an out path can't be matched to a machine.
+pub fn build_toplevels(machines: &[Machine]) -> Result<BTreeMap<String, String>> {
+    let installables = installables_for(machines);
 
     let use_ui = std::io::stderr().is_terminal();
     let mut cmd = Command::new("nix");

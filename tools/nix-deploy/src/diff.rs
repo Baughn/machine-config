@@ -25,7 +25,7 @@ const STRUCTURAL_LINKS: &[&str] = &["kernel", "kernel-modules", "initrd", "syste
 const PATTERNS_FILE: &str = "deploy-reboot-patterns.json";
 
 /// Why (if at all) a reboot is recommended for one machine.
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct Verdict {
     pub reasons: Vec<String>,
 }
@@ -181,6 +181,36 @@ pub fn show_nvd_diff(old: &str, new: &str) {
         Ok(status) if status.success() => {}
         Ok(status) => eprintln!("(nvd diff failed: {status})"),
         Err(_) => eprintln!("(nvd not installed; skipping package diff)"),
+    }
+}
+
+/// Capture `nvd diff <old> <new>` output lines for display inside the TUI.
+///
+/// Purely informational; returns an explanatory note if `old` is absent from
+/// the local store or `nvd` is unavailable.
+pub fn capture_nvd_diff(old: &str, new: &str) -> Vec<String> {
+    if !Path::new(old).exists() {
+        return vec!["(old system not in the local store; skipping nvd package diff)".to_string()];
+    }
+    match Command::new("nvd")
+        .args(["diff", old, new])
+        .stdin(std::process::Stdio::null())
+        .output()
+    {
+        Ok(output) if output.status.success() => {
+            let text = String::from_utf8_lossy(&output.stdout);
+            let lines: Vec<String> = text
+                .lines()
+                .map(crate::target::sanitize_output_line)
+                .collect();
+            if lines.is_empty() {
+                vec!["(no package changes reported by nvd)".to_string()]
+            } else {
+                lines
+            }
+        }
+        Ok(output) => vec![format!("(nvd diff failed: {})", output.status)],
+        Err(_) => vec!["(nvd not installed; skipping package diff)".to_string()],
     }
 }
 

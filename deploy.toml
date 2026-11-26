@@ -3,6 +3,19 @@
 
 [settings]
 reboot_timeout_secs = 300
+# Flake input repositories (owner/repo, case-insensitive) skipped when fetching
+# input diffs in the TUI. High-churn core inputs live here; everything else
+# (overlays, custom modules, tools) is diffed and reviewed before activation.
+ignore_diff_repos = [
+    "NixOS/nixpkgs",
+    "DeterminateSystems/nixpkgs-weekly",
+    "nix-community/nixpkgs.lib",
+    "nix-community/home-manager",
+    "nix-darwin/nix-darwin",
+]
+# Collapse an input's diff by default when more than this many substantive
+# files (after filtering pure version/hash bumps) changed.
+max_diff_files = 60
 
 [machines.tsugumi]
 target = "svein@tsugumi.local"

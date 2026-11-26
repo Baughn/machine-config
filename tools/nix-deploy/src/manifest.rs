@@ -33,24 +33,58 @@ struct MachineEntry {
     sudo: Option<bool>,
 }
 
-#[derive(Debug, Deserialize)]
+/// Default repositories (owner/repo, case-insensitive) whose `flake.lock`
+/// updates are skipped when fetching diffs in the TUI.
+pub const DEFAULT_IGNORE_DIFF_REPOS: &[&str] = &[
+    "NixOS/nixpkgs",
+    "DeterminateSystems/nixpkgs-weekly",
+    "nix-community/nixpkgs.lib",
+    "nix-community/home-manager",
+    "nix-darwin/nix-darwin",
+];
+
+/// Default post-filter changed-file cap before an input diff is collapsed.
+pub const DEFAULT_MAX_DIFF_FILES: usize = 60;
+
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Settings {
     /// How long to wait for a remote machine to come back after a reboot.
     #[serde(default = "default_reboot_timeout")]
     pub reboot_timeout_secs: u64,
+    /// Flake input repositories (`owner/repo`, case-insensitive) skipped when
+    /// fetching input diffs in the TUI.
+    #[serde(default = "default_ignore_diff_repos")]
+    pub ignore_diff_repos: Vec<String>,
+    /// Maximum number of substantive (post-filter) changed files per input
+    /// before its diff starts collapsed in the TUI.
+    #[serde(default = "default_max_diff_files")]
+    pub max_diff_files: usize,
 }
 
 impl Default for Settings {
     fn default() -> Self {
         Self {
             reboot_timeout_secs: default_reboot_timeout(),
+            ignore_diff_repos: default_ignore_diff_repos(),
+            max_diff_files: default_max_diff_files(),
         }
     }
 }
 
 fn default_reboot_timeout() -> u64 {
     300
+}
+
+fn default_ignore_diff_repos() -> Vec<String> {
+    DEFAULT_IGNORE_DIFF_REPOS
+        .iter()
+        .map(|s| (*s).to_string())
+        .collect()
+}
+
+fn default_max_diff_files() -> usize {
+    DEFAULT_MAX_DIFF_FILES
 }
 
 #[derive(Debug, Clone)]
@@ -196,5 +230,39 @@ mod tests {
     #[test]
     fn remote_needs_target() {
         assert!(parse("[machines.a]\norder = 1\n").is_err());
+    }
+
+    #[test]
+    fn settings_defaults_include_ignore_repos_and_max_files() {
+        let m = parse(GOOD).unwrap();
+        assert_eq!(m.settings.max_diff_files, DEFAULT_MAX_DIFF_FILES);
+        assert!(m
+            .settings
+            .ignore_diff_repos
+            .contains(&"NixOS/nixpkgs".to_string()));
+        assert!(m
+            .settings
+            .ignore_diff_repos
+            .contains(&"DeterminateSystems/nixpkgs-weekly".to_string()));
+    }
+
+    #[test]
+    fn settings_can_override_diff_options() {
+        let m = parse(
+            r#"
+            [settings]
+            reboot_timeout_secs = 120
+            ignore_diff_repos = ["NixOS/nixpkgs"]
+            max_diff_files = 25
+
+            [machines.a]
+            local = true
+            order = 1
+            "#,
+        )
+        .unwrap();
+        assert_eq!(m.settings.reboot_timeout_secs, 120);
+        assert_eq!(m.settings.ignore_diff_repos, vec!["NixOS/nixpkgs"]);
+        assert_eq!(m.settings.max_diff_files, 25);
     }
 }

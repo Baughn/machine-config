@@ -71,8 +71,8 @@ across machines.
   it to the affected machine unless the user asks to leave it undeployed.
 - **saya desktop changes:** restart the display manager with
   `sudo systemctl restart display-manager` after deploying if needed.
-- **VCS sync:** `./push.sh` (squash into the running "Bumps" commit, set master, git push;
-  pings Discord on minecraft/ssh-key changes), `./pull.sh` (fetch + rebase onto trunk).
+- **VCS sync:** `./push.sh` (squash into the running "Bumps" commit, set master, git push),
+  `./pull.sh` (fetch + rebase onto trunk).
 - **kaho (local):** `./deploy-kaho.sh` on kaho itself (wraps `sudo darwin-rebuild switch --flake .#kaho`).
 - **Tests:** `nix flake check` builds the machines and runs the VM tests in `tests/`
   (x86_64-linux only; on kaho, verify with `nix build .#darwinConfigurations.kaho.system`).

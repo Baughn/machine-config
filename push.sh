@@ -3,11 +3,6 @@
 set -euo pipefail
 cd "$(dirname "$(readlink -f "$0")")"
 
-# Check for minecraft-related changes
-if command -v ping-discord >/dev/null; then
-  ping-discord update --patterns "*minecraft*,*ssh_host_*,modules/svein.nix,lib/ssh-keys.nix,push.sh" || true
-fi
-
 jj squash \
   --from 'reachable(latest(Bumps), Bumps)' \
   --to 'latest(Bumps)' \

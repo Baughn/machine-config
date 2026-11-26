@@ -6,10 +6,14 @@
 mod activate;
 mod build;
 mod diff;
+mod flake_diff;
 mod lineage;
 mod log_model;
 mod manifest;
+mod repo;
+mod sysmon;
 mod target;
+mod tui;
 mod ui;
 
 use std::io::{IsTerminal, Write};
@@ -45,6 +49,10 @@ struct Cli {
     /// Deploy even if that rolls back commits a machine is running.
     #[arg(long, conflicts_with = "check")]
     allow_rollback: bool,
+
+    /// Disable the interactive TUI and run the plain CLI pipeline.
+    #[arg(long)]
+    no_tui: bool,
 }
 
 #[derive(Debug, Clone, Copy, clap::ValueEnum)]
@@ -71,6 +79,12 @@ enum Action {
     Exit,
 }
 
+/// Whether this invocation should bypass the interactive TUI and run the plain
+/// non-TTY / unattended pipeline unchanged.
+fn use_plain_mode(cli: &Cli, stdin_tty: bool, stderr_tty: bool) -> bool {
+    !stdin_tty || !stderr_tty || cli.mode.is_some() || cli.check || cli.no_tui
+}
+
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
@@ -81,9 +95,38 @@ fn main() -> Result<()> {
 
     let manifest = manifest::load(&root)?;
     let machines = select_machines(&manifest.machines, &cli.machines)?;
-    let reboot_timeout = Duration::from_secs(manifest.settings.reboot_timeout_secs);
 
-    check_lineage(&root, &machines, cli.strict, cli.allow_rollback)?;
+    if !use_plain_mode(
+        &cli,
+        std::io::stdin().is_terminal(),
+        std::io::stderr().is_terminal(),
+    ) {
+        return tui::run(tui::TuiConfig {
+            root,
+            machines,
+            settings: manifest.settings,
+            strict: cli.strict,
+            allow_rollback: cli.allow_rollback,
+        });
+    }
+
+    run_plain(
+        &root,
+        &machines,
+        &cli,
+        manifest.settings.reboot_timeout_secs,
+    )
+}
+
+fn run_plain(
+    root: &std::path::Path,
+    machines: &[Machine],
+    cli: &Cli,
+    reboot_timeout_secs: u64,
+) -> Result<()> {
+    let reboot_timeout = Duration::from_secs(reboot_timeout_secs);
+
+    check_lineage(root, machines, cli.strict, cli.allow_rollback)?;
     if cli.check {
         eprintln!("lineage check passed");
         return Ok(());
@@ -91,9 +134,9 @@ fn main() -> Result<()> {
 
     let names: Vec<&str> = machines.iter().map(|m| m.name.as_str()).collect();
     eprintln!("building {} (single evaluation) ...", names.join(", "));
-    let toplevels = build::build_toplevels(&machines)?;
+    let toplevels = build::build_toplevels(machines)?;
 
-    for machine in &machines {
+    for machine in machines {
         let new = toplevels[&machine.name].as_str();
         eprintln!("\n=== {} ({}) ===", machine.name, machine.target);
 
@@ -289,5 +332,32 @@ mod tests {
     fn unknown_machine_is_an_error() {
         let err = select_machines(&machines(), &["v4".to_string()]).unwrap_err();
         assert!(err.to_string().contains("unknown machine"));
+    }
+
+    #[test]
+    fn plain_mode_triggers_on_non_tty_or_flags() {
+        let base = Cli {
+            machines: vec![],
+            mode: None,
+            check: false,
+            strict: false,
+            allow_rollback: false,
+            no_tui: false,
+        };
+        assert!(!use_plain_mode(&base, true, true));
+        assert!(use_plain_mode(&base, false, true));
+        assert!(use_plain_mode(&base, true, false));
+
+        let with_mode = Cli {
+            mode: Some(CliMode::Switch),
+            ..Cli::parse_from(["deploy", "--mode", "switch", "--strict"])
+        };
+        assert!(use_plain_mode(&with_mode, true, true));
+
+        let with_check = Cli::parse_from(["deploy", "--check", "--strict"]);
+        assert!(use_plain_mode(&with_check, true, true));
+
+        let with_no_tui = Cli::parse_from(["deploy", "--no-tui"]);
+        assert!(use_plain_mode(&with_no_tui, true, true));
     }
 }

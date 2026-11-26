@@ -123,11 +123,15 @@ pub fn deploying_rev(root: &Path) -> Result<Rev> {
         .args(["flake", "metadata", "--json", "--no-write-lock-file", "."])
         .current_dir(root)
         .stdin(Stdio::null())
-        .stderr(Stdio::inherit())
         .output()
         .context("spawning nix flake metadata")?;
     if !output.status.success() {
-        bail!("nix flake metadata failed ({})", output.status);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let detail = stderr.trim();
+        if detail.is_empty() {
+            bail!("nix flake metadata failed ({})", output.status);
+        }
+        bail!("nix flake metadata failed ({}): {detail}", output.status);
     }
     let meta: Metadata =
         serde_json::from_slice(&output.stdout).context("parsing nix flake metadata")?;

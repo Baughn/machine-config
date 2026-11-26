@@ -1,7 +1,9 @@
 //! Command execution on a deploy target, local or over ssh.
 
 use std::fmt;
+use std::io::{BufRead, BufReader};
 use std::process::{Command, Stdio};
+use std::sync::mpsc;
 
 use anyhow::{bail, Context, Result};
 
@@ -103,6 +105,107 @@ impl Target {
         }
         Ok(())
     }
+
+    /// Run `argv`, streaming combined stdout and stderr lines to `on_line`
+    /// without writing directly to the terminal.
+    ///
+    /// # Errors
+    ///
+    /// Errors if spawning fails or the command exits with a non-zero status.
+    pub fn run_streaming<F>(&self, argv: &[&str], as_root: bool, on_line: F) -> Result<()>
+    where
+        F: FnMut(String),
+    {
+        let mut cmd = self.command(argv, as_root);
+        let label = format!("`{}` on {self}", argv.join(" "));
+        run_command_streaming(&mut cmd, &label, on_line)
+    }
+}
+
+/// Spawn `cmd` with piped stdout/stderr and forward sanitized lines to `on_line`
+/// until the process exits.
+///
+/// Stdout and stderr are drained concurrently on separate reader threads so
+/// neither pipe can deadlock while the other fills its buffer.
+///
+/// # Errors
+///
+/// Errors if spawning fails, waiting fails, or `cmd` exits non-zero.
+pub fn run_command_streaming<F>(cmd: &mut Command, label: &str, mut on_line: F) -> Result<()>
+where
+    F: FnMut(String),
+{
+    cmd.stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+
+    let mut child = cmd.spawn().with_context(|| format!("spawning {label}"))?;
+    let stdout = child.stdout.take().expect("stdout was piped");
+    let stderr = child.stderr.take().expect("stderr was piped");
+
+    let (tx, rx) = mpsc::channel::<String>();
+    let tx_err = tx.clone();
+
+    let out_reader = std::thread::spawn(move || {
+        for line in BufReader::new(stdout).lines().map_while(Result::ok) {
+            if tx.send(sanitize_output_line(&line)).is_err() {
+                break;
+            }
+        }
+    });
+    let err_reader = std::thread::spawn(move || {
+        for line in BufReader::new(stderr).lines().map_while(Result::ok) {
+            if tx_err.send(sanitize_output_line(&line)).is_err() {
+                break;
+            }
+        }
+    });
+
+    for line in rx {
+        on_line(line);
+    }
+
+    let _ = out_reader.join();
+    let _ = err_reader.join();
+    let status = child
+        .wait()
+        .with_context(|| format!("waiting for {label}"))?;
+    if !status.success() {
+        bail!("{label} failed ({status})");
+    }
+    Ok(())
+}
+
+/// Strip carriage-return overwrites and ANSI CSI escape sequences so streamed
+/// child output renders cleanly inside the TUI without corrupting the screen.
+pub fn sanitize_output_line(raw: &str) -> String {
+    // Progress tools emit `old\rnew`; keep the last non-empty segment.
+    let segment = raw.rsplit('\r').find(|s| !s.is_empty()).unwrap_or("");
+    strip_ansi_csi(segment)
+}
+
+fn strip_ansi_csi(input: &str) -> String {
+    let mut out = String::with_capacity(input.len());
+    let mut chars = input.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '\x1b' {
+            if chars.peek() == Some(&'[') {
+                let _ = chars.next();
+                for next in chars.by_ref() {
+                    if ('@'..='~').contains(&next) {
+                        break;
+                    }
+                }
+            }
+            continue;
+        }
+        if c == '\t' {
+            out.push_str("    ");
+        } else if !c.is_control() {
+            out.push(c);
+        }
+    }
+    out
 }
 
 impl fmt::Display for Target {
@@ -154,5 +257,28 @@ mod tests {
         let argv = argv_of(&t.command(&["reboot"], true));
         let pos = argv.iter().position(|a| a == "--").expect("ssh separator");
         assert_eq!(&argv[pos + 1..], ["sudo", "reboot"]);
+    }
+
+    #[test]
+    fn sanitizes_ansi_and_carriage_returns() {
+        assert_eq!(
+            sanitize_output_line("old progress\rnew progress"),
+            "new progress"
+        );
+        assert_eq!(
+            sanitize_output_line("\x1b[32mhello\x1b[0m\tworld"),
+            "hello    world"
+        );
+        assert_eq!(sanitize_output_line("plain line\r"), "plain line");
+    }
+
+    #[test]
+    fn streams_stdout_and_stderr() {
+        let mut cmd = Command::new("sh");
+        cmd.args(["-c", "echo out1; echo err1 >&2; echo out2"]);
+        let mut lines = Vec::new();
+        run_command_streaming(&mut cmd, "test sh", |line| lines.push(line)).unwrap();
+        lines.sort();
+        assert_eq!(lines, vec!["err1", "out1", "out2"]);
     }
 }
