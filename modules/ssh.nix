@@ -1,5 +1,9 @@
 { lib, pkgs, ... }:
 
+let
+  # A leading '-' removes the matching algorithms from OpenSSH's default set.
+  noRsa = "-ssh-rsa*,rsa-sha2-*";
+in
 {
   services.openssh = {
     enable = true;
@@ -12,7 +16,28 @@
       LoginGraceTime = 30;
       ClientAliveInterval = 300;
       ClientAliveCountMax = 2;
+      # No RSA anywhere (Baughn, Discord 1575621553968910419: rumours that
+      # factoring is solved). Refuse RSA user keys, RSA host keys and
+      # RSA-signed certificates, including the -cert variants.
+      PubkeyAcceptedAlgorithms = noRsa;
+      HostKeyAlgorithms = noRsa;
+      CASignatureAlgorithms = noRsa;
+      HostbasedAcceptedAlgorithms = noRsa;
+      # Finite-field DH falls to the same number-field-sieve family as RSA;
+      # every current client has curve25519 or ML-KEM.
+      KexAlgorithms = [
+        "mlkem768x25519-sha256"
+        "sntrup761x25519-sha512"
+        "sntrup761x25519-sha512@openssh.com"
+        "curve25519-sha256"
+        "curve25519-sha256@libssh.org"
+      ];
     };
+    # The NixOS default also generates and serves a 4096-bit RSA host key.
+    hostKeys = [
+      { path = "/etc/ssh/ssh_host_ed25519_key"; type = "ed25519"; }
+      { path = "/etc/ssh/ssh_host_mldsa44_ed25519_key"; type = "mldsa44-ed25519"; }
+    ];
   };
 
   # OpenSSH prefers chacha20-poly1305 for the sake of CPUs without AES

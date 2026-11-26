@@ -14,6 +14,9 @@
     globalConfig = ''
       admin unix//run/caddy/admin.sock|0600
       persist_config off
+      # ECDSA certificates only (Caddy's default, pinned): with no RSA certificate,
+      # no RSA key exchange or signature can be negotiated. Baughn, msg 1575621553968910419.
+      key_type p256
       # No HTTP/2 until Caddy ships golang.org/x/net >= 0.60 (GO-2026-6617 and friends:
       # unauthenticated HTTP/2 crash/DoS). Garibaldi's review, 2026-10-10; Baughn asked.
       servers {
