@@ -26,14 +26,9 @@
     agenix.inputs.nixpkgs.follows = "nixpkgs";
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
-    # Pinned to the rev Garibaldi reviewed (Discord 1575525564515618887): its CI
-    # auto-merges whatever Google's CDN serves, so read the diff before bumping.
-    # Used as source only; machines/saya/antigravity.nix calls its package file.
-    antigravity-nix.url = "github:jacopone/antigravity-nix/c7b60189f6c5d728d8da3e2bb71a3684f1598a95";
-    antigravity-nix.flake = false;
   };
 
-  outputs = { self, nixpkgs, nixpkgs-fast, nix-cachyos-kernel, home-manager, nix-darwin, crane, dessplay, ganbot, agenix, nix-index-database, antigravity-nix, ... }:
+  outputs = { self, nixpkgs, nixpkgs-fast, nix-cachyos-kernel, home-manager, nix-darwin, crane, dessplay, ganbot, agenix, nix-index-database, ... }:
   let
     system = "x86_64-linux";
 
@@ -163,7 +158,7 @@
     nixosMachines = builtins.mapAttrs
       (name: machine: nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit agenix antigravity-nix dessplay ganbot; flakeSelf = self; };
+        specialArgs = { inherit agenix dessplay ganbot; flakeSelf = self; };
         modules = commonModules ++ [
           { nixpkgs.overlays = [ nix-cachyos-kernel.overlays.default ]; }
         ] ++ machine.modules;
