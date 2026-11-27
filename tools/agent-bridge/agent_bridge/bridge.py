@@ -7,6 +7,7 @@ from collections import deque
 from collections.abc import Callable
 import contextlib
 from dataclasses import dataclass, field, replace
+from datetime import UTC, datetime
 import json
 import logging
 from pathlib import Path
@@ -14,7 +15,7 @@ import re
 import time
 from typing import Any, Protocol
 
-from . import approval, rcon, spool
+from . import approval, channels, rcon, spool
 from .approval import Cancelled, Pending, Verdict
 from .board import BoardError, BoardTools
 from .gitdiff import GitDiffs
@@ -104,6 +105,9 @@ class Chat(Protocol):
     async def ask(self, message: Outgoing, questions: list[dict[str, Any]]) -> str: ...
     async def react(self, message_id: str, emoji: str) -> None: ...
     async def history(self, limit: int, thread: str | None = None) -> list[Incoming]: ...
+    def readable(self) -> list[channels.Channel]: ...
+    async def read(self, channel_id: str, after: datetime, before: datetime | None,
+                   scan: int) -> list[channels.Line]: ...
     def url(self, message_id: str) -> str: ...
     async def download(self, attachment: Attachment, path: Path) -> None: ...
     async def set_presence(self, text: str) -> None: ...
@@ -1463,6 +1467,14 @@ class Bridge:
                  or (m.author.kind is Kind.HUMAN and m.author.role is not None)]
         lines = [f"[{m.id}] {m.author.label}{m.reply_note}: {m.content}" for m in heard]
         return "\n".join(lines) + self.unread()
+
+    async def tool_discord_read(self, args: dict[str, Any]) -> str:
+        if not self.config.read_channels:
+            raise ToolError("discord_read is not enabled for this identity.")
+        try:
+            return await channels.read(self.chat, args, datetime.now(UTC)) + self.unread()
+        except (channels.ReadError, ChatError) as error:
+            raise ToolError(f"{error}{self.unread()}") from error
 
     async def tool_rcon(self, args: dict[str, Any]) -> str:
         self.refuse_during_handoff()

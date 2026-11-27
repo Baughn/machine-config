@@ -72,6 +72,8 @@ let
   # and units. tsugumi-lab works in labs.main, tsugumi-lab-assistant in labs.assistant.
   labInstance = lab: { tokenFile, role, askAgents, extraDirs ? [ ], allow ? [ ] }: {
     inherit tokenFile askAgents;
+    # Bug reports turn up in the server's other channels (Baughn, msg 1575836411242745957).
+    readChannels = true;
     user = lab.user;
     workdir = "/var/lib/${lab.user}/agent";
     channel = "main";
@@ -248,6 +250,7 @@ in
       rcon.root = "/home/minecraft";
       # NixOS-level changes (units, scripts, its own permissions) go through saya.
       askAgents = [ "saya" "tsugumi-lab" "tsugumi-lab-assistant" ] ++ client;
+      readChannels = true;  # Baughn, msg 1575836411242745957
       # Long lab/client test loops need many agent round trips (Baughn, msg 1560278875378950235).
       limits.bot_streak = 60;
       # Baughn's tick-debugging workflow; its case records live in

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime
 from collections.abc import Awaitable, Callable
 import itertools
 from pathlib import Path
@@ -9,6 +10,7 @@ from typing import Any
 import pytest
 
 from agent_bridge.bridge import Bridge
+from agent_bridge.channels import Channel, Line
 from agent_bridge.config import Config, parse
 from agent_bridge.policy import Attachment, Author, Incoming, Kind, classify
 from agent_bridge.render import ChatError, Outgoing
@@ -88,6 +90,9 @@ class FakeChat:
         self.deleted: list[str] = []
         self.buttons_dropped: set[str] = set()
         self.presences: list[str] = []
+        self.channels: list[Channel] = []  # what readable() returns
+        self.lines: dict[str, list[Line]] = {}  # channel id -> messages, oldest first
+        self.reads: list[tuple[str, datetime, datetime | None]] = []
 
     def new_id(self) -> str:
         return f"m{next(self.ids)}"
@@ -126,6 +131,15 @@ class FakeChat:
 
     def url(self, message_id: str) -> str:
         return f"https://discord/{message_id}"
+
+    def readable(self) -> list[Channel]:
+        return self.channels
+
+    async def read(self, channel_id: str, after: datetime, before: datetime | None, scan: int) -> list[Line]:
+        self.reads.append((channel_id, after, before))
+        lines = [ln for ln in self.lines.get(channel_id, [])
+                 if ln.time > after and (before is None or ln.time < before)]
+        return lines[-scan:]
 
     async def download(self, attachment: Attachment, path: Path) -> None:
         path.write_text(f"downloaded {attachment.url}")

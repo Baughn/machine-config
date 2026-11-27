@@ -87,6 +87,7 @@ class Handlers(Protocol):
     async def tool_history(self, args: dict[str, Any]) -> str: ...
     async def tool_inbox(self, args: dict[str, Any]) -> str: ...
     async def tool_rcon(self, args: dict[str, Any]) -> str: ...
+    async def tool_discord_read(self, args: dict[str, Any]) -> str: ...
     async def tool_ask_agent(self, args: dict[str, Any]) -> str: ...
     async def tool_ship(self, args: dict[str, Any]) -> str: ...
     async def tool_schedule(self, args: dict[str, Any]) -> str: ...
@@ -142,6 +143,18 @@ HISTORY_SCHEMA: dict[str, Any] = {
     "properties": {
         "limit": {"type": "integer", "minimum": 1, "maximum": 100},
         "thread": {"type": "string", "description": "A thread id; default the main channel"},
+    },
+}
+
+
+DISCORD_READ_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "channel": {"type": "string", "description": "Channel name (without #) or id; omit to list the channels"},
+        "since": {"type": "string", "description": "e.g. 6h, 3d, 2w ago, or an ISO time (UTC); default 7d"},
+        "until": {"type": "string", "description": "Same forms; default now"},
+        "regex": {"type": "string", "description": "Case-insensitive; matched against text, author and file names"},
+        "limit": {"type": "integer", "minimum": 1, "maximum": 200, "description": "Newest N matches; default 50"},
     },
 }
 
@@ -258,7 +271,7 @@ SOURCE_TOOL_NAMES = [f"mcp__bridge__{name}" for name in SOURCE_TOOLS]
 
 def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = (), ship: bool = False,
                   effort_levels: tuple[str, ...] = (), board: bool = False, sources: bool = False,
-                  alt_model: str | None = None) -> Any:
+                  alt_model: str | None = None, read_channels: bool = False) -> Any:
     from claude_agent_sdk import create_sdk_mcp_server, tool
 
     def wrap(function: Any, schema: dict[str, Any]) -> Any:
@@ -295,6 +308,12 @@ def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = 
                           "server's reply. Read-only commands (e.g. list) run at once; commands that "
                           "affect players or saving may need an approver.", RCON_SCHEMA)
                      (wrap(handlers.tool_rcon, RCON_SCHEMA)))
+    if read_channels:
+        tools.append(tool("discord_read", "Read the Discord server's other text channels (where players "
+                          "sometimes report bugs), on request only: nothing there reaches you otherwise. "
+                          "Without a channel: the list of channels you can read. With one: its messages "
+                          "in a time window, filtered by an optional regex, oldest first.", DISCORD_READ_SCHEMA)
+                     (wrap(handlers.tool_discord_read, DISCORD_READ_SCHEMA)))
     if ask_agents:
         tools.append(tool("ask_agent", "Ask another agent in the channel something and wait for its "
                           "answer, which comes back as this tool's result. The question is posted "
@@ -337,7 +356,7 @@ def bridge_server(handlers: Handlers, rcon: bool, ask_agents: tuple[str, ...] = 
 
 MCP_TOOL_TIMEOUT_MS = 65 * 60 * 1000
 RCON_TOOL = "mcp__bridge__rcon"
-BRIDGE_TOOLS = ["mcp__bridge__post", "mcp__bridge__history", "mcp__bridge__inbox", RCON_TOOL,
+BRIDGE_TOOLS = ["mcp__bridge__post", "mcp__bridge__history", "mcp__bridge__inbox", "mcp__bridge__discord_read", RCON_TOOL,
                 "mcp__bridge__ask_agent", "mcp__bridge__ship", "mcp__bridge__schedule",
                 "mcp__bridge__schedules", "mcp__bridge__effort", "mcp__bridge__model", *BOARD_TOOL_NAMES, *SOURCE_TOOL_NAMES]
 # Whatever the subagent is for, the main agent does the talking.
@@ -414,7 +433,8 @@ class SdkSession:
 
     def __init__(self, handlers: Handlers, rcon: bool = False, ask_agents: tuple[str, ...] = (),
                  ship: bool = False, effort_levels: tuple[str, ...] = (), board: bool = False,
-                 sources: bool = False, alt_model: str | None = None, **kwargs: Any) -> None:
+                 sources: bool = False, alt_model: str | None = None, read_channels: bool = False,
+                 **kwargs: Any) -> None:
         self.handlers = handlers
         self.board = board
         self.sources = sources
@@ -423,6 +443,7 @@ class SdkSession:
         self.ship = ship
         self.effort_levels = effort_levels
         self.alt_model = alt_model
+        self.read_channels = read_channels
         self.kwargs = kwargs
         self.client: Any = None
         self.drainer: asyncio.Task[None] | None = None
@@ -465,7 +486,7 @@ class SdkSession:
             **options_kwargs(**{**self.kwargs, "resume": resume}),
             mcp_servers={"bridge": bridge_server(handlers, self.rcon, self.ask_agents, self.ship,
                                                  self.effort_levels, self.board, self.sources,
-                                                 self.alt_model)},
+                                                 self.alt_model, self.read_channels)},
             can_use_tool=can_use_tool,
             hooks={"PreToolUse": [HookMatcher(hooks=[pre])],
                    "PostToolUse": [HookMatcher(hooks=[post])],

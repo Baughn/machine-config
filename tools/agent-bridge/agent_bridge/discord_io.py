@@ -8,12 +8,14 @@ import asyncio
 import io
 import logging
 from pathlib import Path
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
 import discord
 
 from .approval import Verdict
+from .channels import Channel, Line
 from .config import Config
 from .policy import Attachment, Author, Incoming, classify
 from .render import MAIN, ChatError, Outgoing
@@ -318,6 +320,30 @@ class DiscordChat:
         channel = self.channel if thread is None else await self.thread(thread)
         messages = [m async for m in channel.history(limit=limit)]
         return [await self.convert(m, channel) for m in reversed(messages)]
+
+    def readable(self) -> list[Channel]:
+        """The guild's text channels this bot may read, in Discord's order (the discord_read tool)."""
+        guild = self.channel.guild
+        me = guild.me
+        return [Channel(str(c.id), c.name, c.category.name if c.category else "", c.topic or "")
+                for c in sorted(guild.text_channels, key=lambda c: (c.category.position if c.category else -1,
+                                                                    c.position))
+                if c.permissions_for(me).read_message_history and c.permissions_for(me).view_channel]
+
+    async def read(self, channel_id: str, after: datetime, before: datetime | None, scan: int) -> list[Line]:
+        channel: Any = self.client.get_channel(int(channel_id))
+        if channel is None:
+            raise ChatError(f"channel {channel_id} is gone")
+        try:
+            messages = [m async for m in channel.history(limit=scan, after=after, before=before,
+                                                         oldest_first=False)]
+        except discord.Forbidden as error:
+            raise ChatError(f"no permission to read #{channel.name}") from error
+        return [Line(str(m.id), m.created_at, m.author.display_name, m.content,
+                     tuple(a.filename for a in m.attachments),
+                     str(m.reference.message_id) if m.reference and m.reference.message_id else None,
+                     m.author.bot)
+                for m in reversed(messages)]
 
     async def set_presence(self, text: str) -> None:
         # Shown as the text alone (state = name). A new gateway session drops it; see on_ready.

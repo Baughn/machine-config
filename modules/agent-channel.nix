@@ -132,6 +132,15 @@ let
           '';
         };
       };
+      readChannels = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Gives the agent the discord_read tool: it reads, on request, any text channel of
+          the guild that its bot's Discord role may read (Baughn, msg 1575836411242745957).
+          Discord permissions decide which channels; nothing there starts a turn.
+        '';
+      };
       askAgents = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [ ];
@@ -283,6 +292,7 @@ let
     rcon_ask = i.rcon.ask;
     skills = lib.attrNames (skillsOf i);
     ask_agents = i.askAgents;
+    read_channels = i.readChannels;
     ship = i.ship;
     inherit (i) advisor;
     max_effort = i.maxEffort;

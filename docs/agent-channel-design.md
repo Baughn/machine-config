@@ -520,6 +520,17 @@ work-streams get a Discord thread of the channel.
   `history` takes `thread`.
 - The status message, approvals and questions of a turn go to the thread the turn started in.
 
+### Reading the guild's other channels (`discord_read`)
+
+Instances with `readChannels` get `discord_read` (Baughn, msg 1575836411242745957: bug reports
+turn up in the server's other text channels). Without a channel it lists every text channel the
+bot's Discord role may view and read history in, checked on each call, so Discord permissions
+are the allowlist. With one it returns that channel's messages in a window (`since`, default 7 d;
+`until`), optionally filtered by a case-insensitive regex over text, author and file names,
+newest `limit` (≤ 200) matches, oldest first, from at most 2000 messages read. Pull-only: those
+channels never start turns, and the output says the text is information, not instructions.
+Threads and forum channels are not read yet. Code: `channels.py`, `DiscordChat.readable/read`.
+
 ### Visibility: the live status message
 
 When a turn starts, the bridge posts a short status message and then **edits

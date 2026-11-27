@@ -115,6 +115,7 @@ class Config:
     rcon_ask: tuple[str, ...] = ()  # always a human, even in auto mode
     skills: tuple[str, ...] = ()  # project skills in <workdir>/.claude/skills
     ask_agents: tuple[str, ...] = ()  # agents the ask_agent tool may ask
+    read_channels: bool = False  # the discord_read tool (channels.py)
     ship: Ship | None = None
     advisor: str | None = None  # model for the server-side advisor tool
     max_effort: str = "medium"  # the effort tool may raise effort up to this; medium: no tool
@@ -255,6 +256,7 @@ def parse(data: dict[str, Any], state: Path) -> Config:
         rcon_ask=_strings(data, "rcon_ask"),
         skills=_strings(data, "skills"),
         ask_agents=_strings(data, "ask_agents"),
+        read_channels=bool(data.get("read_channels", False)),
         ship=Ship(str(data["ship"]["unit"]), Path(data["ship"]["repo"]), Path(data["ship"]["logs"]))
         if data.get("ship") else None,
         idle_reset=float(data.get("idle_reset", 6 * 3600)),

@@ -70,6 +70,7 @@ lib.mkIf ready {
     # Long lab/client test loops need many agent round trips (Baughn, msg 1560278875378950235).
     limits.bot_streak = 60;
     askAgents = [ "saya" "tsugumi-lab" "tsugumi-lab-assistant" "tsugumi-minecraft" ];
+    readChannels = true;  # Baughn, msg 1575836411242745957
     triggerSources.free-research = freeResearch.instruction;
     triggerTimers.free-research = freeResearch.calendar.saya-client;
     triggerThreads.free-research = freeResearch.thread;
