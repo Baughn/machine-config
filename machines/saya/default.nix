@@ -18,6 +18,7 @@
     ./agent-client.nix
     ./agent-printer.nix
     ./agent-ship.nix
+    ./irc-relay.nix
     # gpu-unlock doesn't support the RTX 50 series (Baughn, msg 1569435737986957353).
     #./gpu-unlock.nix
   ];

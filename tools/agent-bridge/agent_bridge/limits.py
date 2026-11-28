@@ -52,6 +52,9 @@ class Breaker:
         """Record a turn start. False (and tripped) if over the limit."""
         return self._record(self._turns, now, [(3600, self.limits.turns_per_hour, "turns per hour")])
 
+    def turns_in_hour(self, now: float) -> int:
+        return self._count(self._turns, now, 3600)
+
     def post(self, now: float) -> bool:
         return self._record(self._posts, now, [(60, self.limits.posts_per_minute, "posts per minute"),
                                                (3600, self.limits.posts_per_hour, "posts per hour")])

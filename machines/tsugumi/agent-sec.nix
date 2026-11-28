@@ -58,6 +58,23 @@ let
     (builtins.readFile ./agent-sec-inventory.py);
   # The home ISP's whole range (Baughn: "deny the entire ISP"): 2001:bb6::/32 (NGA/eir, what
   # tsugumi and saya have now) and 2a02:8080::/29 (Virgin Media Ireland, the older prefix in lan.nix).
+  # Kim's IRC, relayed by saya over wg1 (machines/saya/irc-relay.nix; Baughn, msgs
+  # 1576045252958101748, 1576046647262183506): the unit may reach saya, and the nft table below
+  # narrows that to the relay's port (IPAddressAllow can't name ports; saya runs other services).
+  ircRelay = { host = "10.171.0.6"; port = 6667; };
+  ircFence = pkgs.writeText "${id}-irc-fence.nft" ''
+    destroy table inet ${lib.replaceStrings [ "-" ] [ "_" ] id}_irc
+    table inet ${lib.replaceStrings [ "-" ] [ "_" ] id}_irc {
+      chain output {
+        type filter hook output priority -10; policy accept;
+        meta skuid "${user}" ip daddr ${ircRelay.host} jump relay
+      }
+      chain relay {
+        tcp dport ${toString ircRelay.port} return
+        reject
+      }
+    }
+  '';
   denied = [
     "localhost" "link-local" "multicast"
     "10.0.0.0/8" "172.16.0.0/12" "192.168.0.0/16" "100.64.0.0/10" "fc00::/7"
@@ -119,7 +136,16 @@ lib.mkIf ready {
     extraDirs = [ inventory sourcesDir ];
     # A fresh session for most runs (every 4 h): whatever it read earlier doesn't ride along.
     idleReset = 2 * 3600;
-    limits = { posts_per_minute = 3; posts_per_hour = 12; turns_per_hour = 6; };
+    # turns_per_hour 6 -> 8 with IRC: its wakes (4/h) must leave 2 for the rest.
+    limits = { posts_per_minute = 3; posts_per_hour = 12; turns_per_hour = 8; };
+    # Talks with Kim's agents about how agents interact and keep memories; a mention wakes it.
+    irc = {
+      inherit (ircRelay) host port;
+      channel = "#garibaldi";
+      nick = "Garibaldi";
+      wakeOnMention = true;
+      wakesPerHour = 4;
+    };
     permissionMode = "dontAsk";
     model = "claude-opus-5-5";
     allow = [
@@ -171,11 +197,16 @@ lib.mkIf ready {
       LockPersonality = true;
       IPAddressDeny = denied;
       # resolved's stub; nss-resolve talks varlink anyway.
-      IPAddressAllow = [ "127.0.0.53" ];
+      IPAddressAllow = [ "127.0.0.53" "${ircRelay.host}/32" ];
       MemoryMax = "8G";
       CPUQuota = "200%";
     };
   };
+
+  # Independent of the firewall's own tables, like local-web-access.nix: kept across reloads.
+  networking.firewall.extraCommands = ''
+    ${pkgs.nftables}/bin/nft -f ${ircFence}
+  '';
 
   systemd.services."${id}-inventory" = {
     description = "Inventory for the security watch (${id})";

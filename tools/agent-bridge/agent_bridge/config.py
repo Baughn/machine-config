@@ -8,6 +8,7 @@ from pathlib import Path
 import tomllib
 from typing import Any
 
+from .irc import IrcConfig
 from .sources import SourcesConfig
 
 ROLES = ("owner", "admin", "agent")
@@ -15,6 +16,9 @@ DEFAULT_MODEL = "default"  # the model tool's name for config.model (None: the C
 MODES = ("default", "auto", "acceptEdits", "plan", "dontAsk")
 EFFORT_LEVELS = ("low", "medium", "high", "xhigh", "max")
 BASE_EFFORT = "medium"  # every turn starts here; the default on Opus 5.5
+
+
+IRC_TURN_RESERVE = 2  # turns per hour IRC wakes leave for everything else (bridge.poll_irc)
 
 
 class ConfigError(ValueError):
@@ -134,6 +138,7 @@ class Config:
     idle_reset: float = 6 * 3600  # seconds without a turn before a handoff and new session; 0: never
     board: Board | None = None
     sources: SourcesConfig | None = None  # the fetch_source/package_source tools
+    irc: IrcConfig | None = None  # one IRC channel and the irc_read/irc_send tools (irc.py)
     limits: Limits = field(default_factory=Limits)
     fake: bool = False
 
@@ -229,6 +234,27 @@ def _sources_tools(value: Any) -> SourcesConfig | None:
                          system=str(value.get("system", "x86_64-linux")))
 
 
+IRC_KEYS = {"host", "port", "channel", "nick", "wake_on_mention", "wakes_per_hour", "quiet", "max_wait",
+            "sends_per_turn", "sends_per_hour"}
+
+
+def _irc(value: Any) -> IrcConfig | None:
+    if not value:
+        return None
+    if not isinstance(value, dict) or not {"host", "port", "channel", "nick"} <= set(value):
+        raise ConfigError("irc needs host, port, channel and nick")
+    if unknown := set(value) - IRC_KEYS:
+        raise ConfigError(f"irc: unknown keys {sorted(unknown)}")
+    irc = IrcConfig(**value)
+    if not irc.channel.startswith("#") or any(c in irc.channel for c in " ,\x07"):
+        raise ConfigError("irc channel must be one #channel")
+    if not irc.nick or any(c in irc.nick for c in " :!@#\r\n") or len(irc.nick) > 30:
+        raise ConfigError("irc nick is not a valid nick")
+    if irc.wakes_per_hour < 0 or irc.sends_per_turn < 1 or irc.sends_per_hour < 1:
+        raise ConfigError("irc limits must be positive")
+    return irc
+
+
 def parse(data: dict[str, Any], state: Path) -> Config:
     limits = Limits(**data.get("limits", {}))
     config = Config(
@@ -271,6 +297,7 @@ def parse(data: dict[str, Any], state: Path) -> Config:
         trigger_writers=_writers(data.get("trigger_writers", {})),
         board=_board(data.get("board")),
         sources=_sources_tools(data.get("sources")),
+        irc=_irc(data.get("irc")),
     )
     validate(config)
     return config
@@ -303,6 +330,10 @@ def validate(config: Config) -> None:
         raise ConfigError("trigger_writers must name trigger_sources")
     if bool(config.trigger_writers) != (config.shared_spool is not None):
         raise ConfigError("shared_spool and trigger_writers go together")
+    if config.irc is not None and config.irc.wake_on_mention \
+            and config.irc.wakes_per_hour + IRC_TURN_RESERVE > config.limits.turns_per_hour:
+        raise ConfigError(f"irc wakes_per_hour must leave {IRC_TURN_RESERVE} of limits.turns_per_hour "
+                          "for other turns, so IRC can't trip the breaker")
     if config.owner_only and (config.triggers != {"owner"} or config.approvers != {"owner"}):
         raise ConfigError("owner_only requires triggers = approvers = [owner]")
     workdir = config.workdir.resolve()

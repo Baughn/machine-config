@@ -61,11 +61,17 @@ def run(config: Config) -> None:
                           effort_levels=config.effort_levels, board=board is not None,
                           sources=config.sources is not None, alt_model=config.alt_model,
                           read_channels=config.read_channels,
+                          irc=config.irc.channel if config.irc is not None else None,
                           auto_memory=board is None)
+
+    irc = None
+    if config.irc is not None:
+        from .irc import IrcClient
+        irc = IrcClient(config.irc, config.state / "irc.log")
 
     unit_file = Path(f"/etc/systemd/system/agent-bridge-{config.id}.service")
     chat.bridge = Bridge(config, chat, session, tokens=tuple(t for t in (discord_token, claude_token, board_token) if t),
-                         board=board, unit_file=unit_file)
+                         board=board, unit_file=unit_file, irc=irc)
     chat.client.run(discord_token, log_handler=None)
     if chat.failed:
         sys.exit(1)

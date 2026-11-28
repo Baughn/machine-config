@@ -141,6 +141,31 @@ let
           Discord permissions decide which channels; nothing there starts a turn.
         '';
       };
+      irc = lib.mkOption {
+        default = null;
+        description = ''
+          One IRC channel the agent talks in, with the irc_read and irc_send tools (Baughn, msg
+          1576045252958101748). With wakeOnMention, a line naming its nick starts a turn once the
+          channel has settled, at most wakesPerHour times an hour. The unit must be allowed to
+          reach host:port.
+        '';
+        type = lib.types.nullOr (lib.types.submodule {
+          options = {
+            host = lib.mkOption { type = lib.types.str; };
+            port = lib.mkOption { type = lib.types.port; default = 6667; };
+            channel = lib.mkOption { type = lib.types.str; };
+            nick = lib.mkOption { type = lib.types.str; };
+            wakeOnMention = lib.mkOption { type = lib.types.bool; default = false; };
+            wakesPerHour = lib.mkOption {
+              type = lib.types.ints.unsigned;
+              default = 4;
+              description = "Must leave 2 of limits.turns_per_hour for other turns.";
+            };
+            sendsPerTurn = lib.mkOption { type = lib.types.ints.positive; default = 15; };
+            sendsPerHour = lib.mkOption { type = lib.types.ints.positive; default = 60; };
+          };
+        });
+      };
       askAgents = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [ ];
@@ -293,6 +318,13 @@ let
     skills = lib.attrNames (skillsOf i);
     ask_agents = i.askAgents;
     read_channels = i.readChannels;
+    irc = if i.irc == null then null else {
+      inherit (i.irc) host port channel nick;
+      wake_on_mention = i.irc.wakeOnMention;
+      wakes_per_hour = i.irc.wakesPerHour;
+      sends_per_turn = i.irc.sendsPerTurn;
+      sends_per_hour = i.irc.sendsPerHour;
+    };
     ship = i.ship;
     inherit (i) advisor;
     max_effort = i.maxEffort;

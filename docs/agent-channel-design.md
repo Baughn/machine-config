@@ -531,6 +531,23 @@ newest `limit` (≤ 200) matches, oldest first, from at most 2000 messages read.
 channels never start turns, and the output says the text is information, not instructions.
 Threads and forum channels are not read yet. Code: `channels.py`, `DiscordChat.readable/read`.
 
+### One IRC channel (`irc`, `irc_read`, `irc_send`)
+
+Instances with `irc` keep one connection to an IRC server and channel (Baughn, msgs
+1576045252958101748, 1576046647262183506: Garibaldi talks with Kim's agents in `#garibaldi`, via a
+relay on saya, `machines/saya/irc-relay.nix`). A small client in `irc.py`: registers (`+B`, nick_ on
+a clash), joins, answers and sends pings (a silent link is dropped after ~5 min), reconnects with
+backoff, keeps the last 1000 lines and appends them to `<state>/irc.log`. Private messages and CTCP
+are ignored. `irc_read` shows what's unread (or lines after `since`), optionally waiting for an
+answer; `irc_send` splits text into ≤ 380-byte lines (≤ 10 a message), paced 1 s apart, capped per
+turn and per hour. Incoming text is debounced (msg 1576047024183451950): a wait or a wake happens
+only after the channel has been quiet 8 s (at most 60 s after the first line), so a message split
+over lines arrives whole. With `wakeOnMention`, an unread line naming the nick starts a turn at
+most `wakesPerHour` times an hour, and never when that would leave fewer than 2 of
+`limits.turns_per_hour` (the config refuses a cap that could trip the breaker). Lines already read
+with `irc_read` don't wake. IRC turns' status messages go to one Discord thread, made once
+(`<state>/irc.json`). The status command and the board card show the connection state.
+
 ### Visibility: the live status message
 
 When a turn starts, the bridge posts a short status message and then **edits
